@@ -1,0 +1,104 @@
+BINFO_APP_NAME=clr
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_SUBDIR_BASENAME=
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/clr"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm-Developer-Tools/clr
+#use rocm version specific default git tag
+#BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-5.7.1
+
+HIP_SRC_DIR=${SDK_SRC_ROOT_DIR}/HIP
+OPENCL_SRC_DIR=${BINFO_APP_SRC_DIR}/opencl
+ROCCLR_SRC_DIR=${BINFO_APP_SRC_DIR}/rocclr
+HIPCC_SRC_BIN_DIR=${SDK_SRC_ROOT_DIR}/hipcc/bin
+
+BINFO_APP_PRE_CONFIG_CMD_EXECUTE_ALWAYS=1
+BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
+    "unset CXX"
+)
+
+#TODO CHECK: -DUSE_COMGR_LIBRARY=ON?
+CFG_TEMP1=-DOFFLOAD_ARCH_STR="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
+CFG_TEMP2=-DHIP_COMMON_DIR="${HIP_SRC_DIR}"
+CFG_TEMP3=-DAMD_OPENCL_PATH="${OPENCL_SRC_DIR}"
+#CFG_TEMP4=-DROCCLR_DIR="${ROCCLR_SRC_DIR}"
+CFG_TEMP5=-DHIPCC_BIN_DIR="${HIPCC_SRC_BIN_DIR}"
+CFG_TEMP6="-DCLR_BUILD_HIP=ON -DCLR_BUILD_OCL=ON"
+CFG_TEMP7=-DCMAKE_PREFIX_PATH="${INSTALL_DIR_PREFIX_SDK_ROOT}"
+CFG_TEMP8=-DCMAKE_INSTALL_PREFIX="${INSTALL_DIR_PREFIX_SDK_ROOT}"
+
+BINFO_APP_CMAKE_CFG="${CFG_TEMP1}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP2}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP3}"
+#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP4}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP5}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP6}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP7}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP8}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
+
+BINFO_APP_POST_INSTALL_CMD_ARRAY=(
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/FindHIP ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/FindHIP; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/FindHIP.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/FindHIP.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-amd.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-amd.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-amd.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-amd.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-nvidia.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-nvidia.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-nvidia.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-nvidia.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-config-version.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-release.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-release.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-release.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-release.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-debug.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-debug.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-debug.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-debug.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-relwithdebinfo.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-relwithdebinfo.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-relwithdebinfo.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip/hip-targets-relwithdebinfo.cmake; fi"
+
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-config-version.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-release.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-release.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-release.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-release.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-debug.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-debug.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-debug.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-debug.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake; fi"
+
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc/hiprtc-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc/hiprtc-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc/hiprtc-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/hiprtc/hiprtc-config-version.cmake; fi"
+
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/FindHIP ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/FindHIP; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/FindHIP.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/FindHIP.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/FindHIP.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-amd.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-amd.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-amd.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-amd.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-nvidia.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-nvidia.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-nvidia.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-nvidia.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-config-version.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-release.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-release.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-release.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-release.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-debug.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-debug.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-debug.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-debug.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-relwithdebinfo.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-relwithdebinfo.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip/hip-targets-relwithdebinfo.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip/hip-targets-relwithdebinfo.cmake; fi"
+
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-config-version.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-release.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-release.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-release.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-release.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-debug.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-debug.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-debug.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-debug.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hip-lang/hip-lang-targets-relwithdebinfo.cmake; fi"
+
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config.cmake; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config-version.cmake; fi"
+
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib64 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib64; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so; fi"
+
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so; fi"
+
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so; fi"
+
+    "install -Dm644 ${BINFO_APP_BUILD_DIR}/rocclr/librocclr.a ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocclr/lib/librocclr.a"
+    "rm -f ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/hipcc.bat"
+)
+
+#CFG_TEMP5=-DCMAKE_PREFIX_PATH="${INSTALL_DIR_PREFIX_HIP_LLVM};${INSTALL_DIR_PREFIX_HIP_CLANG};${INSTALL_DIR_PREFIX_SDK_ROOT}"
+#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -Damd_comgr_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/amd_comgr"
+#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_HIPIFY_CLANG=1"

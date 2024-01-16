@@ -1,0 +1,49 @@
+From 2f653c82ca31c570232db87fda8d55425758a0e2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 1 Dec 2023 14:15:10 -0800
+Subject: [PATCH 2/4] workaround OmpxDynCgroupMem missing member name 'v'
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+todo: could not find a real fix, worked around by commenting out the
+check
+
+flang/lib/Semantics/check-omp-structure.cpp:32:55:
+error: ‘const struct Fortran::parser::OmpClause::OmpxDynCgroupMem’
+has no member named ‘v’
+32 |     RequiresPositiveParameter(llvm::omp::Clause::Y, c.v);
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ flang/lib/Semantics/check-omp-structure.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/flang/lib/Semantics/check-omp-structure.cpp b/flang/lib/Semantics/check-omp-structure.cpp
+index 9794424e266d..a4c605ff3340 100644
+--- a/flang/lib/Semantics/check-omp-structure.cpp
++++ b/flang/lib/Semantics/check-omp-structure.cpp
+@@ -32,6 +32,11 @@ namespace Fortran::semantics {
+     RequiresPositiveParameter(llvm::omp::Clause::Y, c.v); \
+   }
+ 
++  #define CHECK_REQ_SCALAR_INT_CLAUSE_WORKAROUND(X, Y) \
++  void OmpStructureChecker::Enter(const parser::OmpClause::X &c) { \
++    CheckAllowed(llvm::omp::Clause::Y); \
++  }
++
+ // Use when clause don't falls under 'struct OmpClause' in 'parse-tree.h'.
+ #define CHECK_SIMPLE_PARSER_CLAUSE(X, Y) \
+   void OmpStructureChecker::Enter(const parser::X &) { \
+@@ -1902,7 +1907,7 @@ CHECK_REQ_SCALAR_INT_CLAUSE(Grainsize, OMPC_grainsize)
+ CHECK_REQ_SCALAR_INT_CLAUSE(NumTasks, OMPC_num_tasks)
+ CHECK_REQ_SCALAR_INT_CLAUSE(NumTeams, OMPC_num_teams)
+ CHECK_REQ_SCALAR_INT_CLAUSE(NumThreads, OMPC_num_threads)
+-CHECK_REQ_SCALAR_INT_CLAUSE(OmpxDynCgroupMem, OMPC_ompx_dyn_cgroup_mem)
++CHECK_REQ_SCALAR_INT_CLAUSE_WORKAROUND(OmpxDynCgroupMem, OMPC_ompx_dyn_cgroup_mem)
+ CHECK_REQ_SCALAR_INT_CLAUSE(Priority, OMPC_priority)
+ CHECK_REQ_SCALAR_INT_CLAUSE(ThreadLimit, OMPC_thread_limit)
+ 
+-- 
+2.41.0
+

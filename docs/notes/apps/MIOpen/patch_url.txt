@@ -1,0 +1,1 @@
+https://github.com/ROCm/MIOpen/compare/develop...atamazov:MIOpen:generalize-gfx10

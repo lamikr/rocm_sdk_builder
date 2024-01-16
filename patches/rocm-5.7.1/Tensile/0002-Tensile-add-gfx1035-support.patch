@@ -1,0 +1,50 @@
+From fedbc6ab144a8df54a7ab35f5fc7111ebd130e48 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 16 Jan 2024 05:58:15 -0800
+Subject: [PATCH 2/2] Tensile, add gfx1035 support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Tensile/Common.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/Tensile/Common.py b/Tensile/Common.py
+index 106e6ae7..25b71916 100644
+--- a/Tensile/Common.py
++++ b/Tensile/Common.py
+@@ -203,7 +203,7 @@ globalParameters["MaxFileName"] = 64              # If a file name would be long
+ globalParameters["SupportedISA"] = [(8,0,3),
+                                     (9,0,0), (9,0,6), (9,0,8), (9,0,10),
+                                     (9,4,0), (9,4,1), (9,4,2),
+-                                    (10,1,0), (10,1,1), (10,1,2), (10,3,0), (10,3,1),
++                                    (10,1,0), (10,1,1), (10,1,2), (10,3,0), (10,3,1), (10,3,5),
+                                     (11,0,0), (11,0,1), (11,0,2)] # assembly kernels writer supports these architectures
+ 
+ globalParameters["CleanupBuildFiles"] = False                     # cleanup build files (e.g. kernel assembly) once no longer needed
+@@ -298,6 +298,7 @@ CACHED_ASM_CAPS = {
+   (10, 1, 2): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': True, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': False, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': True, 'VOP3v_dot4_i32_i8': True, 'v_mac_f32': True, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': False, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+   (10, 3, 0): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': True, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': False, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': True, 'VOP3v_dot4_i32_i8': True, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': False, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+   (10, 3, 1): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': True, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': False, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': True, 'VOP3v_dot4_i32_i8': True, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': False, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
++  (10, 3, 5): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': True, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': False, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': True, 'VOP3v_dot4_i32_i8': True, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': False, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+   (11, 0, 0): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': False, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': True, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': False, 'VOP3v_dot4_i32_i8': False, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': True, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+   (11, 0, 1): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': False, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': True, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': False, 'VOP3v_dot4_i32_i8': False, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': True, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+   (11, 0, 2): {'SupportedISA': True, 'HasExplicitCO': True, 'HasExplicitNC': True, 'HasDirectToLdsDest': False, 'HasDirectToLdsNoDest': False, 'HasAddLshl': True, 'HasLshlOr': True, 'HasSMulHi': True, 'HasWMMA': True, 'HasMFMA': False, 'HasMFMA_vgpr': False, 'HasMFMA_f64': False, 'HasMFMA_bf16_original': False, 'HasMFMA_bf16_1k': False, 'HasMFMA_xf32': False, 'HasMFMA_f8': False, 'HasMFMA_b8': False, 'HasMFMA_i8_908': False, 'HasMFMA_i8_940': False, 'v_mac_f16': False, 'v_fma_f16': True, 'v_fmac_f16': False, 'v_pk_fma_f16': True, 'v_pk_fmac_f16': False, 'v_mad_mix_f32': False, 'v_fma_mix_f32': True, 'v_dot2_f32_f16': True, 'v_dot2c_f32_f16': True, 'v_dot4_i32_i8': False, 'v_dot4c_i32_i8': False, 'VOP3v_dot4_i32_i8': False, 'v_mac_f32': False, 'v_fma_f32': True, 'v_fmac_f32': True, 'v_fma_f64': True, 'HasAtomicAdd': True, 'HasGLCModifier': True, 'MaxVmcnt': 63, 'MaxLgkmcnt': 15, 'SupportedSource': True},
+@@ -1911,6 +1912,7 @@ def GetAsmCaps(isaVersion):
+     # check if derived caps matches asm cap cache
+     if not ignoreCacheCheck and derivedAsmCaps != CACHED_ASM_CAPS[isaVersion]:
+       printExit("Cached asm caps differ from derived asm caps for {}".format(isaVersion))      
++    print("Cached asm caps ok, isaVersion {}, ROCm: {}".format(isaVersion, globalParameters['HipClangVersion']))
+     return derivedAsmCaps
+   else:
+     printWarning("Assembler not present, asm caps loaded from cache are unverified")
+@@ -2199,7 +2201,6 @@ def assignGlobalParameters( config ):
+   for v in globalParameters["SupportedISA"] + [(0,0,0)]:
+     globalParameters["AsmCaps"][v] = GetAsmCaps(v)
+     globalParameters["ArchCaps"][v] = GetArchCaps(v)
+-
+   if globalParameters["PrintLevel"] >= 1:
+     printCapTable(globalParameters)
+ 
+-- 
+2.41.0
+

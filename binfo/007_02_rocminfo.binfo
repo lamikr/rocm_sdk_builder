@@ -1,0 +1,20 @@
+BINFO_APP_NAME=rocminfo
+BINFO_APP_SRC_SUBDIR_BASENAME=
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/RadeonOpenCompute/rocminfo.git
+#use default git tag
+#BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-5.7.1
+
+BINFO_APP_CMAKE_CFG="-DROCM_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_PREFIX_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DSDK_SRC_ROOT_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
+
+# target.lst needed because hipcc uses in some cases rocminfo/rocm_agent_enumerator to find out the build target gpu list (while building hip test apps for example)
+BINFO_APP_POST_INSTALL_CMD_ARRAY=(
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/target.lst ]; then if [ -v LF_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then echo \"\${LF_SEPARATED_GPU_TARGET_LIST_DEFAULT}\" >> \${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/target.lst; fi fi"
+
+)
+#"if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/target.lst ]; then if [ -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then read -ra arr <<<\"${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT}\"; for a in \${arr[@]}; do echo \$a >> \${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/target.lst; done fi fi"

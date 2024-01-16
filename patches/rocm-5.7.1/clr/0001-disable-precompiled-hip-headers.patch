@@ -1,0 +1,26 @@
+From b0bb06c1a88038f987a39a9ce6af81a71b047475 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 5 Jan 2024 03:45:34 +0200
+Subject: [PATCH] disable precompiled hip headers
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ hipamd/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hipamd/CMakeLists.txt b/hipamd/CMakeLists.txt
+index 272ebca35..6a2cdd639 100755
+--- a/hipamd/CMakeLists.txt
++++ b/hipamd/CMakeLists.txt
+@@ -44,7 +44,7 @@ list(APPEND CMAKE_MODULE_PATH ${HIP_COMMON_DIR}/cmake)
+ # Options
+ #############################
+ option(BUILD_HIPIFY_CLANG "Enable building the CUDA->HIP converter" OFF)
+-option(__HIP_ENABLE_PCH "Enable/Disable pre-compiled hip headers" ON)
++option(__HIP_ENABLE_PCH "Enable/Disable pre-compiled hip headers" OFF)
+ option(HIP_OFFICIAL_BUILD "Enable/Disable for mainline/staging builds" ON)
+ # Disable file reorg backward compatibility for ASAN packaging
+ if(NOT ENABLE_ASAN_PACKAGING)
+-- 
+2.41.0
+

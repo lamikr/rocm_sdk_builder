@@ -1,0 +1,47 @@
+/opt/rocm_sdk_571/lib/python3.9/site-packages/torchvision-0.17.0a0+d25933e-py3.9-linux-x86_64.egg/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=ResNet101_Weights.IMAGENET1K_V1`. You can also use `weights=ResNet101_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Benchmarking Training float precision type resnet101 
+<inline asm>:14:20: error: not a valid operand.
+v_add_f32 v4 v4 v4 row_bcast:15 row_mask:0xa
+                   ^
+<inline asm>:15:20: error: not a valid operand.
+v_add_f32 v3 v3 v3 row_bcast:15 row_mask:0xa
+                   ^
+<inline asm>:17:20: error: not a valid operand.
+v_add_f32 v4 v4 v4 row_bcast:31 row_mask:0xc
+                   ^
+<inline asm>:18:20: error: not a valid operand.
+v_add_f32 v3 v3 v3 row_bcast:31 row_mask:0xc
+                   ^
+MIOpen(HIP): Error [Do] 'amd_comgr_do_action(kind, handle, in.GetHandle(), out.GetHandle())' AMD_COMGR_ACTION_CODEGEN_BC_TO_RELOCATABLE: ERROR (1)
+MIOpen(HIP): Error [BuildOcl] comgr status = ERROR (1)
+MIOpen(HIP): Warning [BuildOcl] error: cannot compile inline asm
+error: cannot compile inline asm
+error: cannot compile inline asm
+error: cannot compile inline asm
+4 errors generated.
+
+MIOpen Error: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/MIOpen/src/hipoc/hipoc_program.cpp:304: Code object build failed. Source: MIOpenBatchNormFwdTrainSpatial.cl
+Traceback (most recent call last):
+  File "/home/lamikr/own/rocm/src/ml_models/pytorch/pytorch-gpu-benchmark/benchmark_models_torchvision_013.py", line 259, in <module>
+    train_result = train(precision)
+  File "/home/lamikr/own/rocm/src/ml_models/pytorch/pytorch-gpu-benchmark/benchmark_models_torchvision_013.py", line 161, in train
+    prediction = model(img.to("cuda"))
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torchvision-0.17.0a0+d25933e-py3.9-linux-x86_64.egg/torchvision/models/resnet.py", line 285, in forward
+    return self._forward_impl(x)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torchvision-0.17.0a0+d25933e-py3.9-linux-x86_64.egg/torchvision/models/resnet.py", line 269, in _forward_impl
+    x = self.bn1(x)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1511, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1520, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/modules/batchnorm.py", line 175, in forward
+    return F.batch_norm(
+  File "/opt/rocm_sdk_571/lib/python3.9/site-packages/torch/nn/functional.py", line 2509, in batch_norm
+    return torch.batch_norm(
+RuntimeError: miopenStatusUnknownError
+

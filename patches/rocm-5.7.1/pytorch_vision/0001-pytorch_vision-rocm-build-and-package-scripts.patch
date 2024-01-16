@@ -1,0 +1,48 @@
+From 2ab79616486150fd638d8db0b808a408a478583b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 11 Dec 2023 09:18:53 -0800
+Subject: [PATCH] pytorch_vision rocm build and package scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_pytorch_vision_rocm.sh         | 12 ++++++++++++
+ package_pytorch_vision_rocm_wheel.sh |  8 ++++++++
+ 2 files changed, 20 insertions(+)
+ create mode 100755 build_pytorch_vision_rocm.sh
+ create mode 100755 package_pytorch_vision_rocm_wheel.sh
+
+diff --git a/build_pytorch_vision_rocm.sh b/build_pytorch_vision_rocm.sh
+new file mode 100755
+index 0000000000..48aec75a5c
+--- /dev/null
++++ b/build_pytorch_vision_rocm.sh
+@@ -0,0 +1,12 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++#export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++#export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++export CMAKE_C_COMPILER=gcc
++export CMAKE_CXX_COMPILER=g++
++ROCM_PATH=${install_dir_prefix_rocm} FORCE_CUDA=1 TORCHVISION_USE_NVJPEG=0 TORCHVISION_USE_VIDEO_CODEC=0 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
+diff --git a/package_pytorch_vision_rocm_wheel.sh b/package_pytorch_vision_rocm_wheel.sh
+new file mode 100755
+index 0000000000..801efa549d
+--- /dev/null
++++ b/package_pytorch_vision_rocm_wheel.sh
+@@ -0,0 +1,8 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++FORCE_CUDA=1 TORCHVISION_USE_NVJPEG=0 TORCHVISION_USE_VIDEO_CODEC=0 CC=gcc CXX=g++ python setup.py bdist_wheel
+-- 
+2.41.0
+

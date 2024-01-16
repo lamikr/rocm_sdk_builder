@@ -1,0 +1,41 @@
+From 15e4c864b8b2b189bad34dceac9508c797abc065 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 7 Jan 2024 14:51:27 +0200
+Subject: [PATCH 2/4] ROCM_SOURCE_DIR detection fix
+
+ROCM_SOURCE_DIR is required by
+by module third_party/kineto
+and was not set correctly if rocm is not
+installed to default /opt/rocm directory.
+Without this Kineto fails to build because it can not
+find roctracer.h header file.
+
+usage:
+ROCM_PATH=/opt/rocm_571 ROCM_SOURCE_DIR=/opt/rocm_571 CMAKE_PREFIX_PATH=/opt/rocm_571 HIP_ROOT_DIR=/opt/rocm_571 ROCM_VERSION=05701 USE_ROCM=1 python setup.py install
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/Dependencies.cmake | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
+index 4ba9bd44f50..ed49a848dbe 100644
+--- a/cmake/Dependencies.cmake
++++ b/cmake/Dependencies.cmake
+@@ -1919,10 +1919,12 @@ if(USE_KINETO)
+   endif()
+ 
+   if(NOT LIBKINETO_NOROCTRACER)
+-    if(NOT ENV{ROCM_SOURCE_DIR})
++    if(NOT DEFINED ENV{ROCM_SOURCE_DIR})
+       set(ENV{ROCM_SOURCE_DIR} "/opt/rocm")
++      message(WARNING " ROCM_SOURCE_DIR not defined, using default value: $ENV{ROCM_SOURCE_DIR}")
+     endif()
+   endif()
++  message(STATUS " ROCM_SOURCE_DIR: $ENV{ROCM_SOURCE_DIR}")
+ 
+   if(NOT TARGET kineto)
+     add_subdirectory("${KINETO_SOURCE_DIR}")
+-- 
+2.41.0
+

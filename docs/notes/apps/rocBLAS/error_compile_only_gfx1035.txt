@@ -1,0 +1,482 @@
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS
+configuring: rocBLAS
+BINFO_APP_CMAKE_CFG: -DCMAKE_PREFIX_PATH=/opt/rocm_sdk_571 -DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake -DROCM_DIR:PATH=/opt/rocm_sdk_571 -DCMAKE_INSTALL_PREFIX=/opt/rocm_sdk_571 -DROCM_PATH=/opt/rocm_sdk_571 -DCMAKE_PREFIX_PATH:PATH=/opt/rocm_sdk_571 -DAMDGPU_TARGETS=gfx1035 -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--disable-new-dtags -DTensile_CODE_OBJECT_VERSION=default -DTensile_LOGIC=asm_full -DTensile_SEPARATE_ARCHITECTURES=ON -DTensile_LAZY_LIBRARY_LOADING=ON -DTensile_MERGE_FILES=ON -DTensile_LIBRARY_FORMAT=msgpack -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON -DTensile_TEST_LOCAL_PATH=/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile -DCMAKE_C_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DCMAKE_CXX_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DRUN_HEADER_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENTS_SAMPLES=OFF -DBUILD_CLIENTS_TESTS=OFF -DBUILD_CLIENTS_BENCHMARKS=OFF /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS
+BINFO_APP_CMAKE_CFG: -DCMAKE_BUILD_TYPE=Release  -DCMAKE_PREFIX_PATH=/opt/rocm_sdk_571 -DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake -DROCM_DIR:PATH=/opt/rocm_sdk_571 -DCMAKE_INSTALL_PREFIX=/opt/rocm_sdk_571 -DROCM_PATH=/opt/rocm_sdk_571 -DCMAKE_PREFIX_PATH:PATH=/opt/rocm_sdk_571 -DAMDGPU_TARGETS=gfx1035 -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--disable-new-dtags -DTensile_CODE_OBJECT_VERSION=default -DTensile_LOGIC=asm_full -DTensile_SEPARATE_ARCHITECTURES=ON -DTensile_LAZY_LIBRARY_LOADING=ON -DTensile_MERGE_FILES=ON -DTensile_LIBRARY_FORMAT=msgpack -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON -DTensile_TEST_LOCAL_PATH=/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile -DCMAKE_C_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DCMAKE_CXX_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DRUN_HEADER_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENTS_SAMPLES=OFF -DBUILD_CLIENTS_TESTS=OFF -DBUILD_CLIENTS_BENCHMARKS=OFF /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS
+Configuring rocBLAS
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/rocm_sdk_571 -DCMAKE_TOOLCHAIN_FILE=toolchain-linux.cmake -DROCM_DIR:PATH=/opt/rocm_sdk_571 -DCMAKE_INSTALL_PREFIX=/opt/rocm_sdk_571 -DROCM_PATH=/opt/rocm_sdk_571 -DCMAKE_PREFIX_PATH:PATH=/opt/rocm_sdk_571 -DAMDGPU_TARGETS=gfx1035 -DCMAKE_SHARED_LINKER_FLAGS=-Wl,--disable-new-dtags -DTensile_CODE_OBJECT_VERSION=default -DTensile_LOGIC=asm_full -DTensile_SEPARATE_ARCHITECTURES=ON -DTensile_LAZY_LIBRARY_LOADING=ON -DTensile_MERGE_FILES=ON -DTensile_LIBRARY_FORMAT=msgpack -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON -DTensile_TEST_LOCAL_PATH=/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile -DCMAKE_C_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DCMAKE_CXX_COMPILER=/opt/rocm_sdk_571/bin/hipcc -DRUN_HEADER_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_CLIENTS_SAMPLES=OFF -DBUILD_CLIENTS_TESTS=OFF -DBUILD_CLIENTS_BENCHMARKS=OFF /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS
+-- The CXX compiler identification is Clang 17.0.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /opt/rocm_sdk_571/bin/hipcc - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+Use of uninitialized value $DEVICE_LIB_PATH in concatenation (.) or string at /opt/rocm_sdk_571/bin//hipcc.pl line 192.
+-- Use hip-clang to build for amdgpu backend
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- OS detected is mageia
+-- Performing Test COMPILER_HAS_TARGET_ID_gfx1035
+-- Performing Test COMPILER_HAS_TARGET_ID_gfx1035 - Success
+/opt/rocm_sdk_571/bin/python3 -m venv /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv --system-site-packages --clear
+virtualenv python version: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/bin/python3
+Python 3.9.18
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/bin/python3 -m pip install /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile
+Processing /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Requirement already satisfied: pyyaml in /opt/rocm_sdk_571/lib/python3.9/site-packages (from Tensile==4.38.0) (5.4.1)
+Collecting msgpack
+  Using cached msgpack-1.0.7-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (530 kB)
+Requirement already satisfied: joblib in /opt/rocm_sdk_571/lib/python3.9/site-packages (from Tensile==4.38.0) (1.3.2)
+Installing collected packages: msgpack, Tensile
+  DEPRECATION: Tensile is being installed using the legacy 'setup.py install' method, because it does not have a 'pyproject.toml' and the 'wheel' package is not installed. pip 23.1 will enforce this behaviour change. A possible replacement is to enable the '--use-pep517' option. Discussion can be found at https://github.com/pypa/pip/issues/8559
+  Running setup.py install for Tensile: started
+  Running setup.py install for Tensile: finished with status 'done'
+Successfully installed Tensile-4.38.0 msgpack-1.0.7
+
+[notice] A new release of pip is available: 23.0.1 -> 23.3.2
+[notice] To update, run: python3 -m pip install --upgrade pip
+-- using local Tensile from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/Tensile, copied to 
+-- Adding /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv to CMAKE_PREFIX_PATH
+-- The C compiler identification is Clang 17.0.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /opt/rocm_sdk_571/bin/hipcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- hip::amdhip64 is SHARED_LIBRARY
+-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS
+-- Performing Test HIP_CLANG_SUPPORTS_PARALLEL_JOBS - Success
+-- /opt/rocm_sdk_571/bin/hipcc: CLANGRT compiler options not supported.
+-- hip::amdhip64 is SHARED_LIBRARY
+-- /opt/rocm_sdk_571/bin/hipcc: CLANGRT compiler options not supported.
+-- Using AMDGPU_TARGETS: gfx1035
+-- Tensile script: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/lib/python3.9/site-packages/Tensile/bin/TensileCreateLibrary
+-- Tensile_CREATE_COMMAND: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/lib/python3.9/site-packages/Tensile/bin/TensileCreateLibrary;--merge-files;--separate-architectures;--lazy-library-loading;--no-short-file-names;--no-library-print-debug;--code-object-version=default;--cxx-compiler=hipcc;--library-format=msgpack;--architecture=gfx1035;/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full;/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/Tensile;HIP
+-- Tensile_MANIFEST_FILE_PATH: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/Tensile/library/TensileManifest.txt
+'/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/lib/python3.9/site-packages/Tensile/bin/TensileCreateLibrary' '--merge-files' '--separate-architectures' '--lazy-library-loading' '--no-short-file-names' '--no-library-print-debug' '--code-object-version=default' '--cxx-compiler=hipcc' '--library-format=msgpack' '--architecture=gfx1035' '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full' '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/Tensile' 'HIP' '--generate-manifest-and-exit'
+
+################################################################################
+# Tensile Create Library
+Tensile::WARNING: Did not detect SupportedISA: [(8, 0, 3), (9, 0, 0), (9, 0, 6), (9, 0, 8), (9, 0, 10), (9, 4, 0), (9, 4, 1), (9, 4, 2), (10, 1, 0), (10, 1, 1), (10, 1, 2), (10, 3, 0), (10, 3, 1), (11, 0, 0), (11, 0, 1), (11, 0, 2)]; cannot benchmark assembly kernels.
+Use of uninitialized value $DEVICE_LIB_PATH in concatenation (.) or string at /opt/rocm_sdk_571/bin//hipcc.pl line 192.
+# Found  hipcc version 5.7.31921-55c2b975f
+                  cap gfx000 gfx803 gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 
+      HasMFMA_bf16_1k      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+       HasMFMA_i8_908      0      0      0      0      1      1      0      0      0       0       0       0       0       0       0       0       0 
+       HasMFMA_i8_940      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+           HasAddLshl      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+         HasAtomicAdd      0      0      0      0      1      1      1      1      1       0       0       0       0       0       1       1       1 
+   HasDirectToLdsDest      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+ HasDirectToLdsNoDest      0      1      1      1      1      1      1      1      1       1       1       1       1       1       0       0       0 
+        HasExplicitCO      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        HasExplicitNC      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+       HasGLCModifier      0      1      1      1      1      1      0      0      0       1       1       1       1       1       1       1       1 
+            HasLshlOr      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+              HasMFMA      0      0      0      0      1      1      1      1      1       0       0       0       0       0       0       0       0 
+            HasSMulHi      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+              HasWMMA      0      0      0      0      0      0      0      0      0       0       0       0       0       0       1       1       1 
+           MaxLgkmcnt      1      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+             MaxVmcnt      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+         SupportedISA      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+      SupportedSource      1      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           HasMFMA_b8      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+       v_dot2_f32_f16      0      0      0      1      1      1      1      1      1       0       1       1       1       1       1       1       1 
+      v_dot2c_f32_f16      0      0      0      0      1      1      1      1      1       0       1       1       1       1       1       1       1 
+            v_fma_f16      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           v_fmac_f16      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+            v_mac_f16      0      1      1      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+         v_pk_fma_f16      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        v_pk_fmac_f16      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+            v_fma_f32      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        v_fma_mix_f32      0      0      0      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           v_fmac_f32      0      0      0      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+            v_mac_f32      0      1      1      1      1      1      0      0      0       1       1       1       0       0       0       0       0 
+        v_mad_mix_f32      0      0      1      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+          HasMFMA_f64      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+            v_fma_f64      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           HasMFMA_f8      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+    VOP3v_dot4_i32_i8      0      0      0      1      1      1      1      1      1       0       1       1       1       1       0       0       0 
+        v_dot4_i32_i8      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+       v_dot4c_i32_i8      0      0      0      0      1      1      1      1      1       0       1       1       1       1       0       0       0 
+HasMFMA_bf16_original      0      0      0      0      1      1      0      0      0       0       0       0       0       0       0       0       0 
+         HasMFMA_vgpr      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+         HasMFMA_xf32      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+   ArchAccUnifiedRegs      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+       CMPXWritesSGPR      1      1      1      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+        CrosslaneWait      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+        ForceStoreSC1      0      0      0      0      0      0      0      1      1       0       0       0       0       0       0       0       0 
+             HasAccCD      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+           HasEccHalf      0      0      0      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+            HasWave32      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+           InstRename      0      0      0      0      0      0      0      0      0       0       0       0       0       0       1       1       1 
+        SeparateVscnt      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+             VgprBank      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+     Waitcnt0Disabled      0      0      0      0      1      1      1      1      1       0       0       0       0       0       0       0       0 
+# CodeObjectVersion from TensileCreateLibrary: default
+# CxxCompiler       from TensileCreateLibrary: hipcc
+# Architecture      from TensileCreateLibrary: gfx1035
+# LibraryFormat     from TensileCreateLibrary: msgpack
+# LibraryLogicFiles:
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_ZB_GB.yaml
+Reading logic files: Launching 16 threads for 108 tasks...
+Reading logic files: Done.
+[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||] 100% (0.4 secs elapsed)
+-- *** NOTE: blas2/rocblas_ger_kernels.cpp is compiled with the verbose flag -v for QC purposes.
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+-- Found Doxygen: /usr/bin/doxygen (found version "1.9.7") found components: doxygen dot 
+-- Configuring done (26.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS
+configure ok: rocBLAS
+BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS: 
+
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS
+post-configuration rocBLAS
+no post-configuration commands
+post-configuration ok: rocBLAS
+
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS
+Building rocBLAS
+make -j12
+/usr/bin/cmake -P /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/CMakeFiles/VerifyGlobs.cmake
+/usr/bin/cmake -S/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS -B/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/CMakeFiles /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS//CMakeFiles/progress.marks
+make  -f CMakeFiles/Makefile2 all
+make[1]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make  -f library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/build.make library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/depend
+make  -f library/src/CMakeFiles/rocblas_device_malloc.dir/build.make library/src/CMakeFiles/rocblas_device_malloc.dir/depend
+make  -f library/src/CMakeFiles/rocblas_proto_templates.dir/build.make library/src/CMakeFiles/rocblas_proto_templates.dir/depend
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/DependInfo.cmake --color=
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src/CMakeFiles/rocblas_device_malloc.dir/DependInfo.cmake --color=
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src/CMakeFiles/rocblas_proto_templates.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make  -f library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/build.make library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/build
+make  -f library/src/CMakeFiles/rocblas_device_malloc.dir/build.make library/src/CMakeFiles/rocblas_device_malloc.dir/build
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make  -f library/src/CMakeFiles/rocblas_proto_templates.dir/build.make library/src/CMakeFiles/rocblas_proto_templates.dir/build
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make[2]: Entering directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+[  0%] Generating Tensile Libraries
+[  0%] Generating /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/include/rocblas/internal/rocblas_device_malloc.hpp
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src && ../../virtualenv/lib/python3.9/site-packages/Tensile/bin/TensileCreateLibrary --merge-files --separate-architectures --lazy-library-loading --no-short-file-names --no-library-print-debug --code-object-version=default --cxx-compiler=hipcc --library-format=msgpack --architecture=gfx1035 /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/Tensile HIP
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src && /usr/bin/cmake -E copy /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/include/rocblas_device_malloc.hpp /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/include/rocblas/internal/rocblas_device_malloc.hpp
+[  1%] Generating prototypes from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src.
+cd /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src && python3 template-proto.py /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas2/ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas1/ > /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/include/rocblas/internal/rocblas-exported-proto.hpp
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+[  1%] Built target rocblas_device_malloc
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+[  1%] Built target rocblas_proto_templates
+
+################################################################################
+# Tensile Create Library
+Tensile::WARNING: Did not detect SupportedISA: [(8, 0, 3), (9, 0, 0), (9, 0, 6), (9, 0, 8), (9, 0, 10), (9, 4, 0), (9, 4, 1), (9, 4, 2), (10, 1, 0), (10, 1, 1), (10, 1, 2), (10, 3, 0), (10, 3, 1), (11, 0, 0), (11, 0, 1), (11, 0, 2)]; cannot benchmark assembly kernels.
+Use of uninitialized value $DEVICE_LIB_PATH in concatenation (.) or string at /opt/rocm_sdk_571/bin//hipcc.pl line 192.
+# Found  hipcc version 5.7.31921-55c2b975f
+                  cap gfx000 gfx803 gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1100 gfx1101 gfx1102 
+      HasMFMA_bf16_1k      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+       HasMFMA_i8_908      0      0      0      0      1      1      0      0      0       0       0       0       0       0       0       0       0 
+       HasMFMA_i8_940      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+           HasAddLshl      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+         HasAtomicAdd      0      0      0      0      1      1      1      1      1       0       0       0       0       0       1       1       1 
+   HasDirectToLdsDest      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+ HasDirectToLdsNoDest      0      1      1      1      1      1      1      1      1       1       1       1       1       1       0       0       0 
+        HasExplicitCO      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        HasExplicitNC      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+       HasGLCModifier      0      1      1      1      1      1      0      0      0       1       1       1       1       1       1       1       1 
+            HasLshlOr      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+              HasMFMA      0      0      0      0      1      1      1      1      1       0       0       0       0       0       0       0       0 
+            HasSMulHi      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+              HasWMMA      0      0      0      0      0      0      0      0      0       0       0       0       0       0       1       1       1 
+           MaxLgkmcnt      1      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+             MaxVmcnt      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+         SupportedISA      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+      SupportedSource      1      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           HasMFMA_b8      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+       v_dot2_f32_f16      0      0      0      1      1      1      1      1      1       0       1       1       1       1       1       1       1 
+      v_dot2c_f32_f16      0      0      0      0      1      1      1      1      1       0       1       1       1       1       1       1       1 
+            v_fma_f16      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           v_fmac_f16      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+            v_mac_f16      0      1      1      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+         v_pk_fma_f16      0      0      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        v_pk_fmac_f16      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+            v_fma_f32      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+        v_fma_mix_f32      0      0      0      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           v_fmac_f32      0      0      0      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+            v_mac_f32      0      1      1      1      1      1      0      0      0       1       1       1       0       0       0       0       0 
+        v_mad_mix_f32      0      0      1      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+          HasMFMA_f64      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+            v_fma_f64      0      1      1      1      1      1      1      1      1       1       1       1       1       1       1       1       1 
+           HasMFMA_f8      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+    VOP3v_dot4_i32_i8      0      0      0      1      1      1      1      1      1       0       1       1       1       1       0       0       0 
+        v_dot4_i32_i8      0      0      0      0      0      0      0      0      0       0       0       0       0       0       0       0       0 
+       v_dot4c_i32_i8      0      0      0      0      1      1      1      1      1       0       1       1       1       1       0       0       0 
+HasMFMA_bf16_original      0      0      0      0      1      1      0      0      0       0       0       0       0       0       0       0       0 
+         HasMFMA_vgpr      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+         HasMFMA_xf32      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+   ArchAccUnifiedRegs      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+       CMPXWritesSGPR      1      1      1      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+        CrosslaneWait      0      0      0      0      0      0      1      1      1       0       0       0       0       0       0       0       0 
+        ForceStoreSC1      0      0      0      0      0      0      0      1      1       0       0       0       0       0       0       0       0 
+             HasAccCD      0      0      0      0      0      1      1      1      1       0       0       0       0       0       0       0       0 
+           HasEccHalf      0      0      0      1      1      1      1      1      1       0       0       0       0       0       0       0       0 
+            HasWave32      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+           InstRename      0      0      0      0      0      0      0      0      0       0       0       0       0       0       1       1       1 
+        SeparateVscnt      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+             VgprBank      0      0      0      0      0      0      0      0      0       1       1       1       1       1       1       1       1 
+     Waitcnt0Disabled      0      0      0      0      1      1      1      1      1       0       0       0       0       0       0       0       0 
+# CodeObjectVersion from TensileCreateLibrary: default
+# CxxCompiler       from TensileCreateLibrary: hipcc
+# Architecture      from TensileCreateLibrary: gfx1035
+# LibraryFormat     from TensileCreateLibrary: msgpack
+# LibraryLogicFiles:
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_SB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BBS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_DB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_I8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_ZB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_BjlkC_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_SB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HHS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_CB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_4xi8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_BjlkC_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_BSS_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_HB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_HHS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_I8II_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_DB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bjlk_BBS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_Bljk_CB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bjlk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_4xi8II_BH.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Ailk_Bljk_ZB_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_Alik_Bljk_BSS_BH_GB.yaml
+#   /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/hip/hip_Cijk_AlikC_BjlkC_ZB_GB.yaml
+Reading logic files: Launching 16 threads for 108 tasks...
+Reading logic files: Done.
+[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||] 100% (0.4 secs elapsed)
+# Writing Custom CMake
+# Writing Kernels...
+Generating kernels: Launching 16 threads...
+Generating kernels: Done.
+*
+Compiling source kernels: Launching 16 threads...
+Compiling source kernels: Done.
+# Kernel Building elapsed time = 0.6 secs
+Traceback (most recent call last):
+  File "/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/library/src/../../virtualenv/lib/python3.9/site-packages/Tensile/bin/TensileCreateLibrary", line 43, in <module>
+    TensileCreateLibrary()
+  File "/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS/virtualenv/lib/python3.9/site-packages/Tensile/TensileCreateLibrary.py", line 1407, in TensileCreateLibrary
+    theMasterLibrary = list(masterLibraries.values())[0]
+IndexError: list index out of range
+make[2]: *** [library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/build.make:74: Tensile/library/Kernels.so-000-gfx1035.hsaco] Error 1
+make[2]: *** Deleting file 'Tensile/library/Kernels.so-000-gfx1035.hsaco'
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make[1]: *** [CMakeFiles/Makefile2:258: library/src/CMakeFiles/TENSILE_LIBRARY_TARGET.dir/all] Error 2
+make[1]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_571/builddir/016_02_rocBLAS'
+make: *** [Makefile:156: all] Error 2
+configure failed: rocBLAS

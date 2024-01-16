@@ -1,0 +1,162 @@
+make[2]: *** [test/unit/cross_lane_ops_test/CMakeFiles/cross_lane_ops_test.dir/build.make:412: test/unit/cross_lane_ops_test/CMakeFiles/cross_lane_ops_test.dir/test/dpp_wfall_bcast_16.cpp.o] Error 1
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+error: Illegal instruction detected: Invalid dpp_ctrl value: broadcasts are not supported on GFX10+
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 15, 0, implicit $exec
+renamable $vgpr2 = V_MOV_B32_dpp undef $vgpr2(tied-def 0), killed $vgpr2, 323, 15, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 15, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 5, 3, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 15, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 7, -1, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, 0, implicit $exec
+renamable $vgpr3 = V_MOV_B32_dpp killed $vgpr3(tied-def 0), killed $vgpr2, 323, 10, 3, -1, implicit $exec
+20 errors generated when compiling for gfx1030.
+Elapsed time: 16 s. (time), 0.003955 s. (clock)
+make[2]: *** [test/unit/cross_lane_ops_test/CMakeFiles/cross_lane_ops_test.dir/build.make:426: test/unit/cross_lane_ops_test/CMakeFiles/cross_lane_ops_test.dir/test/dpp_wfall_bcast_32.cpp.o] Error 1
+Elapsed time: 51 s. (time), 0.001044 s. (clock)
+Elapsed time: 105 s. (time), 0.001219 s. (clock)
+Elapsed time: 99 s. (time), 0.000842 s. (clock)
+Elapsed time: 100 s. (time), 0.001084 s. (clock)
+make[2]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_571_upstream/builddir/035_rocWMMA'
+make[1]: *** [CMakeFiles/Makefile2:1459: test/unit/cross_lane_ops_test/CMakeFiles/cross_lane_ops_test.dir/all] Error 2
+make[1]: Leaving directory '/home/lamikr/own/rocm/src/sdk/rocm_571_upstream/builddir/035_rocWMMA'
+make: *** [Makefile:166: all] Error 2
+configure failed: rocWMMA
+[lamikr@localhost rocm_571_upstream]$ ^C
+[lamikr@localhost rocm_571_upstream]$ rm -rf bu
+build/    builddir/ 

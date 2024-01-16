@@ -1,0 +1,80 @@
+From 5557ee2092ad9fe3f8581d5bb63e36ddb3d067e9 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 4 Dec 2023 20:36:57 -0800
+Subject: [PATCH] rocBLAS mageia fixes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt |  4 ++--
+ install.sh     | 14 +++++++++++---
+ 2 files changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index eaf59e22..bd5ac699 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -119,14 +119,14 @@ set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS
+               gfx940 gfx940:xnack+ gfx940:xnack-
+               gfx941 gfx941:xnack+ gfx941:xnack-
+               gfx942 gfx942:xnack+ gfx942:xnack-
+-              gfx1010 gfx1012 gfx1030
++              gfx1010 gfx1012 gfx1030 gfx1035
+               gfx1100 gfx1101 gfx1102 )
+ 
+ # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
+ # Sets the AMDGPU_TARGETS with backward compatibility
+ if (AMDGPU_TARGETS STREQUAL "all")
+   rocm_check_target_ids(target_list
+-      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102"
++      TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102"
+   )
+ else()
+   rocm_check_target_ids(target_list TARGETS "${AMDGPU_TARGETS}")
+diff --git a/install.sh b/install.sh
+index 1ca8aa55..91b193e5 100755
+--- a/install.sh
++++ b/install.sh
+@@ -19,10 +19,10 @@ supported_distro( )
+   fi
+ 
+   case "${ID}" in
+-    ubuntu|centos|rhel|fedora|sles|opensuse-leap)
++    ubuntu|centos|rhel|fedora|sles|opensuse-leap|mageia)
+         true
+         ;;
+-    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora\n"
++    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, Fedora and Mageia\n"
+         exit 2
+         ;;
+   esac
+@@ -220,11 +220,16 @@ install_packages( )
+       install_dnf_packages "${library_dependencies_fedora[@]}"
+       ;;
+ 
++    mageia)
++#     elevate_if_not_root dnf -y update
++      #install_dnf_packages "${library_dependencies_fedora[@]}"
++      ;;
++
+     sles|opensuse-leap)
+        install_zypper_packages "${library_dependencies_sles[@]}"
+         ;;
+     *)
+-      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
++      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, Fedora and Mageia"
+       exit 2
+       ;;
+   esac
+@@ -546,6 +551,9 @@ if [[ "${install_package}" == true ]]; then
+     fedora)
+       elevate_if_not_root dnf install rocblas-*.rpm
+     ;;
++    mageia)
++    ;;
++
+     sles|opensuse-leap)
+       elevate_if_not_root zypper -n --no-gpg-checks install rocblas-*.rpm
+     ;;
+-- 
+2.41.0
+

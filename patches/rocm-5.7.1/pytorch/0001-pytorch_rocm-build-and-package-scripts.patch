@@ -1,0 +1,72 @@
+From ecfa4a10906a0448abbe4d901dee1b20dac9db9c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 11 Dec 2023 09:20:07 -0800
+Subject: [PATCH 1/4] pytorch_rocm build and package scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_pytorch_rocm.sh         | 20 ++++++++++++++++++++
+ package_pytorch_rocm_wheel.sh |  8 ++++++++
+ preconfig_pytorch_rocm.sh     |  8 ++++++++
+ 3 files changed, 36 insertions(+)
+ create mode 100755 build_pytorch_rocm.sh
+ create mode 100755 package_pytorch_rocm_wheel.sh
+ create mode 100755 preconfig_pytorch_rocm.sh
+
+diff --git a/build_pytorch_rocm.sh b/build_pytorch_rocm.sh
+new file mode 100755
+index 00000000000..f640613fce3
+--- /dev/null
++++ b/build_pytorch_rocm.sh
+@@ -0,0 +1,20 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    rocm_version_str=50701
++    echo ""
++    echo "Error, no rocm_root_directory_specified. For amd rocm version 5.7.1 call this script for example like:"
++    echo "./build_pytorch_rocm.sh /opt/rocm 50701"
++    echo ""
++    exit 1
++else
++    rocm_version_str=${2}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++
++ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH=${install_dir_prefix_rocm} ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
+diff --git a/package_pytorch_rocm_wheel.sh b/package_pytorch_rocm_wheel.sh
+new file mode 100755
+index 00000000000..7892ed6be53
+--- /dev/null
++++ b/package_pytorch_rocm_wheel.sh
+@@ -0,0 +1,8 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH=${install_dir_prefix_rocm} python setup.py bdist_wheel
+diff --git a/preconfig_pytorch_rocm.sh b/preconfig_pytorch_rocm.sh
+new file mode 100755
+index 00000000000..90608d0fa59
+--- /dev/null
++++ b/preconfig_pytorch_rocm.sh
+@@ -0,0 +1,8 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++CMAKE_PREFIX_PATH=${install_dir_prefix_rocm} python tools/amd_build/build_amd.py
+-- 
+2.41.0
+

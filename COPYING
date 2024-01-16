@@ -1,0 +1,12 @@
+ROCM SDK BUILDER
+
+Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com>
+
+ROCM SDK builder uses LGPL-2.1 license for the build system files
+
+babs.sh
+binfo/binfo.sh
+binfo/envsetup.sh
+build/build.sh
+
+Applications and libraries build with the system are not under this license.
