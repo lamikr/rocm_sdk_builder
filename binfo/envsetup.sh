@@ -1,17 +1,22 @@
 #!/bin/bash
 
 # Define one or more AMD gpu architectures for the build target.
-# The amount of GPU's selected will increase the build time.
+# Note that the build time will increase when multiple GPU's are selected because various
+# parts of code are build for each gpu separately.
+#
+# NAVI21 selection will add support for the following GPU's
+#   - AMD RX 6800/gfx1030
+# REMBRAND selection will add support for the following GPU's
+#   - AMD m680i mobile gpu available on laptops/gfx1035
+# NAVI10 selection will add support for the following GPU's
+#   - AMD RX 5700/gfx1010
+#
 # ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection ------------
-# 1) navi21 selection for amd rx 6800/gfx1030
-#GPU_ARCH_BUILD_NAVI21=1
-# 2) rembrandt selection for m680i mobile gpu available on laptops (gfx1035)
+GPU_ARCH_BUILD_NAVI21=1
 GPU_ARCH_BUILD_REMBRANDT=1
-# 3) navi10 selection for amd rx 5700 / gfx1010 support
-#GPU_ARCH_BUILD_NAVI10=1
-# 4) navi14 selection not tested
+GPU_ARCH_BUILD_NAVI10=1
+# NAVI14 and VEGA support not tested for a while
 #GPU_ARCH_BUILD_NAVI14=1
-# 5) vega selection for amd 2400g integrated gpu. (Not tested for a long time since rocm 3.0.0...)
 #GPU_ARCH_BUILD_VEGA=1
 # ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection Ends ------------
 

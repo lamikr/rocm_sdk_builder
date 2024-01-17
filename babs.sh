@@ -107,6 +107,16 @@ func_repolist_upstream_remote_repo_add() {
     #echo "func_repolist_upstream_remote_repo_add started"
     jj=0
     # git init and upstream remote repo add for missing module directories
+    if [ ! -d src_projects ]; then
+        echo ""
+        echo "Download of source projects will start shortly"
+        echo "It will take up about 20 gb under 'src_projects' directory."
+        echo "Advice:"
+        echo "If you work with multible copies of this sdk,"
+        echo "you could tar 'src_projects' and extract it manually for other sdk copies."
+        echo ""
+        sleep 3
+    fi
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
         if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
@@ -206,11 +216,11 @@ func_repolist_fetch() {
             git fetch upstream --tags
             jj=$(( ${jj} + 1 ))
         else
-			echo "Failed to fetch source code for repositories:"
-		    echo "    Source directory[$jj] not initialized with '-i' command:"
-		    echo "        ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-		    echo "    Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO[$jj]}"
-		    exit 1
+            echo "Failed to fetch source code for repositories:"
+            echo "    Source directory[$jj] not initialized with '-i' command:"
+            echo "        ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "    Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO[$jj]}"
+            exit 1
         fi
     done
 }
@@ -596,6 +606,28 @@ func_user_help_print() {
     #echo "-g or --generate_repo_list: generates repo_list_new.txt file containing current repository revision hash for each project"
     #echo "-s or --sync: checkout all repositories to base git hash"
     echo ""
+    if [ ! -d src_projects ]; then
+        echo ""
+        echo "----------------Advice ---------------"
+        echo "No ROCm project source codes detected in 'src_projects 'directory."
+        echo "I recommend downloading them first with command './babs.sh -i'"
+        echo ""
+        echo "Projects will be loaded to 'src_projects' directory"
+        echo "and will require about 20gb of space."
+        echo "If download of some projects fails, you can issue './babs.sh -i' command again"
+        echo "--------------------------------------"
+        echo ""
+    else
+        if [ ! -d builddir ]; then
+        echo ""
+        echo "----------------Advice ---------------"
+        echo "No ROCm 'builddir' directory detected."
+        echo "Once projects source code has been downloaded with './babs.sh -i' command"
+        echo "you can start building with command './babs.sh -b'"
+        echo "--------------------------------------"
+        echo ""
+        fi
+    fi
     exit 0
 }
 
@@ -604,15 +636,15 @@ func_handle_user_args() {
     while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
     do
         if [ ${LIST_USER_CMD_ARGS[$ii]} == "-h" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--help" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_user_help_print
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-ap" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--apply_patches" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_apply_patches
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-b" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--build" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_env_variables_print
             func_install_dir_init
             ret_val=$?
@@ -625,31 +657,31 @@ func_handle_user_args() {
                 exit 1
             fi
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-cp" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--create_patches" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_appliad_patches_save
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-co" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--checkout" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_checkout_default_versions
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-f" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--fetch" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_fetch
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-fs" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--fetch_submod" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_fetch_submodules
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-g" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--generate_repo_list" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_export_version_tags_to_file
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-i" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--init" ]; then
-            echo "downloading new repositories: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "downloading new repositories: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_upstream_remote_repo_add
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-s" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--sync" ]; then
-            echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_checkout_by_version_tag_file
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-v" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--version" ]; then
