@@ -14,7 +14,7 @@ This project has been so fat tested with following AMD GPU's:
 
 ## Requirements
 
-ROCM SDK Builder has been written with bash shell language to avoid any extrernal dependencies to different build systems which itself can bring some version incompatibilities. So in principle it could work also on Mac and cygwin on Windos, but it has only been tested on Linux. Build system will itself build llvm based compiler but that requires itself that some basic tools like GCC are already installed on your Linux distribution so that it can bootstrap the build of the remaining systems. List of Linux distribution specific dependencies that needs to be installed are not yet documented, so contributions on that are welcomed.
+ROCM SDK Builder has been written with bash shell language to avoid any extrernal dependencies to different build systems which itself can bring some version incompatibilities. In principle it can work also on Mac and cygwin on Windos, but it has only been tested on Linux. Build system will itself build llvm based compiler but that requires itself that some basic tools like GCC are already installed on your Linux distribution so that it can bootstrap the build of the remaining systems. List of Linux distribution specific dependencies that needs to be installed are not yet fully documented. Idea from the dependencies can be checked from docs/notes/mageia_9/dependencies.txt file. (I have used Mageia 9 for developing, older versions of SDK I have also build with the Fedora and Ubuntu)
 
 ## How to Build and Install ROCm SDK
 
