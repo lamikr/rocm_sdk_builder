@@ -1,6 +1,6 @@
 LIST_BINFO_FILE_BASENAME=(
-    "001_python.binfo"
-    "002_rocm_core.binfo"
+    "001_rocm_core.binfo"
+    "002_python.binfo"
     "003_llvm_project_llvm.binfo"
     "004_01_roct-thunk-interface_shared.binfo"
     "004_02_roct-thunk-interface_static.binfo"
