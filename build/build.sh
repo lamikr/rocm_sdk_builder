@@ -192,7 +192,7 @@ func_build_all() {
             fi
         fi
         if [ $res -eq 0 ]; then
-            echo "BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS: ${BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS}"
+            #echo "BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS: ${BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS}"
             if [ ! -z ${BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS} ] || [ ! -f ${TASK_RESULT_FILE_POSTCONFIG} ]; then
                 mkdir -p ${BINFO_APP_BUILD_DIR}
                 cd ${BINFO_APP_BUILD_DIR}
