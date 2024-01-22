@@ -2,5 +2,3 @@ src_projects
 builddir
 envsetup_pre.cfg
 envsetup_post.cfg
-*.orig
-*.rej
