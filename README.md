@@ -12,13 +12,34 @@ This project has been so fat tested with following AMD GPU's:
 
 ![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
 
-## Requirements
+## Installation Requirements
 
-ROCM SDK Builder has been written with bash shell language to avoid any extrernal dependencies to different build systems which itself can bring some version incompatibilities. In principle it can work also on Mac and cygwin on Windos, but it has only been tested on Linux. Build system will itself build llvm based compiler but that requires itself that some basic tools like GCC are already installed on your Linux distribution so that it can bootstrap the build of the remaining systems. List of Linux distribution specific dependencies that needs to be installed are not yet fully documented. Idea from the dependencies can be checked from docs/notes/mageia_9/dependencies.txt file. (I have used Mageia 9 for developing, older versions of SDK I have also build with the Fedora and Ubuntu)
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39 and Ubuntu 230.10 Linux distributions. Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will itself has certain dependencies that needs to be installed. On Mageia, Fedora and Ubuntu these dependencies can be installed simple by executing a script:
+
+```
+./install_deps.sh
+```
+
+Build system will itself build and install standalone python 3.9 and llvm based compiler that are used by many rocm applications to build AMD GPU specific kernel codes for accelerating the maching learning algorithms.
+
+At least the GIT version installed by the Ubuntu seems to also require configuring the git username and email address to avoid the the 'git am' command to fail. That command is used by the SDK to apply project specific patches once the projects has been downloaded.
+
+```
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com
+```
+
+## Installation Directory and Environment Variables
+
+ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory.  To set the paths and other environment variables required to execute the applications installed by the SDK can be loaded by executing a command:
+
+```
+source /opt/rock_sdk_<version>/bin/env_rocm.sh
+```
 
 ## How to Build and Install ROCm SDK
 
-Following commands would fully build and install the rocm_sdk 5.7.1 to /opt/rocm_sdk_571 folder/
+Following commands will download rocm sdk 5.7.1 project sources and then build and install the rocm_sdk version 5.7.1 to /opt/rocm_sdk_571 folder.
 
 ```
 git clone https://github.com/lamikr/rocm_sdk_builder.git
