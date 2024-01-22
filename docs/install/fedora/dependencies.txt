@@ -1,0 +1,6 @@
+fedora 39
+---------
+dnf install git cmake rpm-build gcc gcc-c++ openssl-devel zlib-devel libffi-devel gcc-gfortran make libcxx-devel numactl-libs numactl-devel dpkg-dev doxygen elfutils-libelf-devel prename perl-URI-Encode perl-File-Listing perl-File-BaseDir fftw-devel wget libdrm-devel xxd glew-devel python3-cppheaderparser autoconf automake libtool icu bzip2-devel lzma-sdk-devel libicu-devel msgpack-devel libffi-devel json-devel
+
+git config --global user.name "John Doe"
+git config --global user.email johndoe@example.com

@@ -1,4 +1,0 @@
-pip3 install CppHeaderParser
-urpmi python-pip python-wheel python3-numpy python3-wheel python3-mock python3-future python3-pip python3-yaml python3-setuptools
-urpmi numa-devel libstdc++6 libstdc++-devel lib64openmpi-devel valgrind-devel lib64llvm-devel lib64boost_thread1.81.0 lib64boost_math1.81.0 lib64boost-devel lib64clang15.0 gcc-c++-x86_64-linux-gnu lld golang libstdc++-static-devel python3-ply python3-joblib python3-lit lib64msgpack-devel git-lfs
-urpmi texlive-dist
