@@ -651,12 +651,19 @@ func_handle_user_args() {
             #echo "func_install_dir_init done, ret_val: ${ret_val}"
             if [ $ret_val -eq 0 ]; then
                 ./build/build.sh
-                echo ""
-                echo "ROCM SDK build and install ready"
-                echo "You can use following commands to test the setup:"
-                echo "source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
-                echo "rocminfo"
-                echo ""
+                res=$?
+                if [ $res -eq 0 ]; then
+                    echo ""
+                    echo "ROCM SDK build and install ready"
+                    echo "You can use following commands to test the setup:"
+                    echo "source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
+                    echo "rocminfo"
+                    echo ""
+                else
+                    echo ""
+                    echo "build failed"
+                    echo ""
+                fi
                 exit 0
             else
                 echo "Failed to init install dir"

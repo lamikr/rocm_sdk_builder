@@ -275,7 +275,7 @@ func_build_all() {
                     sync
                     sleep 2
                 else
-                    echo "configure failed: ${BINFO_APP_NAME}"
+                    echo "build failed: ${BINFO_APP_NAME}"
                     exit 1
                 fi
             fi
