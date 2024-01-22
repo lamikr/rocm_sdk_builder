@@ -87,14 +87,14 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config-version.cmake ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake/hiprtc/hiprtc-config-version.cmake ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib/cmake/hiprtc/hiprtc-config-version.cmake; fi"
 
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib64 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib ${INSTALL_DIR_PREFIX_SDK_ROOT}/hip/lib64; fi"
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5; fi"
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.6 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdhip64.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.6; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libamdhip64.so; fi"
 
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5; fi"
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.6 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc-builtins.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.6; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc-builtins.so; fi"
 
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5; fi"
-    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.5 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.6 ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libhiprtc.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.6; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.6 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so.6 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhiprtc.so; fi"
 
     "install -Dm644 ${BINFO_APP_BUILD_DIR}/rocclr/librocclr.a ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocclr/lib/librocclr.a"
     "rm -f ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/hipcc.bat"
