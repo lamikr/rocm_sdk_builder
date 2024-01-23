@@ -12,5 +12,5 @@ BINFO_APP_NO_BUILD=1
 BINFO_APP_NO_POSTINSTALL=1
 
 BINFO_APP_INSTALL_CMD_ARRAY=(
-    "install -Dm644 ${BINFO_APP_SRC_DIR}/include/half.hpp ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/half.hpp"
+    "install -Dm644 ${BINFO_APP_SRC_DIR}/include/half.hpp ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/half/half.hpp"
 )
