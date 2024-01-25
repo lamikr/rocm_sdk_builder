@@ -1,22 +1,22 @@
-From e140322821a900bd45a826f60943c7c4c7376f94 Mon Sep 17 00:00:00 2001
+From 5c5340adfe6d167387c07729eb285d4c4e1e0481 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 23:14:41 -0800
 Subject: [PATCH] rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_pytorch_audio_rocm.sh         | 10 ++++++++++
- package_pytorch_audio_rocm_wheel.sh | 10 ++++++++++
- 2 files changed, 20 insertions(+)
+ build_pytorch_audio_rocm.sh         | 14 ++++++++++++++
+ package_pytorch_audio_rocm_wheel.sh | 14 ++++++++++++++
+ 2 files changed, 28 insertions(+)
  create mode 100755 build_pytorch_audio_rocm.sh
  create mode 100755 package_pytorch_audio_rocm_wheel.sh
 
 diff --git a/build_pytorch_audio_rocm.sh b/build_pytorch_audio_rocm.sh
 new file mode 100755
-index 00000000..aca28ef1
+index 00000000..998bdc22
 --- /dev/null
 +++ b/build_pytorch_audio_rocm.sh
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,14 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
 +    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
@@ -24,15 +24,19 @@ index 00000000..aca28ef1
 +    install_dir_prefix_rocm=${1}
 +    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
 +fi
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
 +export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH=${install_dir_prefix_rocm} USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
 diff --git a/package_pytorch_audio_rocm_wheel.sh b/package_pytorch_audio_rocm_wheel.sh
 new file mode 100755
-index 00000000..6c135c25
+index 00000000..ae789577
 --- /dev/null
 +++ b/package_pytorch_audio_rocm_wheel.sh
-@@ -0,0 +1,10 @@
+@@ -0,0 +1,14 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
 +    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
@@ -40,9 +44,13 @@ index 00000000..6c135c25
 +    install_dir_prefix_rocm=${1}
 +    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
 +fi
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
 +export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +ROCM_PATH=${install_dir_prefix_rocm} USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
 -- 
-2.41.0
+2.43.0
 
