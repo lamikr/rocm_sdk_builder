@@ -75,9 +75,9 @@ Here is shortish but more detailed information how the SDK will work and can be 
 GPU's can be selected by commenting or un-commenting one or more lines from the binfo/envsetup.sh with #-character.
 
 ```
-GPU_ARCH_BUILD_NAVI21=1 (for Amd rx 6800/gfx1030)
-#GPU_ARCH_BUILD_REMBRANDT=1 (for Amd m680i mobile gpu / gfx1035)
-GPU_ARCH_BUILD_NAVI10=1 (for amd rx 5700 / gfx1010)
+GPU_BUILD_AMD_NAVI21_GFX1030=1 (for Amd rx 6800/gfx1030)
+#GPU_BUILD_AMD_REMBRANDT_GFX1035=1 (for Amd m680i mobile gpu / gfx1035)
+GPU_BUILD_AMD_NAVI10_GFX1010=1 (for amd rx 5700 / gfx1010)
 ```
 
 List of supported GPU's should be relatively easy to add, at the moment I have only added support for the one I have been able to test by myself. At some point, I had also the support working for older AMD G2400 but I have not had time to integrate those changes to newer rocm sdk. (Had it working for rocm sdk 3.0.0)

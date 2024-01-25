@@ -4,7 +4,7 @@ Date: Wed, 10 Jan 2024 20:50:47 +0200
 Subject: [PATCH 1/2] Tensile fix fallback arch build
 
 fixes build error which happens if only the rx 5700 is enabled
-(only GPU_ARCH_BUILD_NAVI10=1 enabled in rocm_sdk_builder envsetup.sh)
+(only GPU_BUILD_AMD_NAVI10_GFX1010=1 enabled in rocm_sdk_builder envsetup.sh)
 
 Original patch and discussion in
 https://github.com/ROCm/Tensile/issues/1757
