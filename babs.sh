@@ -233,6 +233,7 @@ func_repolist_fetch_submodules() {
         cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
         if [ -f .gitmodules ]; then
             echo "submodule update"
+            git submodule foreach git reset --hard
             git submodule update --recursive
             if [ $? -ne 0 ]; then
                 echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
@@ -249,6 +250,7 @@ func_repolist_checkout_default_versions() {
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
     do
         cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+        git reset --hard
         git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
         jj=$(( ${jj} + 1 ))
     done
