@@ -1,0 +1,32 @@
+From 6185798138986f53a8bc8406117f82876cf4f268 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 26 Jan 2024 15:19:56 -0800
+Subject: [PATCH 2/2] fix build error with hipcc
+
+Following error occured when building with hipcc
+instead of gcc/g++.
+
+csrc/io/image/cpu/encode_jpeg.cpp:107:7: error: no matching function for call to 'from_blob'
+      torch::from_blob(jpegBuf, {(long)jpegSize}, ::free, options);
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ torchvision/csrc/io/image/cpu/encode_jpeg.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/torchvision/csrc/io/image/cpu/encode_jpeg.cpp b/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
+index d2ed73071a..eada131d32 100644
+--- a/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
++++ b/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
+@@ -103,7 +103,7 @@ torch::Tensor encode_jpeg(const torch::Tensor& data, int64_t quality) {
+ 
+   torch::TensorOptions options = torch::TensorOptions{torch::kU8};
+   auto out_tensor =
+-      torch::from_blob(jpegBuf, {(long)jpegSize}, ::free, options);
++      torch::from_blob(jpegBuf, {(long)jpegSize}, std::free, options);
+   jpegBuf = nullptr;
+   return out_tensor;
+ }
+-- 
+2.41.0
+

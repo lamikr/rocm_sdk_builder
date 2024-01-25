@@ -1,0 +1,71 @@
+From ca55e3c291602493322c6fae04b0b017c9867f5d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 12 Dec 2023 14:20:21 -0800
+Subject: [PATCH 3/4] force rocm detection
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/public/LoadHIP.cmake | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
+index 6989f57f709..b5d76f309bc 100644
+--- a/cmake/public/LoadHIP.cmake
++++ b/cmake/public/LoadHIP.cmake
+@@ -23,6 +23,9 @@ else()
+   set(MAGMA_HOME $ENV{MAGMA_HOME})
+ endif()
+ 
++set(HIP_ROOT_DIR ${ROCM_PATH})
++set(ROCM_VERSION 60000)
++
+ torch_hip_get_arch_list(PYTORCH_ROCM_ARCH)
+ if(PYTORCH_ROCM_ARCH STREQUAL "")
+   message(FATAL_ERROR "No GPU arch specified for ROCm build. Please use PYTORCH_ROCM_ARCH environment variable to specify GPU archs to build for.")
+@@ -41,6 +44,7 @@ endmacro()
+ find_package_and_print_version(HIP 1.0)
+ 
+ if(HIP_FOUND)
++  #message( FATAL_ERROR "LoadHIP FATAL error1." )
+   set(PYTORCH_FOUND_HIP TRUE)
+   set(FOUND_ROCM_VERSION_H FALSE)
+ 
+@@ -54,13 +58,16 @@ if(HIP_FOUND)
+     file(WRITE ${file} ""
+       "#include <rocm_version.h>\n"
+       )
++      #message( FATAL_ERROR "header1: ${ROCM_INCLUDE_DIRS}")
+   elseif(EXISTS ${ROCM_INCLUDE_DIRS}/rocm-core/rocm_version.h)
+     set(FOUND_ROCM_VERSION_H TRUE)
+     file(WRITE ${file} ""
+       "#include <rocm-core/rocm_version.h>\n"
+       )
++      #message( FATAL_ERROR "header2: ${ROCM_INCLUDE_DIRS}")
+   else()
+     message("********************* rocm_version.h couldnt be found ******************\n")
++    #message( FATAL_ERROR "header3: ${ROCM_INCLUDE_DIRS}")
+   endif()
+ 
+   if(FOUND_ROCM_VERSION_H)
+@@ -90,9 +97,11 @@ if(HIP_FOUND)
+     message(STATUS "Caffe2: Header version is: " ${rocm_version_from_header})
+     set(ROCM_VERSION_DEV_RAW ${rocm_version_from_header})
+     message("\n***** ROCm version from rocm_version.h ****\n")
++    #message( FATAL_ERROR "rocmversion: ${rocm_version_from_header}")
+   endif()
+ 
+   string(REGEX MATCH "^([0-9]+)\.([0-9]+)\.([0-9]+).*$" ROCM_VERSION_DEV_MATCH ${ROCM_VERSION_DEV_RAW})
++  #message( FATAL_ERROR "ROCM_VERSION_DEV_MATCH: ${ROCM_VERSION_DEV_MATCH}, ROCM_VERSION_DEV_RAW: ${ROCM_VERSION_DEV_RAW}, ROCM_VERSION: ${ROCM_VERSION}")
+ 
+   if(ROCM_VERSION_DEV_MATCH)
+     set(ROCM_VERSION_DEV_MAJOR ${CMAKE_MATCH_1})
+@@ -187,4 +196,6 @@ if(HIP_FOUND)
+   find_library(ROCM_HIPRTC_LIB amdhip64 HINTS ${ROCM_PATH}/lib)
+   # roctx is part of roctracer
+   find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
++else()
++message( FATAL_ERROR "LoadHIP FATAL error2, ROCM_PATH: ${ROCM_PATH}")
+ endif()
+-- 
+2.43.0
+
