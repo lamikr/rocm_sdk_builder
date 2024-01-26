@@ -1,7 +1,7 @@
-From 4631a4083c530456301f38c5d6d913efde10fc24 Mon Sep 17 00:00:00 2001
+From d175609221238fad45ba24f4bba3473da07743dc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 19 Dec 2023 15:13:46 -0800
-Subject: [PATCH 2/3] MIOpen gfx1035 support
+Subject: [PATCH 2/4] MIOpen gfx1035 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -43,7 +43,7 @@ index 92307214f..cf89fa618 100644
  #define CK_USE_AMD_V_FMAC_F32
  #define CK_USE_AMD_V_DOT2_F32_F16
 diff --git a/src/include/miopen/solver/ck_utility_common.hpp b/src/include/miopen/solver/ck_utility_common.hpp
-index f4f91fa22..b2b16acdc 100644
+index 003b067e5..989ec8557 100644
 --- a/src/include/miopen/solver/ck_utility_common.hpp
 +++ b/src/include/miopen/solver/ck_utility_common.hpp
 @@ -58,6 +58,7 @@ static inline bool is_ck_supported_hardware(const Handle& handle)
@@ -54,7 +54,7 @@ index f4f91fa22..b2b16acdc 100644
             StartsWith(handle.GetDeviceName(), "gfx1100") ||
             StartsWith(handle.GetDeviceName(), "gfx1101") ||
             StartsWith(handle.GetDeviceName(), "gfx1102");
-@@ -98,6 +99,8 @@ static inline auto get_ck_common_compiler_flag(const Handle& handle)
+@@ -108,6 +109,8 @@ static inline auto get_ck_common_compiler_flag(const Handle& handle)
          compiler_flag << " -DCK_AMD_GPU_GFX1030";
      else if(StartsWith(device_name, "gfx1031"))
          compiler_flag << " -DCK_AMD_GPU_GFX1031";
@@ -76,7 +76,7 @@ index 61965da0a..f2f7b6632 100644
      };
  
 diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
-index 87a2fbed1..3f2d62633 100644
+index 030adb196..2766b7a65 100644
 --- a/test/CMakeLists.txt
 +++ b/test/CMakeLists.txt
 @@ -127,6 +127,8 @@ if(NOT (MIOPEN_TEST_GFX900 OR MIOPEN_TEST_GFX906 OR MIOPEN_TEST_GFX908 OR MIOPEN

@@ -1,7 +1,7 @@
-From 67954e59e6ac99e4e52428b1d2c3b8b0c85d5c59 Mon Sep 17 00:00:00 2001
+From 15dc9fe63a36aee2a86230857bb9ef80f5dfc6a6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 20 Jan 2024 11:03:29 -0800
-Subject: [PATCH 3/3] miopen gfx1010/rx 5700 xt support
+Subject: [PATCH 3/4] miopen gfx1010/rx 5700 xt support
 
 - detect the gfx1010 devices before compiling the
   cl files and set two build flags:
