@@ -1,4 +1,4 @@
-From eb19280d40e5e0f9a3c8aff39bcb8fbf6547f7ea Mon Sep 17 00:00:00 2001
+From e8346388d6c861c62b6c86a8e90b74f43f3c04c3 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 18:09:13 -0800
 Subject: [PATCH 4/4] remove failing tests
@@ -227,5 +227,5 @@ index 68486732b1e..083cee9340b 100644
  
  TEST(TensorOptionsTest, ConstructsWellFromCPUTypes) {
 -- 
-2.43.0
+2.40.1
 

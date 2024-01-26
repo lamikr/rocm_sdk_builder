@@ -1,4 +1,4 @@
-From ca55e3c291602493322c6fae04b0b017c9867f5d Mon Sep 17 00:00:00 2001
+From fae5f930f17640cebc52ee9a5efbe97a9f38db17 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 14:20:21 -0800
 Subject: [PATCH 3/4] force rocm detection
@@ -67,5 +67,5 @@ index 6989f57f709..b5d76f309bc 100644
 +message( FATAL_ERROR "LoadHIP FATAL error2, ROCM_PATH: ${ROCM_PATH}")
  endif()
 -- 
-2.43.0
+2.40.1
 
