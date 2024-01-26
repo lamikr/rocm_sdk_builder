@@ -1,7 +1,7 @@
-From 5c5340adfe6d167387c07729eb285d4c4e1e0481 Mon Sep 17 00:00:00 2001
+From eabcd2406238328d9a2641ff0089ff8bacbe3c2a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 23:14:41 -0800
-Subject: [PATCH] rocm build and package scripts
+Subject: [PATCH 1/2] rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
 
 diff --git a/build_pytorch_audio_rocm.sh b/build_pytorch_audio_rocm.sh
 new file mode 100755
-index 00000000..998bdc22
+index 00000000..5b8a478b
 --- /dev/null
 +++ b/build_pytorch_audio_rocm.sh
 @@ -0,0 +1,14 @@
@@ -30,10 +30,10 @@ index 00000000..998bdc22
 +unset PKG_CONFIG_PATH
 +export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
-+ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH=${install_dir_prefix_rocm} USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
++ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
 diff --git a/package_pytorch_audio_rocm_wheel.sh b/package_pytorch_audio_rocm_wheel.sh
 new file mode 100755
-index 00000000..ae789577
+index 00000000..97b919b4
 --- /dev/null
 +++ b/package_pytorch_audio_rocm_wheel.sh
 @@ -0,0 +1,14 @@
@@ -50,7 +50,7 @@ index 00000000..ae789577
 +unset PKG_CONFIG_PATH
 +export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
-+ROCM_PATH=${install_dir_prefix_rocm} USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
++ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
 -- 
-2.43.0
+2.40.1
 
