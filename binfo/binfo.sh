@@ -38,7 +38,9 @@ LIST_BINFO_FILE_BASENAME=(
     "019_04_amd_fftw_quad_precision.binfo"
     "019_05_hipFFT.binfo"
     "020_rocSPARSE.binfo"
-    "021_hipSPARSE.binfo"
+    "021_01_hipSPARSE.binfo"
+    "021_02_hipBLASLt.binfo"
+    "021_03_hipSPARSELt.binfo"
     "022_01_hipify.binfo"
     "022_02_rccl.binfo"
     "023_rocALUTION.binfo"
@@ -67,6 +69,7 @@ LIST_BINFO_FILE_BASENAME=(
 )
 
 LIST_BINFO_FILE_BASENAME_NOT_USED=(
+    #
     #"050_tensorflow_r11_hip_hcc.binfo"
     #"051_tensorflow_r21_hip_hcc.binfo"
 )
