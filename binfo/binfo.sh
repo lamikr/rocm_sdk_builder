@@ -61,11 +61,12 @@ LIST_BINFO_FILE_BASENAME=(
     "032_03_rocSOLVER.binfo"
     "033_hipSOLVER.binfo"
     "034_hipBLAS.binfo"
-    "035_rocWMMA.binfo"
-    "036_magma.binfo"
-    "037_01_pytorch.binfo"
-    "037_02_pytorch_vision.binfo"
-    "037_03_pytorch_audio.binfo"
+    "035_AMDMIGraphX.binfo"
+    "036_rocWMMA.binfo"
+    "037_magma.binfo"
+    "038_01_pytorch.binfo"
+    "038_02_pytorch_vision.binfo"
+    "038_03_pytorch_audio.binfo"
 )
 
 LIST_BINFO_FILE_BASENAME_NOT_USED=(
