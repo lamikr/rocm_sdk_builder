@@ -1,0 +1,25 @@
+From 5dc3d7962d613a8ecd21d32e94ef94fdb0a33def Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 19 Dec 2023 15:16:58 -0800
+Subject: [PATCH] by default no 3RD_DWORD support for not listed gpus
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/ck/ck.hpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
+index cb20ea249..38217b2cd 100644
+--- a/include/ck/ck.hpp
++++ b/include/ck/ck.hpp
+@@ -37,6 +37,8 @@
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
+ #elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
++#else
++#define CK_BUFFER_RESOURCE_3RD_DWORD -1
+ #endif
+
+ // FMA instruction
+--
+2.41.0
