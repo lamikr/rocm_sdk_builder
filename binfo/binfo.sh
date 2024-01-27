@@ -52,6 +52,7 @@ LIST_BINFO_FILE_BASENAME=(
     "027_02_eigen.binfo"
     "027_03_frugally_deep.binfo"
     "027_04_composable_kernel.binfo"
+    "027_05_composable_kernel_jit.binfo"
     "028_rockthrust.binfo"
     "029_rocprofiler.binfo"
     "030_roctracer.binfo"
