@@ -1,0 +1,11 @@
+# "THE COFFEEWARE LICENSE" (Revision 2):
+#
+# Mika Laitio <lamikr@gmail.com> wrote this binfo_list.sh file. 
+# As long as you retain this notice you can do whatever you want with 
+# this file. If we meet some day, and you think 
+# this stuff is worth it, you can buy me a coffee in return.
+#
+# Also, you might consider mentioning this software in copyright text-part
+# of your release if you wish to. And And if you'd like you can send me a donation 
+# at any time to support my work, ask me how!
+#

@@ -1,7 +1,7 @@
-From 69dd4dc1060ce55515a0b8dd11cee78f6a5d62ab Mon Sep 17 00:00:00 2001
+From c0b56e362d6fd20517eb9d79d7be3b6f44a3fa63 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/4] pytorch_rocm build and package scripts
+Subject: [PATCH 1/7] pytorch_rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -15,7 +15,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
 
 diff --git a/build_pytorch_rocm.sh b/build_pytorch_rocm.sh
 new file mode 100755
-index 00000000000..229a387ff48
+index 00000000000..3dff9a5f584
 --- /dev/null
 +++ b/build_pytorch_rocm.sh
 @@ -0,0 +1,23 @@
@@ -41,7 +41,7 @@ index 00000000000..229a387ff48
 +unset CFLAGS
 +unset CPPFLAGS
 +unset PKG_CONFIG_PATH
-+ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
++ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
 diff --git a/package_pytorch_rocm_wheel.sh b/package_pytorch_rocm_wheel.sh
 new file mode 100755
 index 00000000000..3ff3f12c420
@@ -79,5 +79,5 @@ index 00000000000..0a1b9d3f48b
 +unset PKG_CONFIG_PATH
 +CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.40.1
+2.41.0
 

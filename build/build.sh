@@ -15,6 +15,12 @@ func_build_init() {
 
 func_build_all() {
     ii=0
+    APP_CFLAGS_DEFAULT=${CFLAGS}
+    APP_CPPFLAGS_DEFAULT=${CPPFLAGS}
+    APP_LDFLAGS_DEFAULT=${LDFLAGS}
+    APP_LD_LIBRARY_PATH_DEFAULT=${LD_LIBRARY_PATH}
+    APP_PATH_DEFAULT=${PATH}
+    APP_PKG_CONFIG_PATH_DEFAULT=${PKG_CONFIG_PATH}
     while [ "x${LIST_BINFO_FILE_FULLNAME[ii]}" != "x" ]
     do
         echo "LIST_BINFO_FILE_FULLNAME[${ii}]: ${LIST_BINFO_FILE_FULLNAME[${ii}]}"
@@ -41,7 +47,14 @@ func_build_all() {
         unset BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS
         unset BINFO_APP_POST_INSTALL_CMD_EXECUTE_ALWAYS
 
-        BINFO_APP_CMAKE_CFG_FLAGS=${APP_CMAKE_CFG_FLAGS_DEFAULT}
+        unset BINFO_APP_PRECONFIG_LDFLAGS
+
+        export CFLAGS=${APP_CFLAGS_DEFAULT}
+        export CPPFLAGS_DEFAULT=${APP_CPPFLAGS_DEFAULT}
+        export LDFLAGS=${APP_LDFLAGS_DEFAULT}
+        export LD_LIBRARY_PATH=${APP_LD_LIBRARY_PATH_DEFAULT}
+        export PATH=${APP_PATH_DEFAULT}
+        export PKG_CONFIG_PATH=${APP_PKG_CONFIG_PATH_DEFAULT}
 
         #reset value if previus module script overwrote this
         #HIP_PATH setup to /opt/rocm/hip breaks hipcc on rocm571
@@ -145,7 +158,7 @@ func_build_all() {
                             echo "BINFO_APP_CMAKE_CFG not set"
                         else
                             echo "BINFO_APP_CMAKE_CFG: ${BINFO_APP_CMAKE_CFG}"
-                            BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG_FLAGS} ${BINFO_APP_CMAKE_CFG}"
+                            BINFO_APP_CMAKE_CFG="${APP_CMAKE_CFG_FLAGS_DEFAULT} ${BINFO_APP_CMAKE_CFG}"
                             if [[ -z ${BINFO_APP_CMAKE_BUILD_TYPE} || ${BINFO_APP_CMAKE_BUILD_TYPE} = ’’ ]]; then
                                 BINFO_APP_CMAKE_CFG="-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE_DEFAULT} ${BINFO_APP_CMAKE_CFG}"
                                 echo "BINFO_APP_CMAKE_CFG: ${BINFO_APP_CMAKE_CFG}"
@@ -250,9 +263,10 @@ func_build_all() {
                         jj=0
                         while [ "x${BINFO_APP_BUILD_CMD_ARRAY[jj]}" != "x" ]
                         do
-                            echo "${BINFO_APP_NAME}, build command ${jj}"
-                            echo "${BINFO_APP_BUILD_CMD_ARRAY[jj]}"
-                            ${BINFO_APP_BUILD_CMD_ARRAY[jj]}
+                            exec_cmd=${BINFO_APP_BUILD_CMD_ARRAY[jj]}
+                            echo "[${jj}] ${BINFO_APP_NAME}, build command:"
+                            echo "${exec_cmd}"
+                            ${exec_cmd}
                             res=$?
                             if [ -v BINFO_APP_NO_BUILD_CMD_RESULT_CHECK ]; then
                                 echo "build cmd result check skip, res was: ${res}, ${BINFO_APP_NO_BUILD_CMD_RESULT_CHECK}"

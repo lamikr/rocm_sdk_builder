@@ -96,7 +96,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
 }
 ```
 
-2. Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo.sh file.
+2. Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo_list.sh file.
  
 ### ROCM SDK Builder Major Components
 
@@ -123,7 +123,7 @@ usage:
 -v or --version:        Show babs build system version information
 ```
 
-2. binfo folder contains the recipes for each projects which is wanted to be build. These recipes does not have support for listing the dependencies by purpose and insted the build order is managed in binfo/binfo.sh file.
+2. binfo folder contains the recipes for each projects which is wanted to be build. These recipes does not have support for listing the dependencies by purpose and insted the build order is managed in binfo/binfo_list.sh file.
 
 3. patches directory contains the patches that are wanted to add on top of the each project that is downloaded from their upstream repository
 
@@ -162,4 +162,4 @@ source /opt/rocm_sdk_571/bin/env_rocm.sh
 ./test_with_torchvision_013.sh script
 ```
 
-Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com>
+Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com> This Project uses partially the LGPL 2.1 and COFFEEWARE licenses. See the COPYING file for details.

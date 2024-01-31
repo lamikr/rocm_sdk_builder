@@ -1,8 +1,14 @@
 #!/bin/bash
+#
+# License of this file: "THE COFFEEWARE LICENSE" (Revision 2).
+# see coffeeware file in the root directory for details.
 
-# Define one or more AMD gpu architectures for the build target.
-# Note that the build time will increase when multiple GPU's are selected because various
-# parts of code are build for each gpu separately.
+# Select below one or more AMD gpu architectures for the build target by using the
+# GPU_BUILD_AMD_*=1 definitions below.
+#
+# Note that each selected GPU will increase the build time because various
+# parts of code are build for each GPU separately.
+# (gpu specific kernels that are loaded to GPU's memory to execute operation)
 #
 # NAVI21 selection will add support for the following GPU's
 #   - AMD RX 6800/gfx1030
@@ -15,7 +21,7 @@
 GPU_BUILD_AMD_NAVI10_GFX1010=1
 GPU_BUILD_AMD_NAVI21_GFX1030=1
 GPU_BUILD_AMD_REMBRANDT_GFX1035=1
-# NAVI14 and VEGA support not tested for a while
+# NAVI14 and VEGA support has not been tested for a while and is probaly not working.
 #GPU_BUILD_AMD_NAVI14_GFX1012=1
 #GPU_BUILD_AMD_VEGA_GFX902=1
 # ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection Ends ------------
@@ -29,6 +35,7 @@ SDK_ROOT_DIR="$PWD"
 export INSTALL_DIR_PREFIX_SDK_ROOT=/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}
 export ROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}
 export BUILD_RULE_ROOT_DIR=${SDK_ROOT_DIR}/binfo
+export BUILD_SCRIPT_ROOT_DIR=${SDK_ROOT_DIR}/build
 export ROCM_SDK_VERSION_INFO=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
 export UPSTREAM_REPO_VERSION_TAG_DEFAULT=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
 export PATCH_FILE_ROOT_DIR=${SDK_ROOT_DIR}/patches/${UPSTREAM_REPO_VERSION_TAG_DEFAULT}
@@ -39,8 +46,15 @@ if [ -e ${SDK_ROOT_DIR}/envsetup_pre.cfg ]; then
     echo "found ${SDK_ROOT_DIR}/envsetup_pre.cfg"
 fi
 
-if [ -e ${BUILD_RULE_ROOT_DIR}/binfo.sh ]; then
-    source ${BUILD_RULE_ROOT_DIR}/binfo.sh
+if [ -e ${BUILD_RULE_ROOT_DIR}/binfo_list.sh ]; then
+    source ${BUILD_RULE_ROOT_DIR}/binfo_list.sh
+else
+    echo "error, could not find file binfo.sh to load binfo build file list"
+    exit 1
+fi
+
+if [ -e ${BUILD_SCRIPT_ROOT_DIR}/binfo_utils.sh ]; then
+    source ${BUILD_SCRIPT_ROOT_DIR}/binfo_utils.sh
 else
     echo "error, could not find file binfo.sh to load binfo build file list"
     exit 1
@@ -189,10 +203,10 @@ export CMAKE_BUILD_TYPE_RELWITHDEBINFO=RelWithDebInfo
 #export CMAKE_BUILD_TYPE_DEFAULT=${CMAKE_BUILD_TYPE_RELWITHDEBINFO}
 export CMAKE_BUILD_TYPE_DEFAULT=${CMAKE_BUILD_TYPE_RELEASE}
 export APP_CMAKE_CFG_FLAGS_DEBUG="-DCMAKE_C_FLAGS_DEBUG=-g3 -DCMAKE_CXX_FLAGS_DEBUG=-g3"
-export APP_CMAKE_CFG_FLAGS_DEFAULT=""
+export APP_CMAKE_CFG_FLAGS_DEFAULT="-DCMAKE_INSTALL_LIBDIR=lib64"
 if [ ${CMAKE_BUILD_TYPE_DEFAULT} == ${CMAKE_BUILD_TYPE_DEBUG} ] || [ ${CMAKE_BUILD_TYPE_DEFAULT} == ${CMAKE_BUILD_TYPE_RELWITHDEBINFO} ]; then
-    APP_CMAKE_CFG_FLAGS_DEFAULT="${APP_CMAKE_CFG_FLAGS_DEBUG}"
-    echo "APP_CMAKE_CFG_FLAGS_DEFAULT: $APP_CMAKE_CFG_FLAGS_DEFAULT"
+    export APP_CMAKE_CFG_FLAGS_DEFAULT="${APP_CMAKE_CFG_FLAGS_DEFAULT} ${APP_CMAKE_CFG_FLAGS_DEBUG}"
+    echo "APP_CMAKE_CFG_FLAGS_DEFAULT: ${APP_CMAKE_CFG_FLAGS_DEFAULT}"
 fi
 #export INSTALL_DIR_PREFIX_SDK_ROOT=$SDK_ROOT_DIR/install
 export BUILD_ROOT_DIR=${SDK_ROOT_DIR}/builddir
@@ -244,8 +258,8 @@ fi
 export HIP_PLATFORM=${HIP_PLATFORM_DEFAULT}
 export HIPCC_VERBOSE=7
 
-export LD_LIBRARY_PATH=/lib64:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib:${INSTALL_DIR_PREFIX_HIP_LLVM}/lib:${INSTALL_DIR_PREFIX_SDK_ROOT}/hsa/lib
-export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin:${INSTALL_DIR_PREFIX_HIP_LLVM}/bin:${INSTALL_DIR_PREFIX_HIPCC}/bin:$PATH
+export LD_LIBRARY_PATH=/lib64:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib:${INSTALL_DIR_PREFIX_SDK_ROOT}/hsa/lib
+export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin:$PATH
 
 if [ -e ${SDK_ROOT_DIR}/envsetup_post.cfg ]; then
     echo "Found and executing ${SDK_ROOT_DIR}/envsetup_post.cfg"
@@ -273,5 +287,5 @@ export CFLAGS="-I${INSTALL_DIR_PREFIX_SDK_ROOT}/include -I${INSTALL_DIR_PREFIX_S
 export CPPFLAGS="-I${INSTALL_DIR_PREFIX_SDK_ROOT}/include -I${INSTALL_DIR_PREFIX_SDK_ROOT}/hsa/include -I${INSTALL_DIR_PREFIX_SDK_ROOT}/rocm_smi/include -I${INSTALL_DIR_PREFIX_SDK_ROOT}/rocblas/include"
 export PKG_CONFIG_PATH="{INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/pkgconfig:{INSTALL_DIR_PREFIX_SDK_ROOT}/lib/pkgconfig:{INSTALL_DIR_PREFIX_SDK_ROOT}/share/pkgconfig"
 
-func_binfo_list_init_app_list
+func_binfo_utils__init_binfo_app_list
 

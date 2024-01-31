@@ -1,7 +1,7 @@
-From a1fc0920c22cc1c90f9924366a1a23ce98b40e62 Mon Sep 17 00:00:00 2001
+From b68f97db641fa638edf6fdc1014241edf15eab4a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 7 Jan 2024 14:51:27 +0200
-Subject: [PATCH 2/4] ROCM_SOURCE_DIR detection fix
+Subject: [PATCH 2/7] ROCM_SOURCE_DIR detection fix
 
 ROCM_SOURCE_DIR is required by
 by module third_party/kineto
@@ -19,7 +19,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
-index 4ba9bd44f50..ed49a848dbe 100644
+index acc95842b63..dbcfe440caa 100644
 --- a/cmake/Dependencies.cmake
 +++ b/cmake/Dependencies.cmake
 @@ -1919,10 +1919,12 @@ if(USE_KINETO)
@@ -37,5 +37,5 @@ index 4ba9bd44f50..ed49a848dbe 100644
    if(NOT TARGET kineto)
      add_subdirectory("${KINETO_SOURCE_DIR}")
 -- 
-2.43.0
+2.41.0
 

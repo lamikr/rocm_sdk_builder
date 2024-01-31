@@ -1,12 +1,22 @@
 ROCM SDK BUILDER
 
-Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com>
+Copyright (c) 2024 by Mika Laitio <lamikr@gmail.com>
 
-ROCM SDK builder uses LGPL-2.1 license for the build system files
+ROCM SDK builder uses LGPL 2.1 license for generic build system files
+=====================================================================
 
 babs.sh
-binfo/binfo.sh
-binfo/envsetup.sh
+build/binfo_utils.sh
 build/build.sh
 
-Applications and libraries build with the system are not under this license.
+Build system License License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+As usual with LGPL 2.1, applications and libraries build by using this  build system are not restricted by this license.
+
+ROCM SDK builder uses COFFEEWARE LICENSE for the files specifying the build target
+==================================================================================
+
+binfo/binfo_list.sh
+binfo/envsetup.sh
+
+THE COFFEEWARE LICENSE allows files to be modified freely without requirement for changes to be published.
