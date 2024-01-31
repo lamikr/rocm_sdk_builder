@@ -2,10 +2,14 @@
 
 ## Purpose
 
-ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs. In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools like python, pytorch and jupyter-notebook that has been tested to work with rest of the system.
-Everything will be build and installed under separate folder under /opt/rocm_sdk_<version> so they will not interfere with rest of the system.
+ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs.  
 
-This project has been so fat tested with following AMD GPU's:
+In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools like python, pytorch and jupyter-notebook that has been tested to work with rest of the system. SDK will be installed under /opt/rocm_sdk_<version> directory.
+
+Latest ROCM release supported is the ROCM 6.0.0 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
+
+This project has been so far tested with following AMD GPUs:
+
 - AMD RX 6800
 - AMD RX 5700
 - AMD Mobile m680i
@@ -14,38 +18,53 @@ This project has been so fat tested with following AMD GPU's:
 
 ## Installation Requirements
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39 and Ubuntu 230.10 Linux distributions. Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will itself has certain dependencies that needs to be installed. On Mageia, Fedora and Ubuntu these dependencies can be installed simple by executing a script:
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39 and Ubuntu 230.10 Linux distributions.
+
+Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will naturally have their own build time dependencies.
+
+On Mageia, Fedora and Ubuntu these dependencies, the build time dependencies can be installed by executing a script:
 
 ```
-./install_deps.sh
+# ./install_deps.sh
 ```
 
-Build system will itself build and install standalone python 3.9 and llvm based compiler that are used by many rocm applications to build AMD GPU specific kernel codes for accelerating the maching learning algorithms.
+To reduce the run-time dependency variance between different distributions, the build system will itself build and install standalone python 3.9 which seems to be pretty trouble-free version with the currently used pytorch rocm-components.
 
-At least the GIT version installed by the Ubuntu seems to also require configuring the git username and email address to avoid the the 'git am' command to fail. That command is used by the SDK to apply project specific patches once the projects has been downloaded.
+You need to also to use git configure command to set git username and email address, otherwise the 'git am' command that the project uses for applying patches on top of the upstream code versions will fail. This can be done in a following way.
 
 ```
-git config --global user.name "John Doe"
-git config --global user.email johndoe@example.com
+# git config --global user.name "John Doe"
+# git config --global user.email johndoe@example.com
 ```
+
+ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.0.0 version. This is mostly divided in a following way:
+
+```
+- src_projects directory, for source code, about 30 GB
+- builddir directory for temporarily files, about 75 GB
+- /opt/rocm_sdk_600, install directory for the sdk, about 20 GB
+```
+
+Once the build is ready, 'builddir' and 'src_projects' directories could be deleted to free more space. As the downloading the sources from scratch can take some, I recommend keeping at least the source directory.
 
 ## Installation Directory and Environment Variables
 
 ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory.  To set the paths and other environment variables required to execute the applications installed by the SDK can be loaded by executing a command:
 
 ```
-source /opt/rock_sdk_<version>/bin/env_rocm.sh
+# source /opt/rock_sdk_<version>/bin/env_rocm.sh
 ```
 
 ## How to Build and Install ROCm SDK
 
-Following commands will download rocm sdk 5.7.1 project sources and then build and install the rocm_sdk version 5.7.1 to /opt/rocm_sdk_571 folder.
+Following commands will download rocm sdk 6.0.0 project sources and then build and install the rocm_sdk version 6.0.0 to /opt/rocm_sdk_600 folder.
 
 ```
-git clone https://github.com/lamikr/rocm_sdk_builder.git
-cd rocm_sdk_builder
-./babs.sh -i
-./babs.sh -b
+# git clone https://github.com/lamikr/rocm_sdk_builder.git
+# cd rocm_sdk_builder
+# git checkout releases/rocm_sdk_builder_600
+# ./babs.sh -i
+# ./babs.sh -b
 ```
 
 ## How to get started for using the installed SDK
@@ -53,15 +72,15 @@ cd rocm_sdk_builder
 Following command should give you information related to your installed AMD GPU.
 
 ```
-source /opt/rocm_sdk_571/bin/env_rocm.sh
-rocminfo
+# source /opt/rocm_sdk_600/bin/env_rocm.sh
+# rocminfo
 ```
 
 Following command will open pytorch project to test your GPU. (Note that AMD gpus are listed as a cuda GPU's on pytorch)
 
 ```
-source /opt/rocm_sdk_571/bin/env_rocm.sh
-jupyter-notebook /opt/rocm_sdk_571/docs/examples/pytorch/pytorch_amd_gpu_intro.ipynb
+# source /opt/rocm_sdk_600/bin/env_rocm.sh
+# jupyter-notebook /opt/rocm_sdk_600/docs/examples/pytorch/pytorch_amd_gpu_intro.ipynb
 ```
 
 Details howto use the other ROCm components like rocBLAS, rocPRIM, etc. will be added later.
@@ -86,7 +105,7 @@ List of supported GPU's should be relatively easy to add, at the moment I have o
 
 New projects can be added to builder by modifying files in binfo directory.
 
-1. First you need to create the <build_order_number>_<name>.binfo file where you specify details for the project like source code location, configure flags and build commands. By default the build system will use cmake and make commands for building the projects, but you can override those by supplying your BINFO array commands if the projects standard install command needs some customization.
+- First you need to create the <build_order_number>_<name>.binfo file where you specify details for the project like source code location, configure flags and build commands. By default the build system will use cmake and make commands for building the projects, but you can override those by supplying your BINFO array commands if the projects standard install command needs some customization.
 You can check details for those from the existing .binfo files but principle is following:
 
 ```
@@ -96,11 +115,11 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
 }
 ```
 
-2. Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo_list.sh file.
+- Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo_list.sh file.
  
 ### ROCM SDK Builder Major Components
 
-1. babs.sh and build/build.sh scripts provides the framework for the build system and could be used more or less without modifications for building also some other multi-source code projects. babs.sh provides the user-interface and build.sh provides most of the functionality. You can get help for available babs (acronym babs ain't patch build system)) commands with -h.
+- babs.sh, build/build.sh and build/binfo_utils.sh provides the framework for the build system and can be used more or less without modifications also on other projects. You can get help for available babs (acronym babs ain't patch build system)) commands with the '-h' argument.
 
 ```
 [lamikr@localhost rocm_sdk_builder (master)]$ ./babs.sh -h
@@ -123,23 +142,39 @@ usage:
 -v or --version:        Show babs build system version information
 ```
 
-2. binfo folder contains the recipes for each projects which is wanted to be build. These recipes does not have support for listing the dependencies by purpose and insted the build order is managed in binfo/binfo_list.sh file.
+- binfo folder contains the recipes for each projects which is wanted to be build. These recipes does not have support for listing the dependencies by purpose and insted the build order is managed in binfo/binfo_list.sh file.
 
-3. patches directory contains the patches that are wanted to add on top of the each project that is downloaded from their upstream repository
+- patches directory contains the patches that are wanted to add on top of the each project that is downloaded from their upstream repository
 
-4. src_projects is the directory under each sub-project source code is downloaded from internet.
+- src_projects is the directory under each sub-project source code is downloaded from internet.
 
-5. builddir is the location where each project is build before install and work as a temporarily work environment. Build system can be cleaned to force the rebuild either by removing individual projects from builddir folder or by removing the whole projecs. More detailed  specific tuning is also possible by deleting build-phase result files.
+- builddir is the location where each project is build before install and work as a temporarily work environment. Build system can be cleaned to force the rebuild either by removing individual projects from builddir folder or by removing the whole projecs. More detailed  specific tuning is also possible by deleting build-phase result files.
 (builddir/project/.result_preconfig/config/postconfig/build/install/postinstall)
+
+## Rebuilding Individual Projects
+
+Rebuilding of individual projects can be triggered in two different ways if you have made for example some changes to project source code under the 'src_projects' directory: Note that builder will always build projects in an order listed in the binfo/binfo_list.sh file.
+
+- deleting the project specific directory from the builddir
+- removing the .result_* files under the build directory.
+
+For example:
+
+```
+# rm -rf builddir/037_magma (would trigger to re-run all build phases)
+# rm -f builddir/037_magma/.result_install (would trigger to re-run only the install phase)
+# ./babs.sh -b
+```
 
 ## Additional build commands
 
+./babs.sh has also following commands:
+
 ```
-./babs.sh has also following commands
-./babs.sh -co (checkouts the sources back to basic level for all projects)
-./babs.sh -ap (apply patches to checked sources for all projects)
-./babs.sh -f (fetch latest sources for all projects)
-./babsh.sh -fs (fetch latest sources for all projects all submodules)
+# ./babs.sh -co (checkouts the sources back to basic level for all projects)
+# ./babs.sh -ap (apply patches to checked sources for all projects)
+# ./babs.sh -f (fetch latest sources for all projects)
+# ./babsh.sh -fs (fetch latest sources for all projects all submodules)
 ```
 
 ## GPU benchmarks
@@ -147,19 +182,21 @@ usage:
 - Very simple benchmark is available on by executing command:
 
 ```
-source /opt/rocm_sdk_571/bin/env_rocm.sh
-jupyter-notebook /opt/rocm_sdk_571/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
+# source /opt/rocm_sdk_600/bin/env_rocm.sh
+# jupyter-notebook /opt/rocm_sdk_600/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
 
-- Much more extensive GPU benchmark originally used with NVIDIA gpu's is available here. I am not the original author by have made some modifications to get is running with newer pytorch and numpy versions.
+- more extensive GPU benchmark originally used with NVIDIA gpu's is available here. I have made some modifications to original benchmarks to update it to run with the newer pytorch and python numpy.
 
 ```
-git clone https://github.com/lamikr/pytorch-gpu-benchmark
-cd pytorch-gpu-benchmark
-source /opt/rocm_sdk_571/bin/env_rocm.sh
-./test_with_torchvision_013.sh script
+# git clone https://github.com/lamikr/pytorch-gpu-benchmark
+# cd pytorch-gpu-benchmark
+# source /opt/rocm_sdk_/bin/env_rocm.sh
+# ./test_with_torchvision_013.sh script
 ```
 
-Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com> This Project uses partially the LGPL 2.1 and COFFEEWARE licenses. See the COPYING file for details.
+Copyright (C) 2023 by Mika Laitio <lamikr@gmail.com>  
+Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
+See the COPYING file for details.
