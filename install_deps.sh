@@ -1,4 +1,4 @@
-supported_distro( )
+func_is_supported_distro()
 {
   if [ -z ${ID+foo} ]; then
     printf "Error, Linux distribution ID could not be read from /etc/os-release\n"
@@ -16,7 +16,7 @@ supported_distro( )
   esac
 }
 
-install_packages( )
+func_install_packages()
 {
     case "${ID}" in
         mageia)
@@ -26,7 +26,7 @@ install_packages( )
           ;;
         fedora)
           # elevate_if_not_root dnf -y update
-          sudo dnf install cmake rpm-build gcc gcc-c++ openssl-devel zlib-devel gcc-gfortran make libcxx-devel numactl-libs numactl-devel dpkg-dev doxygen  elfutils-libelf-devel prename perl-URI-Encode perl-File-Listing perl-File-BaseDir fftw-devel wget libdrm-devel xxd glew-devel python3-cppheaderparser autoconf automake libtool icu bzip2-devel lzma-sdk-devel libicu-devel msgpack-devel libffi-devel json-devel texinfo python3-pip sqlite-devel git git-lfs lbzip2 opencv-devel ffmpeg-free valgrind perl-FindBin pmix-devel flex-devel bison-devel bison flex byacc gettext xz-devel ninja-build texlive-scheme-medium protobuf-devel pybind11-devel
+          sudo dnf install cmake rpm-build gcc gcc-c++ openssl-devel zlib-devel gcc-gfortran make libcxx-devel numactl-libs numactl-devel dpkg-dev doxygen  elfutils-libelf-devel prename perl-URI-Encode perl-File-Listing perl-File-BaseDir fftw-devel wget libdrm-devel xxd glew-devel python3-cppheaderparser autoconf automake libtool icu bzip2-devel lzma-sdk-devel libicu-devel msgpack-devel libffi-devel json-devel texinfo python3-pip sqlite-devel git git-lfs lbzip2 opencv-devel ffmpeg-free valgrind perl-FindBin pmix-devel flex-devel bison-devel bison flex byacc gettext xz-devel ninja-build texlive-scheme-small protobuf-devel pybind11-devel
 	      git-lfs install
           ;;
         ubuntu)
@@ -42,6 +42,29 @@ install_packages( )
     esac
 }
 
+func_is_git_configured() {
+    GIT_USER_NAME=`git config --get user.name`
+    if [ ! -z "${GIT_USER_NAME}" ]; then
+        GIT_USER_EMAIL=`git config --get user.email`
+        if [ ! -z "${GIT_USER_EMAIL}" ]; then
+		    true
+        else
+            echo ""
+            echo "You need to configure git user's email address. Example command:"
+            echo "    git config --global user.email \"john.doe@emailserver.com\""
+            echo ""
+            exit 2
+        fi
+    else
+        echo ""
+        echo "You need to configure git user's name and email address. Example commands:"
+        echo "    git config --global user.name \"John Doe\""
+        echo "    git config --global user.email \"john.doe@emailserver.com\""
+        echo ""
+        exit 2
+    fi
+}
+
 # /etc/*-release files describe the system
 if [[ -e "/etc/os-release" ]]; then
   source /etc/os-release
@@ -54,5 +77,7 @@ else
 fi
 
 # The following function exits script if an unsupported distro is detected
-supported_distro
-install_packages
+func_is_supported_distro
+func_install_packages
+func_is_git_configured
+echo "Dependencies installed, you can now start using the babs.sh command"

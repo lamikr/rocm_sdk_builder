@@ -190,15 +190,15 @@ func_repolist_upstream_remote_repo_add() {
                         echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
                         exit 1
                     else
-                        echo "repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                        echo "git am ok"
+                        echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
                     fi
                 else
-                   echo "patch dir empty: ${TEMP_PATCH_DIR}"
+                   echo "patch directory exist but is empty: ${TEMP_PATCH_DIR}"
                    sleep 2
                 fi
             else
-                echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
+                true
+                #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
                 #sleep 2
             fi
         fi
@@ -506,19 +506,20 @@ func_repolist_apply_patches() {
                             echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
                             exit 1
                         else
-                            echo "repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                            echo "git am ok"
+                            echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                            #echo "git am ok"
                         fi
                     else
-                       echo "patch dir empty: ${TEMP_PATCH_DIR}"
+                       echo "patch directory is empty: ${TEMP_PATCH_DIR}"
                        sleep 2
                     fi
                 else
-                    echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
+                    true
+                    #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
                     #sleep 2
                 fi
             else
-                echo "Not a git repo: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                echo "Warning, not a git repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
             fi
         else
             echo "repo am paches skipped for repo name: NONE, app name: ${LIST_BINFO_APP_NAME[${jj}]}"
@@ -640,6 +641,29 @@ func_user_help_print() {
     exit 0
 }
 
+func_is_git_configured() {
+    GIT_USER_NAME=`git config --get user.name`
+    if [ ! -z "${GIT_USER_NAME}" ]; then
+        GIT_USER_EMAIL=`git config --get user.email`
+        if [ ! -z "${GIT_USER_EMAIL}" ]; then
+		    true
+        else
+            echo ""
+            echo "You need to configure git user's email address. Example command:"
+            echo "    git config --global user.email \"john.doe@emailserver.com\""
+            echo ""
+            exit 2
+        fi
+    else
+        echo ""
+        echo "You need to configure git user's name and email address. Example commands:"
+        echo "    git config --global user.name \"John Doe\""
+        echo "    git config --global user.email \"john.doe@emailserver.com\""
+        echo ""
+        exit 2
+    fi
+}
+
 func_handle_user_args() {
     ii=0
     while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
@@ -650,7 +674,9 @@ func_handle_user_args() {
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-ap" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--apply_patches" ]; then
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            func_is_git_configured
             func_repolist_apply_patches
+            echo "patches applied succesfully to git repositories"
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-b" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--build" ]; then
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
@@ -700,7 +726,9 @@ func_handle_user_args() {
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-i" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--init" ]; then
             #echo "downloading new repositories: ${LIST_USER_CMD_ARGS[$ii]}"
+            func_is_git_configured
             func_repolist_upstream_remote_repo_add
+            echo "git repositories initialized succesfully"
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-s" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--sync" ]; then
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
