@@ -1,0 +1,61 @@
+Simplest way to check the build-time is to check the builddir directory content
+and reduce the last-directory time from the first directory time: For example
+
+19:33 001_rocm_core
+04:35 038_03_pytorch_audio
+
+--> build time: 8h 2 min
+
+Build times
+===========
+
+1) ROCM_SDB_BUILDER 6.0.0.1
+
+- Mageia 9 on AMD Ryzen 9 5700x desktop with AMD RX6800
+	- DDR4: 128GB
+	- build time: 5h 59 min
+	
+- Mageia 9 on AMD Ryzen 7 3700x desktop
+	- DDR4: 64GB
+	- build time: 6h 57 min
+
+- Mageia 9 on AMD Ryzen 9 6900HS Laptop
+	- DDR4: 32GB
+	- build time: 8h 2 min
+
+- Gnome Boxes Ubuntu 23.10 virtual machine on Mageia 9 / AMD Ryzen 7 5700X 8-Core Processor
+	- DDR4 / 3200 MHz: reserved for virtual machine: 40GB
+	- build time: 6h 47 min
+	
+- Gnome Boxes Fedora 39 virtual machine on Mageia 9 / AMD Ryzen 7 5700X 8-Core Processor
+	- DDR4 / 3200 MHz: reserved for virtual machine: 40GB
+	- build time: 6h 58 min
+
+List of projects build	
+=================================================================================
+001_rocm_core.binfo                       015_03_openmpi.binfo                         026_02_rocrand_rocrand.binfo
+002_python.binfo                          016_01_flang_libpgmath.binfo                 027_hipFFT.binfo
+003_llvm_project_llvm.binfo               016_02_flang.binfo                           028_01_hipSPARSE.binfo
+004_01_roct-thunk-interface_shared.binfo  016_03_llvm_project_openmp.binfo             028_02_hipSPARSELt.binfo
+004_02_roct-thunk-interface_static.binfo  016_04_flang_runtime.binfo                   029_rocALUTION.binfo
+005_rocm-cmake.binfo                      016_05_llvm_project_openmp_fortran.binfo     030_hipCUB.binfo
+006_hip_clang_rocm-device-libs.binfo      017_hipify.binfo                             031_01_miopen_rocMLIR.binfo
+007_01_rocr-runtime.binfo                 018_rccl.binfo                               031_02_miopengem.binfo
+007_02_rocminfo.binfo                     019_clang-ocl.binfo                          032_01_functionalplus.binfo
+008_01_aomp_extras.binfo                  020_01_amd_fftw_single_precision.binfo       032_02_eigen.binfo
+008_02_rocm-compilersupport.binfo         020_02_amd_fftw_double_precision.binfo       032_03_frugally_deep.binfo
+009_01_hipcc_hip.binfo                    020_03_amd_fftw_long_double_precision.binfo  033_01_composable_kernel.binfo
+009_02_hipcc_hipcc.binfo                  020_04_amd_fftw_quad_precision.binfo         033_02_composable_kernel_jit.binfo
+009_03_hipcc_clr.binfo                    022_rocFFT.binfo                             034_miopen.binfo
+010_01_rocPRIM.binfo                      023_01_rocBLAS_Tensile.binfo                 035_AMDMIGraphX.binfo
+010_02_rocthrust.binfo                    023_02_rocBLAS.binfo                         036_rocWMMA.binfo
+011_rocprofiler.binfo                     023_03_rocSPARSE.binfo                       037_magma.binfo
+012_roctracer.binfo                       024_01_rocSOLVER_fmt.binfo                   038_01_pytorch.binfo
+013_rocm_smi_lib.binfo                    024_02_rocSOLVER_lapack.binfo                038_02_pytorch_vision.binfo
+014_01_hwloc.binfo                        024_03_rocSOLVER.binfo                       038_03_pytorch_audio.binfo
+014_02_boost.binfo                        024_04_hipSOLVER.binfo                       
+014_03_gtest.binfo                        025_01_hipBLAS.binfo                         
+014_04_half.binfo                         025_02_hipBLASLt.binfo                       
+015_01_ucx_openmpi.binfo                  025_03_blaze.binfo                           
+015_02_ucc_openmpi.binfo                  026_01_rocrand_hiprand.binfo                 
+======================================================================================
