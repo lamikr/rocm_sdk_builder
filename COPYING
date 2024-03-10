@@ -2,6 +2,9 @@ ROCM SDK BUILDER
 
 Copyright (c) 2024 by Mika Laitio <lamikr@gmail.com>
 
+Files in this project uses a combination of LGPL, COFFEEWARE and MIT licenses.
+Details how this is implemented is below.
+
 ROCM SDK builder uses LGPL 2.1 license for generic build system files
 =====================================================================
 
@@ -13,11 +16,17 @@ Build system License License: GNU Lesser General Public License (LGPL), version 
 See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 As usual with LGPL 2.1, applications and libraries build by using this  build system are not restricted by this license.
 
-ROCM SDK builder uses COFFEEWARE LICENSE for the files specifying the build target
-==================================================================================
+ROCM SDK builder uses COFFEEWARE LICENSE for the configuration files specifying the build target
+================================================================================================
 
 binfo/binfo_list.sh
 binfo/envsetup.sh
 
 THE COFFEEWARE LICENSE allows files to be modified freely without requirement for changes to be published.
 See the coffeeware.md file in the root directory for details.
+
+Checkbox.sh for GPU selection
+=============================
+checkbox.sh uses MIT License
+Copyright (c) 2020 Pedro Santos Arruda - [pedro-hs](https://github.com/pedro-hs)
+Origin of the file: https://github.com/pedro-hs/checkbox.sh.git/checkbox.sh
