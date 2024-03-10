@@ -504,13 +504,20 @@ main() {
 	echo -e "\033[0;34m"
     if [[ ${#checkbox_output[@]} -gt 0 ]]; then
         printf "Selected:\n"
+        #echo "" > build_cfg.user
+        unset NEW_CFG_FILE_DONE
         for option in "${checkbox_output[@]}"; do
-            printf "$option\n"
+            if [ ! -v NEW_CFG_FILE_DONE ]; then
+                echo "$option" > build_cfg.user
+                NEW_CFG_FILE_DONE=1
+            else
+                echo "$option" >> build_cfg.user
+            fi
+            #printf "$option\n"
         done
     else
-        printf "None selected\n"
+        printf "No options selected\n"
     fi
-
     return
 }
 

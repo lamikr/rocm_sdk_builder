@@ -3,28 +3,15 @@
 # License of this file: "THE COFFEEWARE LICENSE" (Revision 2).
 # see coffeeware file in the root directory for details.
 
-# Select below one or more AMD gpu architectures for the build target by using the
-# GPU_BUILD_AMD_*=1 definitions below.
-#
-# Note that each selected GPU will increase the build time because various
-# parts of code are build for each GPU separately.
-# (gpu specific kernels that are loaded to GPU's memory to execute operation)
-#
-# NAVI21 selection will add support for the following GPU's
-#   - AMD RX 6800/gfx1030
-# REMBRAND selection will add support for the following GPU's
-#   - AMD m680i mobile gpu available on laptops/gfx1035
-# NAVI10 selection will add support for the following GPU's
-#   - AMD RX 5700/gfx1010
-#
-# ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection ------------
-GPU_BUILD_AMD_NAVI10_GFX1010=1
-GPU_BUILD_AMD_NAVI21_GFX1030=1
-GPU_BUILD_AMD_REMBRANDT_GFX1035=1
-# NAVI14 and VEGA support has not been tested for a while and is probaly not working.
+# Select below one or more AMD gpu architectures for the build target by using the checkbox function below.
+# NAVI14 and VEGA support has not been tested with rocm 5.x or 6.x builds and are probaly not working.
 #GPU_BUILD_AMD_NAVI14_GFX1012=1
 #GPU_BUILD_AMD_VEGA_GFX902=1
 # ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection Ends ------------
+
+func_build_cfg_user() {
+    ./build/checkbox.sh --message="Select ROCM SDK build target GPUs. Space to select, Enter to finish save, ESC to cancel." --options="gfx1010|gfx1030|gfx1035" --multiple
+}
 
 export ROCM_MAJOR_VERSION=6
 export ROCM_MINOR_VERSION=0
@@ -88,68 +75,102 @@ export CPACK_RPM_PACKAGE_RELEASE=01
 
 export python=python
 
+USER_CFG_FNAME='build_cfg.user'
+unset USER_CONFIG_IS_OK
+if [ -e ${USER_CFG_FNAME} ]; then
+    while read CUR_GPU; do
+        if [[ ${CUR_GPU} == gfx* ]] ; then
+            USER_CONFIG_IS_OK=1
+        else
+            echo "Error, invalid option in build_cfg.user file."
+            echo "Build options must start with word gfx"
+        fi
+    done < "${USER_CFG_FNAME}"
+fi
+
+if [ -z ${USER_CONFIG_IS_OK} ] || [ ! -e ${USER_CFG_FNAME} ] ; then
+    func_build_cfg_user
+fi
+
 unset SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT
 unset SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT
-if [[ ! -z ${GPU_BUILD_AMD_VEGA_GFX902} ]]; then
-    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx902"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx902"
-    else
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx902"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx902"
-    fi
+if [ -e ${USER_CFG_FNAME} ]; then
+    while read CUR_GPU; do
+        if [[ ${CUR_GPU} == gfx* ]] ; then
+            if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+                SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT=${CUR_GPU}
+                SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT=${CUR_GPU}
+            else
+                SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} ${CUR_GPU}"
+                SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};${CUR_GPU}"
+            fi
+        fi
+    done < "${USER_CFG_FNAME}"
 fi
-if [[ ! -z ${GPU_BUILD_AMD_NAVI10_GFX1010} ]]; then
-    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1010"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1010"
-    else
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1010"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1010"
-    fi
-fi
-if [[ ! -z ${GPU_BUILD_AMD_NAVI14_GFX1012} ]]; then
-    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1012"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1012"
-    else
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1012"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1012"
-    fi
-fi
-if [[ ! -z ${GPU_BUILD_AMD_NAVI21_GFX1030} ]]; then
-    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1030"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1030"
-    else
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1030"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1030"
-    fi
-fi
-if [[ ! -z ${GPU_BUILD_AMD_REMBRANDT_GFX1035} ]]; then
-    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1035"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1035"
-    else
-        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1035"
-        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1035"
-    fi
-fi
-#SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};"
+
+#unset SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT
+#unset SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT
+#if [[ ! -z ${GPU_BUILD_AMD_VEGA_GFX902} ]]; then
+#    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx902"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx902"
+#    else
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx902"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx902"
+#    fi
+#fi
+#if [[ ! -z ${GPU_BUILD_AMD_NAVI10_GFX1010} ]]; then
+#    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1010"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1010"
+#    else
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1010"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1010"
+#    fi
+#fi
+#if [[ ! -z ${GPU_BUILD_AMD_NAVI14_GFX1012} ]]; then
+#    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1012"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1012"
+#    else
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1012"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1012"
+#    fi
+#fi
+#if [[ ! -z ${GPU_BUILD_AMD_NAVI21_GFX1030} ]]; then
+#    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1030"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1030"
+#    else
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1030"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1030"
+#    fi
+#fi
+#if [[ ! -z ${GPU_BUILD_AMD_REMBRANDT_GFX1035} ]]; then
+#    if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1035"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="gfx1035"
+#    else
+#        SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1035"
+#        SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};gfx1035"
+#    fi
+#fi
 
 #echo "rocm build targets: "
 ##echo ${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT}
 #echo ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}
 #sleep 2
 if [ ! -v SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]; then
-    echo "GPU_ARCH_BUILD is not defined or value is invalid"
-    echo "try to define at least one of following in binfo/envsetup.sh script:"
+    echo "Error, no GPU selected"
+    echo "Enable at least one of the following variables in binfo/envsetup.sh file:"
     echo "    GPU_BUILD_AMD_VEGA_GFX902=1"
     echo "    GPU_BUILD_AMD_NAVI10_GFX1010=1"
     echo "    GPU_BUILD_AMD_NAVI14_GFX1012=1"
     echo "    GPU_BUILD_AMD_NAVI21_GFX1030=1"
     echo "    GPU_BUILD_AMD_REMBRANDT_GFX1035=1"
     exit -1
+else
+    echo "selected GPUs: ${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
 fi
 
 SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="$( echo "$SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT" | sed 's/[[:space:]][[:space:]]*/;/g')"

@@ -598,12 +598,14 @@ func_user_help_print() {
     echo ""
     echo "usage:"
     echo "-h or --help:           Show this help"
+    echo "-c or --configure       Show list of GPU's for which the the build is optimized"
     echo "-i or --init:           Download git repositories listed in binfo directory to 'src_projects' directory"
     echo "                        and apply all patches from 'patches' directory."
     echo "-ap or --apply_patches: Scan 'patches/rocm-version' directory and apply each patch"
     echo "                        on top of the repositories in 'src_projects' directory."
     echo "-co or --checkout:      Checkout version listed in binfo files for each git repository in src_projects directory."
-    echo "                        Apply of patches of top of the checked out version needs to be performed separately with '-ap' command."
+    echo "                        Apply of patches of top of the checked out version needs to be performed separately"
+    echo "                        with '-ap' command."
     echo "-f or --fetch:          Fetch latest source code for all repositories."
     echo "                        Checkout of fetched sources needs to be performed separately with '-co' command."
     echo "                        Possible subprojects needs to be fetched separately with '-fs' command. (after '-co' and '-ap')"
@@ -670,6 +672,10 @@ func_handle_user_args() {
         if [ ${LIST_USER_CMD_ARGS[$ii]} == "-h" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--help" ]; then
             #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_user_help_print
+            exit 0
+        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-c" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--configure" ]; then
+            #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            func_build_cfg_user
             exit 0
         elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-ap" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--apply_patches" ]; then
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
