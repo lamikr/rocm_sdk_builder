@@ -16,7 +16,6 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_C_COMPILER=${SDK_C_COMPILER_
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_CXX_COMPILER=${SDK_CXX_COMPILER_DEFAULT}"
 #inline asm needs to be disabled for navi/gfx1010 series because it needs to be different than for the vega series of gpus
 #todo: writing of inline asm for navi gpus is propably a good optimization in future
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CMAKE_CFG_GPU_ARCH_DEFAULT}"
 #BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_BENCHMARK=ON"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
 
