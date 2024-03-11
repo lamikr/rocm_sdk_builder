@@ -67,6 +67,16 @@ Following commands will download rocm sdk 6.0.0 project sources and then build a
 # ./babs.sh -b
 ```
 
+SDK will pop-up the GPU selection fro the SDK build targets before the build will start
+and selections will be stored to build_cfg.user file.
+Configuration can also be done afterwards with ./babs.sh -c command.
+Note that build-configuration change does not automatically cause a rebuild
+of already builded projects. To force that you need to remove projects you want
+to rebuild from builddir folder. To force rebuilding everything you simply remove
+the 'builddir' directoty completely.
+
+![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection.png  "GPU Selection for ROCm SDK Build Target")
+
 ## How to get started for using the installed SDK
 
 Following command should give you information related to your installed AMD GPU.
