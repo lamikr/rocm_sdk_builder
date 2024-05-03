@@ -2,7 +2,7 @@ BINFO_APP_NAME=clr
 BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_SUBDIR_BASENAME=
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/clr"
-BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm-Developer-Tools/clr
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/clr
 #use rocm version specific default git tag
 #BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-5.7.1
 
