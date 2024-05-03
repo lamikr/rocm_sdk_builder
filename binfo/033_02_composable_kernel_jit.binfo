@@ -3,7 +3,7 @@ BINFO_APP_SRC_SUBDIR_BASENAME=
 BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 #BINFO_APP_SRC_TOPDIR_BASENAME=composable_kernel
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
-BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCmSoftwarePlatform/composable_kernel.git
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/composable_kernel.git
 # composable kernel jit component is in upstream repo only available in migraphx branch
 # but ROCM_SDK_BUILDER has now a patch that adds it to the upstream versions.
 # It needs to be build from upstream version, otherwise there will be api incompatibilities.
