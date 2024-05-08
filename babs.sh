@@ -7,16 +7,23 @@
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
 
-func_env_variables_init() {
-    if [ -z ${SDK_ROOT_DIR} ]; then
+func_build_version_init() {
+    if [ -e ./binfo/build_version.sh ]; then
+        #echo "Initializing build environment variables"
+        source ./binfo/build_version.sh
+    else
+        echo "Could not read ./binfo/build_version.sh"
+        exit 1
+    fi
+}
+
+func_envsetup_init() {
+    if [ -e ./binfo/envsetup.sh ]; then
         #echo "Initializing build environment variables"
         source ./binfo/envsetup.sh
-    fi
-    if [ -z ${SDK_ROOT_DIR} ]; then
-        echo "Failed to initialize SDK_ROOT_DIR: ${SDK_ROOT_DIR}"
-        exit 1
     else
-        true
+        echo "Could not read ./binfo/envsetup.sh"
+        exit 1
     fi
 }
 
@@ -563,8 +570,10 @@ func_repolist_checkout_by_version_param() {
     fi
 }
 
+#this method not used at the moment and needs refactoring if needed in future
 func_repolist_download() {
-    func_env_variables_init
+    func_build_version_init
+    func_envsetup_init
     func_repolist_binfo_list_print
     func_repolist_upstream_remote_repo_add
     func_repolist_is_changes_committed
@@ -593,9 +602,14 @@ func_env_variables_print() {
     echo "HIP_PATH_DEFAULT: ${HIP_PATH_DEFAULT}"
 }
 
+func_build_system_name_and_version_print() {
+    echo "babs version: ${BABS_VERSION}"
+    echo "sdk version: ${ROCM_SDK_VERSION_INFO}"
+}
+
 func_user_help_print() {
+    func_build_system_name_and_version_print
     echo "babs (babs ain't patch build system)"
-    echo ""
     echo "usage:"
     echo "-h or --help:           Show this help"
     echo "-c or --configure       Show list of GPU's for which the the build is optimized"
@@ -665,7 +679,7 @@ func_is_git_configured() {
     fi
 }
 
-func_handle_user_args() {
+func_handle_user_help_and_version_args() {
     ii=0
     while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
     do
@@ -673,7 +687,19 @@ func_handle_user_args() {
             #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_user_help_print
             exit 0
-        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-c" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--configure" ]; then
+        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-v" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--version" ]; then
+            func_build_system_name_and_version_print
+            exit 0
+        fi
+        ii=$(( ${ii} + 1 ))
+    done
+}
+
+func_handle_user_command_args() {
+    ii=0
+    while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
+    do
+        if [ ${LIST_USER_CMD_ARGS[$ii]} == "-c" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--configure" ]; then
             #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_build_cfg_user
             exit 0
@@ -739,11 +765,6 @@ func_handle_user_args() {
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_repolist_checkout_by_version_tag_file
             exit 0
-        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-v" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--version" ]; then
-            echo "babs (babs ain't patch build system)"
-            echo "babs version: 20240114_1"
-            echo "sdk version: ${ROCM_SDK_VERSION_INFO}"
-            exit 0
         else
             # No changes
             echo "unknown user command paremeter: ${LIST_USER_CMD_ARGS[$ii]}"
@@ -757,6 +778,9 @@ if [ "$#" -eq 0 ]; then
     func_user_help_print
 else
     LIST_USER_CMD_ARGS=( "$@" )
-    func_env_variables_init
-    func_handle_user_args
+    func_build_version_init
+    # handle help and version commands before possible prompting the user config menu
+    func_handle_user_help_and_version_args
+    func_envsetup_init
+    func_handle_user_command_args
 fi

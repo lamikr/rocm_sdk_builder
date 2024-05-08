@@ -3,28 +3,12 @@
 # License of this file: "THE COFFEEWARE LICENSE" (Revision 2).
 # see coffeeware file in the root directory for details.
 
-# Select below one or more AMD gpu architectures for the build target by using the checkbox function below.
-# NAVI14 and VEGA support has not been tested with rocm 5.x or 6.x builds and are probaly not working.
-#GPU_BUILD_AMD_NAVI14_GFX1012=1
-#GPU_BUILD_AMD_VEGA_GFX902=1
-# ---------------ROCM_SDK_BUILDER TARGET AMD GPU Selection Ends ------------
-
-func_build_cfg_user() {
-    ./build/checkbox.sh --message="Select ROCM SDK build target GPUs. Space to select, Enter to finish save, ESC to cancel." --options="gfx1010|gfx1030|gfx1035" --multiple
-}
-
-export ROCM_MAJOR_VERSION=6
-export ROCM_MINOR_VERSION=0
-export ROCM_PATCH_VERSION=0
-
 SDK_ROOT_DIR="$PWD"
 
 export INSTALL_DIR_PREFIX_SDK_ROOT=/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}
 export ROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}
 export BUILD_RULE_ROOT_DIR=${SDK_ROOT_DIR}/binfo
 export BUILD_SCRIPT_ROOT_DIR=${SDK_ROOT_DIR}/build
-export ROCM_SDK_VERSION_INFO=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
-export UPSTREAM_REPO_VERSION_TAG_DEFAULT=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
 export PATCH_FILE_ROOT_DIR=${SDK_ROOT_DIR}/patches/${UPSTREAM_REPO_VERSION_TAG_DEFAULT}
 export SDK_SRC_ROOT_DIR=${SDK_ROOT_DIR}/src_projects
 
@@ -74,6 +58,10 @@ export ROCM_VERSION_STR_ZEROED_NO_DOTS=${ROCM_MAJOR_VERSION}0${ROCM_MINOR_VERSIO
 export CPACK_RPM_PACKAGE_RELEASE=01
 
 export python=python
+
+func_build_cfg_user() {
+    ./build/checkbox.sh --message="Select ROCM SDK build target GPUs. Space to select, Enter to finish save, ESC to cancel." --options="gfx1010|gfx1030|gfx1035" --multiple
+}
 
 USER_CFG_FNAME='build_cfg.user'
 unset USER_CONFIG_IS_OK
