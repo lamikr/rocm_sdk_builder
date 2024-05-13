@@ -3,3 +3,5 @@ builddir
 envsetup_pre.cfg
 envsetup_post.cfg
 build_cfg.user
+docs/examples/hipcc/hello_world/hello_world
+docs/examples/hipcc/hello_world/hello_world.o
