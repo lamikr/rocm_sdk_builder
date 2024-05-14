@@ -1,0 +1,35 @@
+From e64270e7655814b5d1a6e1fe2df176ac9ea1bd37 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 25 Jan 2024 21:35:25 -0800
+Subject: [PATCH 4/4] fix libroctx64.so linking error
+
+search the library to add path instead of expecting it to be in
+ld library path
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/CMakeLists.txt | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 7866ad1a5..e8b6c6e53 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -855,7 +855,13 @@ if(NOT WIN32 AND NOT APPLE)
+ endif()
+ 
+ if(NOT WIN32)
+-    target_link_libraries(MIOpen PRIVATE roctx64)
++    find_library(LIBROCTX64 roctx64)
++    if(LIBROCTX64)
++        MESSAGE(STATUS "libroctx64: " ${LIBROCTX64})
++        target_internal_library(MIOpen ${LIBROCTX64})
++    else()
++        target_link_libraries(MIOpen PRIVATE roctx64)
++    endif()
+ endif()
+ 
+ ############################################################
+-- 
+2.41.0
+

@@ -1,0 +1,26 @@
+From ea7e63ce916d38b653961a022710a93481adef5e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 20 Jan 2024 10:44:02 -0800
+Subject: [PATCH] disable precompiled hip headers
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ hipamd/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hipamd/CMakeLists.txt b/hipamd/CMakeLists.txt
+index 7ad30019d..e850aa4cd 100755
+--- a/hipamd/CMakeLists.txt
++++ b/hipamd/CMakeLists.txt
+@@ -43,7 +43,7 @@ list(APPEND CMAKE_MODULE_PATH ${HIP_COMMON_DIR}/cmake)
+ #############################
+ # Options
+ #############################
+-option(__HIP_ENABLE_PCH "Enable/Disable pre-compiled hip headers" ON)
++option(__HIP_ENABLE_PCH "Enable/Disable pre-compiled hip headers" OFF)
+ option(HIP_OFFICIAL_BUILD "Enable/Disable for mainline/staging builds" ON)
+ option(FILE_REORG_BACKWARD_COMPATIBILITY "Enable File Reorg with backward compatibility" OFF)
+ 
+-- 
+2.41.0
+

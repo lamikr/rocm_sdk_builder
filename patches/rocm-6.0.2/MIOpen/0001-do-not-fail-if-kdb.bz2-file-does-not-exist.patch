@@ -1,0 +1,60 @@
+From b7a3c1dbbc4d37bb7377100df5cb489e0d55d5ca Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 19 Dec 2023 15:12:27 -0800
+Subject: [PATCH 1/4] do not fail if kdb.bz2 file does not exist
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aebd98498..1e69519c5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -481,25 +481,27 @@ function(install_kdb)
+         set(FILE_NAME ${PARSE_NAME})
+     endif()
+     STRING(REPLACE - _ FILE_NAME "${ARCH_NAME}")
+-    file(READ "${CMAKE_SOURCE_DIR}/src/kernels/${FILE_NAME}.kdb.bz2" FILE_CONTENTS LIMIT 7)
+-    string(STRIP "${FILE_CONTENTS}" FILE_CONTENTS)
+-    if(FILE_CONTENTS STREQUAL "version")
+-        set(LFS_MISSING_FILES ${LFS_MISSING_FILES} ${FILE_NAME}.kdb.bz2 PARENT_SCOPE)
+-    else()
+-        unpack_db("${CMAKE_SOURCE_DIR}/src/kernels/${FILE_NAME}.kdb.bz2")
+-        message("Installing ${FILE_NAME} in component ${PARSE_COMPONENT_NAME}")
+-        if( NOT ENABLE_ASAN_PACKAGING )
+-          rocm_install(FILES
+-              src/kernels/${FILE_NAME}.kdb
+-          DESTINATION ${DATA_INSTALL_DIR}/db
+-          COMPONENT ${PARSE_COMPONENT_NAME})
++    if(EXISTS "${CMAKE_SOURCE_DIR}/src/kernels/${FILE_NAME}.kdb.bz2")
++                file(READ "${CMAKE_SOURCE_DIR}/src/kernels/${FILE_NAME}.kdb.bz2" FILE_CONTENTS LIMIT 7)
++                string(STRIP "${FILE_CONTENTS}" FILE_CONTENTS)
++                if(FILE_CONTENTS STREQUAL "version")
++                        set(LFS_MISSING_FILES ${LFS_MISSING_FILES} ${FILE_NAME}.kdb.bz2 PARENT_SCOPE)
++                else()
++                        unpack_db("${CMAKE_SOURCE_DIR}/src/kernels/${FILE_NAME}.kdb.bz2")
++                        message("Installing ${FILE_NAME} in component ${PARSE_COMPONENT_NAME}")
++                        if( NOT ENABLE_ASAN_PACKAGING )
++                          rocm_install(FILES
++                                  src/kernels/${FILE_NAME}.kdb
++                          DESTINATION ${DATA_INSTALL_DIR}/db
++                          COMPONENT ${PARSE_COMPONENT_NAME})
++                        endif()
++                endif()
+         endif()
+-    endif()
+ endfunction()
+ 
+ # Both the lists below should be in sync always
+-list(APPEND ARCH_LST gfx90a gfx1030 gfx908 gfx906 gfx900)
+-list(APPEND ARCH_FILE_LST gfx90akdb gfx1030kdb gfx908kdb gfx906kdb gfx900kdb)
++list(APPEND ARCH_LST gfx90a gfx1030 gfx1035 gfx908 gfx906 gfx900)
++list(APPEND ARCH_FILE_LST gfx90akdb gfx1030kdb gfx1035kdb gfx908kdb gfx906kdb gfx900kdb)
+ 
+ list(LENGTH ARCH_LST FULL_LEN)
+ math(EXPR ARCH_LST_LEN "${FULL_LEN} - 1")
+-- 
+2.41.0
+

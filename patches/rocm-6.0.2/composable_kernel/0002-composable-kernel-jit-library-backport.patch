@@ -1,0 +1,2286 @@
+From 4c4bbcea7cbb054f9fe7e3e848e70db110f85ad0 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 28 Jan 2024 22:25:24 -0800
+Subject: [PATCH 2/2] composable kernel jit library backport
+
+- backported from the composable_kernel
+  migraphx branch revision 57cdd70b7cb14e5e3b60cd9a5f96ba8dc343763e
+- needs to be builded from the same source version than rest
+  of the composable kernel to have compatible headers.
+- project CMakeLists.txt done in a way which requires building
+  jit_library in separete step from the rest of the composable_kernel
+  (different build flags)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                                | 339 +++++++--------
+ Config.cmake.in                               |  17 +-
+ cmake/Embed.cmake                             | 202 +++++++++
+ library/CMakeLists.txt                        |   8 +-
+ library/src/jit_library/CMakeLists.txt        |  48 +++
+ .../jit_library/include/ck/host/common.hpp    |  36 ++
+ .../host/device_batched_gemm_softmax_gemm.hpp | 110 +++++
+ .../ck/host/device_gemm_multiple_d.hpp        |  59 +++
+ library/src/jit_library/src/common.cpp        |  36 ++
+ .../src/device_batched_gemm_softmax_gemm.cpp  | 115 ++++++
+ .../src/device_gemm_multiple_d.cpp            | 174 ++++++++
+ .../__pycache__/file_templates.cpython-39.pyc | Bin 0 -> 3529 bytes
+ .../src/jit_library/util/file_templates.py    | 177 ++++++++
+ .../jit_library/util/make_instance_strings.py | 367 +++++++++++++++++
+ test/CMakeLists.txt                           |   4 +
+ test/jit_library/CMakeLists.txt               |   4 +
+ test/jit_library/jit_library.cpp              | 386 ++++++++++++++++++
+ 17 files changed, 1911 insertions(+), 171 deletions(-)
+ create mode 100644 cmake/Embed.cmake
+ create mode 100644 library/src/jit_library/CMakeLists.txt
+ create mode 100644 library/src/jit_library/include/ck/host/common.hpp
+ create mode 100644 library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
+ create mode 100644 library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp
+ create mode 100644 library/src/jit_library/src/common.cpp
+ create mode 100644 library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
+ create mode 100644 library/src/jit_library/src/device_gemm_multiple_d.cpp
+ create mode 100644 library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc
+ create mode 100644 library/src/jit_library/util/file_templates.py
+ create mode 100644 library/src/jit_library/util/make_instance_strings.py
+ create mode 100644 test/jit_library/CMakeLists.txt
+ create mode 100644 test/jit_library/jit_library.cpp
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b09da41a..d1510316 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -136,87 +136,91 @@ if(GPU_TARGETS)
+ else()
+     message("Building CK for the following targets: ${AMDGPU_TARGETS}")
+ endif()
+-find_package(hip)
+-# No assumption that HIP kernels are launched with uniform block size for backward compatibility
+-# SWDEV-413293 and https://reviews.llvm.org/D155213
+-math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
+-message("hip_version_flat=${hip_VERSION_FLAT}")
+-if(${hip_VERSION_FLAT} GREATER 500723302)
+-   message("Adding the fno-offload-uniform-block compiler flag")
+-   add_compile_options(-fno-offload-uniform-block)
+-endif()
+-
+-option(USE_BITINT_EXTENSION_INT4, "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
+-option(USE_OPT_NAVI3X, "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
+-
+-if(USE_BITINT_EXTENSION_INT4)
+-    add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
+-    add_compile_options(-Wno-bit-int-extension)
+-    message("CK compiled with USE_BITINT_EXTENSION_INT4 set to ${USE_BITINT_EXTENSION_INT4}")
+-endif()
+-
+-if(USE_OPT_NAVI3X)
+-    add_compile_options(-mcumode)
+-    add_compile_options(-mno-wavefrontsize64)
+-    message("CK compiled with USE_OPT_NAVI3X set to ${USE_OPT_NAVI3X}")
+-endif()
+-
+-## Threads
+-set(THREADS_PREFER_PTHREAD_FLAG ON)
+-find_package(Threads REQUIRED)
+-link_libraries(Threads::Threads)
+-
+-## C++
+-enable_language(CXX)
+-set(CMAKE_CXX_STANDARD 17)
+-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+-set(CMAKE_CXX_EXTENSIONS OFF)
+-message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
+-
+-## OpenMP
+-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-	# workaround issue hipcc in rocm3.5 cannot find openmp
+-	set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+-	set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+-	set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
+-	set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+-	set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+-	set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+-else()
+-	find_package(OpenMP REQUIRED)
+-endif()
+ 
+-message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
+-message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
+-message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
+-message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
+-
+-link_libraries(${OpenMP_gomp_LIBRARY})
+-link_libraries(${OpenMP_pthread_LIBRARY})
+-
+-## HIP
+-find_package(HIP REQUIRED)
+-# Override HIP version in config.h, if necessary.
+-# The variables set by find_package() can't be overwritten,
+-# therefore let's use intermediate variables.
+-set(CK_HIP_VERSION_MAJOR "${HIP_VERSION_MAJOR}")
+-set(CK_HIP_VERSION_MINOR "${HIP_VERSION_MINOR}")
+-set(CK_HIP_VERSION_PATCH "${HIP_VERSION_PATCH}")
+-if( DEFINED CK_OVERRIDE_HIP_VERSION_MAJOR )
+-    set(CK_HIP_VERSION_MAJOR "${CK_OVERRIDE_HIP_VERSION_MAJOR}")
+-    message(STATUS "CK_HIP_VERSION_MAJOR overriden with ${CK_OVERRIDE_HIP_VERSION_MAJOR}")
+-endif()
+-if( DEFINED CK_OVERRIDE_HIP_VERSION_MINOR )
+-    set(CK_HIP_VERSION_MINOR "${CK_OVERRIDE_HIP_VERSION_MINOR}")
+-    message(STATUS "CK_HIP_VERSION_MINOR overriden with ${CK_OVERRIDE_HIP_VERSION_MINOR}")
+-endif()
+-if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
+-    set(CK_HIP_VERSION_PATCH "${CK_OVERRIDE_HIP_VERSION_PATCH}")
+-    message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
++option(CK_BUILD_JIT_LIB, "Only build the CK JIT Helper Library" OFF)
++if (NOT CK_BUILD_JIT_LIB)
++	find_package(hip)
++	# No assumption that HIP kernels are launched with uniform block size for backward compatibility
++	# SWDEV-413293 and https://reviews.llvm.org/D155213
++	math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
++	message("hip_version_flat=${hip_VERSION_FLAT}")
++	if(${hip_VERSION_FLAT} GREATER 500723302)
++	   message("Adding the fno-offload-uniform-block compiler flag")
++	   add_compile_options(-fno-offload-uniform-block)
++	endif()
++
++	option(USE_BITINT_EXTENSION_INT4, "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
++	option(USE_OPT_NAVI3X, "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
++
++	if(USE_BITINT_EXTENSION_INT4)
++		add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
++		add_compile_options(-Wno-bit-int-extension)
++		message("CK compiled with USE_BITINT_EXTENSION_INT4 set to ${USE_BITINT_EXTENSION_INT4}")
++	endif()
++
++	if(USE_OPT_NAVI3X)
++		add_compile_options(-mcumode)
++		add_compile_options(-mno-wavefrontsize64)
++		message("CK compiled with USE_OPT_NAVI3X set to ${USE_OPT_NAVI3X}")
++	endif()
++
++	## Threads
++	set(THREADS_PREFER_PTHREAD_FLAG ON)
++	find_package(Threads REQUIRED)
++	link_libraries(Threads::Threads)
++
++	## C++
++	enable_language(CXX)
++	set(CMAKE_CXX_STANDARD 17)
++	set(CMAKE_CXX_STANDARD_REQUIRED ON)
++	set(CMAKE_CXX_EXTENSIONS OFF)
++	message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
++
++	## OpenMP
++	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++		# workaround issue hipcc in rocm3.5 cannot find openmp
++		set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
++		set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
++		set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
++		set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++		set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++		set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++	else()
++		find_package(OpenMP REQUIRED)
++	endif()
++
++	message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
++	message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
++	message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
++	message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
++
++	link_libraries(${OpenMP_gomp_LIBRARY})
++	link_libraries(${OpenMP_pthread_LIBRARY})
++
++	## HIP
++	find_package(HIP REQUIRED)
++	# Override HIP version in config.h, if necessary.
++	# The variables set by find_package() can't be overwritten,
++	# therefore let's use intermediate variables.
++	set(CK_HIP_VERSION_MAJOR "${HIP_VERSION_MAJOR}")
++	set(CK_HIP_VERSION_MINOR "${HIP_VERSION_MINOR}")
++	set(CK_HIP_VERSION_PATCH "${HIP_VERSION_PATCH}")
++	if( DEFINED CK_OVERRIDE_HIP_VERSION_MAJOR )
++		set(CK_HIP_VERSION_MAJOR "${CK_OVERRIDE_HIP_VERSION_MAJOR}")
++		message(STATUS "CK_HIP_VERSION_MAJOR overriden with ${CK_OVERRIDE_HIP_VERSION_MAJOR}")
++	endif()
++	if( DEFINED CK_OVERRIDE_HIP_VERSION_MINOR )
++		set(CK_HIP_VERSION_MINOR "${CK_OVERRIDE_HIP_VERSION_MINOR}")
++		message(STATUS "CK_HIP_VERSION_MINOR overriden with ${CK_OVERRIDE_HIP_VERSION_MINOR}")
++	endif()
++	if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
++		set(CK_HIP_VERSION_PATCH "${CK_OVERRIDE_HIP_VERSION_PATCH}")
++		message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
++	endif()
++	message(STATUS "Build with HIP ${HIP_VERSION}")
++	link_libraries(hip::device)
++	add_compile_definitions(__HIP_PLATFORM_HCC__=1)
+ endif()
+-message(STATUS "Build with HIP ${HIP_VERSION}")
+-link_libraries(hip::device)
+-add_compile_definitions(__HIP_PLATFORM_HCC__=1)
+ 
+ ## tidy
+ include(EnableCompilerWarnings)
+@@ -371,92 +375,101 @@ include_directories(BEFORE
+     ${HIP_INCLUDE_DIRS}
+ )
+ 
+-SET(BUILD_DEV ON CACHE BOOL "BUILD_DEV")
+-if(BUILD_DEV)
+-    add_compile_options(-Werror)
+-    add_compile_options(-Weverything)
+-endif()
+-message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+-
+-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
+-
+-file(GLOB_RECURSE INSTANCE_FILES "${PROJECT_SOURCE_DIR}/*/device_*_instance.cpp")
+-file(GLOB dir_list RELATIVE ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/*)
+-set(CK_DEVICE_INSTANCES)
+-FOREACH(subdir_path ${dir_list})
+-set(target_dir)
+-IF(IS_DIRECTORY "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}")
+-    set(cmake_instance)
+-    file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
+-    set(add_inst 0)
+-    if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
+-        #message("fp8 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
+-        #message("bf8 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
+-        #message("fp16 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
+-        #message("fp32 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
+-        #message("fp64 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
+-        #message("bf16 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
+-        #message("int8 instance found!")
+-        set(add_inst 1)
+-    endif()
+-    if(NOT "${cmake_instance}" MATCHES "DTYPES")
+-        #message("instance should be built for all types!")
+-        set(add_inst 1)
+-    endif()
+-    if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
+-        list(APPEND CK_DEVICE_INSTANCES device_${subdir_path}_instance)
+-    endif()
+-ENDIF()
+-ENDFOREACH()
+-
+-add_custom_target(instances DEPENDS utility;${CK_DEVICE_INSTANCES}  SOURCES ${INSTANCE_FILES})
+-add_subdirectory(library)
+-
+-if(NOT DEFINED INSTANCES_ONLY)
+- if(NOT DEFINED PROFILER_ONLY)
+-   rocm_package_setup_component(tests
+-        LIBRARY_NAME composablekernel
+-        PACKAGE_NAME tests # Prevent -static suffix on package name
+-   )
+-
+-   rocm_package_setup_component(examples
+-        LIBRARY_NAME composablekernel
+-        PACKAGE_NAME examples
+-   )
+-   add_subdirectory(example)
+-   add_subdirectory(test)
+-
+-   rocm_package_setup_component(profiler
++if (NOT CK_BUILD_JIT_LIB)
++	SET(BUILD_DEV ON CACHE BOOL "BUILD_DEV")
++	if(BUILD_DEV)
++		add_compile_options(-Werror)
++		add_compile_options(-Weverything)
++	endif()
++	message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
++
++	add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
++
++	file(GLOB_RECURSE INSTANCE_FILES "${PROJECT_SOURCE_DIR}/*/device_*_instance.cpp")
++	file(GLOB dir_list RELATIVE ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/*)
++	set(CK_DEVICE_INSTANCES)
++	FOREACH(subdir_path ${dir_list})
++	set(target_dir)
++	IF(IS_DIRECTORY "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}")
++		set(cmake_instance)
++		file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
++		set(add_inst 0)
++		if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
++			#message("fp8 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
++			#message("bf8 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
++			#message("fp16 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
++			#message("fp32 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
++			#message("fp64 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
++			#message("bf16 instance found!")
++			set(add_inst 1)
++		endif()
++		if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
++			#message("int8 instance found!")
++			set(add_inst 1)
++		endif()
++		if(NOT "${cmake_instance}" MATCHES "DTYPES")
++			#message("instance should be built for all types!")
++			set(add_inst 1)
++		endif()
++		if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
++			list(APPEND CK_DEVICE_INSTANCES device_${subdir_path}_instance)
++		endif()
++	ENDIF()
++	ENDFOREACH()
++
++	add_custom_target(instances DEPENDS utility;${CK_DEVICE_INSTANCES}  SOURCES ${INSTANCE_FILES})
++	add_subdirectory(library)
++
++	if(NOT DEFINED INSTANCES_ONLY)
++	 if(NOT DEFINED PROFILER_ONLY)
++	   rocm_package_setup_component(tests
++			LIBRARY_NAME composablekernel
++			PACKAGE_NAME tests # Prevent -static suffix on package name
++	   )
++
++	   rocm_package_setup_component(examples
++			LIBRARY_NAME composablekernel
++			PACKAGE_NAME examples
++	   )
++	   add_subdirectory(example)
++	   add_subdirectory(test)
++
++	   rocm_package_setup_component(profiler
++			LIBRARY_NAME composablekernel
++			PACKAGE_NAME ckprofiler
++	   )
++	   add_subdirectory(profiler)
++	  else()
++		#When building PROFILER_ONLY, label the package with GPU_ARCH
++		rocm_package_setup_component(profiler
++		   LIBRARY_NAME composablekernel
++		   PACKAGE_NAME ckprofiler_${GPU_ARCH}
++		)
++		add_subdirectory(profiler)
++	  endif()
++	endif()
++else()
++    rocm_package_setup_component(jit_library
+         LIBRARY_NAME composablekernel
+-        PACKAGE_NAME ckprofiler
+-   )
+-   add_subdirectory(profiler)
+-  else()
+-    #When building PROFILER_ONLY, label the package with GPU_ARCH
+-    rocm_package_setup_component(profiler
+-       LIBRARY_NAME composablekernel
+-       PACKAGE_NAME ckprofiler_${GPU_ARCH}
++        PACKAGE_NAME jit_library
+     )
+-    add_subdirectory(profiler)
+-  endif()
++    add_subdirectory(library)
++    add_subdirectory(test)
+ endif()
+ 
+ #Create an interface target for the include only files and call it "composablekernels"
+diff --git a/Config.cmake.in b/Config.cmake.in
+index 02978cd4..a14021df 100644
+--- a/Config.cmake.in
++++ b/Config.cmake.in
+@@ -1,11 +1,16 @@
+ @PACKAGE_INIT@
+ 
+-set(_composable_kernel_supported_components device_operations utility)
++set(_composable_kernel_supported_components device_operations utility jit_library)
+ 
+ foreach(_comp ${composable_kernel_FIND_COMPONENTS})
+-	if(NOT _comp IN_LIST _composable_kernel_supported_components)
+-		set(composable_kernel_FOUND False)
+-		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+-	endif()
+-	include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++    if(NOT _comp IN_LIST _composable_kernel_supported_components)
++        set(composable_kernel_FOUND False)
++        set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
++    endif()
++    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++        include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++    else()
++        set(composable_kernel_FOUND False)
++        set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
++    endif()
+ endforeach()
+diff --git a/cmake/Embed.cmake b/cmake/Embed.cmake
+new file mode 100644
+index 00000000..f3ef595c
+--- /dev/null
++++ b/cmake/Embed.cmake
+@@ -0,0 +1,202 @@
++#####################################################################################
++# The MIT License (MIT)
++#
++# Copyright (c) 2015-2022 Advanced Micro Devices, Inc. All rights reserved.
++#
++# Permission is hereby granted, free of charge, to any person obtaining a copy
++# of this software and associated documentation files (the "Software"), to deal
++# in the Software without restriction, including without limitation the rights
++# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++# copies of the Software, and to permit persons to whom the Software is
++# furnished to do so, subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be included in
++# all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
++# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++# THE SOFTWARE.
++#####################################################################################
++find_program(EMBED_LD ld)
++find_program(EMBED_OBJCOPY objcopy)
++
++option(EMBED_USE_LD "Use ld to embed data files" OFF)
++
++function(wrap_string)
++    set(options)
++    set(oneValueArgs VARIABLE AT_COLUMN)
++    set(multiValueArgs)
++    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
++    cmake_parse_arguments(WRAP_STRING "${options}" "${oneValueArgs}" "" ${ARGN})
++
++    string(LENGTH ${${PARSE_VARIABLE}} string_length)
++    math(EXPR offset "0")
++
++    while(string_length GREATER 0)
++
++        if(string_length GREATER ${PARSE_AT_COLUMN})
++            math(EXPR length "${PARSE_AT_COLUMN}")
++        else()
++            math(EXPR length "${string_length}")
++        endif()
++
++        string(SUBSTRING ${${PARSE_VARIABLE}} ${offset} ${length} line)
++        set(lines "${lines}\n${line}")
++
++        math(EXPR string_length "${string_length} - ${length}")
++        math(EXPR offset "${offset} + ${length}")
++    endwhile()
++
++    set(${PARSE_VARIABLE} "${lines}" PARENT_SCOPE)
++endfunction()
++
++function(generate_embed_source EMBED_NAME)
++    set(options)
++    set(oneValueArgs SRC HEADER RELATIVE)
++    set(multiValueArgs OBJECTS SYMBOLS FILES)
++
++    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
++
++    set(EXTERNS)
++    set(INIT_KERNELS)
++
++    list(LENGTH PARSE_SYMBOLS SYMBOLS_LEN)
++    list(LENGTH PARSE_OBJECTS OBJECTS_LEN)
++    if(NOT ${SYMBOLS_LEN} EQUAL ${OBJECTS_LEN})
++        message(FATAL_ERROR "Symbols and objects dont match: ${SYMBOLS_LEN} != ${OBJECTS_LEN}")
++    endif()
++    math(EXPR LEN "${SYMBOLS_LEN} - 1")
++
++    foreach(idx RANGE ${LEN})
++        list(GET PARSE_SYMBOLS ${idx} SYMBOL)
++        list(GET PARSE_OBJECTS ${idx} OBJECT)
++        list(GET PARSE_FILES ${idx} FILE)
++
++        set(START_SYMBOL "_binary_${SYMBOL}_start")
++        set(LENGTH_SYMBOL "_binary_${SYMBOL}_length")
++        if(EMBED_USE_LD)
++            string(APPEND EXTERNS "
++extern const char ${START_SYMBOL}[];
++extern const size_t _binary_${SYMBOL}_size;
++const auto ${LENGTH_SYMBOL} = reinterpret_cast<size_t>(&_binary_${SYMBOL}_size);
++            ")
++        else()
++            string(APPEND EXTERNS "
++extern const char ${START_SYMBOL}[];
++extern const size_t ${LENGTH_SYMBOL};
++            ")
++        endif()
++
++        if(PARSE_RELATIVE)
++            file(RELATIVE_PATH BASE_NAME ${PARSE_RELATIVE} "${FILE}")
++        else()
++            get_filename_component(BASE_NAME "${FILE}" NAME)
++        endif()
++
++        string(APPEND INIT_KERNELS "
++            { \"${BASE_NAME}\", { ${START_SYMBOL}, ${LENGTH_SYMBOL}} },")
++    endforeach()
++
++    file(WRITE "${PARSE_HEADER}" "
++#include <string_view>
++#include <unordered_map>
++#include <utility>
++std::unordered_map<std::string_view, std::string_view> ${EMBED_NAME}();
++")
++
++    file(WRITE "${PARSE_SRC}" "
++#include <${EMBED_NAME}.hpp>
++${EXTERNS}
++std::unordered_map<std::string_view, std::string_view> ${EMBED_NAME}()
++{
++    static std::unordered_map<std::string_view, std::string_view> result = {${INIT_KERNELS}};
++    return result;
++}
++")
++endfunction()
++
++function(embed_file OUTPUT_FILE OUTPUT_SYMBOL FILE)
++    set(WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
++    # Glob is used to compute the relative path
++    file(GLOB FILES RELATIVE ${WORKING_DIRECTORY} ${FILE})
++    foreach(REL_FILE ${FILES})
++        string(MAKE_C_IDENTIFIER "${REL_FILE}" SYMBOL)
++        get_filename_component(OUTPUT_FILE_DIR "${REL_FILE}" DIRECTORY)
++        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${OUTPUT_FILE_DIR}")
++        if(EMBED_USE_LD)
++            set(OUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${REL_FILE}.o")
++        else()
++            set(OUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/${REL_FILE}.cpp")
++        endif()
++        set(${OUTPUT_SYMBOL} ${SYMBOL} PARENT_SCOPE)
++        set(${OUTPUT_FILE} "${OUT_FILE}" PARENT_SCOPE)
++        if(EMBED_USE_LD)
++            add_custom_command(
++                OUTPUT "${OUT_FILE}"
++                COMMAND ${EMBED_LD} -r -o "${OUT_FILE}" -z noexecstack --format=binary "${REL_FILE}" 
++                COMMAND ${EMBED_OBJCOPY} --rename-section .data=.rodata,alloc,load,readonly,data,contents "${OUT_FILE}"
++                WORKING_DIRECTORY ${WORKING_DIRECTORY}
++                DEPENDS ${FILE}
++                VERBATIM
++            )
++        else()
++            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${FILE})
++            # reads source file contents as hex string
++            file(READ ${FILE} HEX_STRING HEX)
++            # wraps the hex string into multiple lines
++            wrap_string(VARIABLE HEX_STRING AT_COLUMN 80)
++            # adds '0x' prefix and comma suffix before and after every byte respectively
++            string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " ARRAY_VALUES ${HEX_STRING})
++            # removes trailing comma
++            string(REGEX REPLACE ", $" "" ARRAY_VALUES ${ARRAY_VALUES})
++            file(WRITE "${OUT_FILE}" "
++#include <cstddef>
++extern const char _binary_${SYMBOL}_start[] = { ${ARRAY_VALUES} };
++extern const size_t _binary_${SYMBOL}_length = sizeof(_binary_${SYMBOL}_start);
++")
++        endif()
++    endforeach()
++endfunction()
++
++function(add_embed_library EMBED_NAME)
++    set(options)
++    set(oneValueArgs RELATIVE)
++    set(multiValueArgs)
++    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
++
++    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/embed)
++    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/embed/${EMBED_NAME})
++    set(EMBED_DIR ${CMAKE_CURRENT_BINARY_DIR}/embed/${EMBED_NAME})
++    set(SRC_FILE "${EMBED_DIR}/${EMBED_NAME}.cpp")
++    set(HEADER_FILE "${EMBED_DIR}/include/${EMBED_NAME}.hpp")
++    set(WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
++    set(OUTPUT_FILES)
++    set(SYMBOLS)
++    message(STATUS "Embedding files")
++    foreach(FILE ${PARSE_UNPARSED_ARGUMENTS})
++        embed_file(OUTPUT_FILE OUTPUT_SYMBOL ${FILE})
++        list(APPEND OUTPUT_FILES ${OUTPUT_FILE})
++        list(APPEND SYMBOLS ${OUTPUT_SYMBOL})
++    endforeach()
++    message(STATUS "Generating embedding library ${EMBED_NAME}")
++    generate_embed_source(${EMBED_NAME} SRC ${SRC_FILE} HEADER ${HEADER_FILE} OBJECTS ${OUTPUT_FILES} SYMBOLS ${SYMBOLS} RELATIVE ${PARSE_RELATIVE} FILES ${PARSE_UNPARSED_ARGUMENTS})
++    
++    set(INTERNAL_EMBED_LIB embed_lib_${EMBED_NAME})
++    add_library(${INTERNAL_EMBED_LIB} OBJECT "${SRC_FILE}")
++    target_include_directories(${INTERNAL_EMBED_LIB} PRIVATE "${EMBED_DIR}/include")
++    target_compile_options(${INTERNAL_EMBED_LIB} PRIVATE -Wno-reserved-identifier -Wno-extern-initializer -Wno-missing-variable-declarations)
++    set_target_properties(${INTERNAL_EMBED_LIB} PROPERTIES POSITION_INDEPENDENT_CODE On)
++    
++    add_library(${EMBED_NAME} INTERFACE)
++    if(EMBED_USE_LD)
++        target_sources(${EMBED_NAME} INTERFACE ${OUTPUT_FILES})
++    else()
++        target_sources(${INTERNAL_EMBED_LIB} PRIVATE ${OUTPUT_FILES})
++    endif()
++    target_sources(${EMBED_NAME} INTERFACE $<TARGET_OBJECTS:${INTERNAL_EMBED_LIB}>)
++    target_include_directories(${EMBED_NAME} INTERFACE "${EMBED_DIR}/include")
++endfunction()
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index 90873fdd..a0f7d10a 100644
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -1,2 +1,6 @@
+-add_subdirectory(src/tensor_operation_instance/gpu)
+-add_subdirectory(src/utility)
++if (CK_BUILD_JIT_LIB)
++    add_subdirectory(src/jit_library)
++else()
++    add_subdirectory(src/tensor_operation_instance/gpu)
++    add_subdirectory(src/utility)
++endif()
+diff --git a/library/src/jit_library/CMakeLists.txt b/library/src/jit_library/CMakeLists.txt
+new file mode 100644
+index 00000000..cecd2d50
+--- /dev/null
++++ b/library/src/jit_library/CMakeLists.txt
+@@ -0,0 +1,48 @@
++include(Embed)
++file(GLOB_RECURSE KERNEL_FILES CONFIGURE_DEPENDS
++    ${PROJECT_SOURCE_DIR}/include/ck/*.hpp)
++message(STATUS "KERNEL_FILES: ${KERNEL_FILES}")
++message(STATUS "RELATIVE: ${PROJECT_SOURCE_DIR}/include")
++add_embed_library(ck_headers ${KERNEL_FILES} RELATIVE ${PROJECT_SOURCE_DIR}/include)
++
++execute_process(
++    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/util/make_instance_strings.py
++        ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu
++        ${CMAKE_CURRENT_BINARY_DIR}/solution_instances
++    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../tensor_operation_instance/gpu/
++)
++
++add_library(jit_library STATIC 
++    src/device_batched_gemm_softmax_gemm.cpp
++    src/device_gemm_multiple_d.cpp
++    src/common.cpp
++)
++add_library(composable_kernel::jit_library ALIAS jit_library)
++
++set_target_properties(jit_library PROPERTIES LINKER_LANGUAGE CXX)
++
++target_include_directories(jit_library SYSTEM PRIVATE
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
++    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/src/jit_library/solution_instances>
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/solution_instances>
++    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/embed/ck_headers/include>
++)
++
++target_link_libraries(jit_library PRIVATE $<BUILD_INTERFACE:ck_headers>)
++
++rocm_install(
++    TARGETS jit_library 
++    EXPORT jit_libraryTargets
++)
++
++rocm_install(DIRECTORY include/ck DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++rocm_install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ck DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
++
++rocm_install(
++    EXPORT jit_libraryTargets
++    FILE composable_kerneljit_libraryTargets.cmake
++    NAMESPACE composable_kernel::
++    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/composable_kernel
++)
++
++
+diff --git a/library/src/jit_library/include/ck/host/common.hpp b/library/src/jit_library/include/ck/host/common.hpp
+new file mode 100644
+index 00000000..77f60769
+--- /dev/null
++++ b/library/src/jit_library/include/ck/host/common.hpp
+@@ -0,0 +1,36 @@
++// SPDX-License-Identifier: MIT
++// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
++
++#pragma once
++
++#include <string>
++#include <string_view>
++#include <utility>
++#include <unordered_map>
++
++namespace ck {
++namespace host {
++
++struct Solution
++{
++    std::string template_str;
++    std::size_t block_size;
++    std::size_t grid_size;
++};
++
++enum class DataType
++{
++    Half,
++    Float,
++    Int8,
++    Int32
++};
++
++std::string ToString(DataType dt);
++
++std::unordered_map<std::string_view, std::string_view> GetHeaders();
++
++std::size_t integer_divide_ceil(std::size_t x, std::size_t y);
++
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp b/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
+new file mode 100644
+index 00000000..1c1c71f4
+--- /dev/null
++++ b/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
+@@ -0,0 +1,110 @@
++// SPDX-License-Identifier: MIT
++// Copyright (c) 2018-2023, Advanced Micro Devices, Inc. All rights reserved.
++
++#pragma once
++
++#include <cstdlib>
++#include <vector>
++#include <memory>
++#include <sstream>
++#include <iterator>
++#include <numeric>
++#include "ck/host/common.hpp"
++
++namespace ck {
++namespace host {
++namespace device_batched_gemm_softmax_gemm {
++
++struct Problem
++{
++    std::size_t M            = 0;
++    std::size_t N            = 0;
++    std::size_t K            = 0;
++    std::size_t O            = 0;
++    bool TransA              = false;
++    bool TransB              = false;
++    bool TransB1             = false;
++    bool TransC              = false;
++    DataType ADataType       = DataType::Half;
++    DataType BDataType       = DataType::Half;
++    DataType B1DataType      = DataType::Half;
++    DataType CDataType       = DataType::Half;
++    std::string AElementOp   = "ck::tensor_operation::element_wise::PassThrough";
++    std::string BElementOp   = "ck::tensor_operation::element_wise::PassThrough";
++    std::string B1ElementOp  = "ck::tensor_operation::element_wise::PassThrough";
++    std::string CElementOp   = "ck::tensor_operation::element_wise::PassThrough";
++    std::string AccElementOp = "ck::tensor_operation::element_wise::Scale";
++
++    std::string GetIncludeHeader() const;
++
++    std::vector<Solution> GetSolutions(const std::string& arch) const;
++
++    private:
++    std::vector<std::string> GetInstances(const std::string& arch) const;
++
++    Solution MakeSolution(std::size_t idx, const std::string& arch) const;
++
++    static const std::size_t DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle_idx   = 0;
++    static const std::size_t ALayout_idx                                     = 1;
++    static const std::size_t B0Layout_idx                                    = 2;
++    static const std::size_t B1Layout_idx                                    = 3;
++    static const std::size_t CLayout_idx                                     = 4;
++    static const std::size_t ADataType_idx                                   = 5;
++    static const std::size_t B0DataType_idx                                  = 6;
++    static const std::size_t B1DataType_idx                                  = 7;
++    static const std::size_t CDataType_idx                                   = 8;
++    static const std::size_t AccDataType_idx                                 = 9;
++    static const std::size_t CShuffleDataType_idx                            = 10;
++    static const std::size_t AElementwiseOperation_idx                       = 11;
++    static const std::size_t B0ElementwiseOperation_idx                      = 12;
++    static const std::size_t Acc0ElementwiseOperation_idx                    = 13;
++    static const std::size_t B1ElementwiseOperation_idx                      = 14;
++    static const std::size_t CElementwiseOperation_idx                       = 15;
++    static const std::size_t GEMMSpecialization_idx                          = 16;
++    static const std::size_t NumGemmKPrefetchStage_idx                       = 17;
++    static const std::size_t BlockSize_idx                                   = 18;
++    static const std::size_t Gemm01MPerBlock_idx                             = 19;
++    static const std::size_t Gemm0NPerBlock_idx                              = 20;
++    static const std::size_t Gemm0KPerBlock_idx                              = 21;
++    static const std::size_t Gemm1NPerBlock_idx                              = 22;
++    static const std::size_t Gemm1KPerBlock_idx                              = 23;
++    static const std::size_t AK1_idx                                         = 24;
++    static const std::size_t BK1_idx                                         = 25;
++    static const std::size_t B1K1_idx                                        = 26;
++    static const std::size_t MPerXDL_idx                                     = 27;
++    static const std::size_t NPerXDL_idx                                     = 28;
++    static const std::size_t Gemm0MXdlPerWave_idx                            = 29;
++    static const std::size_t Gemm0NXdlPerWave_idx                            = 30;
++    static const std::size_t Gemm1NXdlPerWave_idx                            = 31;
++    static const std::size_t ABlockTransferThreadClusterLengths_K0_M_K1_idx  = 32;
++    static const std::size_t ABlockTransferThreadClusterArrangeOrder_idx     = 33;
++    static const std::size_t ABlockTransferSrcAccessOrder_idx                = 34;
++    static const std::size_t ABlockTransferSrcVectorDim_idx                  = 35;
++    static const std::size_t ABlockTransferSrcScalarPerVector_idx            = 36;
++    static const std::size_t ABlockTransferDstScalarPerVector_K1_idx         = 37;
++    static const std::size_t ABlockLdsAddExtraM_idx                          = 38;
++    static const std::size_t B0BlockTransferThreadClusterLengths_K0_N_K1_idx = 39;
++    static const std::size_t B0BlockTransferThreadClusterArrangeOrder_idx    = 40;
++    static const std::size_t B0BlockTransferSrcAccessOrder_idx               = 41;
++    static const std::size_t B0BlockTransferSrcVectorDim_idx                 = 42;
++    static const std::size_t B0BlockTransferSrcScalarPerVector_idx           = 43;
++    static const std::size_t B0BlockTransferDstScalarPerVector_K1_idx        = 44;
++    static const std::size_t B0BlockLdsAddExtraN_idx                         = 45;
++    static const std::size_t B1BlockTransferThreadClusterLengths_K0_N_K1_idx = 46;
++    static const std::size_t B1BlockTransferThreadClusterArrangeOrder_idx    = 47;
++    static const std::size_t B1BlockTransferSrcAccessOrder_idx               = 48;
++    static const std::size_t B1BlockTransferSrcVectorDim_idx                 = 49;
++    static const std::size_t B1BlockTransferSrcScalarPerVector_idx           = 50;
++    static const std::size_t B1BlockTransferDstScalarPerVector_K1_idx        = 51;
++    static const std::size_t B1BlockLdsAddExtraN_idx                         = 52;
++    static const std::size_t CShuffleMXdlPerWavePerShuffle_idx               = 53;
++    static const std::size_t CShuffleNXdlPerWavePerShuffle_idx               = 54;
++    static const std::size_t
++        CBlockTransferClusterLengths_MBlock_MWaveMPerXdl_NBlock_NWaveNPerXdl_idx = 55;
++    static const std::size_t CBlockTransferScalarPerVector_NWaveNPerXdl_idx      = 56;
++    static const std::size_t MaskOutUpperTriangle_idx                            = 57;
++};
++
++} // namespace device_batched_gemm_softmax_gemm
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp b/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp
+new file mode 100644
+index 00000000..0d935192
+--- /dev/null
++++ b/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp
+@@ -0,0 +1,59 @@
++// SPDX-License-Identifier: MIT
++// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
++
++#pragma once
++
++#include <cstdlib>
++#include <vector>
++#include <memory>
++#include <sstream>
++#include <iterator>
++#include <numeric>
++#include "ck/host/common.hpp"
++
++namespace ck {
++namespace host {
++namespace device_gemm_multiple_d {
++
++struct Problem
++{
++    std::size_t M                    = 0;
++    std::size_t N                    = 0;
++    std::size_t K                    = 0;
++    bool TransA                      = false;
++    bool TransB                      = false;
++    bool TransE                      = false;
++    std::vector<bool> DsTrans        = {};
++    DataType ADataType               = DataType::Half;
++    DataType BDataType               = DataType::Half;
++    DataType EDataType               = DataType::Half;
++    std::vector<DataType> DsDataType = {};
++    std::string AElementOp           = "ck::tensor_operation::element_wise::PassThrough";
++    std::string BElementOp           = "ck::tensor_operation::element_wise::PassThrough";
++    std::string CDEElementOp         = "ck::Tuple<>";
++
++    static const std::size_t ds_layout_idx         = 3;
++    static const std::size_t ds_data_type_idx      = 9;
++    static const std::size_t e_data_type_idx       = 10;
++    static const std::size_t a_elementwise_op_idx  = 11;
++    static const std::size_t b_elementwise_op_idx  = 12;
++    static const std::size_t ds_elementwise_op_idx = 13;
++    static const std::size_t gemm_spec_idx         = 14;
++    static const std::size_t block_size_idx        = 16;
++    static const std::size_t m_per_block_idx       = 17;
++    static const std::size_t n_per_block_idx       = 18;
++    static const std::size_t k_per_block_idx       = 19;
++
++    std::string GetIncludeHeader() const;
++
++    std::vector<Solution> GetSolutions(const std::string& arch) const;
++
++    private:
++    std::vector<std::string> GetInstances(const std::string& arch) const;
++
++    Solution MakeSolution(std::size_t idx, const std::string& arch) const;
++};
++
++} // namespace device_gemm_multiple_d
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/src/common.cpp b/library/src/jit_library/src/common.cpp
+new file mode 100644
+index 00000000..807c9a30
+--- /dev/null
++++ b/library/src/jit_library/src/common.cpp
+@@ -0,0 +1,36 @@
++
++#include "ck/host/common.hpp"
++#include "ck_headers.hpp"
++#include <stdexcept>
++#include <algorithm>
++
++namespace ck {
++namespace host {
++
++std::string ToString(DataType dt)
++{
++    switch(dt)
++    {
++    case DataType::Float: return "float";
++    case DataType::Half: return "ck::half_t";
++    case DataType::Int8: return "int8_t";
++    case DataType::Int32: return "int32_t";
++    }
++    throw std::runtime_error("Incorrect data type");
++}
++
++std::unordered_map<std::string_view, std::string_view> GetHeaders()
++{
++    auto headers = ck_headers();
++    headers.insert(
++        {"ck/config.h", ""});
++    return headers;
++}
++
++std::size_t integer_divide_ceil(std::size_t x, std::size_t y)
++{
++    return (x + y - std::size_t{1}) / y;
++}
++
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp b/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
+new file mode 100644
+index 00000000..bad67812
+--- /dev/null
++++ b/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
+@@ -0,0 +1,115 @@
++#include "ck/host/device_batched_gemm_softmax_gemm.hpp"
++#include "ck/host/common.hpp"
++#include "batched_gemm_softmax_gemm_instances.hpp"
++#include <algorithm>
++#include <unordered_set>
++
++namespace ck {
++namespace host {
++namespace device_batched_gemm_softmax_gemm {
++
++std::string GetGemmSpec(const std::size_t m,
++                        const std::size_t n,
++                        const std::size_t k,
++                        const std::size_t n1,
++                        const std::size_t m_per_block,
++                        const std::size_t n_per_block,
++                        const std::size_t k_per_block,
++                        const std::size_t n1_per_block)
++{
++    std::string spec = "";
++    if(integer_divide_ceil(m, m_per_block) * m_per_block - m != 0)
++        spec += "M";
++    if(integer_divide_ceil(n, n_per_block) * n_per_block - n != 0)
++        spec += "N";
++    if(integer_divide_ceil(k, k_per_block) * k_per_block - k != 0)
++        spec += "K";
++    if(integer_divide_ceil(n1, n1_per_block) * n1_per_block - n1 != 0)
++        spec += "O";
++    if(spec == "")
++        return "ck::tensor_operation::device::GemmSpecialization::Default";
++
++    return "ck::tensor_operation::device::GemmSpecialization::" + spec + "Padding";
++}
++
++std::size_t GetGridSize(const std::size_t m,
++                        const std::size_t n,
++                        const std::size_t m_per_block,
++                        const std::size_t n_per_block)
++{
++    return integer_divide_ceil(m, m_per_block) * integer_divide_ceil(n, n_per_block);
++}
++
++const std::unordered_set<std::string>& get_xdlop_archs()
++{
++    static std::unordered_set<std::string> supported_archs{"gfx90a", "gfx908", "gfx940", "gfx942"};
++    return supported_archs;
++}
++
++std::vector<std::string> Problem::GetInstances(const std::string& arch) const
++{
++    std::vector<std::string> instances;
++    if(get_xdlop_archs().find(arch) != get_xdlop_archs().end())
++    {
++        ck::host::instance::batched_gemm_softmax_gemm_instances all_instances{};
++        instances = all_instances.get_instances();
++    }
++    return instances;
++}
++
++Solution Problem::MakeSolution(std::size_t idx, const std::string& arch) const
++{
++    auto template_str = GetInstances(arch).at(idx);
++    std::istringstream iss(template_str);
++    std::vector<std::string> params(std::istream_iterator<std::string>{iss},
++                                    std::istream_iterator<std::string>());
++
++    params[AElementwiseOperation_idx]    = AElementOp;
++    params[B0ElementwiseOperation_idx]   = BElementOp;
++    params[B1ElementwiseOperation_idx]   = BElementOp;
++    params[CElementwiseOperation_idx]    = CElementOp;
++    params[Acc0ElementwiseOperation_idx] = AccElementOp;
++    auto block_size_str                  = params[BlockSize_idx];
++    auto m_per_block_str                 = params[Gemm01MPerBlock_idx];
++    auto n_per_block_str                 = params[Gemm0NPerBlock_idx];
++    auto k_per_block_str                 = params[Gemm0KPerBlock_idx];
++    auto n1_per_block_str                = params[Gemm1NPerBlock_idx];
++    const std::size_t block_size         = std::stoi(block_size_str);
++    const std::size_t m_per_block        = std::stoi(m_per_block_str);
++    const std::size_t n_per_block        = std::stoi(n_per_block_str);
++    const std::size_t k_per_block        = std::stoi(k_per_block_str);
++    const std::size_t n1_per_block       = std::stoi(n1_per_block_str);
++    const std::size_t grid_size          = GetGridSize(M, O, m_per_block, n1_per_block);
++    params[GEMMSpecialization_idx] =
++        GetGemmSpec(M, N, K, O, m_per_block, n_per_block, k_per_block, n1_per_block);
++
++    std::string str = std::accumulate(
++        params.begin() + 1,
++        params.end(),
++        std::string{},
++        [](const std::string& a, const std::string& b) { return a.empty() ? b : a + ", " + b; });
++    str = params.front() + "< " + str + ">";
++
++    return Solution{str, block_size, grid_size};
++}
++
++std::string Problem::GetIncludeHeader() const
++{
++    return ck::host::instance::batched_gemm_softmax_gemm_instances{}.get_include_header();
++}
++
++std::vector<Solution> Problem::GetSolutions(const std::string& arch) const
++{
++    std::vector<Solution> solutions;
++    const std::size_t num_instances = GetInstances(arch).size();
++    for(std::size_t i = 0; i < num_instances; ++i)
++    {
++        solutions.push_back(MakeSolution(i, arch));
++    }
++
++    return solutions;
++}
++
++} // namespace device_batched_gemm_softmax_gemm
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/src/device_gemm_multiple_d.cpp b/library/src/jit_library/src/device_gemm_multiple_d.cpp
+new file mode 100644
+index 00000000..047d9904
+--- /dev/null
++++ b/library/src/jit_library/src/device_gemm_multiple_d.cpp
+@@ -0,0 +1,174 @@
++#include "ck/host/device_gemm_multiple_d.hpp"
++#include "ck/host/common.hpp"
++#include "gemm_add_add_fastgelu_instances.hpp"
++#include <algorithm>
++#include <unordered_set>
++
++namespace ck {
++namespace host {
++namespace device_gemm_multiple_d {
++
++std::string GetGemmSpec(const std::size_t m,
++                        const std::size_t n,
++                        const std::size_t k,
++                        const std::size_t m_per_block,
++                        const std::size_t n_per_block,
++                        const std::size_t k_per_block)
++{
++    std::string spec = "";
++    if(integer_divide_ceil(m, m_per_block) * m_per_block - m != 0)
++        spec += "M";
++    if(integer_divide_ceil(n, n_per_block) * n_per_block - n != 0)
++        spec += "N";
++    if(integer_divide_ceil(k, k_per_block) * k_per_block - k != 0)
++        spec += "K";
++    if(spec == "")
++        return "ck::tensor_operation::device::GemmSpecialization::Default";
++
++    return "ck::tensor_operation::device::GemmSpecialization::" + spec + "Padding";
++}
++
++std::size_t GetGridSize(const std::size_t m,
++                        const std::size_t n,
++                        const std::size_t m_per_block,
++                        const std::size_t n_per_block)
++{
++    return integer_divide_ceil(m, m_per_block) * integer_divide_ceil(n, n_per_block);
++}
++
++const std::unordered_set<std::string>& get_xdlop_archs()
++{
++    static std::unordered_set<std::string> supported_archs{"gfx90a", "gfx908", "gfx940", "gfx942"};
++    return supported_archs;
++}
++
++std::vector<std::string> Problem::GetInstances(const std::string& arch) const
++{
++    std::vector<std::string> instances;
++    const bool quantize = ADataType == DataType::Int8 and BDataType == DataType::Int8;
++    if(get_xdlop_archs().find(arch) != get_xdlop_archs().end())
++    {
++        ck::host::instance::gemm_add_add_fastgelu_instances all_instances{};
++        if(TransA and TransB)
++            instances = all_instances.get_col_col_instances(quantize);
++        else if(TransA and not TransB)
++            instances = all_instances.get_col_row_instances(quantize);
++        else if(not TransA and not TransB)
++            instances = all_instances.get_row_row_instances(quantize);
++        else
++            instances = all_instances.get_row_col_instances(quantize);
++    }
++    return instances;
++}
++
++std::string MakeLayoutTuple(const std::vector<bool>& layouts)
++{
++    std::string layout_tuple = "ck::Tuple<";
++    auto it                  = layouts.begin();
++    while(it != layouts.end())
++    {
++        layout_tuple +=
++            *it ? "ck::tensor_layout::gemm::ColumnMajor" : "ck::tensor_layout::gemm::RowMajor";
++        it = std::next(it);
++        if(it != layouts.end())
++            layout_tuple += ", ";
++    }
++
++    return layout_tuple + ">";
++}
++
++std::string MakeTypeTuple(const std::vector<DataType>& types)
++{
++    std::string type_tuple = "ck::Tuple<";
++    auto it                = types.begin();
++    while(it != types.end())
++    {
++        type_tuple += ToString(*it);
++        it = std::next(it);
++        if(it != types.end())
++            type_tuple += ", ";
++    }
++    return type_tuple + ">";
++}
++
++Solution Problem::MakeSolution(std::size_t idx, const std::string& arch) const
++{
++    auto template_str = GetInstances(arch).at(idx);
++    std::istringstream iss(template_str);
++    std::vector<std::string> params(std::istream_iterator<std::string>{iss},
++                                    std::istream_iterator<std::string>());
++
++    if(ADataType == DataType::Int8 and BDataType == DataType::Int8)
++    {
++        // Change CBlockTransfer ScalarPerVector if Ds contains other types
++        if(EDataType == DataType::Half or std::any_of(DsDataType.begin(),
++                                                      DsDataType.end(),
++                                                      [](auto t) { return t == DataType::Half; }))
++        {
++            params[params.size() - 3] = "8";
++        }
++        if(EDataType == DataType::Float or std::any_of(DsDataType.begin(),
++                                                       DsDataType.end(),
++                                                       [](auto t) { return t == DataType::Float; }))
++        {
++            params[params.size() - 3] = "4";
++        }
++        if(EDataType == DataType::Int32 or std::any_of(DsDataType.begin(),
++                                                       DsDataType.end(),
++                                                       [](auto t) { return t == DataType::Int32; }))
++        {
++            params[params.size() - 3] = "4";
++        }
++    }
++
++    params[a_elementwise_op_idx]  = AElementOp;
++    params[b_elementwise_op_idx]  = BElementOp;
++    params[ds_layout_idx]         = MakeLayoutTuple(DsTrans);
++    params[ds_data_type_idx]      = MakeTypeTuple(DsDataType);
++    params[ds_elementwise_op_idx] = CDEElementOp;
++    params[e_data_type_idx]       = ToString(EDataType);
++    auto block_size_str           = params[block_size_idx];
++    auto m_per_block_str          = params[m_per_block_idx];
++    auto n_per_block_str          = params[n_per_block_idx];
++    auto k_per_block_str          = params[k_per_block_idx];
++    const std::size_t block_size  = std::stoi(block_size_str);
++    const std::size_t m_per_block = std::stoi(m_per_block_str);
++    const std::size_t n_per_block = std::stoi(n_per_block_str);
++    const std::size_t k_per_block = std::stoi(k_per_block_str);
++    const std::size_t grid_size   = GetGridSize(M, N, m_per_block, n_per_block);
++    params[gemm_spec_idx]         = GetGemmSpec(M, N, K, m_per_block, n_per_block, k_per_block);
++
++    std::string str = std::accumulate(
++        params.begin() + 1,
++        params.end(),
++        std::string{},
++        [](const std::string& a, const std::string& b) { return a.empty() ? b : a + ", " + b; });
++    str = params.front() + "< " + str + ">";
++    if(params.back().find("v2") != std::string::npos and K % k_per_block != 0)
++        str = "";
++
++    return Solution{str, block_size, grid_size};
++}
++
++std::string Problem::GetIncludeHeader() const
++{
++    return ck::host::instance::gemm_add_add_fastgelu_instances{}.get_include_header();
++}
++
++std::vector<Solution> Problem::GetSolutions(const std::string& arch) const
++{
++    std::vector<Solution> solutions;
++    const std::size_t num_instances = GetInstances(arch).size();
++    for(std::size_t i = 0; i < num_instances; ++i)
++    {
++        auto solution = MakeSolution(i, arch);
++        if(solution.template_str != "")
++            solutions.push_back(solution);
++    }
++
++    return solutions;
++}
++
++} // namespace device_gemm_multiple_d
++} // namespace host
++} // namespace ck
+diff --git a/library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc b/library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..97a01c9b940896eadea1e9ec203d2dc5e84a5454
+GIT binary patch
+literal 3529
+zcmeHKPjA~c6qg+}N!28+vv#Ke<2r1JfhNjw7z#JbR<xG@YcZf3F!&-UBx5s{M31DB
+zrjdaide~)OV?*!zG`jA#!#=>U!yYM%k!;6Z5$`qzqV@QGdjI$y9}}*xdk&0W|M-pm
+zwCOm%Yoa=uKzs#{`~W86bRE*@Hb|2!y>_}y;*uNiyF`{>IPH~Ct~ieGqZi*i{eJsv
+zhG`<{_93B(V#kb%4tjR@E%E^Hgb&XJ>-81d!fmv-``N?oz1_XN2k0?54HHZWdd9He
+z=qWt~De?h2Oz;kR97V`{C6S<#ic?B<Jn!S72zzmeID7{bOK_ADiuSQoBw|Mgm8DaP
+z6&KZ&n8sY3A9!98##9bNOc5TSi;D`~=Tg;ISR$3SQm=Yai4+5X4+AY@6qH=)0UN;p
+zuwodoBw`5#igY@KA^YYX1hAxcfG#kP0>RG;F$jHu%-0~qa;)f)VU0$Qym!{1wHQOE
+zG-%FsHE8>1`%rQgp<%WUTEilIV2OHY1kHA&#=fpMR@iKpYV3vRDz{-e1&pqey)a#K
+z{Q8&s6{d=#9#wWrtZiGELnWdk&Li|g8p0{_inhz5(Uqr%pehxK<)bgrg^lXv26u{L
+zD?XW=ZT*>`JsQ_ut@LU}){^krMqWm+V>C}%SJ1{r3!QJ{)Fxlc#!_05QS$>?!@k|f
+z#RXC;w$VXz16hO4w{hHSf<6ri6<b&3-hIe8)0D=*(S0k{9O0u8f}W`3S9G8<!M#a_
+zZbegzc;JQKL6iQ!?-pJ8o%?PXZaJebTHfrAYs=o^u1o^Rfw6ss8k+*u4qlO0O_(c%
+z{^yy6;YMhOe!mOP6L{nfOv*WFWKPz|n%Pq3W;e3sY$aRGZf0I~D_hIfvyJR_b|-6*
+z#?PB@KWsjKvzf1qFG~5Eu18&LI`Q*XN!c(JfU;-{fTk*d>T!~{N@@adDWR-v3+T3{
+zT0!^y+R`j&DX;>q*)^70nxowtL(8Q}sik2P(3;eIqkf3AoB4Y@RlzZfXmG|<KQJvY
+zUq0p{4wY!Y{=9L-2K@Z>+VAt2`cW9Of$;fR;tP&rUkdC?GB88{FTqjDA~?u`&v$n<
+zGZ+ef0#|0~V;&E=439w7fQp1h!3k47+^$6^&W#+PgOW}ai+p33qVX^a6_q=~^ZY~I
+z#EH4l2R$0cL7Ya44M8R`Ui=8A$}O0jO}Ei}``@494q&mXzZehwz6_7aP@S&T423Lo
+zi!5}7{-;Jqv|5t+O-qYgz=sI8Y=jeD#8<2XN3`^$Lt9L@;Vu7Y(mlzKRUE!7eAVIj
+z1z>UwCdai7{w?kS{k-i8%@Df0j9X^8qQWRMdRF&iPSS`T=pB~YTes_evij*iGM8Jc
+
+literal 0
+HcmV?d00001
+
+diff --git a/library/src/jit_library/util/file_templates.py b/library/src/jit_library/util/file_templates.py
+new file mode 100644
+index 00000000..10893272
+--- /dev/null
++++ b/library/src/jit_library/util/file_templates.py
+@@ -0,0 +1,177 @@
++out_file_with_quant = """// SPDX-License-Identifier: MIT 
++// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
++
++#pragma once
++
++#include <cstdlib>
++#include <vector>
++#include <memory>
++
++namespace ck {{
++namespace host {{
++namespace instance {{
++
++struct {op_name}_instances
++{{
++    static inline std::vector<std::string> {col_row_name}  = 
++    {{
++{col_row_instances}
++    }};
++
++    static inline std::vector<std::string> {col_col_name}  = 
++    {{
++{col_col_instances}
++    }};
++
++    static inline std::vector<std::string> {row_row_name}  = 
++    {{
++{row_row_instances}
++    }};
++
++    static inline std::vector<std::string> {row_col_name}  = 
++    {{
++{row_col_instances}
++    }};
++
++    static inline std::vector<std::string> {int8_col_row_name}  = 
++    {{
++{int8_col_row_instances}
++    }};
++
++    static inline std::vector<std::string> {int8_col_col_name}  = 
++    {{
++{int8_col_col_instances}
++    }};
++
++    static inline std::vector<std::string> {int8_row_row_name}  = 
++    {{
++{int8_row_row_instances}
++    }};
++
++    static inline std::vector<std::string> {int8_row_col_name}  = 
++    {{
++{int8_row_col_instances}
++    }};
++
++    static auto get_col_row_instances(const bool quantize)
++    {{
++        return quantize ? {int8_col_row_name} : 
++                          {col_row_name};
++    }}
++
++    static auto get_col_col_instances(const bool quantize)
++    {{
++        return quantize ? {int8_col_col_name} :
++                          {col_col_name};
++    }}
++
++    static auto get_row_row_instances(const bool quantize)
++    {{
++        return quantize ? {int8_row_row_name} : 
++                          {row_row_name};
++    }}
++
++    static auto get_row_col_instances(const bool quantize)
++    {{
++        return quantize ? {int8_row_col_name} :
++                          {row_col_name};
++    }}
++
++    static auto get_include_header()
++    {{
++        return "{include_header}";
++    }}
++}};
++
++}} // namespace instance
++}} // namespace host
++}} // namespace ck
++"""
++
++out_file_no_quant = """// SPDX-License-Identifier: MIT 
++// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
++
++#pragma once
++
++#include <cstdlib>
++#include <vector>
++#include <memory>
++
++namespace ck {{
++namespace host {{
++namespace instance {{
++
++struct {op_name}_instances
++{{
++    static inline std::vector<std::string> {instances_name}  = 
++    {{
++{instances}
++    }};
++
++    static auto get_instances()
++    {{
++        return {instances_name};
++    }}
++
++    static auto get_include_header()
++    {{
++        return "{include_header}";
++    }}
++}};
++
++}} // namespace instance
++}} // namespace host
++}} // namespace ck
++"""
++
++
++def get_device_gemm_multiple_d_file(op_name,
++                                col_row_name,
++                                col_row_instances,
++                                col_col_name,
++                                col_col_instances,
++                                row_row_name,
++                                row_row_instances,
++                                row_col_name,
++                                row_col_instances,
++                                int8_col_row_name,
++                                int8_col_row_instances,
++                                int8_col_col_name,
++                                int8_col_col_instances,
++                                int8_row_row_name,
++                                int8_row_row_instances,
++                                int8_row_col_name,
++                                int8_row_col_instances,
++                                include_header):
++    return out_file_with_quant.format(
++            op_name=op_name,
++            col_row_name=col_row_name,
++            col_row_instances=col_row_instances,
++            col_col_name=col_col_name,
++            col_col_instances=col_col_instances,
++            row_row_name=row_row_name,
++            row_row_instances=row_row_instances,
++            row_col_name=row_col_name,
++            row_col_instances=row_col_instances,
++            int8_col_row_name=int8_col_row_name,
++            int8_col_row_instances=int8_col_row_instances,
++            int8_col_col_name=int8_col_col_name,
++            int8_col_col_instances=int8_col_col_instances,
++            int8_row_row_name=int8_row_row_name,
++            int8_row_row_instances=int8_row_row_instances,
++            int8_row_col_name=int8_row_col_name,
++            int8_row_col_instances=int8_row_col_instances,
++            include_header=include_header)
++
++def get_device_gemm_softmax_gemm_file(op_name,
++                                instances_name,
++                                instances,
++                                include_header):
++    return out_file_no_quant.format(
++            op_name=op_name,
++            instances_name=instances_name,
++            instances=instances,
++            include_header=include_header)
++
++
++
+diff --git a/library/src/jit_library/util/make_instance_strings.py b/library/src/jit_library/util/make_instance_strings.py
+new file mode 100644
+index 00000000..46f08117
+--- /dev/null
++++ b/library/src/jit_library/util/make_instance_strings.py
+@@ -0,0 +1,367 @@
++import argparse, re, json, os, sys, file_templates
++
++def strip_sequences(str):
++    matches = re.findall(r'S<\s*\d+(?:,\s*\d+)*>', str)
++    for match in matches:
++        str = str.replace(match, match.replace(' ', ''))
++    str = str.replace('S<', "ck::Sequence<")
++    
++    return str
++
++def remove_commas_and_brackets(string):
++    regex_matches = re.findall(r'ck::Sequence<.*?>', string)
++    for match in regex_matches:
++        string = string.replace(match, match.replace(',', '|').replace('<', '%').replace('>', '$'))
++    
++    string = string.replace(',', '').replace('<', '').replace('>', '')
++    for match in regex_matches:
++        string = string.replace(match.replace(',', '|').replace('<', '%').replace('>', '$'), match)
++
++    return string
++
++def get_int8_instances(src, file, template_name):
++    aliases = {"Empty_Tuple": "ck::Tuple<>",
++               "Row": "ck::tensor_layout::gemm::RowMajor",
++               "Col": "ck::tensor_layout::gemm::ColumnMajor",
++               "OutElementOp": "PassThrough"}
++    instances = {"row_row": [],
++                 "row_col": [],
++                 "col_col": [],
++                 "col_row": [],
++                 "row_row_name": [],
++                 "row_col_name": [],
++                 "col_col_name": [],
++                 "col_row_name": []}
++    path = src + file
++    with open(path) as f:
++        for line in f:
++            if "impl" in line:
++                include_header = line.replace("#include \"", "").replace("\"", "").replace("\n", "")
++            elif "using" in line:
++                if bool(re.search(".*mk.*kn.*", line)):
++                    instances["row_row_name"] = re.search("device_gemm.*instance", line).group()
++                elif bool(re.search(".*mk.*nk.*", line)):
++                    instances["row_col_name"] = re.search("device_gemm.*instance", line).group()
++                elif bool(re.search(".*km.*nk.*", line)):
++                    instances["col_col_name"] = re.search("device_gemm.*instance", line).group()
++                elif bool(re.search(".*km.*kn.*", line)):
++                    instances["col_row_name"] = re.search("device_gemm.*instance", line).group()
++                
++            elif template_name in line:
++                # Turn all whitespace into single spaces
++                new_line = " ".join(line.split())
++                # Remove whitespace from S<*>
++                new_line = strip_sequences(new_line)
++                new_line = remove_commas_and_brackets(new_line)
++                last_char = "\n"
++                if new_line[-1] == ",":
++                    last_char = ",\n"
++                    new_line = new_line[:-1]
++                new_line = '        "ck::tensor_operation::device::' + new_line + '",'
++                versions = []
++                for key in aliases:
++                    new_line = new_line.replace(key, aliases[key])
++                
++                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v1").replace("GemmLoopScheduler", "ck::LoopScheduler::Default"))
++                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v1").replace("GemmLoopScheduler", "ck::LoopScheduler::Interwave"))
++                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v2").replace("GemmLoopScheduler", "ck::LoopScheduler::Default"))
++                if "ck::tensor_layout::gemm::RowMajor ck::tensor_layout::gemm::RowMajor" in new_line:
++                    instances["row_row"].extend(versions)
++                elif "ck::tensor_layout::gemm::RowMajor ck::tensor_layout::gemm::ColumnMajor" in new_line:
++                    instances["row_col"].extend(versions)
++                elif "ck::tensor_layout::gemm::ColumnMajor ck::tensor_layout::gemm::ColumnMajor" in new_line:
++                    instances["col_col"].extend(versions)
++                elif "ck::tensor_layout::gemm::ColumnMajor ck::tensor_layout::gemm::RowMajor" in new_line:
++                    instances["col_row"].extend(versions)
++    
++    instances["row_row"][-1] = instances["row_row"][-1][:-1]
++    instances["row_col"][-1] = instances["row_col"][-1][:-1]
++    instances["col_col"][-1] = instances["col_col"][-1][:-1]
++    instances["col_row"][-1] = instances["col_row"][-1][:-1]
++    return instances
++
++def parse_instances(source, out_dir):
++    aliases = {"F16_F16_Tuple": "ck::Tuple<F16,F16>",
++               "Row_Row_Tuple": "ck::Tuple<Row,Row>",
++               "Empty_Tuple": "ck::Tuple<>",
++               "LoopScheduler": "ck::LoopScheduler",
++               "PipelineVersion": "ck::PipelineVersion",
++               "Row": "ck::tensor_layout::gemm::RowMajor",
++               "Col": "ck::tensor_layout::gemm::ColumnMajor",
++               "F16": "ck::half_t",
++               "F32": "float",
++               "OutElementOp": "PassThrough"}
++    device_ops = {"gemm_add_add_fastgelu": "DeviceGemmMultipleD_Xdl_CShuffle",
++                  #"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
++                 }
++    
++    for root_, dirs_, files_ in os.walk(source):
++        for dir in dirs_:
++            op_name = os.path.split(dir)[-1]
++            if op_name not in device_ops:
++                continue
++            col_row_name = ""
++            col_col_name = ""
++            row_row_name = ""
++            row_col_name = ""
++            row_row_instances = [] 
++            col_row_instances = []
++            row_col_instances = []
++            col_col_instances = []
++            for root, dirs, files in os.walk(os.path.join(root_, dir)):
++                for file in files:
++                    if not file.endswith(".cpp"):
++                        continue;
++                    file_name = os.path.split(file)[-1]
++                    is_row_row = bool(re.search(".*mk.*kn.*", file_name))
++                    is_col_row = bool(re.search(".*km.*kn.*", file_name))
++                    is_row_col = bool(re.search(".*mk.*nk.*", file_name))
++                    is_col_col = bool(re.search(".*km.*nk.*", file_name))
++                    if is_row_row:
++                        row_row_name = file_name[:-4]
++                    if is_col_row:
++                        col_row_name = file_name[:-4]
++                    if is_row_col:
++                        row_col_name = file_name[:-4]
++                    if is_col_col:
++                        col_col_name = file_name[:-4]
++                    instances_list = []
++                    template_name = device_ops[op_name]
++                    include_header = ""
++                    with open(os.path.join(root, file)) as f:
++                        for line in f:
++                            if "impl" in line:
++                                include_header = line.replace("#include \"", "").replace("\"", "").replace("\n", "")
++                            elif template_name in line:
++                                # Turn all whitespace into single spaces
++                                new_line = " ".join(line.split())
++                                # Remove whitespace from S<*>
++                                new_line = strip_sequences(new_line)
++                                new_line = remove_commas_and_brackets(new_line)
++                                last_char = "\n"
++                                if new_line[-1] == ",":
++                                    last_char = ",\n"
++                                    new_line = new_line[:-1]
++                                new_line = '        "ck::tensor_operation::device::' + new_line + '",'
++                                for key in aliases:
++                                    new_line = new_line.replace(key, aliases[key])
++                                instances_list.append(new_line)
++                    instances_list[-1] = instances_list[-1][:-1]
++                    if is_row_row:
++                        row_row_instances = instances_list
++                    if is_col_row:
++                        col_row_instances = instances_list
++                    if is_row_col:
++                        row_col_instances = instances_list
++                    if is_col_col:
++                        col_col_instances = instances_list
++                out_file_name = op_name + "_instances.hpp"
++                if not os.path.exists(out_dir):
++                    os.mkdir(out_dir)
++                int8_file = "/quantization/gemm/device_gemm_quantization_xdl_c_shuffle_i8_i8_i8_instance.hpp"
++                int8_instances = get_int8_instances(source, int8_file, "DeviceGemmMultipleD_Xdl_CShuffle")
++                with open(os.path.join(out_dir, out_file_name), "w+") as f:
++                    f.write(file_templates.get_device_gemm_multiple_d_file(
++                        op_name,
++                        col_row_name,
++                        "\n".join(col_row_instances),
++                        col_col_name,
++                        "\n".join(col_col_instances),
++                        row_row_name,
++                        "\n".join(row_row_instances),
++                        row_col_name,
++                        "\n".join(row_col_instances),
++                        int8_instances["col_row_name"],
++                        "\n".join(int8_instances["col_row"]),
++                        int8_instances["col_col_name"],
++                        "\n".join(int8_instances["col_col"]),
++                        int8_instances["row_row_name"],
++                        "\n".join(int8_instances["row_row"]),
++                        int8_instances["row_col_name"],
++                        "\n".join(int8_instances["row_col"]),
++                        include_header))
++                    
++def parse_device_gemm_multiple_d_instances(source, out_dir):
++    aliases = {"F16_F16_Tuple": "ck::Tuple<F16,F16>",
++               "Row_Row_Tuple": "ck::Tuple<Row,Row>",
++               "Empty_Tuple": "ck::Tuple<>",
++               "LoopScheduler": "ck::LoopScheduler",
++               "PipelineVersion": "ck::PipelineVersion",
++               "Row": "ck::tensor_layout::gemm::RowMajor",
++               "Col": "ck::tensor_layout::gemm::ColumnMajor",
++               "F16": "ck::half_t",
++               "F32": "float",
++               "OutElementOp": "PassThrough"}
++    device_ops = {"gemm_add_add_fastgelu": "DeviceGemmMultipleD_Xdl_CShuffle",
++                  #"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
++                 }
++    
++    for root_, dirs_, files_ in os.walk(source):
++        for dir in dirs_:
++            op_name = os.path.split(dir)[-1]
++            if op_name not in device_ops:
++                continue
++            col_row_name = ""
++            col_col_name = ""
++            row_row_name = ""
++            row_col_name = ""
++            row_row_instances = [] 
++            col_row_instances = []
++            row_col_instances = []
++            col_col_instances = []
++            for root, dirs, files in os.walk(os.path.join(root_, dir)):
++                for file in files:
++                    if not file.endswith(".cpp"):
++                        continue;
++                    file_name = os.path.split(file)[-1]
++                    is_row_row = bool(re.search(".*mk.*kn.*", file_name))
++                    is_col_row = bool(re.search(".*km.*kn.*", file_name))
++                    is_row_col = bool(re.search(".*mk.*nk.*", file_name))
++                    is_col_col = bool(re.search(".*km.*nk.*", file_name))
++                    if is_row_row:
++                        row_row_name = file_name[:-4]
++                    if is_col_row:
++                        col_row_name = file_name[:-4]
++                    if is_row_col:
++                        row_col_name = file_name[:-4]
++                    if is_col_col:
++                        col_col_name = file_name[:-4]
++                    instances_list = []
++                    template_name = device_ops[op_name]
++                    include_header = ""
++                    with open(os.path.join(root, file)) as f:
++                        for line in f:
++                            if "impl" in line:
++                                include_header = line.replace("#include \"", "").replace("\"", "").replace("\n", "")
++                            elif template_name in line:
++                                # Turn all whitespace into single spaces
++                                new_line = " ".join(line.split())
++                                # Remove whitespace from S<*>
++                                new_line = strip_sequences(new_line)
++                                new_line = remove_commas_and_brackets(new_line)
++                                last_char = "\n"
++                                if new_line[-1] == ",":
++                                    last_char = ",\n"
++                                    new_line = new_line[:-1]
++                                new_line = '        "ck::tensor_operation::device::' + new_line + '",'
++                                for key in aliases:
++                                    new_line = new_line.replace(key, aliases[key])
++                                instances_list.append(new_line)
++                    instances_list[-1] = instances_list[-1][:-1]
++                    if is_row_row:
++                        row_row_instances = instances_list
++                    if is_col_row:
++                        col_row_instances = instances_list
++                    if is_row_col:
++                        row_col_instances = instances_list
++                    if is_col_col:
++                        col_col_instances = instances_list
++                out_file_name = op_name + "_instances.hpp"
++                if not os.path.exists(out_dir):
++                    os.mkdir(out_dir)
++                int8_file = "/quantization/gemm/device_gemm_quantization_xdl_c_shuffle_i8_i8_i8_instance.hpp"
++                int8_instances = get_int8_instances(source, int8_file, "DeviceGemmMultipleD_Xdl_CShuffle")
++                with open(os.path.join(out_dir, out_file_name), "w+") as f:
++                    f.write(file_templates.get_device_gemm_multiple_d_file(
++                        op_name,
++                        col_row_name,
++                        "\n".join(col_row_instances),
++                        col_col_name,
++                        "\n".join(col_col_instances),
++                        row_row_name,
++                        "\n".join(row_row_instances),
++                        row_col_name,
++                        "\n".join(row_col_instances),
++                        int8_instances["col_row_name"],
++                        "\n".join(int8_instances["col_row"]),
++                        int8_instances["col_col_name"],
++                        "\n".join(int8_instances["col_col"]),
++                        int8_instances["row_row_name"],
++                        "\n".join(int8_instances["row_row"]),
++                        int8_instances["row_col_name"],
++                        "\n".join(int8_instances["row_col"]),
++                        include_header))
++
++def parse_param_names(file):
++    param_names = []
++    for line in file:
++        if bool(re.search(r"\s*//#+", line)):
++            names = line.split('|')
++            names = [n.strip() for n in names]
++            if not param_names:
++                param_names = [""] * len(names)
++            param_names = [a + b for a, b in zip(param_names, names)]
++        elif param_names:
++            param_names[0] = line.split('<')[0].strip()
++            file.seek(0)
++            return param_names[:-1]
++    file.seek(0)
++    return param_names[:-1]
++
++def parse_device_batched_gemm_softmax_gemm_instances(source, out_dir):
++    aliases = {"Row": "ck::tensor_layout::gemm::RowMajor",
++               "Col": "ck::tensor_layout::gemm::ColumnMajor",
++               "F16": "ck::half_t",
++               "F32": "float",
++               "PassThrough": "ck::tensor_operation::element_wise::PassThrough",
++               "Scale": "ck::tensor_operation::element_wise::Scale",
++               "GemmPadded": "ck::tensor_operation::device::GemmSpecialization::MNKOPadding",
++               "GemmDefault": "ck::tensor_operation::device::GemmSpecialization::Default"}
++    device_ops = {"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
++                 }
++    
++    for root_, dirs_, files_ in os.walk(source):
++        for dir in dirs_:
++            op_name = os.path.split(dir)[-1]
++            if "permute" in op_name or op_name not in device_ops:
++                continue
++            for root, dirs, files in os.walk(os.path.join(root_, dir)):
++                for file in files:
++                    if not file.endswith(".cpp"):
++                        continue;
++                    file_name = os.path.split(file)[-1]
++                    instances_name = file_name[:-4]
++                    instances_list = []
++                    template_name = device_ops[op_name]
++                    include_header = ""
++                    with open(os.path.join(root, file)) as f:
++                        param_names = parse_param_names(f)
++                        # for i in range(len(param_names)):
++                        #     print(f"{i}: {param_names[i]}")
++                        for line in f:
++                            if "impl" in line:
++                                include_header = line.replace("#include \"", "").replace("\"", "").replace("\n", "")
++                            elif template_name in line:
++                                # Turn all whitespace into single spaces
++                                new_line = " ".join(line.split())
++                                # Remove whitespace from S<*>
++                                new_line = strip_sequences(new_line)
++                                new_line = remove_commas_and_brackets(new_line)
++                                last_char = "\n"
++                                if new_line[-1] == ",":
++                                    last_char = ",\n"
++                                    new_line = new_line[:-1]
++                                new_line = '        "ck::tensor_operation::device::' + new_line + '",'
++                                for key in aliases:
++                                    new_line = new_line.replace(key, aliases[key])
++                                masking = new_line.replace("Masking", "true")
++                                no_masking = new_line.replace("Masking", "false")
++                                instances_list.append(masking)
++                                instances_list.append(no_masking)
++                out_file_name = op_name + "_instances.hpp"
++                if not os.path.exists(out_dir):
++                    os.mkdir(out_dir)
++                with open(os.path.join(out_dir, out_file_name), "w+") as f:
++                    f.write(file_templates.get_device_gemm_softmax_gemm_file(
++                        op_name,
++                        instances_name,
++                        "\n".join(instances_list),
++                        include_header))
++
++def run(args):
++    parse_device_gemm_multiple_d_instances(args[0], args[1])
++    parse_device_batched_gemm_softmax_gemm_instances(args[0], args[1])
++
++if __name__ == '__main__':
++    run(sys.argv[1:])
++    
+\ No newline at end of file
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 4b2c7bbf..58ac6959 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -126,6 +126,9 @@ function(add_gtest_executable TEST_NAME)
+     set(result ${result} PARENT_SCOPE)
+ endfunction(add_gtest_executable TEST_NAME)
+ 
++if(CK_BUILD_JIT_LIB)
++    #add_subdirectory(jit_library)
++else()
+ add_subdirectory(magic_number_division)
+ add_subdirectory(space_filling_curve)
+ add_subdirectory(conv_util)
+@@ -159,3 +162,4 @@ add_subdirectory(conv_tensor_rearrange)
+ if(GPU_TARGETS MATCHES "gfx11")
+     add_subdirectory(wmma_op)
+ endif()
++endif()
+diff --git a/test/jit_library/CMakeLists.txt b/test/jit_library/CMakeLists.txt
+new file mode 100644
+index 00000000..6c78cd34
+--- /dev/null
++++ b/test/jit_library/CMakeLists.txt
+@@ -0,0 +1,4 @@
++add_test_executable(test_jit_library jit_library.cpp)
++add_dependencies(test_jit_library jit_library)
++target_include_directories(test_jit_library PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/jit_library/include>)
++target_link_libraries(test_jit_library PRIVATE jit_library ck_headers)
+diff --git a/test/jit_library/jit_library.cpp b/test/jit_library/jit_library.cpp
+new file mode 100644
+index 00000000..a5057da1
+--- /dev/null
++++ b/test/jit_library/jit_library.cpp
+@@ -0,0 +1,386 @@
++#include "ck/host/device_gemm_multiple_d.hpp"
++#include <iostream>
++
++bool test_Problem()
++{
++    auto problem = ck::host::device_gemm_multiple_d::Problem{
++        256,
++        256,
++        256,
++        false,
++        true,
++        false,
++        {},
++        ck::host::DataType::Half,
++        ck::host::DataType::Half,
++        ck::host::DataType::Half,
++        {},
++        "ck::tensor_operation::element_wise::Passthrough",
++        "ck::tensor_operation::element_wise::Passthrough",
++        "ck::tensor_operation::element_wise::Passthrough"};
++
++    const auto include_header = problem.GetIncludeHeader();
++    const auto solutions      = problem.GetSolutions("gfx90a");
++    const auto& solution      = solutions.at(0);
++    const auto template_str   = solution.template_str;
++    const auto grid_size      = solution.grid_size;
++    const auto block_size     = solution.block_size;
++
++    bool pass = true;
++
++    pass &= include_header ==
++            "ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_xdl_cshuffle.hpp";
++    pass &= solutions.size() == 42;
++    pass &= template_str ==
++            "ck::tensor_operation::device::DeviceGemmMultipleD_Xdl_CShuffle< "
++            "ck::tensor_layout::gemm::RowMajor, ck::tensor_layout::gemm::ColumnMajor, ck::Tuple<>, "
++            "ck::tensor_layout::gemm::RowMajor, ck::half_t, ck::half_t, float, float, ck::Tuple<>, "
++            "ck::half_t, ck::tensor_operation::element_wise::Passthrough, "
++            "ck::tensor_operation::element_wise::Passthrough, "
++            "ck::tensor_operation::element_wise::Passthrough, "
++            "ck::tensor_operation::device::GemmSpecialization::Default, 1, 256, 256, 128, 32, 8, "
++            "8, 32, 32, 4, 2, ck::Sequence<4,64,1>, ck::Sequence<1,0,2>, ck::Sequence<1,0,2>, 2, "
++            "8, 8, 1, ck::Sequence<4,64,1>, ck::Sequence<1,0,2>, ck::Sequence<1,0,2>, 2, 8, 8, 1, "
++            "1, 1, ck::Sequence<1,32,1,8>, 8, ck::LoopScheduler::Default, ck::PipelineVersion::v1>";
++    pass &= grid_size == 2;
++    pass &= block_size == 256;
++
++    return pass;
++}
++
++bool test_GetGemmSpec()
++{
++    bool pass = true;
++    {
++        // PadMNK
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            255,
++            255,
++            255,
++            false,
++            true,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++
++        pass &= template_str.find("GemmSpecialization::MNKPadding") != std::string::npos;
++    }
++    {
++        // Default
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            true,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++
++        pass &= template_str.find("GemmSpecialization::Default") != std::string::npos;
++    }
++
++    return pass;
++}
++
++bool test_GetInstances()
++{
++    bool pass = true;
++    {
++        // Col Col Fp16
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            true,
++            true,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 51;
++    }
++    {
++        // Col Row Fp16
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            true,
++            false,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 51;
++    }
++    {
++        // Row Col Fp16
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            true,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 42;
++    }
++    {
++        // Row Row Int8
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {},
++            ck::host::DataType::Int8,
++            ck::host::DataType::Int8,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 48;
++    }
++    {
++        // Col Col Int8
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            true,
++            true,
++            false,
++            {},
++            ck::host::DataType::Int8,
++            ck::host::DataType::Int8,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 48;
++    }
++    {
++        // Col Row Int8
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            true,
++            false,
++            false,
++            {},
++            ck::host::DataType::Int8,
++            ck::host::DataType::Int8,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 48;
++    }
++    {
++        // Row Col Int8
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            true,
++            false,
++            {},
++            ck::host::DataType::Int8,
++            ck::host::DataType::Int8,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 39;
++    }
++    {
++        // Row Row Int8
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {},
++            ck::host::DataType::Int8,
++            ck::host::DataType::Int8,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        pass &= problem.GetSolutions("gfx90a").size() == 48;
++    }
++
++    return pass;
++}
++
++bool test_MakeLayoutsTuple()
++{
++    bool pass = true;
++    {
++        // Empty Tuple
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {ck::host::DataType::Half},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++        pass &= template_str.find("ck::Tuple<>") != std::string::npos;
++    }
++    {
++        // RowColRow Tuple
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {false, true, false},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {ck::host::DataType::Half},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++        pass &= template_str.find(
++                    "ck::Tuple<ck::tensor_layout::gemm::RowMajor, "
++                    "ck::tensor_layout::gemm::ColumnMajor, ck::tensor_layout::gemm::RowMajor>") !=
++                std::string::npos;
++    }
++
++    return pass;
++}
++
++bool test_MakeTypeTuple()
++{
++    bool pass = true;
++    {
++        // Empty Tuple
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {true},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++        pass &= template_str.find("ck::Tuple<>") != std::string::npos;
++    }
++    {
++        // Half Int8 Tuple
++        auto problem = ck::host::device_gemm_multiple_d::Problem{
++            256,
++            256,
++            256,
++            false,
++            false,
++            false,
++            {},
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            ck::host::DataType::Half,
++            {ck::host::DataType::Half, ck::host::DataType::Int8},
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough",
++            "ck::tensor_operation::element_wise::Passthrough"};
++        const auto solutions    = problem.GetSolutions("gfx90a");
++        const auto& solution    = solutions.at(0);
++        const auto template_str = solution.template_str;
++        pass &= template_str.find("ck::Tuple<ck::half_t, int8_t>") != std::string::npos;
++    }
++    return pass;
++}
++
++int main()
++{
++    bool pass = true;
++    pass &= test_Problem();
++    pass &= test_GetGemmSpec();
++    pass &= test_GetInstances();
++    pass &= test_MakeLayoutsTuple();
++    pass &= test_MakeTypeTuple();
++
++    if(pass)
++    {
++        std::cout << "Test jit library: Pass" << std::endl;
++        return 0;
++    }
++    else
++    {
++        std::cout << "Test jit library: Fail" << std::endl;
++        return -1;
++    }
++}
+-- 
+2.41.0
+

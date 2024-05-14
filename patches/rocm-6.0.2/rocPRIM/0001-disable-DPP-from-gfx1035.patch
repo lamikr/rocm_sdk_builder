@@ -1,0 +1,31 @@
+From 69aa6eff18a5c52829ec09c2bb6c67cfaefb0736 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 8 Dec 2023 13:20:21 -0800
+Subject: [PATCH] disable DPP from gfx1035
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ rocprim/include/rocprim/config.hpp | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/rocprim/include/rocprim/config.hpp b/rocprim/include/rocprim/config.hpp
+index 230ce3f2..1a66091b 100644
+--- a/rocprim/include/rocprim/config.hpp
++++ b/rocprim/include/rocprim/config.hpp
+@@ -72,6 +72,13 @@
+     #define ROCPRIM_FORCE_INLINE __attribute__((always_inline))
+ #endif
+ 
++#if ( defined(__gfx1035__))
++        #ifndef ROCPRIM_DISABLE_DPP
++                #define ROCPRIM_DISABLE_DPP
++                #define ROCPRIM_DETAIL_USE_DPP false
++        #endif
++#endif
++
+ #ifndef ROCPRIM_DISABLE_DPP
+     #define ROCPRIM_DETAIL_USE_DPP true
+ #endif
+-- 
+2.41.0
+

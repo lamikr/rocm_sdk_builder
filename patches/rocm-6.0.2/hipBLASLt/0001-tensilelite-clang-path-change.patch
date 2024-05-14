@@ -1,0 +1,40 @@
+From 6759b6d4d0a409f6a60bfb7f17e33203cd90aba2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 27 Jan 2024 01:02:13 -0800
+Subject: [PATCH] tensilelite clang++ path change
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ tensilelite/Tensile/Common.py           | 2 +-
+ tensilelite/Tensile/Ops/gen_assembly.sh | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
+index 0f862b85..0cb388b4 100644
+--- a/tensilelite/Tensile/Common.py
++++ b/tensilelite/Tensile/Common.py
+@@ -1471,7 +1471,7 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+-      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang++")
++      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang++")
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+ 
+diff --git a/tensilelite/Tensile/Ops/gen_assembly.sh b/tensilelite/Tensile/Ops/gen_assembly.sh
+index 7b160690..2fa487a9 100644
+--- a/tensilelite/Tensile/Ops/gen_assembly.sh
++++ b/tensilelite/Tensile/Ops/gen_assembly.sh
+@@ -32,7 +32,7 @@ if ! [ -z ${ROCM_PATH+x} ]; then
+     rocm_path=${ROCM_PATH}
+ fi
+ 
+-toolchain=${rocm_path}/llvm/bin/clang++
++toolchain=${rocm_path}/bin/clang++
+ 
+ . ${venv}/bin/activate
+ 
+-- 
+2.41.0
+

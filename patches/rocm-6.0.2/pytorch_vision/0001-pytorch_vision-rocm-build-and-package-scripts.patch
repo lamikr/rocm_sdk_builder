@@ -1,0 +1,62 @@
+From 5598268c127db6b024c18e7f7417e046c46a0199 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 11 Dec 2023 09:18:53 -0800
+Subject: [PATCH 1/2] pytorch_vision rocm build and package scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_pytorch_vision_rocm.sh         | 18 ++++++++++++++++++
+ package_pytorch_vision_rocm_wheel.sh | 16 ++++++++++++++++
+ 2 files changed, 34 insertions(+)
+ create mode 100755 build_pytorch_vision_rocm.sh
+ create mode 100755 package_pytorch_vision_rocm_wheel.sh
+
+diff --git a/build_pytorch_vision_rocm.sh b/build_pytorch_vision_rocm.sh
+new file mode 100755
+index 0000000000..4078c95b93
+--- /dev/null
++++ b/build_pytorch_vision_rocm.sh
+@@ -0,0 +1,18 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++#export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++#export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++#export CMAKE_C_COMPILER=gcc
++#export CMAKE_CXX_COMPILER=g++
++export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++ROCM_PATH=${install_dir_prefix_rocm} FORCE_CUDA=1 TORCHVISION_USE_NVJPEG=0 TORCHVISION_USE_VIDEO_CODEC=0 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
+diff --git a/package_pytorch_vision_rocm_wheel.sh b/package_pytorch_vision_rocm_wheel.sh
+new file mode 100755
+index 0000000000..6cad095eeb
+--- /dev/null
++++ b/package_pytorch_vision_rocm_wheel.sh
+@@ -0,0 +1,16 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++#export CMAKE_C_COMPILER=gcc
++#export CMAKE_CXX_COMPILER=g++
++export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++FORCE_CUDA=1 TORCHVISION_USE_NVJPEG=0 TORCHVISION_USE_VIDEO_CODEC=0 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
+-- 
+2.41.0
+
