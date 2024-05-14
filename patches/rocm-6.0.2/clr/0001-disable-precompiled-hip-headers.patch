@@ -1,7 +1,13 @@
-From ea7e63ce916d38b653961a022710a93481adef5e Mon Sep 17 00:00:00 2001
+From 81ba7d6256411926ad0e6fed29581a1bc8a295b7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 20 Jan 2024 10:44:02 -0800
-Subject: [PATCH] disable precompiled hip headers
+Subject: [PATCH 1/2] disable precompiled hip headers
+
+- precompiled headers can cause
+  problems on gfx10 cards
+- this code has usage also in openmi,
+  so verify that nothing in there does
+  not try to use the disabled features.
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
