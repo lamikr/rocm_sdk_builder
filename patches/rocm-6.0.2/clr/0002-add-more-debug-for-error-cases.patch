@@ -28,7 +28,7 @@ index dc76883f2..aa7dd285c 100644
          ListAllDeviceWithNoCOFromBundle(unique_isa_names);
          break;
        }
-+      #printf("hip_fatbin.cpp: COMGR API found CO for this GPU device/ISA: %s\n", device_name.c_str());
++      //printf("hip_fatbin.cpp: COMGR API found CO for this GPU device/ISA: %s\n", device_name.c_str());
        guarantee(unique_isa_names.cend() != dev_it,
                  "Cannot find the device name in the unique device name");
        fatbin_dev_info_[devices[dev_idx]->deviceId()]
