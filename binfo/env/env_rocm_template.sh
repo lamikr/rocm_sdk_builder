@@ -5,8 +5,6 @@ export MAGMA_HOME==${ROCM_HOME}
 
 export LD_LIBRARY_PATH=${ROCM_HOME}/lib64:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${ROCM_HOME}/lib:${LD_LIBRARY_PATH}
+export DEVICE_LIB_PATH=${ROCM_HOME}/amdgcn/bitcode
 
 export PATH=${ROCM_HOME}/bin:${PATH}
-
-
-
