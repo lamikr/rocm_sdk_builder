@@ -9,8 +9,10 @@ func_binfo_utils__init_binfo_app_list() {
     LIST_BINFO_FILE_FULLNAME=()
     LIST_BINFO_APP_NAME=()
     LIST_APP_SRC_DIR=()
+    LIST_APP_SRC_CLONE_DIR=()
     LIST_APP_PATCH_DIR=()
-    LIST_APP_UPSTREAM_REPO=()
+    LIST_APP_UPSTREAM_REPO_URL=()
+    LIST_APP_UPSTREAM_REPO_DEFINED=()
     LIST_REPO_REVS_NEW=()
     LIST_REPO_REVS_CUR=()
     jj=0
@@ -53,10 +55,18 @@ func_binfo_utils__init_binfo_app_list() {
             exit 1
         fi
         if [ -v BINFO_APP_UPSTREAM_REPO_URL ]; then
-            LIST_APP_UPSTREAM_REPO[$jj]=${BINFO_APP_UPSTREAM_REPO_URL}
+            if [ "x${BINFO_APP_UPSTREAM_REPO_URL}" != "x" ]; then
+                LIST_APP_UPSTREAM_REPO_URL[$jj]=${BINFO_APP_UPSTREAM_REPO_URL}
+                LIST_APP_UPSTREAM_REPO_DEFINED[$jj]=1
+            else
+                LIST_APP_UPSTREAM_REPO_URL[$jj]=
+                LIST_APP_UPSTREAM_REPO_DEFINED[$jj]=0
+                #echo "empty repo url in project: ${LIST_BINFO_FILE_FULLNAME[${jj}]}"
+            fi
         else
-            echo "error, BINFO_APP_UPSTREAM_REPO_URL not defined: ${LIST_BINFO_FILE_FULLNAME[${jj}]}"
-            exit 1
+            #echo "warning, BINFO_APP_UPSTREAM_REPO_URL not defined: ${LIST_BINFO_FILE_FULLNAME[${jj}]}"
+            LIST_APP_UPSTREAM_REPO_URL[$jj]=
+            LIST_APP_UPSTREAM_REPO_DEFINED[$jj]=0
         fi
 
         if [ -v BINFO_APP_UPSTREAM_REPO_VERSION_TAG ]; then
