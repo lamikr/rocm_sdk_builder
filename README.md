@@ -6,7 +6,7 @@ ROCM SDK Builder will provide an easy and customizable build and install of AMD 
 
 In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools like python, pytorch and jupyter-notebook that has been tested to work with rest of the system. SDK will be installed under /opt/rocm_sdk_<version> directory.
 
-Latest ROCM release supported is the ROCM 6.0.2 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
+Latest ROCM release supported is the ROCM 6.1.1 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
 
 This project has been so far tested with following AMD GPUs:
 
@@ -37,12 +37,12 @@ You need to also to use git configure command to set git username and email addr
 # git config --global user.email johndoe@example.com
 ```
 
-ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.0.2 version. This is mostly divided in a following way:
+ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.1.1 version. This is mostly divided in a following way:
 
 ```
 - src_projects directory, for source code, about 30 GB
 - builddir directory for temporarily files, about 75 GB
-- /opt/rocm_sdk_602, install directory for the sdk, about 20 GB
+- /opt/rocm_sdk_611, install directory for the sdk, about 20 GB
 ```
 
 Once the build is ready, 'builddir' and 'src_projects' directories could be deleted to free more space. As the downloading the sources from scratch can take some, I recommend keeping at least the source directory.
@@ -57,12 +57,12 @@ ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> dire
 
 ## How to Build and Install ROCm SDK
 
-Following commands will download rocm sdk 6.0.2 project sources and then build and install the rocm_sdk version 6.0.2 to /opt/rocm_sdk_602 folder.
+Following commands will download rocm sdk 6.1.1 project sources and then build and install the rocm_sdk version 6.1.1 to /opt/rocm_sdk_611 folder.
 
 ```
 # git clone https://github.com/lamikr/rocm_sdk_builder.git
 # cd rocm_sdk_builder
-# git checkout releases/rocm_sdk_builder_602
+# git checkout releases/rocm_sdk_builder_611
 # ./babs.sh -i
 # ./babs.sh -b
 ```
@@ -82,15 +82,15 @@ the 'builddir' directoty completely.
 Following command should give you information related to your installed AMD GPU.
 
 ```
-# source /opt/rocm_sdk_602/bin/env_rocm.sh
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
 # rocminfo
 ```
 
 Following command will open pytorch project to test your GPU. (Note that AMD gpus are listed as a cuda GPU's on pytorch)
 
 ```
-# source /opt/rocm_sdk_602/bin/env_rocm.sh
-# jupyter-notebook /opt/rocm_sdk_602/docs/examples/pytorch/pytorch_amd_gpu_intro.ipynb
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# jupyter-notebook /opt/rocm_sdk_611/docs/examples/pytorch/pytorch_amd_gpu_intro.ipynb
 ```
 
 Details howto use the other ROCm components like rocBLAS, rocPRIM, etc. will be added later.
@@ -189,8 +189,8 @@ For example:
 - Very simple benchmark is available on by executing command:
 
 ```
-# source /opt/rocm_sdk_602/bin/env_rocm.sh
-# jupyter-notebook /opt/rocm_sdk_602/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# jupyter-notebook /opt/rocm_sdk_611/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
