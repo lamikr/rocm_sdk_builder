@@ -1,0 +1,93 @@
+From d175609221238fad45ba24f4bba3473da07743dc Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 19 Dec 2023 15:13:46 -0800
+Subject: [PATCH 2/4] MIOpen gfx1035 support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../composable_kernel/include/utility/config.hpp            | 6 +++---
+ src/include/miopen/solver/ck_utility_common.hpp             | 3 +++
+ src/target_properties.cpp                                   | 1 +
+ test/CMakeLists.txt                                         | 2 ++
+ 4 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/src/composable_kernel/composable_kernel/include/utility/config.hpp b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+index 92307214f..cf89fa618 100644
+--- a/src/composable_kernel/composable_kernel/include/utility/config.hpp
++++ b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+@@ -15,7 +15,7 @@
+ #if !(defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX906) ||    \
+       defined(CK_AMD_GPU_GFX940) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A) ||    \
+       defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX1030) ||   \
+-      defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || \
++      defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || \
+       defined(CK_AMD_GPU_GFX1102))
+ #error Need to define (only) one GPU target
+ #endif
+@@ -33,7 +33,7 @@
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) || \
+     defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
+-#elif defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
++#elif defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1100) || \
+     defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
+ #endif
+@@ -43,7 +43,7 @@
+ #define CK_USE_AMD_V_MAC_F32
+ #elif defined(CK_AMD_GPU_GFX906) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90a) ||  \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) ||    \
+-    defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
++    defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1100) || \
+     defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102)
+ #define CK_USE_AMD_V_FMAC_F32
+ #define CK_USE_AMD_V_DOT2_F32_F16
+diff --git a/src/include/miopen/solver/ck_utility_common.hpp b/src/include/miopen/solver/ck_utility_common.hpp
+index 003b067e5..989ec8557 100644
+--- a/src/include/miopen/solver/ck_utility_common.hpp
++++ b/src/include/miopen/solver/ck_utility_common.hpp
+@@ -58,6 +58,7 @@ static inline bool is_ck_supported_hardware(const Handle& handle)
+            StartsWith(handle.GetDeviceName(), "gfx942") ||
+            StartsWith(handle.GetDeviceName(), "gfx1030") ||
+            StartsWith(handle.GetDeviceName(), "gfx1031") ||
++           StartsWith(handle.GetDeviceName(), "gfx1035") ||
+            StartsWith(handle.GetDeviceName(), "gfx1100") ||
+            StartsWith(handle.GetDeviceName(), "gfx1101") ||
+            StartsWith(handle.GetDeviceName(), "gfx1102");
+@@ -108,6 +109,8 @@ static inline auto get_ck_common_compiler_flag(const Handle& handle)
+         compiler_flag << " -DCK_AMD_GPU_GFX1030";
+     else if(StartsWith(device_name, "gfx1031"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1031";
++    else if(StartsWith(device_name, "gfx1035"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1035";
+     else if(StartsWith(device_name, "gfx1100"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1100";
+     else if(StartsWith(device_name, "gfx1101"))
+diff --git a/src/target_properties.cpp b/src/target_properties.cpp
+index 61965da0a..f2f7b6632 100644
+--- a/src/target_properties.cpp
++++ b/src/target_properties.cpp
+@@ -52,6 +52,7 @@ static std::string GetDeviceNameFromMap(const std::string& in)
+         {"gfx804", "gfx803"},
+         {"Vega10", "gfx900"},
+         {"gfx901", "gfx900"},
++        {"Rembrandt", "gfx1035"},
+         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
+     };
+ 
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 030adb196..2766b7a65 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -127,6 +127,8 @@ if(NOT (MIOPEN_TEST_GFX900 OR MIOPEN_TEST_GFX906 OR MIOPEN_TEST_GFX908 OR MIOPEN
+             set(MIOPEN_TEST_GFX103X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1031")
+             set(MIOPEN_TEST_GFX103X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1035")
++            set(MIOPEN_TEST_GFX103X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1100")
+             set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1101")
+-- 
+2.41.0
+

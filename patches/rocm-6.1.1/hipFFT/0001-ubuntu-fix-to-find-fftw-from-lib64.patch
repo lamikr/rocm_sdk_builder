@@ -1,0 +1,36 @@
+From 4c8eba4b83ea6d3a9417e51dc0ccbf8375563f47 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 30 Jan 2024 03:48:56 -0800
+Subject: [PATCH] ubuntu fix to find fftw from lib64
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/cmake/FindFFTW.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/clients/cmake/FindFFTW.cmake b/clients/cmake/FindFFTW.cmake
+index 2ef0f0c..850725d 100644
+--- a/clients/cmake/FindFFTW.cmake
++++ b/clients/cmake/FindFFTW.cmake
+@@ -47,7 +47,9 @@ if( FFTW_FIND_REQUIRED_FLOAT OR FFTW_FIND_REQUIRED_SINGLE )
+       HINTS
+           ${FFTW_ROOT}/lib
+           $ENV{FFTW_ROOT}/lib
+-      PATHS
++          ${FFTW_ROOT}/lib64
++          $ENV{FFTW_ROOT}/lib64
++     PATHS
+           /usr/lib
+           /usr/local/lib
+       PATH_SUFFIXES
+@@ -76,6 +78,8 @@ if( FFTW_FIND_REQUIRED_DOUBLE )
+       HINTS
+           ${FFTW_ROOT}/lib
+           $ENV{FFTW_ROOT}/lib
++          ${FFTW_ROOT}/lib64
++          $ENV{FFTW_ROOT}/lib64
+       PATHS
+           /usr/lib
+           /usr/local/lib
+--
+2.40.1

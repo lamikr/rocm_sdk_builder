@@ -1,0 +1,29 @@
+From 4c8e4af07fb6f53fe2c4d20ad5d1d6a76850a741 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 29 Jan 2024 20:51:12 -0800
+Subject: [PATCH 5/5] add lib64 to libhwloc search path
+
+cmake on ubuntu23.10 finds library only from
+lib, not from lib64w
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ openmp/runtime/cmake/config-ix.cmake | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/openmp/runtime/cmake/config-ix.cmake b/openmp/runtime/cmake/config-ix.cmake
+index 24c9eb321378..a04d594d2b7e 100644
+--- a/openmp/runtime/cmake/config-ix.cmake
++++ b/openmp/runtime/cmake/config-ix.cmake
+@@ -350,7 +350,8 @@ if(${LIBOMP_USE_HWLOC})
+   set(CMAKE_REQUIRED_INCLUDES)
+   find_library(LIBOMP_HWLOC_LIBRARY
+     NAMES hwloc libhwloc
+-    HINTS ${LIBOMP_HWLOC_INSTALL_DIR}/lib)
++    HINTS ${LIBOMP_HWLOC_INSTALL_DIR}/lib
++          ${LIBOMP_HWLOC_INSTALL_DIR}/lib64)
+   if(LIBOMP_HWLOC_LIBRARY)
+     # In case libhwloc is static, check_library_exists does not work on static libs
+     get_filename_component(LIBOMP_HWLOC_LIBRARY_EXT ${LIBOMP_HWLOC_LIBRARY} EXT)
+--
+2.40.1

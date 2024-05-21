@@ -1,0 +1,34 @@
+From d8dd93e73b9e6796d291920b077ba47d90ba0895 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 26 Jan 2024 11:18:24 -0800
+Subject: [PATCH 2/2] append CMAKE_PREFIX_PATH from ENV
+
+Fix error not finding hsa-runtime library
+when building on ubuntu
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ddc6dc15..4ca3f550 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -90,6 +90,13 @@ if(USE_CUDA)
+   )
+ endif()
+ 
++if(NOT DEFINED ENV{CMAKE_PREFIX_PATH})
++  list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/lib64/cmake )
++  message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
++else()
++  list( APPEND CMAKE_PREFIX_PATH $ENV{CMAKE_PREFIX_PATH} )
++  message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
++endif()
+ include(cmake/TorchAudioHelper.cmake)
+ 
+ # https://github.com/pytorch/pytorch/issues/54174
+-- 
+2.40.1
+
