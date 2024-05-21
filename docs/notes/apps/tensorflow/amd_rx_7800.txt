@@ -1,0 +1,15 @@
+https://www.reddit.com/r/ROCm/comments/1ahkay9/tensorflow_on_gfx1101_navi32_7800_xt/
+
+
+
+Seems to work :) just build tensorflow against ROCm 6.0.2,
+
+had to do minimal changes to the code: https://github.com/ROCm/tensorflow-upstream/commit/1c3f58db55b87b0d30cd2cfefbe3b31a9b8987da
+
+And it just worked :):
+https://git.neosolve.de/Spacefish/rocm-on-gfx1101/-/blob/master/tftest.ipynb?ref_type=heads
+
+Really amazed how far this has evolved! I remember it was quite a hassle at the start of 2023 to get even HIP running on consumer cards / RDNA1 (had a 5700XT back then).. But today: Almost everything works on consumer / RDNA cards :) really happy!
+
+Compared to my CPU i get a 35 fold performance boost while training that simple 3x 4096 Dense network.
+
