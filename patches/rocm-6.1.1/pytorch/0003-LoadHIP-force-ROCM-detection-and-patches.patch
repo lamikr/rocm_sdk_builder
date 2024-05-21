@@ -1,61 +1,52 @@
-From 2b42d81ed032222694b5dc4946ce3b8383a03d28 Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@gmail.com>
-Date: Tue, 12 Dec 2023 14:20:21 -0800
-Subject: [PATCH 3/7] LoadHIP force ROCM detection and patches
+From e6f5e10d808610a2f40a6456211ed77f3fb68893 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 10 May 2024 10:32:33 -0700
+Subject: [PATCH 3/5] LoadHIP force ROCM detection and patches
 
 - set HIP_ROOT_DIR to ROCM_PATH which is set
   by the build scripts
 - set ROCM_VERSION
 
-Signed-off-by: Mika Laitio <lamikr@gmail.com>
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
- cmake/public/LoadHIP.cmake | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ cmake/public/LoadHIP.cmake | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
 diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
-index 6989f57f709..1e71fa84142 100644
+index f6ca263c5e5..0f7a61cf141 100644
 --- a/cmake/public/LoadHIP.cmake
 +++ b/cmake/public/LoadHIP.cmake
-@@ -23,6 +23,9 @@ else()
-   set(MAGMA_HOME $ENV{MAGMA_HOME})
- endif()
- 
-+set(HIP_ROOT_DIR ${ROCM_PATH})
-+set(ROCM_VERSION 60000)
-+
- torch_hip_get_arch_list(PYTORCH_ROCM_ARCH)
- if(PYTORCH_ROCM_ARCH STREQUAL "")
-   message(FATAL_ERROR "No GPU arch specified for ROCm build. Please use PYTORCH_ROCM_ARCH environment variable to specify GPU archs to build for.")
-@@ -41,6 +44,7 @@ endmacro()
+@@ -41,6 +41,7 @@ endmacro()
  find_package_and_print_version(HIP 1.0)
  
  if(HIP_FOUND)
-+  #message( FATAL_ERROR "LoadHIP FATAL error1." )
++  #message( FATAL_ERROR "LoadHIP debug trace1.")
    set(PYTORCH_FOUND_HIP TRUE)
    set(FOUND_ROCM_VERSION_H FALSE)
  
-@@ -54,13 +58,16 @@ if(HIP_FOUND)
+@@ -54,13 +55,16 @@ if(HIP_FOUND)
      file(WRITE ${file} ""
        "#include <rocm_version.h>\n"
        )
-+      #message( FATAL_ERROR "header1: ${ROCM_INCLUDE_DIRS}")
++      #message( FATAL_ERROR "LoadHIP debug trace2")
    elseif(EXISTS ${ROCM_INCLUDE_DIRS}/rocm-core/rocm_version.h)
      set(FOUND_ROCM_VERSION_H TRUE)
      file(WRITE ${file} ""
        "#include <rocm-core/rocm_version.h>\n"
        )
-+      #message( FATAL_ERROR "header2: ${ROCM_INCLUDE_DIRS}")
++      #message( FATAL_ERROR "LoadHIP debug trace3.")
    else()
      message("********************* rocm_version.h couldnt be found ******************\n")
-+    #message( FATAL_ERROR "header3: ${ROCM_INCLUDE_DIRS}")
++    #message( FATAL_ERROR "LoadHIP debug trace4.")
    endif()
  
    if(FOUND_ROCM_VERSION_H)
-@@ -90,9 +97,11 @@ if(HIP_FOUND)
+@@ -90,9 +94,12 @@ if(HIP_FOUND)
      message(STATUS "Caffe2: Header version is: " ${rocm_version_from_header})
      set(ROCM_VERSION_DEV_RAW ${rocm_version_from_header})
      message("\n***** ROCm version from rocm_version.h ****\n")
-+    #message( FATAL_ERROR "rocmversion: ${rocm_version_from_header}")
++  else()
++    message( FATAL_ERROR "LoadHIP FOUND_ROCM_VERSION_H failed, ROCM_PATH: ${ROCM_PATH}")
    endif()
  
    string(REGEX MATCH "^([0-9]+)\.([0-9]+)\.([0-9]+).*$" ROCM_VERSION_DEV_MATCH ${ROCM_VERSION_DEV_RAW})
@@ -63,13 +54,23 @@ index 6989f57f709..1e71fa84142 100644
  
    if(ROCM_VERSION_DEV_MATCH)
      set(ROCM_VERSION_DEV_MAJOR ${CMAKE_MATCH_1})
-@@ -187,4 +196,6 @@ if(HIP_FOUND)
-   find_library(ROCM_HIPRTC_LIB amdhip64 HINTS ${ROCM_PATH}/lib)
-   # roctx is part of roctracer
-   find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
-+else()
-+message( FATAL_ERROR "LoadHIP FATAL error2, ROCM_PATH: ${ROCM_PATH}")
- endif()
+@@ -100,6 +107,8 @@ if(HIP_FOUND)
+     set(ROCM_VERSION_DEV_PATCH ${CMAKE_MATCH_3})
+     set(ROCM_VERSION_DEV "${ROCM_VERSION_DEV_MAJOR}.${ROCM_VERSION_DEV_MINOR}.${ROCM_VERSION_DEV_PATCH}")
+     math(EXPR ROCM_VERSION_DEV_INT "(${ROCM_VERSION_DEV_MAJOR}*10000) + (${ROCM_VERSION_DEV_MINOR}*100) + ${ROCM_VERSION_DEV_PATCH}")
++    set(ROCM_VERSION ${ROCM_VERSION_DEV_INT})
++    set(HIP_ROOT_DIR ${ROCM_PATH})
+   endif()
+ 
+   message("ROCM_VERSION_DEV: ${ROCM_VERSION_DEV}")
+@@ -112,6 +121,7 @@ if(HIP_FOUND)
+   message("HIP_VERSION_MAJOR: ${HIP_VERSION_MAJOR}")
+   message("HIP_VERSION_MINOR: ${HIP_VERSION_MINOR}")
+   message("TORCH_HIP_VERSION: ${TORCH_HIP_VERSION}")
++  message("USE_FLASH_ATTENTION: ${USE_FLASH_ATTENTION}")
+ 
+   message("\n***** Library versions from dpkg *****\n")
+   execute_process(COMMAND dpkg -l COMMAND grep rocm-dev COMMAND awk "{print $2 \" VERSION: \" $3}")
 -- 
 2.41.0
 

@@ -1,13 +1,12 @@
-From 6028fa644cba326b1fd80a52552ec020912001ef Mon Sep 17 00:00:00 2001
+From 4fb1a432f006e027694af52515f80b8820fd9a70 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
-Date: Tue, 14 May 2024 11:15:04 -0700
+Date: Tue, 14 May 2024 11:24:33 -0700
 Subject: [PATCH 2/2] add more debug for error cases
 
-- add debug in case that support for the used
+- add debug for case where the support for the used
   gpu is not enabled/build in to system.
   This is useful for getting better trace
-  especially when trying to use
-  rocm/cuda from pytorch.
+  when troubleshooting rocm/cuda usage from pytorch.
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -15,15 +14,16 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/hipamd/src/hip_fatbin.cpp b/hipamd/src/hip_fatbin.cpp
-index dc76883f2..aa7dd285c 100644
+index 5d0d00ac9..49590fe59 100644
 --- a/hipamd/src/hip_fatbin.cpp
 +++ b/hipamd/src/hip_fatbin.cpp
-@@ -253,11 +253,13 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+@@ -251,12 +251,14 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
        auto dev_it = unique_isa_names.find(device_name);
        // If the size is 0, then COMGR API could not find the CO for this GPU device/ISA
        if (dev_it->second.first == 0) {
 +        printf("hip_fatbin.cpp: COMGR API could not find the CO for this GPU device/ISA: %s\n", device_name.c_str());
-         LogPrintfError("Cannot find CO in the bundle for ISA: %s \n", device_name.c_str());
+         LogPrintfError("Cannot find CO in the bundle %s for ISA: %s",
+                         fname_.c_str(), device_name.c_str());
          hip_status = hipErrorNoBinaryForGpu;
          ListAllDeviceWithNoCOFromBundle(unique_isa_names);
          break;
@@ -31,7 +31,7 @@ index dc76883f2..aa7dd285c 100644
 +      //printf("hip_fatbin.cpp: COMGR API found CO for this GPU device/ISA: %s\n", device_name.c_str());
        guarantee(unique_isa_names.cend() != dev_it,
                  "Cannot find the device name in the unique device name");
-       fatbin_dev_info_[devices[dev_idx]->deviceId()]
+       fatbin_dev_info_[device->deviceId()]
 -- 
 2.41.0
 

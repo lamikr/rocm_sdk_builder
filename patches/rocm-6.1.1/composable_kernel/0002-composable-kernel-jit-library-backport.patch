@@ -1,6 +1,6 @@
-From 4c4bbcea7cbb054f9fe7e3e848e70db110f85ad0 Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@gmail.com>
-Date: Sun, 28 Jan 2024 22:25:24 -0800
+From 0d7b8bb5eb1c07eb1dd339c2a87d8f08183ce8ef Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 3 May 2024 13:49:47 -0700
 Subject: [PATCH 2/2] composable kernel jit library backport
 
 - backported from the composable_kernel
@@ -11,10 +11,10 @@ Subject: [PATCH 2/2] composable kernel jit library backport
   jit_library in separete step from the rest of the composable_kernel
   (different build flags)
 
-Signed-off-by: Mika Laitio <lamikr@gmail.com>
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
- CMakeLists.txt                                | 339 +++++++--------
- Config.cmake.in                               |  17 +-
+ CMakeLists.txt                                | 387 +++++++++---------
+ Config.cmake.in                               |   9 +-
  cmake/Embed.cmake                             | 202 +++++++++
  library/CMakeLists.txt                        |   8 +-
  library/src/jit_library/CMakeLists.txt        |  48 +++
@@ -24,13 +24,12 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  library/src/jit_library/src/common.cpp        |  36 ++
  .../src/device_batched_gemm_softmax_gemm.cpp  | 115 ++++++
  .../src/device_gemm_multiple_d.cpp            | 174 ++++++++
- .../__pycache__/file_templates.cpython-39.pyc | Bin 0 -> 3529 bytes
  .../src/jit_library/util/file_templates.py    | 177 ++++++++
  .../jit_library/util/make_instance_strings.py | 367 +++++++++++++++++
  test/CMakeLists.txt                           |   4 +
  test/jit_library/CMakeLists.txt               |   4 +
- test/jit_library/jit_library.cpp              | 386 ++++++++++++++++++
- 17 files changed, 1911 insertions(+), 171 deletions(-)
+ test/jit_library/jit_library.cpp              | 386 +++++++++++++++++
+ 16 files changed, 1931 insertions(+), 191 deletions(-)
  create mode 100644 cmake/Embed.cmake
  create mode 100644 library/src/jit_library/CMakeLists.txt
  create mode 100644 library/src/jit_library/include/ck/host/common.hpp
@@ -39,17 +38,16 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  create mode 100644 library/src/jit_library/src/common.cpp
  create mode 100644 library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
  create mode 100644 library/src/jit_library/src/device_gemm_multiple_d.cpp
- create mode 100644 library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc
  create mode 100644 library/src/jit_library/util/file_templates.py
  create mode 100644 library/src/jit_library/util/make_instance_strings.py
  create mode 100644 test/jit_library/CMakeLists.txt
  create mode 100644 test/jit_library/jit_library.cpp
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b09da41a..d1510316 100644
+index bdeba33ea..23f0f7042 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -136,87 +136,91 @@ if(GPU_TARGETS)
+@@ -143,116 +143,120 @@ if(GPU_TARGETS)
  else()
      message("Building CK for the following targets: ${AMDGPU_TARGETS}")
  endif()
@@ -58,13 +56,40 @@ index b09da41a..d1510316 100644
 -# SWDEV-413293 and https://reviews.llvm.org/D155213
 -math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
 -message("hip_version_flat=${hip_VERSION_FLAT}")
--if(${hip_VERSION_FLAT} GREATER 500723302)
+-if(NOT WIN32 AND ${hip_VERSION_FLAT} GREATER 500723302)
 -   message("Adding the fno-offload-uniform-block compiler flag")
 -   add_compile_options(-fno-offload-uniform-block)
 -endif()
 -
--option(USE_BITINT_EXTENSION_INT4, "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
--option(USE_OPT_NAVI3X, "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
+-#
+-# Seperate linking jobs from compiling
+-# Too many concurrent linking jobs can break the build
+-# Copied from LLVM
+-set(CK_PARALLEL_LINK_JOBS "" CACHE STRING
+-  "Define the maximum number of concurrent link jobs (Ninja only).")
+-if(CMAKE_GENERATOR MATCHES "Ninja")
+-  if(CK_PARALLEL_LINK_JOBS)
+-    set_property(GLOBAL APPEND PROPERTY JOB_POOLS link_job_pool=${CK_PARALLEL_LINK_JOBS})
+-    set(CMAKE_JOB_POOL_LINK link_job_pool)
+-  endif()
+-elseif(CK_PARALLEL_LINK_JOBS)
+-  message(WARNING "Job pooling is only available with Ninja generators.")
+-endif()
+-# Similar for compiling
+-set(CK_PARALLEL_COMPILE_JOBS "" CACHE STRING
+-  "Define the maximum number of concurrent compile jobs (Ninja only).")
+-if(CMAKE_GENERATOR MATCHES "Ninja")
+-  if(CK_PARALLEL_COMPILE_JOBS)
+-    set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_job_pool=${CK_PARALLEL_COMPILE_JOBS})
+-    set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
+-  endif()
+-elseif(CK_PARALLEL_COMPILE_JOBS)
+-  message(WARNING "Job pooling is only available with Ninja generators.")
+-endif()
+-
+ 
+-option(USE_BITINT_EXTENSION_INT4 "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
+-option(USE_OPT_NAVI3X "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
 -
 -if(USE_BITINT_EXTENSION_INT4)
 -    add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
@@ -84,7 +109,6 @@ index b09da41a..d1510316 100644
 -link_libraries(Threads::Threads)
 -
 -## C++
--enable_language(CXX)
 -set(CMAKE_CXX_STANDARD 17)
 -set(CMAKE_CXX_STANDARD_REQUIRED ON)
 -set(CMAKE_CXX_EXTENSIONS OFF)
@@ -102,7 +126,7 @@ index b09da41a..d1510316 100644
 -else()
 -	find_package(OpenMP REQUIRED)
 -endif()
- 
+-
 -message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
 -message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
 -message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
@@ -130,6 +154,13 @@ index b09da41a..d1510316 100644
 -if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
 -    set(CK_HIP_VERSION_PATCH "${CK_OVERRIDE_HIP_VERSION_PATCH}")
 -    message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
+-endif()
+-message(STATUS "Build with HIP ${HIP_VERSION}")
+-link_libraries(hip::device)
+-if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
+-    add_compile_definitions(__HIP_PLATFORM_AMD__=1)
+-else()
+-    add_compile_definitions(__HIP_PLATFORM_HCC__=1)
 +option(CK_BUILD_JIT_LIB, "Only build the CK JIT Helper Library" OFF)
 +if (NOT CK_BUILD_JIT_LIB)
 +	find_package(hip)
@@ -137,13 +168,40 @@ index b09da41a..d1510316 100644
 +	# SWDEV-413293 and https://reviews.llvm.org/D155213
 +	math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
 +	message("hip_version_flat=${hip_VERSION_FLAT}")
-+	if(${hip_VERSION_FLAT} GREATER 500723302)
++	if(NOT WIN32 AND ${hip_VERSION_FLAT} GREATER 500723302)
 +	   message("Adding the fno-offload-uniform-block compiler flag")
 +	   add_compile_options(-fno-offload-uniform-block)
 +	endif()
 +
-+	option(USE_BITINT_EXTENSION_INT4, "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
-+	option(USE_OPT_NAVI3X, "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
++	#
++	# Seperate linking jobs from compiling
++	# Too many concurrent linking jobs can break the build
++	# Copied from LLVM
++	set(CK_PARALLEL_LINK_JOBS "" CACHE STRING
++	  "Define the maximum number of concurrent link jobs (Ninja only).")
++	if(CMAKE_GENERATOR MATCHES "Ninja")
++	  if(CK_PARALLEL_LINK_JOBS)
++		set_property(GLOBAL APPEND PROPERTY JOB_POOLS link_job_pool=${CK_PARALLEL_LINK_JOBS})
++		set(CMAKE_JOB_POOL_LINK link_job_pool)
++	  endif()
++	elseif(CK_PARALLEL_LINK_JOBS)
++	  message(WARNING "Job pooling is only available with Ninja generators.")
++	endif()
++	# Similar for compiling
++	set(CK_PARALLEL_COMPILE_JOBS "" CACHE STRING
++	  "Define the maximum number of concurrent compile jobs (Ninja only).")
++	if(CMAKE_GENERATOR MATCHES "Ninja")
++	  if(CK_PARALLEL_COMPILE_JOBS)
++		set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_job_pool=${CK_PARALLEL_COMPILE_JOBS})
++		set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
++	  endif()
++	elseif(CK_PARALLEL_COMPILE_JOBS)
++	  message(WARNING "Job pooling is only available with Ninja generators.")
++	endif()
++
++
++	option(USE_BITINT_EXTENSION_INT4 "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
++	option(USE_OPT_NAVI3X "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
 +
 +	if(USE_BITINT_EXTENSION_INT4)
 +		add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
@@ -163,7 +221,6 @@ index b09da41a..d1510316 100644
 +	link_libraries(Threads::Threads)
 +
 +	## C++
-+	enable_language(CXX)
 +	set(CMAKE_CXX_STANDARD 17)
 +	set(CMAKE_CXX_STANDARD_REQUIRED ON)
 +	set(CMAKE_CXX_EXTENSIONS OFF)
@@ -212,15 +269,15 @@ index b09da41a..d1510316 100644
 +	endif()
 +	message(STATUS "Build with HIP ${HIP_VERSION}")
 +	link_libraries(hip::device)
-+	add_compile_definitions(__HIP_PLATFORM_HCC__=1)
++	if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
++		add_compile_definitions(__HIP_PLATFORM_AMD__=1)
++	else()
++		add_compile_definitions(__HIP_PLATFORM_HCC__=1)
++	endif()
  endif()
--message(STATUS "Build with HIP ${HIP_VERSION}")
--link_libraries(hip::device)
--add_compile_definitions(__HIP_PLATFORM_HCC__=1)
  
  ## tidy
- include(EnableCompilerWarnings)
-@@ -371,92 +375,101 @@ include_directories(BEFORE
+@@ -408,86 +412,95 @@ include_directories(BEFORE
      ${HIP_INCLUDE_DIRS}
  )
  
@@ -243,35 +300,27 @@ index b09da41a..d1510316 100644
 -    file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
 -    set(add_inst 0)
 -    if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
--        #message("fp8 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
--        #message("bf8 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
--        #message("fp16 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
--        #message("fp32 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
--        #message("fp64 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
--        #message("bf16 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
--        #message("int8 instance found!")
 -        set(add_inst 1)
 -    endif()
 -    if(NOT "${cmake_instance}" MATCHES "DTYPES")
--        #message("instance should be built for all types!")
 -        set(add_inst 1)
 -    endif()
 -    if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
@@ -295,7 +344,9 @@ index b09da41a..d1510316 100644
 -        PACKAGE_NAME examples
 -   )
 -   add_subdirectory(example)
--   add_subdirectory(test)
+-   if(BUILD_TESTING)
+-      add_subdirectory(test)
+-   endif()
 -
 -   rocm_package_setup_component(profiler
 +if (NOT CK_BUILD_JIT_LIB)
@@ -318,35 +369,27 @@ index b09da41a..d1510316 100644
 +		file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
 +		set(add_inst 0)
 +		if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
-+			#message("fp8 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
-+			#message("bf8 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
-+			#message("fp16 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
-+			#message("fp32 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
-+			#message("fp64 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
-+			#message("bf16 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
-+			#message("int8 instance found!")
 +			set(add_inst 1)
 +		endif()
 +		if(NOT "${cmake_instance}" MATCHES "DTYPES")
-+			#message("instance should be built for all types!")
 +			set(add_inst 1)
 +		endif()
 +		if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
@@ -370,7 +413,9 @@ index b09da41a..d1510316 100644
 +			PACKAGE_NAME examples
 +	   )
 +	   add_subdirectory(example)
-+	   add_subdirectory(test)
++	   if(BUILD_TESTING)
++		  add_subdirectory(test)
++	   endif()
 +
 +	   rocm_package_setup_component(profiler
 +			LIBRARY_NAME composablekernel
@@ -407,35 +452,31 @@ index b09da41a..d1510316 100644
  
  #Create an interface target for the include only files and call it "composablekernels"
 diff --git a/Config.cmake.in b/Config.cmake.in
-index 02978cd4..a14021df 100644
+index 2861a28f4..b5fe3b847 100644
 --- a/Config.cmake.in
 +++ b/Config.cmake.in
 @@ -1,11 +1,16 @@
  @PACKAGE_INIT@
  
--set(_composable_kernel_supported_components device_operations utility)
-+set(_composable_kernel_supported_components device_operations utility jit_library)
+-set(_composable_kernel_supported_components device_other_operations device_gemm_operations device_conv_operations device_mha_operations device_contraction_operations device_reduction_operations utility)
++set(_composable_kernel_supported_components device_other_operations device_gemm_operations device_conv_operations device_mha_operations device_contraction_operations device_reduction_operations utility jit_library)
  
  foreach(_comp ${composable_kernel_FIND_COMPONENTS})
--	if(NOT _comp IN_LIST _composable_kernel_supported_components)
--		set(composable_kernel_FOUND False)
--		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
--	endif()
+ 	if(NOT _comp IN_LIST _composable_kernel_supported_components)
+ 		set(composable_kernel_FOUND False)
+ 		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+ 	endif()
 -	include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+    if(NOT _comp IN_LIST _composable_kernel_supported_components)
-+        set(composable_kernel_FOUND False)
-+        set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
-+    endif()
-+    if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+        include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+    else()
-+        set(composable_kernel_FOUND False)
-+        set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
-+    endif()
++	if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++		include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++	else()
++		set(composable_kernel_FOUND False)
++		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
++	endif()
  endforeach()
 diff --git a/cmake/Embed.cmake b/cmake/Embed.cmake
 new file mode 100644
-index 00000000..f3ef595c
+index 000000000..f3ef595c9
 --- /dev/null
 +++ b/cmake/Embed.cmake
 @@ -0,0 +1,202 @@
@@ -642,7 +683,7 @@ index 00000000..f3ef595c
 +    target_include_directories(${EMBED_NAME} INTERFACE "${EMBED_DIR}/include")
 +endfunction()
 diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
-index 90873fdd..a0f7d10a 100644
+index 90873fdd1..a0f7d10a3 100644
 --- a/library/CMakeLists.txt
 +++ b/library/CMakeLists.txt
 @@ -1,2 +1,6 @@
@@ -656,7 +697,7 @@ index 90873fdd..a0f7d10a 100644
 +endif()
 diff --git a/library/src/jit_library/CMakeLists.txt b/library/src/jit_library/CMakeLists.txt
 new file mode 100644
-index 00000000..cecd2d50
+index 000000000..cecd2d50e
 --- /dev/null
 +++ b/library/src/jit_library/CMakeLists.txt
 @@ -0,0 +1,48 @@
@@ -710,7 +751,7 @@ index 00000000..cecd2d50
 +
 diff --git a/library/src/jit_library/include/ck/host/common.hpp b/library/src/jit_library/include/ck/host/common.hpp
 new file mode 100644
-index 00000000..77f60769
+index 000000000..77f607694
 --- /dev/null
 +++ b/library/src/jit_library/include/ck/host/common.hpp
 @@ -0,0 +1,36 @@
@@ -752,7 +793,7 @@ index 00000000..77f60769
 +} // namespace ck
 diff --git a/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp b/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
 new file mode 100644
-index 00000000..1c1c71f4
+index 000000000..1c1c71f46
 --- /dev/null
 +++ b/library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
 @@ -0,0 +1,110 @@
@@ -868,7 +909,7 @@ index 00000000..1c1c71f4
 +} // namespace ck
 diff --git a/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp b/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp
 new file mode 100644
-index 00000000..0d935192
+index 000000000..0d935192c
 --- /dev/null
 +++ b/library/src/jit_library/include/ck/host/device_gemm_multiple_d.hpp
 @@ -0,0 +1,59 @@
@@ -933,7 +974,7 @@ index 00000000..0d935192
 +} // namespace ck
 diff --git a/library/src/jit_library/src/common.cpp b/library/src/jit_library/src/common.cpp
 new file mode 100644
-index 00000000..807c9a30
+index 000000000..807c9a300
 --- /dev/null
 +++ b/library/src/jit_library/src/common.cpp
 @@ -0,0 +1,36 @@
@@ -975,7 +1016,7 @@ index 00000000..807c9a30
 +} // namespace ck
 diff --git a/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp b/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
 new file mode 100644
-index 00000000..bad67812
+index 000000000..bad678125
 --- /dev/null
 +++ b/library/src/jit_library/src/device_batched_gemm_softmax_gemm.cpp
 @@ -0,0 +1,115 @@
@@ -1096,7 +1137,7 @@ index 00000000..bad67812
 +} // namespace ck
 diff --git a/library/src/jit_library/src/device_gemm_multiple_d.cpp b/library/src/jit_library/src/device_gemm_multiple_d.cpp
 new file mode 100644
-index 00000000..047d9904
+index 000000000..047d99046
 --- /dev/null
 +++ b/library/src/jit_library/src/device_gemm_multiple_d.cpp
 @@ -0,0 +1,174 @@
@@ -1274,38 +1315,9 @@ index 00000000..047d9904
 +} // namespace device_gemm_multiple_d
 +} // namespace host
 +} // namespace ck
-diff --git a/library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc b/library/src/jit_library/util/__pycache__/file_templates.cpython-39.pyc
-new file mode 100644
-index 0000000000000000000000000000000000000000..97a01c9b940896eadea1e9ec203d2dc5e84a5454
-GIT binary patch
-literal 3529
-zcmeHKPjA~c6qg+}N!28+vv#Ke<2r1JfhNjw7z#JbR<xG@YcZf3F!&-UBx5s{M31DB
-zrjdaide~)OV?*!zG`jA#!#=>U!yYM%k!;6Z5$`qzqV@QGdjI$y9}}*xdk&0W|M-pm
-zwCOm%Yoa=uKzs#{`~W86bRE*@Hb|2!y>_}y;*uNiyF`{>IPH~Ct~ieGqZi*i{eJsv
-zhG`<{_93B(V#kb%4tjR@E%E^Hgb&XJ>-81d!fmv-``N?oz1_XN2k0?54HHZWdd9He
-z=qWt~De?h2Oz;kR97V`{C6S<#ic?B<Jn!S72zzmeID7{bOK_ADiuSQoBw|Mgm8DaP
-z6&KZ&n8sY3A9!98##9bNOc5TSi;D`~=Tg;ISR$3SQm=Yai4+5X4+AY@6qH=)0UN;p
-zuwodoBw`5#igY@KA^YYX1hAxcfG#kP0>RG;F$jHu%-0~qa;)f)VU0$Qym!{1wHQOE
-zG-%FsHE8>1`%rQgp<%WUTEilIV2OHY1kHA&#=fpMR@iKpYV3vRDz{-e1&pqey)a#K
-z{Q8&s6{d=#9#wWrtZiGELnWdk&Li|g8p0{_inhz5(Uqr%pehxK<)bgrg^lXv26u{L
-zD?XW=ZT*>`JsQ_ut@LU}){^krMqWm+V>C}%SJ1{r3!QJ{)Fxlc#!_05QS$>?!@k|f
-z#RXC;w$VXz16hO4w{hHSf<6ri6<b&3-hIe8)0D=*(S0k{9O0u8f}W`3S9G8<!M#a_
-zZbegzc;JQKL6iQ!?-pJ8o%?PXZaJebTHfrAYs=o^u1o^Rfw6ss8k+*u4qlO0O_(c%
-z{^yy6;YMhOe!mOP6L{nfOv*WFWKPz|n%Pq3W;e3sY$aRGZf0I~D_hIfvyJR_b|-6*
-z#?PB@KWsjKvzf1qFG~5Eu18&LI`Q*XN!c(JfU;-{fTk*d>T!~{N@@adDWR-v3+T3{
-zT0!^y+R`j&DX;>q*)^70nxowtL(8Q}sik2P(3;eIqkf3AoB4Y@RlzZfXmG|<KQJvY
-zUq0p{4wY!Y{=9L-2K@Z>+VAt2`cW9Of$;fR;tP&rUkdC?GB88{FTqjDA~?u`&v$n<
-zGZ+ef0#|0~V;&E=439w7fQp1h!3k47+^$6^&W#+PgOW}ai+p33qVX^a6_q=~^ZY~I
-z#EH4l2R$0cL7Ya44M8R`Ui=8A$}O0jO}Ei}``@494q&mXzZehwz6_7aP@S&T423Lo
-zi!5}7{-;Jqv|5t+O-qYgz=sI8Y=jeD#8<2XN3`^$Lt9L@;Vu7Y(mlzKRUE!7eAVIj
-z1z>UwCdai7{w?kS{k-i8%@Df0j9X^8qQWRMdRF&iPSS`T=pB~YTes_evij*iGM8Jc
-
-literal 0
-HcmV?d00001
-
 diff --git a/library/src/jit_library/util/file_templates.py b/library/src/jit_library/util/file_templates.py
 new file mode 100644
-index 00000000..10893272
+index 000000000..108932720
 --- /dev/null
 +++ b/library/src/jit_library/util/file_templates.py
 @@ -0,0 +1,177 @@
@@ -1488,7 +1500,7 @@ index 00000000..10893272
 +
 diff --git a/library/src/jit_library/util/make_instance_strings.py b/library/src/jit_library/util/make_instance_strings.py
 new file mode 100644
-index 00000000..46f08117
+index 000000000..46f08117a
 --- /dev/null
 +++ b/library/src/jit_library/util/make_instance_strings.py
 @@ -0,0 +1,367 @@
@@ -1861,12 +1873,12 @@ index 00000000..46f08117
 +    
 \ No newline at end of file
 diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
-index 4b2c7bbf..58ac6959 100644
+index fa5f8583a..3a00fc0a7 100644
 --- a/test/CMakeLists.txt
 +++ b/test/CMakeLists.txt
-@@ -126,6 +126,9 @@ function(add_gtest_executable TEST_NAME)
+@@ -117,6 +117,9 @@ function(add_gtest_executable TEST_NAME)
      set(result ${result} PARENT_SCOPE)
- endfunction(add_gtest_executable TEST_NAME)
+ endfunction()
  
 +if(CK_BUILD_JIT_LIB)
 +    #add_subdirectory(jit_library)
@@ -1874,14 +1886,14 @@ index 4b2c7bbf..58ac6959 100644
  add_subdirectory(magic_number_division)
  add_subdirectory(space_filling_curve)
  add_subdirectory(conv_util)
-@@ -159,3 +162,4 @@ add_subdirectory(conv_tensor_rearrange)
+@@ -155,3 +158,4 @@ add_subdirectory(wrapper)
  if(GPU_TARGETS MATCHES "gfx11")
      add_subdirectory(wmma_op)
  endif()
 +endif()
 diff --git a/test/jit_library/CMakeLists.txt b/test/jit_library/CMakeLists.txt
 new file mode 100644
-index 00000000..6c78cd34
+index 000000000..6c78cd34b
 --- /dev/null
 +++ b/test/jit_library/CMakeLists.txt
 @@ -0,0 +1,4 @@
@@ -1891,7 +1903,7 @@ index 00000000..6c78cd34
 +target_link_libraries(test_jit_library PRIVATE jit_library ck_headers)
 diff --git a/test/jit_library/jit_library.cpp b/test/jit_library/jit_library.cpp
 new file mode 100644
-index 00000000..a5057da1
+index 000000000..a5057da10
 --- /dev/null
 +++ b/test/jit_library/jit_library.cpp
 @@ -0,0 +1,386 @@

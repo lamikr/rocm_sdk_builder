@@ -1,0 +1,61 @@
+From be9fed3e5b1043c61267926f7e5a46f4c532edb1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 21 May 2024 11:41:20 -0700
+Subject: [PATCH 4/4] remove linear_kernel which fails on rocm
+
+- build fails on rocm 6.1.1
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ deepspeed/inference/v2/kernels/core_ops/core_ops.cpp | 5 -----
+ op_builder/inference_core_ops.py                     | 6 +-----
+ 2 files changed, 1 insertion(+), 10 deletions(-)
+
+diff --git a/deepspeed/inference/v2/kernels/core_ops/core_ops.cpp b/deepspeed/inference/v2/kernels/core_ops/core_ops.cpp
+index 3f36a6bf..affb25f2 100644
+--- a/deepspeed/inference/v2/kernels/core_ops/core_ops.cpp
++++ b/deepspeed/inference/v2/kernels/core_ops/core_ops.cpp
+@@ -10,7 +10,6 @@
+ #include "blas.h"
+ #include "gated_activation_kernels.h"
+ #include "layer_norm.h"
+-#include "linear_kernels.h"
+ #include "rms_norm.h"
+ 
+ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
+@@ -35,8 +34,4 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m)
+     m.def("rms_norm", &rms_norm, "DeepSpeed rms norm in CUDA");
+     m.def("rms_pre_norm", &rms_pre_norm, "DeepSpeed rms pre norm in CUDA");
+ 
+-    // linear_kernels.h
+-    m.def("cuda_wf6af16_linear", &cuda_wf6af16_linear, "DeepSpeed Wf6Af16 linear in CUDA");
+-    m.def(
+-        "preprocess_weight", &preprocess_weight, "preprocess the FP16 weight to be 2bit and 4 bit");
+ }
+diff --git a/op_builder/inference_core_ops.py b/op_builder/inference_core_ops.py
+index d1957f39..f5538c34 100755
+--- a/op_builder/inference_core_ops.py
++++ b/op_builder/inference_core_ops.py
+@@ -66,10 +66,7 @@ class InferenceCoreBuilder(CUDAOpBuilder):
+             "inference/v2/kernels/core_ops/cuda_rms_norm/rms_norm.cpp",
+             "inference/v2/kernels/core_ops/cuda_rms_norm/rms_norm_cuda.cu",
+             "inference/v2/kernels/core_ops/gated_activations/gated_activation_kernels.cpp",
+-            "inference/v2/kernels/core_ops/gated_activations/gated_activation_kernels_cuda.cu",
+-            "inference/v2/kernels/core_ops/cuda_linear/linear_kernels.cpp",
+-            "inference/v2/kernels/core_ops/cuda_linear/linear_kernels_cuda.cu",
+-        ]
++            "inference/v2/kernels/core_ops/gated_activations/gated_activation_kernels_cuda.cu",        ]
+ 
+         prefix = self.get_prefix()
+         sources = [os.path.join(prefix, src) for src in sources]
+@@ -85,7 +82,6 @@ class InferenceCoreBuilder(CUDAOpBuilder):
+             'inference/v2/kernels/core_ops/cuda_layer_norm',
+             'inference/v2/kernels/core_ops/cuda_rms_norm',
+             'inference/v2/kernels/core_ops/gated_activations',
+-            'inference/v2/kernels/core_ops/cuda_linear',
+             'inference/v2/kernels/includes',
+         ]
+ 
+-- 
+2.41.0
+

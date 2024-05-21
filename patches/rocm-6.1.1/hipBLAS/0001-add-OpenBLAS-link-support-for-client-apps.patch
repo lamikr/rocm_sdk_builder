@@ -1,0 +1,53 @@
+From 9dfc58e3856e4a8e3bcd75c3bdc308a0b50eaf14 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:34:49 -0700
+Subject: [PATCH 1/2] add OpenBLAS link support for client apps
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/CMakeLists.txt | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 4a6e5c8..0240293 100644
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -44,6 +44,16 @@ function( get_cblas cblas_libs cblas_inc )
+         set( libs    /usr/local/lib/libblis.a )
+         set( inc     /usr/local/include/blis )
+         set( ${cblas_inc} ${inc} PARENT_SCOPE )
++      elseif(EXISTS      "${BLIS_DIR}/lib64/libblis.a")
++        set( libs ${BLIS_DIR}/lib64/libblis.a )
++        set( inc ${BLIS_DIR}/include/blis )
++        set( ${cblas_inc} ${inc} PARENT_SCOPE )
++        message(FATAL_ERROR "debug  64BLIS FOUND")
++      elseif(EXISTS      "${BLIS_DIR}/lib/libblis.a")
++        set( libs ${BLIS_DIR}/lib/libblis.a )
++        set( inc ${BLIS_DIR}/include/blis )
++        set( ${cblas_inc} ${inc} PARENT_SCOPE )
++        message(FATAL_ERROR "debug  BLIS FOUND")
+     endif()
+   else()
+     if(EXISTS "${BUILD_DIR}/deps/deps-install/lib/libcblas.a" AND EXISTS "${BUILD_DIR}/deps/deps-install/lib/libblas.a")
+@@ -51,8 +61,16 @@ function( get_cblas cblas_libs cblas_inc )
+       set( inc "${BUILD_DIR}/deps/deps-install/include" )
+       set( ${cblas_inc} ${inc} PARENT_SCOPE )
+     else()
+-      find_package( cblas REQUIRED CONFIG )
+-      set( libs cblas blas )
++      find_package( OpenBLAS CONFIG REQUIRED )
++      message(STATUS "OpenBLAS_FOUND: ${OpenBLAS_FOUND}")
++      message(STATUS "OpenBLAS_VERSION: ${OpenBLAS_VERSION}")
++      message(STATUS "OpenBLAS_INCLUDE_DIR: ${OpenBLAS_INCLUDE_DIR}")
++      message(STATUS "OpenBLAS_INCLUDE_DIRS: ${OpenBLAS_INCLUDE_DIRS}")
++      message(STATUS "OpenBLAS_LIBRARY: ${OpenBLAS_LIBRARY}")
++      message(STATUS "OpenBLAS_LIBRARIES: ${OpenBLAS_LIBRARIES}")
++      set( libs ${OpenBLAS_LIBRARY} )
++      set( inc ${OpenBLAS_INCLUDE_DIRS} )
++      set( ${cblas_inc} ${inc} PARENT_SCOPE )
+     endif()
+   endif()
+   set( ${cblas_libs} ${libs} PARENT_SCOPE )
+-- 
+2.41.0
+

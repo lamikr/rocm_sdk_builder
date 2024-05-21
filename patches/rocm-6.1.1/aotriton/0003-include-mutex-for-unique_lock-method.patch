@@ -1,0 +1,87 @@
+From 41a90751beb8dd59e60e4515ac56c7e3416b2a65 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Tue, 14 May 2024 21:15:22 -0700
+Subject: [PATCH 3/5] include mutex for unique_lock method
+
+fixes following error from hipcc:
+
+hipcc --verbose -I/opt/rocm_sdk_611/include/  -O3 -DNDEBUG  "-I/usr/include" -DAOTRITON_USE_ZSTD=1 -I/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/third_party/incbin -I/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/include -fPIC -std=c++20 /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc -I/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/builddir/038_01_aotriton/v2src -o /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/builddir/038_01_aotriton/v2src/v2src/triton_kernel.o -c
+clang version 17.0.0 (/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/llvm-project/clang 89c41060530c754205197f9325bd8f956dd73e8a)
+Target: x86_64-mageia-linux
+Thread model: posix
+InstalledDir: /opt/rocm_sdk_611/bin
+Found candidate GCC installation: /usr/lib/gcc/x86_64-linux-gnu/12
+Found candidate GCC installation: /usr/lib/gcc/x86_64-mageia-linux/12
+Selected GCC installation: /usr/lib/gcc/x86_64-mageia-linux/12
+Candidate multilib: .;@m64
+Candidate multilib: 32;@m32
+Selected multilib: .;@m64
+Found HIP installation: /opt/rocm_sdk_611, version 6.1.40092
+ "/opt/rocm_sdk_611/bin/clang-17" -cc1 -triple amdgcn-amd-amdhsa -aux-triple x86_64-mageia-linux -emit-obj -disable-free -clear-ast-before-backend -main-file-name triton_kernel.cc -mrelocation-model pic -pic-level 2 -fhalf-no-semantic-interposition -mframe-pointer=none -fno-rounding-math -mconstructor-aliases -aux-target-cpu x86-64 -fcuda-is-device -mllvm -amdgpu-internalize-symbols -fcuda-allow-variadic-functions -fvisibility=hidden -fapply-global-visibility-to-externs -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/hip.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/ocml.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/ockl.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_daz_opt_off.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_unsafe_math_off.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_finite_only_off.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_correctly_rounded_sqrt_on.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_wavefrontsize64_off.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_isa_version_1030.bc -mlink-builtin-bitcode /opt/rocm_sdk_611/amdgcn/bitcode/oclc_abi_version_500.bc -target-cpu gfx1030 -debugger-tuning=gdb -v -resource-dir /opt/rocm_sdk_611/lib/clang/17 -internal-isystem /opt/rocm_sdk_611/lib/clang/17/include/cuda_wrappers -idirafter /opt/rocm_sdk_611/include -include __clang_hip_runtime_wrapper.h -isystem /opt/rocm_sdk_611/include -I /opt/rocm_sdk_611/include/ -D NDEBUG -I /usr/include -D AOTRITON_USE_ZSTD=1 -I /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/third_party/incbin -I /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/include -I /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/builddir/038_01_aotriton/v2src -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12 -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/x86_64-mageia-linux -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/backward -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12 -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/x86_64-mageia-linux -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/backward -internal-isystem /opt/rocm_sdk_611/lib/clang/17/include -internal-isystem /usr/local/include -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../x86_64-mageia-linux/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -internal-isystem /opt/rocm_sdk_611/lib/clang/17/include -internal-isystem /usr/local/include -internal-isystem /usr/lib/gcc/x86_64-mageia-linux/12/../../../../x86_64-mageia-linux/include -internal-externc-isystem /include -internal-externc-isystem /usr/include -O3 -std=c++20 -fdeprecated-macro -fno-autolink -fdebug-compilation-dir=/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton -ferror-limit 19 -fhip-new-launch-api -fgnuc-version=4.2.1 -fno-implicit-modules -fcxx-exceptions -fexceptions -fcolor-diagnostics -vectorize-loops -vectorize-slp -mllvm -amdgpu-early-inline-all=true -mllvm -amdgpu-function-calls=false -cuid=8456fcfc293edda6 -fcuda-allow-variadic-functions -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /tmp/triton_kernel-gfx1030-16f97f.o -x hip /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc
+clang -cc1 version 17.0.0 based upon LLVM 17.0.0git default target x86_64-mageia-linux
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-mageia-linux/12/../../../../x86_64-mageia-linux/include"
+ignoring nonexistent directory "/include"
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-mageia-linux/12/../../../../x86_64-mageia-linux/include"
+ignoring nonexistent directory "/include"
+ignoring duplicate directory "/opt/rocm_sdk_611/include"
+  as it is a non-system directory that duplicates a system directory
+ignoring duplicate directory "/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/x86_64-mageia-linux"
+ignoring duplicate directory "/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/backward"
+ignoring duplicate directory "/usr/include"
+  as it is a non-system directory that duplicates a system directory
+ignoring duplicate directory "/opt/rocm_sdk_611/lib/clang/17/include"
+ignoring duplicate directory "/usr/local/include"
+ignoring duplicate directory "/usr/include"
+ignoring duplicate directory "/usr/local/include"
+ignoring duplicate directory "/opt/rocm_sdk_611/lib/clang/17/include"
+ignoring duplicate directory "/usr/include"
+ignoring duplicate directory "/opt/rocm_sdk_611/include"
+ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/third_party/incbin
+ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/include
+ /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/builddir/038_01_aotriton/v2src
+ /opt/rocm_sdk_611/include
+ /opt/rocm_sdk_611/lib/clang/17/include/cuda_wrappers
+ /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12
+ /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/x86_64-mageia-linux
+ /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/backward
+ /opt/rocm_sdk_611/lib/clang/17/include
+ /usr/local/include
+ /usr/include
+End of search list.
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:21: error: expected ';' after expression
+   63 |     std::unique_lock lock(mutex_);
+      |                     ^
+      |                     ;
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:10: error: no member named 'unique_lock' in namespace 'std'; did you mean 'unique_copy'?
+   63 |     std::unique_lock lock(mutex_);
+      |     ~~~~~^~~~~~~~~~~
+      |          unique_copy
+/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/bits/stl_algo.h:4461:5: note: 'unique_copy' declared here
+ 4461 |     unique_copy(_InputIterator __first, _InputIterator __last,
+      |     ^
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:22: error: use of undeclared identifier 'lock'
+   63 |     std::unique_lock lock(mutex_);
+      |                      ^
+3 errors generated when compiling for gfx1030.
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ v2src/triton_kernel.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/v2src/triton_kernel.cc b/v2src/triton_kernel.cc
+index 0f96477..84a38ce 100644
+--- a/v2src/triton_kernel.cc
++++ b/v2src/triton_kernel.cc
+@@ -5,6 +5,7 @@
+ #include <aotriton/runtime.h>
+ #include <incbin.h>
+ #include <iostream>
++#include <mutex>
+ #if AOTRITON_USE_ZSTD
+ #include <zstd.h>
+ #endif
+-- 
+2.41.0
+

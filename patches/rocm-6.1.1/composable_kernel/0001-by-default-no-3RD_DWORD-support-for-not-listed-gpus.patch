@@ -1,4 +1,4 @@
-From 6aa764c3663d6f1ccabb04413305447d6a80d062 Mon Sep 17 00:00:00 2001
+From 18cc275a2f4ca6d18cc9ce4235a5718905522e75 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 19 Dec 2023 15:16:58 -0800
 Subject: [PATCH 1/2] by default no 3RD_DWORD support for not listed gpus
@@ -9,7 +9,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 2 insertions(+)
 
 diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
-index 069ff7fc..77b52171 100644
+index 88efb0277..da5bb86c6 100644
 --- a/include/ck/ck.hpp
 +++ b/include/ck/ck.hpp
 @@ -55,6 +55,8 @@

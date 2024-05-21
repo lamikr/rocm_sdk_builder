@@ -1,28 +1,29 @@
-From dd39290f90df98f928452720e622c1497b4fd7da Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@pilppa.org>
-Date: Fri, 10 May 2024 20:34:13 -0700
-Subject: [PATCH 1/3] Tensile fix fallback arch build
+From 0febc28c98976f09fb308d6e821be9ef7eaff007 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 15 May 2024 19:30:31 -0700
+Subject: [PATCH 3/6] Tensilelite fix fallback arch build
 
-fixes build error which happens if only the rx 5700 is enabled
-(only GPU_BUILD_AMD_NAVI10_GFX1010=1 enabled in rocm_sdk_builder envsetup.sh)
+fixes build error which happens for example
+if the only gpu selected is gfx1010 / AMD RX 5700 XT.
 
 Original patch and discussion in
 https://github.com/ROCm/Tensile/issues/1757
 https://github.com/ulyssesrr/docker-rocm-xtra/blob/3be41a9d79ff4f4324f3f34383b2282529c0c4b7/rocm-xtra-builder-rocblas/patches/Tensile-fix-fallback-arch-build.patch
 
-Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- Tensile/TensileCreateLibrary.py | 20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ tensilelite/Tensile/TensileCreateLibrary.py | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/Tensile/TensileCreateLibrary.py b/Tensile/TensileCreateLibrary.py
-index ca3ef322..9e37b4b0 100644
---- a/Tensile/TensileCreateLibrary.py
-+++ b/Tensile/TensileCreateLibrary.py
-@@ -948,6 +948,11 @@ def generateLogicDataAndSolutions(logicFiles, args):
+diff --git a/tensilelite/Tensile/TensileCreateLibrary.py b/tensilelite/Tensile/TensileCreateLibrary.py
+index 8a37403d..d2ac2166 100644
+--- a/tensilelite/Tensile/TensileCreateLibrary.py
++++ b/tensilelite/Tensile/TensileCreateLibrary.py
+@@ -1111,7 +1111,11 @@ def generateLogicDataAndSolutions(logicFiles, args):
        for key, value in masterLibraries.items():
          if key != "fallback":
-           value.insert(deepcopy(masterLibraries["fallback"]))
+           value.merge(deepcopy(masterLibraries["fallback"]))
+-
 +      for architectureName in parseArchitecturesFromArgs(args.Architecture, True):
 +        if architectureName not in masterLibraries:
 +          print("Using fallback for arch: "+architectureName)
@@ -31,7 +32,7 @@ index ca3ef322..9e37b4b0 100644
        masterLibraries.pop("fallback")
  
      for _, masterLibrary in masterLibraries.items():
-@@ -1019,6 +1024,16 @@ def WriteClientLibraryFromSolutions(solutionList, libraryWorkingPath, tensileSou
+@@ -1170,6 +1174,16 @@ def writeBenchmarkClientFiles(libraryWorkingPath, tensileSourcePath, solutions,
  
    return (codeObjectFiles, newLibrary)
  
@@ -45,10 +46,10 @@ index ca3ef322..9e37b4b0 100644
 +      archs = architectureArgValue.split("_") # workaround for cmake list in list issue
 +  return archs
 +
- ################################################################################
- # Write Master Solution Index CSV
- ################################################################################
-@@ -1159,10 +1174,7 @@ def TensileCreateLibrary():
+ def WriteClientLibraryFromSolutions(solutionList, libraryWorkingPath, tensileSourcePath = None):
+ 
+   if tensileSourcePath == None:
+@@ -1323,10 +1337,7 @@ def TensileCreateLibrary():
    if not os.path.exists(logicPath):
      printExit("LogicPath %s doesn't exist" % logicPath)
  

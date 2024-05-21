@@ -1,4 +1,4 @@
-From 5598268c127db6b024c18e7f7417e046c46a0199 Mon Sep 17 00:00:00 2001
+From f23750f2c7208c18439f7a0a94ef873918b93c1c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:18:53 -0800
 Subject: [PATCH 1/2] pytorch_vision rocm build and package scripts

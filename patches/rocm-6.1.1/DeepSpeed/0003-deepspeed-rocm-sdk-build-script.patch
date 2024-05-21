@@ -1,0 +1,31 @@
+From 94463eb47f163ef789b9294dc19340aa7a4d9446 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 May 2024 22:36:23 -0700
+Subject: [PATCH 3/4] deepspeed rocm sdk build script
+
+discussed here:
+https://github.com/microsoft/DeepSpeed/issues/4989
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_deepspeed_rocm.sh | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100755 build_deepspeed_rocm.sh
+
+diff --git a/build_deepspeed_rocm.sh b/build_deepspeed_rocm.sh
+new file mode 100755
+index 00000000..0c5a9c06
+--- /dev/null
++++ b/build_deepspeed_rocm.sh
+@@ -0,0 +1,8 @@
++mkdir -p deepspeed/ops/spatial
++
++#DS_BUILD_OPS=1 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_QUANTIZER=0 DS_BUILD_RANDOM_LTD=0 DS_BUILD_TRANSFORMER_INFERENCE=0 python3 setup.py bdist_wheel
++
++# install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
++DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py install
++
++#DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
+-- 
+2.41.0
+

@@ -1,0 +1,57 @@
+From a60531a70d6bc67d9c2e4253987d41f4ef8dac15 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Thu, 9 May 2024 09:11:08 -0700
+Subject: [PATCH 1/2] fix no matching constructor build error
+
+fix the build error for no matching constructor
+by type casting auto arguments x and y to int.
+Fixes following type of build errors:
+
+basic_ops.hpp:45:53:
+error: no matching constructor for initialization of 'migraphx::literal'
+   45 |             args[1].visit_at([&](auto y) { result = migraphx::literal{x + y}.get_argument(); })
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ test/const_eval_test.cpp   | 2 +-
+ test/include/basic_ops.hpp | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/test/const_eval_test.cpp b/test/const_eval_test.cpp
+index 0f0cf0a1e..aea199631 100644
+--- a/test/const_eval_test.cpp
++++ b/test/const_eval_test.cpp
+@@ -43,7 +43,7 @@ struct sum_cf_op
+             MIGRAPHX_THROW("Wrong args");
+ 
+         args[0].visit_at([&](auto x) {
+-            args[1].visit_at([&](auto y) { result = migraphx::literal{x + y}.get_argument(); });
++            args[1].visit_at([&](auto y) { result = migraphx::literal{static_cast<int>(x) + static_cast<int>(y)}.get_argument(); });
+         });
+         return result;
+     }
+diff --git a/test/include/basic_ops.hpp b/test/include/basic_ops.hpp
+index bf6807afb..3f9ac1f1e 100644
+--- a/test/include/basic_ops.hpp
++++ b/test/include/basic_ops.hpp
+@@ -42,7 +42,7 @@ struct sum_op
+             MIGRAPHX_THROW("Wrong args");
+ 
+         args[0].visit_at([&](auto x) {
+-            args[1].visit_at([&](auto y) { result = migraphx::literal{x + y}.get_argument(); });
++            args[1].visit_at([&](auto y) { result = migraphx::literal{static_cast<int>(x) + static_cast<int>(y)}.get_argument(); });
+         });
+         return result;
+     }
+@@ -72,7 +72,7 @@ struct minus_op
+             MIGRAPHX_THROW("Wrong args");
+ 
+         args[0].visit_at([&](auto x) {
+-            args[1].visit_at([&](auto y) { result = migraphx::literal{x - y}.get_argument(); });
++            args[1].visit_at([&](auto y) { result = migraphx::literal{static_cast<int>(x) - static_cast<int>(y)}.get_argument(); });
+         });
+         return result;
+     }
+-- 
+2.41.0
+

@@ -1,0 +1,102 @@
+From ae27d084d624d1505c803abf13de43513a8a7515 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 10 May 2024 17:05:37 -0700
+Subject: [PATCH 1/5] aotriton rocm home dir change
+
+- change the rocm sdk directory location
+  on all possible places
+- change the llvm bin directory location
+  from rocm_home/llvm/bin to rocm_home/bin
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt               | 6 +++---
+ python/generate.py           | 2 +-
+ tritonsrc/rocm_arch.py       | 2 +-
+ v2python/compile.py          | 3 +--
+ v2python/generate_compile.py | 2 +-
+ 5 files changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fbc4717..5f355b3 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -18,11 +18,11 @@ option(AOTRITON_NO_SHARED "Disable shared object build. Incompatible with AOTRIT
+ option(AOTRITON_NO_PYTHON "Disable python binding build" OFF)
+ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
+ set(TARGET_GPUS "MI200;MI300X" CACHE STRING "Target Architecture (Note here uses Trade names)")
+-set(AMDHSA_LD_PRELOAD "/opt/rocm/lib/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
++set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_611/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
+ 
+ # GPU kernel compression related options
+ option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
+-option(AOTRITON_COMPRESS_KERNEL_STATIC_ZSTD "Use static zstd library to avoid potential zstd version conflict (e.g. pytorch)" ON)
++option(AOTRITON_COMPRESS_KERNEL_STATIC_ZSTD "Use static zstd library to avoid potential zstd version conflict (e.g. pytorch)" OFF)
+ # Note for archive library user:
+ # get this property with:
+ #   get_property(ZSTD_INCLUDE_DIR TARGET zstd::libzstd_shared PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
+@@ -51,7 +51,7 @@ if(AOTRITON_COMPRESS_KERNEL)
+     endif()
+ endif()
+ 
+-set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm/include/ ")
++set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm_sdk_611/include/ ")
+ if(AOTRITON_ENABLE_ASAN)
+     set(AOTRITON_EXTRA_COMPILER_OPTIONS "${AOTRITON_EXTRA_COMPILER_OPTIONS} -g -fsanitize=address -fno-omit-frame-pointer")
+     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AOTRITON_EXTRA_COMPILER_OPTIONS}")
+diff --git a/python/generate.py b/python/generate.py
+index 29c3526..ea0cb05 100644
+--- a/python/generate.py
++++ b/python/generate.py
+@@ -48,7 +48,7 @@ def main():
+     args = parse()
+     build_dir = Path(args.build_dir)
+     with open(build_dir / 'Makefile.compile', 'w') as f:
+-        print('LIBHSA_RUNTIME64=/opt/rocm/lib/libhsa-runtime64.so\n', file=f)
++        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_611/lib64/libhsa-runtime64.so\n', file=f)
+         makefile_content = io.StringIO()
+         per_kernel_targets = []
+         for k in rules.kernels:
+diff --git a/tritonsrc/rocm_arch.py b/tritonsrc/rocm_arch.py
+index 8578d69..ad66884 100644
+--- a/tritonsrc/rocm_arch.py
++++ b/tritonsrc/rocm_arch.py
+@@ -4,7 +4,7 @@
+ import subprocess
+ 
+ def rocm_get_gpuarch():
+-    # return subprocess.check_output(['/opt/rocm/bin/offload-arch']).decode('utf8', errors='ignore').strip()
++    # return subprocess.check_output(['/opt/rocm_sdk_611/bin/offload-arch']).decode('utf8', errors='ignore').strip()
+     out = subprocess.check_output(['rocm_agent_enumerator -name'], shell=True).decode('utf8', errors='ignore').strip()
+     lines = out.splitlines()
+     assert lines
+diff --git a/v2python/compile.py b/v2python/compile.py
+index cad0e38..d88f820 100755
+--- a/v2python/compile.py
++++ b/v2python/compile.py
+@@ -125,8 +125,7 @@ def main():
+         if args.nostrip:
+             shutil.copy(hsaco_path, out_path.with_suffix('.hsaco'))
+         else:
+-            subprocess.run(['/opt/rocm/llvm/bin/llvm-objcopy', '--remove-section', '.debug_*', str(hsaco_path), str(out_path.with_suffix('.hsaco'))])
+-
++            subprocess.run(['/opt/rocm_sdk_611/bin/llvm-objcopy', '--remove-section', '.debug_*', str(hsaco_path), str(out_path.with_suffix('.hsaco'))])
+     with out_path.with_suffix('.json').open("w") as fp:
+         json.dump(ccinfo.metadata, fp, indent=2)
+ 
+diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
+index 8117e5d..e0f2a57 100644
+--- a/v2python/generate_compile.py
++++ b/v2python/generate_compile.py
+@@ -68,7 +68,7 @@ def main():
+     args = parse()
+     build_dir = Path(args.build_dir)
+     with open(build_dir / 'Makefile.compile', 'w') as f:
+-        print('LIBHSA_RUNTIME64=/opt/rocm/lib/libhsa-runtime64.so\n', file=f)
++        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_611/lib64/libhsa-runtime64.so\n', file=f)
+         makefile_content = io.StringIO()
+         per_kernel_targets = []
+         for k in triton_kernels:
+-- 
+2.41.0
+

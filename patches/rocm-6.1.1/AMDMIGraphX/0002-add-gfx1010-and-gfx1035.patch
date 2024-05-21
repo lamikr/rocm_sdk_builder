@@ -1,0 +1,26 @@
+From 81e67876eadf2c9bd82d9e983e8bed7d1d9f33db Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Thu, 9 May 2024 13:12:33 -0700
+Subject: [PATCH 2/2] add gfx1010 and gfx1035
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ src/targets/gpu/fuse_ops.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/targets/gpu/fuse_ops.cpp b/src/targets/gpu/fuse_ops.cpp
+index 1d701ad89..ebb892650 100644
+--- a/src/targets/gpu/fuse_ops.cpp
++++ b/src/targets/gpu/fuse_ops.cpp
+@@ -166,7 +166,7 @@ struct fusion
+ const std::unordered_set<std::string>& get_supported_archs()
+ {
+     static std::unordered_set<std::string> supported_archs{
+-        "gfx900", "gfx906", "gfx908", "gfx1030", "gfx940"};
++        "gfx900", "gfx906", "gfx908", "gfx1010", "gfx1030", "gfx1035", "gfx940"};
+     return supported_archs;
+ }
+ 
+-- 
+2.41.0
+

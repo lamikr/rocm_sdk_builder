@@ -1,0 +1,132 @@
+From 1f1e03e53be0afa7541d50b19faf232ded2f014a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 May 2024 11:17:52 -0700
+Subject: [PATCH 4/5] added more cmake options
+
+following cmake options can now be passed from
+aotriton to triton
+
+- DTRITON_USE_ROCM=ON/OFF
+- DROCM_DEFAULT_DIR= (ROCM_HOME)
+- DMLIR_ENABLE_DUMP=1/0
+- DLLVM_IR_ENABLE_DUMP=1/0
+- DAMDGCN_ENABLE_DUMP=1/0
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                     | 15 ++++++++++++++-
+ third_party/triton/CMakeLists.txt  | 20 ++++++++++++++++++--
+ third_party/triton/python/setup.py | 21 +++++++++++++++++++++
+ 3 files changed, 53 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5f355b3..859c959 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,6 +20,16 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
+ set(TARGET_GPUS "MI200;MI300X" CACHE STRING "Target Architecture (Note here uses Trade names)")
+ set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_611/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
+ 
++option(TRITON_USE_ROCM "Enable build for ROCm" OFF)
++option(ROCM_DEFAULT_DIR "ROCM_SDK_BUILD_DIR" "/opt/rocm")
++option(MLIR_ENABLE_DUMP "Enable MLIR_DUMP" 0)
++option(LLVM_IR_ENABLE_DUMP "Enable LLVM_IR_DUMP" 0)
++option(AMDGCN_ENABLE_DUMP "Enable AMDGCN_DUMP" 0)
++
++set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
++
++message(STATUS "TRITON_USE_ROCM: ${TRITON_USE_ROCM} MLIR_ENABLE_DUMP: ${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP: ${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP: ${AMDGCN_ENABLE_DUMP} target GPUS: ${TARGET_GPUS}")
++
+ # GPU kernel compression related options
+ option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
+ option(AOTRITON_COMPRESS_KERNEL_STATIC_ZSTD "Use static zstd library to avoid potential zstd version conflict (e.g. pytorch)" OFF)
+@@ -83,10 +93,13 @@ add_custom_target(aotriton_venv_req
+   BYPRODUCTS "${VENV_DIR}/bin/pytest"
+ )
+ 
++#TRITON_USE_ROCM=${TRITON_USE_ROCM} ROCM_DEFAULT_DIR=${ROCM_DEFAULT_DIR} MLIR_ENABLE_DUMP=${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP=${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP=${AMDGCN_ENABLE_DUMP}
++#"-DTRITON_USE_ROCM=${TRITON_USE_ROCM} -DROCM_DEFAULT_DIR=${ROCM_DEFAULT_DIR}"
++
+ set(TRITON_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/triton_build")
+ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "${TRITON_BUILD_DIR}")
+ add_custom_target(aotriton_venv_triton
+-  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} PATH="${VENV_DIR}/bin:$ENV{PATH}" TRITON_BUILD_DIR=${TRITON_BUILD_DIR} python setup.py develop
++  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} PATH="${VENV_DIR}/bin:$ENV{PATH}" TRITON_USE_ROCM=${TRITON_USE_ROCM} ROCM_DEFAULT_DIR=${ROCM_DEFAULT_DIR} MLIR_ENABLE_DUMP=${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP=${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP=${AMDGCN_ENABLE_DUMP} TRITON_BUILD_DIR=${TRITON_BUILD_DIR} python setup.py develop
+   # COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} python -m pip show triton
+   WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/third_party/triton/python/"
+   BYPRODUCTS "${VENV_SITE}/triton/_C/libtriton.so"
+diff --git a/third_party/triton/CMakeLists.txt b/third_party/triton/CMakeLists.txt
+index e880296..d63aabe 100644
+--- a/third_party/triton/CMakeLists.txt
++++ b/third_party/triton/CMakeLists.txt
+@@ -34,10 +34,22 @@ option(TRITON_BUILD_PYTHON_MODULE "Build Python Triton bindings" OFF)
+ set(TRITON_CODEGEN_BACKENDS "" CACHE STRING "Enable different codegen backends")
+ 
+ # Force TRITON_USE_ROCM for ROCm support
+-set(TRITON_USE_ROCM ON)
+-set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
++#set(TRITON_USE_ROCM ON)
++#set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
++option(TRITON_USE_ROCM "Enable build for ROCm" OFF)
++option(ROCM_DEFAULT_DIR "ROCM_SDK_BUILD_DIR" "/opt/rocm")
++option(MLIR_ENABLE_DUMP "Enable MLIR_DUMP" 0)
++option(LLVM_IR_ENABLE_DUMP "Enable LLVM_IR_DUMP" 0)
++option(AMDGCN_ENABLE_DUMP "Enable AMDGCN_DUMP" 0)
++
+ add_definitions( -DROCM_DEFAULT_DIR="${ROCM_DEFAULT_DIR}")
+ 
++message(STATUS "TRITON_USE_ROCM: ${TRITON_USE_ROCM}")
++message(STATUS "ROCM_DEFAULT_DIR: ${ROCM_DEFAULT_DIR}")
++message(STATUS "MLIR_ENABLE_DUMP: ${MLIR_ENABLE_DUMP}")
++message(STATUS "LLVM_IR_ENABLE_DUMP: ${LLVM_IR_ENABLE_DUMP}")
++message(STATUS "AMDGCN_ENABLE_DUMP: ${AMDGCN_ENABLE_DUMP}")
++
+ # Ensure Python3 vars are set correctly
+ # used conditionally in this file and by lit tests
+ 
+@@ -215,6 +227,10 @@ elseif(EXISTS "$ENV{ROCM_PATH}/lib64/libhsa-runtime64.so" )
+   set(ROCM_LIBRARIES
+     "$ENV{ROCM_PATH}/lib64/libhsa-runtime64.so"
+   )
++elseif(EXISTS "${ROCM_DEFAULT_DIR}/lib64/libhsa-runtime64.so" )
++  set(ROCM_LIBRARIES
++    "${ROCM_DEFAULT_DIR}/lib64/libhsa-runtime64.so"
++  )
+ elseif(EXISTS "${ROCM_DEFAULT_DIR}/lib/libhsa-runtime64.so" )
+   set(ROCM_LIBRARIES
+     "${ROCM_DEFAULT_DIR}/lib/libhsa-runtime64.so"
+diff --git a/third_party/triton/python/setup.py b/third_party/triton/python/setup.py
+index 55425ad..02a0ccd 100644
+--- a/third_party/triton/python/setup.py
++++ b/third_party/triton/python/setup.py
+@@ -256,6 +256,27 @@ class CMakeBuild(build_ext):
+             "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON",
+             "-DPYTHON_INCLUDE_DIRS=" + python_include_dir,
+         ]
++        triton_use_rocm = os.getenv('TRITON_USE_ROCM')
++        if triton_use_rocm is None:
++            triton_use_rocm=OFF
++        cmake_args.append("-DTRITON_USE_ROCM=" + triton_use_rocm)
++        rocm_default_dir = os.getenv('ROCM_DEFAULT_DIR')
++        if rocm_default_dir is None:
++            rocm_default_dir="/opt/rocm"
++        cmake_args.append("-DROCM_DEFAULT_DIR=" + rocm_default_dir)
++        mlir_enable_dump = os.getenv('MLIR_ENABLE_DUMP')
++        if mlir_enable_dump is None:
++            mlir_enable_dump="0"
++        cmake_args.append("-DMLIR_ENABLE_DUMP=" + mlir_enable_dump)
++        llvm_ir_enable_dump = os.getenv('LLVM_IR_ENABLE_DUMP')
++        if llvm_ir_enable_dump is None:
++            llvm_ir_enable_dump="0"
++        cmake_args.append("-DLLVM_IR_ENABLE_DUMP=" + llvm_ir_enable_dump)
++        amdgcn_enable_dump = os.getenv('AMDGCN_ENABLE_DUMP')
++        if amdgcn_enable_dump is None:
++            amdgcn_enable_dump="0"
++        cmake_args.append("-DAMDGCN_ENABLE_DUMP=" + amdgcn_enable_dump)
++
+         if lit_dir is not None:
+             cmake_args.append("-DLLVM_EXTERNAL_LIT=" + lit_dir)
+         cmake_args.extend(thirdparty_cmake_args)
+-- 
+2.41.0
+
