@@ -1,7 +1,6 @@
 # License of this file: "THE COFFEEWARE LICENSE" (Revision 2).
 # see coffeeware file in the root directory for details.
 
-
 LIST_BINFO_FILE_BASENAME=(
     "001_rocm_core.binfo"
     "002_python.binfo"
@@ -41,14 +40,18 @@ LIST_BINFO_FILE_BASENAME=(
     "020_02_amd_fftw_double_precision.binfo"
     "020_03_amd_fftw_long_double_precision.binfo"
     "020_04_amd_fftw_quad_precision.binfo"
-    "022_rocFFT.binfo"
+    "021_rocFFT.binfo"
+    "022_01_rocSOLVER_fmt.binfo"
+    "022_02_rocSOLVER_lapack.binfo"
+    "022_03_blis.binfo"
+    "022_04_OpenBLAS.binfo"
+    "022_05_libflame.binfo"
     "023_01_rocBLAS_Tensile.binfo"
     "023_02_rocBLAS.binfo"
     "023_03_rocSPARSE.binfo"
-    "024_01_rocSOLVER_fmt.binfo"
-    "024_02_rocSOLVER_lapack.binfo"
-    "024_03_rocSOLVER.binfo"
-    "024_04_hipSOLVER.binfo"
+    "023_04_SuiteSparse.binfo"
+    "024_01_rocSOLVER.binfo"
+    "024_02_hipSOLVER.binfo"
     "025_01_hipBLAS.binfo"
     "025_02_hipBLASLt.binfo"
     "025_03_blaze.binfo"    
@@ -73,6 +76,11 @@ LIST_BINFO_FILE_BASENAME=(
     "038_01_pytorch.binfo"
     "038_02_pytorch_vision.binfo"
     "038_03_pytorch_audio.binfo"
+    "038_04_aotriton.binfo"    
+    "038_05_torch_migraphx.binfo"
+    "038_06_onnxruntime_rocm_training.binfo"
+    "038_08_onnxruntime_deepspeed.binfo"
+    "038_09_pytorch_bitsandbytes.binfo"
 )
 
 # non-used/deprecated
