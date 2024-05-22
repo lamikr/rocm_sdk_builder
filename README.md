@@ -49,11 +49,13 @@ Once the build is ready, 'builddir' and 'src_projects' directories could be dele
 
 ## Installation Directory and Environment Variables
 
-ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory.  To set the paths and other environment variables required to execute the applications installed by the SDK can be loaded by executing a command:
+ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory. To set the paths and other environment variables required to execute the applications installed by the SDK can be loaded by executing a command:
 
 ```
 # source /opt/rock_sdk_<version>/bin/env_rocm.sh
 ```
+
+Note that this command needs to be executed only once for each bash terminal session evenghouth we set it up on exery example below.
 
 ## How to Build and Install ROCm SDK
 
@@ -77,29 +79,90 @@ the 'builddir' directoty completely.
 
 ![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection.png  "GPU Selection for ROCm SDK Build Target")
 
-## How to get started for using the installed SDK
+# Test the installed SDK
 
-Following command should give you information related to your installed AMD GPU.
+## Setup the rocm_sdk
+
+ROCm SDK builder environment needs to be first set to environment variables
+like path with following command:
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+```
+Note that this command needs to be executed only once for each bash terminal session evenghouth we set it up on exery example below.
+
+## Verify your GPU with ROCM SDK
 
 ```
 # source /opt/rocm_sdk_611/bin/env_rocm.sh
 # rocminfo
 ```
+This command should list both your CPU and AMD GPU as an agent and
+give information related to their capabilities.
 
-Following command will open pytorch project to test your GPU. (Note that AMD gpus are listed as a cuda GPU's on pytorch)
+
+## Test Pytorch install
 
 ```
 # source /opt/rocm_sdk_611/bin/env_rocm.sh
-# jupyter-notebook /opt/rocm_sdk_611/docs/examples/pytorch/pytorch_amd_gpu_intro.ipynb
+# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# ./run_pytorch_gpu_simple_test.sh
 ```
 
-Details howto use the other ROCm components like rocBLAS, rocPRIM, etc. will be added later.
+## Test Jupyter-notebook usage with Pytorch.
 
-## Customizing the SDK Build
+Following command will test that jupyter-notebook opens properly and
+show information about installed pytorch version and your GPU.
+(Note that AMD gpus are also handled as a cuda GPU on pytorch language)
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# jupyter-notebook pytorch_amd_gpu_intro.ipynb
+```
+
+## Test Pytorch MIGraphX integration
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# python test_torch_migraphx_resnet50.py
+```
+
+## Test MIGraphX
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/migraphx
+# ./test_migraphx_install.sh
+```
+
+## Test ONNXRuntime
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/onnxruntime
+# test_onnxruntime_providers.py*
+```
+
+This should printout: ['MIGraphXExecutionProvider', 'ROCMExecutionProvider', 'CPUExecutionProvider']
+
+## Test HIPCC compiler
+
+Following code shows how to transfer data to GPU and back
+by using hipcc.
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/hipcc/hello_world
+./build.sh
+```
+
+# Customizing the SDK Build
 
 Here is shortish but more detailed information how the SDK will work and can be modified.
 
-### Selecting the GPUs for which to build the SDK
+## Selecting the GPUs for which to build the SDK
 
 GPU's can be selected with ./babs -c option which opens checkbox and selects results to build_cfg.user file
 ```
@@ -108,7 +171,7 @@ GPU's can be selected with ./babs -c option which opens checkbox and selects res
 
 List of supported GPU's should be relatively easy to add, at the moment I have only added support for the one I have been able to test by myself. At some point, I had also the support working for older AMD G2400 but I have not had time to integrate those changes to newer rocm sdk. (Had it working for rocm sdk 3.0.0)
 
-### Adding New Projects to SDK for build and install
+## Adding New Projects to SDK for build and install
 
 New projects can be added to builder by modifying files in binfo directory.
 
@@ -124,7 +187,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
 
 - Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo_list.sh file.
  
-### ROCM SDK Builder Major Components
+## ROCM SDK Builder Major Components
 
 - babs.sh, build/build.sh and build/binfo_utils.sh provides the framework for the build system and can be used more or less without modifications also on other projects. You can get help for available babs (acronym babs ain't patch build system)) commands with the '-h' argument.
 
@@ -204,6 +267,6 @@ For example:
 # ./test_with_torchvision_013.sh script
 ```
 
-Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com> 
+Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
 See the COPYING file for details.

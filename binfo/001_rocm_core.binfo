@@ -24,7 +24,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
     "install -Dm655 ${SDK_ROOT_DIR}/docs/examples/hipcc/hello_world/Makefile ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
     "install -Dm655 ${SDK_ROOT_DIR}/docs/examples/hipcc/hello_world/*.cpp ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
-    "install -Dm655 ${SDK_ROOT_DIR}/docs/examples/hipcc/hello_world/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
+    "install -Dm755 ${SDK_ROOT_DIR}/docs/examples/hipcc/hello_world/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/pics/"
     "install -Dm655 ${SDK_ROOT_DIR}/docs/tutorial/pics/*.png ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/pics"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/kernel_tuning/"
@@ -33,6 +33,10 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -Dm655 ${SDK_ROOT_DIR}/docs/tutorial/kernel_tuning/examples/*.yaml ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/kernel_tuning/examples"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/pdf/"
     "install -Dm655 ${SDK_ROOT_DIR}/docs/pdf/*.pdf ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/pdf"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/migraphx"
+    "install -Dm755 ${SDK_ROOT_DIR}/docs/examples/migraphx/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/migraphx"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/onnxruntime"
+    "install -Dm655 ${SDK_ROOT_DIR}/docs/examples/onnxruntime/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/onnxruntime"
 )
 #echo "export ROCM_HOME=/opt/rocm_571" >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh
 #"install -Dm755 ${SDK_ROOT_DIR}/binfo/env/env_rocm.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin"
