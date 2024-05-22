@@ -204,6 +204,6 @@ For example:
 # ./test_with_torchvision_013.sh script
 ```
 
-Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>  
+Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com> 
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
 See the COPYING file for details.
