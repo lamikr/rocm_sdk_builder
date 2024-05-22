@@ -171,7 +171,7 @@ func_repolist_upstream_remote_repo_add() {
                 echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
                 #exit 1
             fi
-            git fetch upstream --tags
+            git fetch upstream --force --tags
             git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
             func_is_current_dir_a_git_submodule_dir
             ret_val=$?
@@ -235,7 +235,7 @@ func_repolist_fetch_top_repo() {
                     echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
                     exit 1
                 fi
-                git fetch upstream --tags
+                git fetch upstream --force --tags
             else
                 echo "Failed to fetch source code for repositories:"
                 echo "    Source directory[$jj] not initialized with '-i' command:"
