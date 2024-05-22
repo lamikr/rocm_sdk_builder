@@ -1,0 +1,26 @@
+From cc6511a7f46e113b131c2e7bee0437c5759d403d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Wed, 22 May 2024 11:09:43 -0700
+Subject: [PATCH 3/3] added migraphx integration
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ build_onnxruntime_rocm_training.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build_onnxruntime_rocm_training.sh b/build_onnxruntime_rocm_training.sh
+index 769dac0c37..8462abfa05 100755
+--- a/build_onnxruntime_rocm_training.sh
++++ b/build_onnxruntime_rocm_training.sh
+@@ -13,7 +13,7 @@ else
+     echo "Using specified amd rocm gpu: ${amd_target_gpu}"
+ fi
+ 
+-./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
++./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --use_migraphx --migraphx_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
+ #
+ #
+ #./build.sh --config RelWithDebInfo --build_shared_lib --parallel --compile_no_warning_as_error --skip_submodule_sync
+-- 
+2.41.0
+
