@@ -7,6 +7,8 @@
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
 
+source binfo/user_config.sh
+
 func_build_version_init() {
     if [ -e ./binfo/build_version.sh ]; then
         #echo "Initializing build environment variables"
@@ -701,11 +703,15 @@ func_is_git_configured() {
     fi
 }
 
-func_handle_user_help_and_version_args() {
+func_handle_user_configure_help_and_version_args() {
     ii=0
     while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
     do
-        if [ ${LIST_USER_CMD_ARGS[$ii]} == "-h" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--help" ]; then
+        if [ ${LIST_USER_CMD_ARGS[$ii]} == "-c" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--configure" ]; then
+            #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
+            func_build_cfg_user
+            exit 0
+        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-h" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--help" ]; then
             #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_user_help_print
             exit 0
@@ -721,11 +727,7 @@ func_handle_user_command_args() {
     ii=0
     while [ "x${LIST_USER_CMD_ARGS[ii]}" != "x" ]
     do
-        if [ ${LIST_USER_CMD_ARGS[$ii]} == "-c" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--configure" ]; then
-            #	echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
-            func_build_cfg_user
-            exit 0
-        elif [ ${LIST_USER_CMD_ARGS[$ii]} == "-ap" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--apply_patches" ]; then
+        if [ ${LIST_USER_CMD_ARGS[$ii]} == "-ap" ] || [ ${LIST_USER_CMD_ARGS[$ii]} == "--apply_patches" ]; then
             #echo "processing user arg: ${LIST_USER_CMD_ARGS[$ii]}"
             func_is_git_configured
             func_repolist_apply_patches
@@ -802,7 +804,7 @@ else
     LIST_USER_CMD_ARGS=( "$@" )
     func_build_version_init
     # handle help and version commands before possible prompting the user config menu
-    func_handle_user_help_and_version_args
+    func_handle_user_configure_help_and_version_args
     func_envsetup_init
     func_handle_user_command_args
 fi
