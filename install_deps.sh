@@ -53,6 +53,7 @@ func_is_git_configured() {
             echo "You need to configure git user's email address. Example command:"
             echo "    git config --global user.email \"john.doe@emailserver.com\""
             echo ""
+	    echo "Some git commands used by the tool does not work with without configuring the git user."
             exit 2
         fi
     else
@@ -61,6 +62,7 @@ func_is_git_configured() {
         echo "    git config --global user.name \"John Doe\""
         echo "    git config --global user.email \"john.doe@emailserver.com\""
         echo ""
+	echo "Some git commands used by the tool does not work without configuring the git user."
         exit 2
     fi
 }
