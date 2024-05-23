@@ -1,7 +1,7 @@
 From 68e6d6b2323a635085eca7487647a2d6f4591910 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:35:05 -0700
-Subject: [PATCH 2/2] add gfx1035 to client utilty code
+Subject: [PATCH 2/3] add gfx1035 to client utilty code
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
