@@ -1,7 +1,7 @@
-From 0d7b8bb5eb1c07eb1dd339c2a87d8f08183ce8ef Mon Sep 17 00:00:00 2001
+From e49dd3637bca9e1c2e228f12c8ecd9ebfbaa7afb Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 13:49:47 -0700
-Subject: [PATCH 2/2] composable kernel jit library backport
+Subject: [PATCH 2/3] composable kernel jit library backport
 
 - backported from the composable_kernel
   migraphx branch revision 57cdd70b7cb14e5e3b60cd9a5f96ba8dc343763e
@@ -17,19 +17,19 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  Config.cmake.in                               |   9 +-
  cmake/Embed.cmake                             | 202 +++++++++
  library/CMakeLists.txt                        |   8 +-
- library/src/jit_library/CMakeLists.txt        |  48 +++
+ library/src/jit_library/CMakeLists.txt        |  46 +++
  .../jit_library/include/ck/host/common.hpp    |  36 ++
  .../host/device_batched_gemm_softmax_gemm.hpp | 110 +++++
  .../ck/host/device_gemm_multiple_d.hpp        |  59 +++
  library/src/jit_library/src/common.cpp        |  36 ++
  .../src/device_batched_gemm_softmax_gemm.cpp  | 115 ++++++
  .../src/device_gemm_multiple_d.cpp            | 174 ++++++++
- .../src/jit_library/util/file_templates.py    | 177 ++++++++
- .../jit_library/util/make_instance_strings.py | 367 +++++++++++++++++
+ .../src/jit_library/util/file_templates.py    | 174 ++++++++
+ .../jit_library/util/make_instance_strings.py | 366 +++++++++++++++++
  test/CMakeLists.txt                           |   4 +
  test/jit_library/CMakeLists.txt               |   4 +
  test/jit_library/jit_library.cpp              | 386 +++++++++++++++++
- 16 files changed, 1931 insertions(+), 191 deletions(-)
+ 16 files changed, 1925 insertions(+), 191 deletions(-)
  create mode 100644 cmake/Embed.cmake
  create mode 100644 library/src/jit_library/CMakeLists.txt
  create mode 100644 library/src/jit_library/include/ck/host/common.hpp
@@ -44,7 +44,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  create mode 100644 test/jit_library/jit_library.cpp
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index bdeba33ea..23f0f7042 100644
+index bdeba33ea..5cd0d1128 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -143,116 +143,120 @@ if(GPU_TARGETS)
@@ -163,117 +163,117 @@ index bdeba33ea..23f0f7042 100644
 -    add_compile_definitions(__HIP_PLATFORM_HCC__=1)
 +option(CK_BUILD_JIT_LIB, "Only build the CK JIT Helper Library" OFF)
 +if (NOT CK_BUILD_JIT_LIB)
-+	find_package(hip)
-+	# No assumption that HIP kernels are launched with uniform block size for backward compatibility
-+	# SWDEV-413293 and https://reviews.llvm.org/D155213
-+	math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
-+	message("hip_version_flat=${hip_VERSION_FLAT}")
-+	if(NOT WIN32 AND ${hip_VERSION_FLAT} GREATER 500723302)
-+	   message("Adding the fno-offload-uniform-block compiler flag")
-+	   add_compile_options(-fno-offload-uniform-block)
-+	endif()
++        find_package(hip)
++        # No assumption that HIP kernels are launched with uniform block size for backward compatibility
++        # SWDEV-413293 and https://reviews.llvm.org/D155213
++        math(EXPR hip_VERSION_FLAT "(${hip_VERSION_MAJOR} * 1000 + ${hip_VERSION_MINOR}) * 100000 + ${hip_VERSION_PATCH}")
++        message("hip_version_flat=${hip_VERSION_FLAT}")
++        if(NOT WIN32 AND ${hip_VERSION_FLAT} GREATER 500723302)
++           message("Adding the fno-offload-uniform-block compiler flag")
++           add_compile_options(-fno-offload-uniform-block)
++        endif()
 +
-+	#
-+	# Seperate linking jobs from compiling
-+	# Too many concurrent linking jobs can break the build
-+	# Copied from LLVM
-+	set(CK_PARALLEL_LINK_JOBS "" CACHE STRING
-+	  "Define the maximum number of concurrent link jobs (Ninja only).")
-+	if(CMAKE_GENERATOR MATCHES "Ninja")
-+	  if(CK_PARALLEL_LINK_JOBS)
-+		set_property(GLOBAL APPEND PROPERTY JOB_POOLS link_job_pool=${CK_PARALLEL_LINK_JOBS})
-+		set(CMAKE_JOB_POOL_LINK link_job_pool)
-+	  endif()
-+	elseif(CK_PARALLEL_LINK_JOBS)
-+	  message(WARNING "Job pooling is only available with Ninja generators.")
-+	endif()
-+	# Similar for compiling
-+	set(CK_PARALLEL_COMPILE_JOBS "" CACHE STRING
-+	  "Define the maximum number of concurrent compile jobs (Ninja only).")
-+	if(CMAKE_GENERATOR MATCHES "Ninja")
-+	  if(CK_PARALLEL_COMPILE_JOBS)
-+		set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_job_pool=${CK_PARALLEL_COMPILE_JOBS})
-+		set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
-+	  endif()
-+	elseif(CK_PARALLEL_COMPILE_JOBS)
-+	  message(WARNING "Job pooling is only available with Ninja generators.")
-+	endif()
++        #
++        # Seperate linking jobs from compiling
++        # Too many concurrent linking jobs can break the build
++        # Copied from LLVM
++        set(CK_PARALLEL_LINK_JOBS "" CACHE STRING
++          "Define the maximum number of concurrent link jobs (Ninja only).")
++        if(CMAKE_GENERATOR MATCHES "Ninja")
++          if(CK_PARALLEL_LINK_JOBS)
++                set_property(GLOBAL APPEND PROPERTY JOB_POOLS link_job_pool=${CK_PARALLEL_LINK_JOBS})
++                set(CMAKE_JOB_POOL_LINK link_job_pool)
++          endif()
++        elseif(CK_PARALLEL_LINK_JOBS)
++          message(WARNING "Job pooling is only available with Ninja generators.")
++        endif()
++        # Similar for compiling
++        set(CK_PARALLEL_COMPILE_JOBS "" CACHE STRING
++          "Define the maximum number of concurrent compile jobs (Ninja only).")
++        if(CMAKE_GENERATOR MATCHES "Ninja")
++          if(CK_PARALLEL_COMPILE_JOBS)
++                set_property(GLOBAL APPEND PROPERTY JOB_POOLS compile_job_pool=${CK_PARALLEL_COMPILE_JOBS})
++                set(CMAKE_JOB_POOL_COMPILE compile_job_pool)
++          endif()
++        elseif(CK_PARALLEL_COMPILE_JOBS)
++          message(WARNING "Job pooling is only available with Ninja generators.")
++        endif()
 +
 +
-+	option(USE_BITINT_EXTENSION_INT4 "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
-+	option(USE_OPT_NAVI3X "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
++        option(USE_BITINT_EXTENSION_INT4 "Whether to enable clang's BitInt extension to provide int4 data type." OFF)
++        option(USE_OPT_NAVI3X "Whether to enable LDS cumode and Wavefront32 mode for NAVI3X silicons." OFF)
 +
-+	if(USE_BITINT_EXTENSION_INT4)
-+		add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
-+		add_compile_options(-Wno-bit-int-extension)
-+		message("CK compiled with USE_BITINT_EXTENSION_INT4 set to ${USE_BITINT_EXTENSION_INT4}")
-+	endif()
++        if(USE_BITINT_EXTENSION_INT4)
++                add_compile_definitions(CK_EXPERIMENTAL_BIT_INT_EXTENSION_INT4)
++                add_compile_options(-Wno-bit-int-extension)
++                message("CK compiled with USE_BITINT_EXTENSION_INT4 set to ${USE_BITINT_EXTENSION_INT4}")
++        endif()
 +
-+	if(USE_OPT_NAVI3X)
-+		add_compile_options(-mcumode)
-+		add_compile_options(-mno-wavefrontsize64)
-+		message("CK compiled with USE_OPT_NAVI3X set to ${USE_OPT_NAVI3X}")
-+	endif()
++        if(USE_OPT_NAVI3X)
++                add_compile_options(-mcumode)
++                add_compile_options(-mno-wavefrontsize64)
++                message("CK compiled with USE_OPT_NAVI3X set to ${USE_OPT_NAVI3X}")
++        endif()
 +
-+	## Threads
-+	set(THREADS_PREFER_PTHREAD_FLAG ON)
-+	find_package(Threads REQUIRED)
-+	link_libraries(Threads::Threads)
++        ## Threads
++        set(THREADS_PREFER_PTHREAD_FLAG ON)
++        find_package(Threads REQUIRED)
++        link_libraries(Threads::Threads)
 +
-+	## C++
-+	set(CMAKE_CXX_STANDARD 17)
-+	set(CMAKE_CXX_STANDARD_REQUIRED ON)
-+	set(CMAKE_CXX_EXTENSIONS OFF)
-+	message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
++        ## C++
++        set(CMAKE_CXX_STANDARD 17)
++        set(CMAKE_CXX_STANDARD_REQUIRED ON)
++        set(CMAKE_CXX_EXTENSIONS OFF)
++        message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 +
-+	## OpenMP
-+	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-+		# workaround issue hipcc in rocm3.5 cannot find openmp
-+		set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
-+		set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
-+		set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
-+		set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-+		set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-+		set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-+	else()
-+		find_package(OpenMP REQUIRED)
-+	endif()
++        ## OpenMP
++        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++                # workaround issue hipcc in rocm3.5 cannot find openmp
++                set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
++                set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
++                set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
++                set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++                set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++                set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++        else()
++                find_package(OpenMP REQUIRED)
++        endif()
 +
-+	message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
-+	message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
-+	message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
-+	message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
++        message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
++        message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
++        message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
++        message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
 +
-+	link_libraries(${OpenMP_gomp_LIBRARY})
-+	link_libraries(${OpenMP_pthread_LIBRARY})
++        link_libraries(${OpenMP_gomp_LIBRARY})
++        link_libraries(${OpenMP_pthread_LIBRARY})
 +
-+	## HIP
-+	find_package(HIP REQUIRED)
-+	# Override HIP version in config.h, if necessary.
-+	# The variables set by find_package() can't be overwritten,
-+	# therefore let's use intermediate variables.
-+	set(CK_HIP_VERSION_MAJOR "${HIP_VERSION_MAJOR}")
-+	set(CK_HIP_VERSION_MINOR "${HIP_VERSION_MINOR}")
-+	set(CK_HIP_VERSION_PATCH "${HIP_VERSION_PATCH}")
-+	if( DEFINED CK_OVERRIDE_HIP_VERSION_MAJOR )
-+		set(CK_HIP_VERSION_MAJOR "${CK_OVERRIDE_HIP_VERSION_MAJOR}")
-+		message(STATUS "CK_HIP_VERSION_MAJOR overriden with ${CK_OVERRIDE_HIP_VERSION_MAJOR}")
-+	endif()
-+	if( DEFINED CK_OVERRIDE_HIP_VERSION_MINOR )
-+		set(CK_HIP_VERSION_MINOR "${CK_OVERRIDE_HIP_VERSION_MINOR}")
-+		message(STATUS "CK_HIP_VERSION_MINOR overriden with ${CK_OVERRIDE_HIP_VERSION_MINOR}")
-+	endif()
-+	if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
-+		set(CK_HIP_VERSION_PATCH "${CK_OVERRIDE_HIP_VERSION_PATCH}")
-+		message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
-+	endif()
-+	message(STATUS "Build with HIP ${HIP_VERSION}")
-+	link_libraries(hip::device)
-+	if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
-+		add_compile_definitions(__HIP_PLATFORM_AMD__=1)
-+	else()
-+		add_compile_definitions(__HIP_PLATFORM_HCC__=1)
-+	endif()
++        ## HIP
++        find_package(HIP REQUIRED)
++        # Override HIP version in config.h, if necessary.
++        # The variables set by find_package() can't be overwritten,
++        # therefore let's use intermediate variables.
++        set(CK_HIP_VERSION_MAJOR "${HIP_VERSION_MAJOR}")
++        set(CK_HIP_VERSION_MINOR "${HIP_VERSION_MINOR}")
++        set(CK_HIP_VERSION_PATCH "${HIP_VERSION_PATCH}")
++        if( DEFINED CK_OVERRIDE_HIP_VERSION_MAJOR )
++                set(CK_HIP_VERSION_MAJOR "${CK_OVERRIDE_HIP_VERSION_MAJOR}")
++                message(STATUS "CK_HIP_VERSION_MAJOR overriden with ${CK_OVERRIDE_HIP_VERSION_MAJOR}")
++        endif()
++        if( DEFINED CK_OVERRIDE_HIP_VERSION_MINOR )
++                set(CK_HIP_VERSION_MINOR "${CK_OVERRIDE_HIP_VERSION_MINOR}")
++                message(STATUS "CK_HIP_VERSION_MINOR overriden with ${CK_OVERRIDE_HIP_VERSION_MINOR}")
++        endif()
++        if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
++                set(CK_HIP_VERSION_PATCH "${CK_OVERRIDE_HIP_VERSION_PATCH}")
++                message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
++        endif()
++        message(STATUS "Build with HIP ${HIP_VERSION}")
++        link_libraries(hip::device)
++        if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
++                add_compile_definitions(__HIP_PLATFORM_AMD__=1)
++        else()
++                add_compile_definitions(__HIP_PLATFORM_HCC__=1)
++        endif()
  endif()
  
  ## tidy
@@ -350,87 +350,87 @@ index bdeba33ea..23f0f7042 100644
 -
 -   rocm_package_setup_component(profiler
 +if (NOT CK_BUILD_JIT_LIB)
-+	SET(BUILD_DEV ON CACHE BOOL "BUILD_DEV")
-+	if(BUILD_DEV)
-+		add_compile_options(-Werror)
-+		add_compile_options(-Weverything)
-+	endif()
-+	message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
++        SET(BUILD_DEV ON CACHE BOOL "BUILD_DEV")
++        if(BUILD_DEV)
++                add_compile_options(-Werror)
++                add_compile_options(-Weverything)
++        endif()
++        message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 +
-+	add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
++        add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
 +
-+	file(GLOB_RECURSE INSTANCE_FILES "${PROJECT_SOURCE_DIR}/*/device_*_instance.cpp")
-+	file(GLOB dir_list RELATIVE ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/*)
-+	set(CK_DEVICE_INSTANCES)
-+	FOREACH(subdir_path ${dir_list})
-+	set(target_dir)
-+	IF(IS_DIRECTORY "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}")
-+		set(cmake_instance)
-+		file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
-+		set(add_inst 0)
-+		if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
-+			set(add_inst 1)
-+		endif()
-+		if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
-+			set(add_inst 1)
-+		endif()
-+		if(NOT "${cmake_instance}" MATCHES "DTYPES")
-+			set(add_inst 1)
-+		endif()
-+		if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
-+			list(APPEND CK_DEVICE_INSTANCES device_${subdir_path}_instance)
-+		endif()
-+	ENDIF()
-+	ENDFOREACH()
++        file(GLOB_RECURSE INSTANCE_FILES "${PROJECT_SOURCE_DIR}/*/device_*_instance.cpp")
++        file(GLOB dir_list RELATIVE ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu ${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/*)
++        set(CK_DEVICE_INSTANCES)
++        FOREACH(subdir_path ${dir_list})
++        set(target_dir)
++        IF(IS_DIRECTORY "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}")
++                set(cmake_instance)
++                file(READ "${PROJECT_SOURCE_DIR}/library/src/tensor_operation_instance/gpu/${subdir_path}/CMakeLists.txt" cmake_instance)
++                set(add_inst 0)
++                if(("${cmake_instance}" MATCHES "fp8" OR "${cmake_instance}" MATCHES "_f8") AND DTYPES MATCHES "fp8")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "bf8" OR "${cmake_instance}" MATCHES "_b8") AND DTYPES MATCHES "bf8")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "fp16" OR "${cmake_instance}" MATCHES "_f16") AND DTYPES MATCHES "fp16")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "fp32" OR "${cmake_instance}" MATCHES "_f32") AND DTYPES MATCHES "fp32")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "fp64" OR "${cmake_instance}" MATCHES "_f64") AND DTYPES MATCHES "fp64")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "bf16" OR "${cmake_instance}" MATCHES "_b16") AND DTYPES MATCHES "bf16")
++                        set(add_inst 1)
++                endif()
++                if(("${cmake_instance}" MATCHES "int8" OR "${cmake_instance}" MATCHES "_i8") AND DTYPES MATCHES "int8")
++                        set(add_inst 1)
++                endif()
++                if(NOT "${cmake_instance}" MATCHES "DTYPES")
++                        set(add_inst 1)
++                endif()
++                if(add_inst EQUAL 1 OR NOT DEFINED DTYPES)
++                        list(APPEND CK_DEVICE_INSTANCES device_${subdir_path}_instance)
++                endif()
++        ENDIF()
++        ENDFOREACH()
 +
-+	add_custom_target(instances DEPENDS utility;${CK_DEVICE_INSTANCES}  SOURCES ${INSTANCE_FILES})
-+	add_subdirectory(library)
++        add_custom_target(instances DEPENDS utility;${CK_DEVICE_INSTANCES}  SOURCES ${INSTANCE_FILES})
++        add_subdirectory(library)
 +
-+	if(NOT DEFINED INSTANCES_ONLY)
-+	 if(NOT DEFINED PROFILER_ONLY)
-+	   rocm_package_setup_component(tests
-+			LIBRARY_NAME composablekernel
-+			PACKAGE_NAME tests # Prevent -static suffix on package name
-+	   )
++        if(NOT DEFINED INSTANCES_ONLY)
++         if(NOT DEFINED PROFILER_ONLY)
++           rocm_package_setup_component(tests
++                        LIBRARY_NAME composablekernel
++                        PACKAGE_NAME tests # Prevent -static suffix on package name
++           )
 +
-+	   rocm_package_setup_component(examples
-+			LIBRARY_NAME composablekernel
-+			PACKAGE_NAME examples
-+	   )
-+	   add_subdirectory(example)
-+	   if(BUILD_TESTING)
-+		  add_subdirectory(test)
-+	   endif()
++           rocm_package_setup_component(examples
++                        LIBRARY_NAME composablekernel
++                        PACKAGE_NAME examples
++           )
++           add_subdirectory(example)
++           if(BUILD_TESTING)
++                  add_subdirectory(test)
++           endif()
 +
-+	   rocm_package_setup_component(profiler
-+			LIBRARY_NAME composablekernel
-+			PACKAGE_NAME ckprofiler
-+	   )
-+	   add_subdirectory(profiler)
-+	  else()
-+		#When building PROFILER_ONLY, label the package with GPU_ARCH
-+		rocm_package_setup_component(profiler
-+		   LIBRARY_NAME composablekernel
-+		   PACKAGE_NAME ckprofiler_${GPU_ARCH}
-+		)
-+		add_subdirectory(profiler)
-+	  endif()
-+	endif()
++           rocm_package_setup_component(profiler
++                        LIBRARY_NAME composablekernel
++                        PACKAGE_NAME ckprofiler
++           )
++           add_subdirectory(profiler)
++          else()
++                #When building PROFILER_ONLY, label the package with GPU_ARCH
++                rocm_package_setup_component(profiler
++                   LIBRARY_NAME composablekernel
++                   PACKAGE_NAME ckprofiler_${GPU_ARCH}
++                )
++                add_subdirectory(profiler)
++          endif()
++        endif()
 +else()
 +    rocm_package_setup_component(jit_library
          LIBRARY_NAME composablekernel
@@ -452,7 +452,7 @@ index bdeba33ea..23f0f7042 100644
  
  #Create an interface target for the include only files and call it "composablekernels"
 diff --git a/Config.cmake.in b/Config.cmake.in
-index 2861a28f4..b5fe3b847 100644
+index 2861a28f4..c204d0495 100644
 --- a/Config.cmake.in
 +++ b/Config.cmake.in
 @@ -1,11 +1,16 @@
@@ -467,16 +467,16 @@ index 2861a28f4..b5fe3b847 100644
  		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
  	endif()
 -	include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+	if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+		include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
-+	else()
-+		set(composable_kernel_FOUND False)
-+		set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
-+	endif()
++        if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++                include("${CMAKE_CURRENT_LIST_DIR}/composable_kernel${_comp}Targets.cmake")
++        else()
++                set(composable_kernel_FOUND False)
++                set(composable_kernel_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
++        endif()
  endforeach()
 diff --git a/cmake/Embed.cmake b/cmake/Embed.cmake
 new file mode 100644
-index 000000000..f3ef595c9
+index 000000000..fd13aa990
 --- /dev/null
 +++ b/cmake/Embed.cmake
 @@ -0,0 +1,202 @@
@@ -619,7 +619,7 @@ index 000000000..f3ef595c9
 +        if(EMBED_USE_LD)
 +            add_custom_command(
 +                OUTPUT "${OUT_FILE}"
-+                COMMAND ${EMBED_LD} -r -o "${OUT_FILE}" -z noexecstack --format=binary "${REL_FILE}" 
++                COMMAND ${EMBED_LD} -r -o "${OUT_FILE}" -z noexecstack --format=binary "${REL_FILE}"
 +                COMMAND ${EMBED_OBJCOPY} --rename-section .data=.rodata,alloc,load,readonly,data,contents "${OUT_FILE}"
 +                WORKING_DIRECTORY ${WORKING_DIRECTORY}
 +                DEPENDS ${FILE}
@@ -666,13 +666,13 @@ index 000000000..f3ef595c9
 +    endforeach()
 +    message(STATUS "Generating embedding library ${EMBED_NAME}")
 +    generate_embed_source(${EMBED_NAME} SRC ${SRC_FILE} HEADER ${HEADER_FILE} OBJECTS ${OUTPUT_FILES} SYMBOLS ${SYMBOLS} RELATIVE ${PARSE_RELATIVE} FILES ${PARSE_UNPARSED_ARGUMENTS})
-+    
++
 +    set(INTERNAL_EMBED_LIB embed_lib_${EMBED_NAME})
 +    add_library(${INTERNAL_EMBED_LIB} OBJECT "${SRC_FILE}")
 +    target_include_directories(${INTERNAL_EMBED_LIB} PRIVATE "${EMBED_DIR}/include")
 +    target_compile_options(${INTERNAL_EMBED_LIB} PRIVATE -Wno-reserved-identifier -Wno-extern-initializer -Wno-missing-variable-declarations)
 +    set_target_properties(${INTERNAL_EMBED_LIB} PROPERTIES POSITION_INDEPENDENT_CODE On)
-+    
++
 +    add_library(${EMBED_NAME} INTERFACE)
 +    if(EMBED_USE_LD)
 +        target_sources(${EMBED_NAME} INTERFACE ${OUTPUT_FILES})
@@ -697,10 +697,10 @@ index 90873fdd1..a0f7d10a3 100644
 +endif()
 diff --git a/library/src/jit_library/CMakeLists.txt b/library/src/jit_library/CMakeLists.txt
 new file mode 100644
-index 000000000..cecd2d50e
+index 000000000..fa2231324
 --- /dev/null
 +++ b/library/src/jit_library/CMakeLists.txt
-@@ -0,0 +1,48 @@
+@@ -0,0 +1,46 @@
 +include(Embed)
 +file(GLOB_RECURSE KERNEL_FILES CONFIGURE_DEPENDS
 +    ${PROJECT_SOURCE_DIR}/include/ck/*.hpp)
@@ -715,7 +715,7 @@ index 000000000..cecd2d50e
 +    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../tensor_operation_instance/gpu/
 +)
 +
-+add_library(jit_library STATIC 
++add_library(jit_library STATIC
 +    src/device_batched_gemm_softmax_gemm.cpp
 +    src/device_gemm_multiple_d.cpp
 +    src/common.cpp
@@ -734,7 +734,7 @@ index 000000000..cecd2d50e
 +target_link_libraries(jit_library PRIVATE $<BUILD_INTERFACE:ck_headers>)
 +
 +rocm_install(
-+    TARGETS jit_library 
++    TARGETS jit_library
 +    EXPORT jit_libraryTargets
 +)
 +
@@ -747,8 +747,6 @@ index 000000000..cecd2d50e
 +    NAMESPACE composable_kernel::
 +    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/composable_kernel
 +)
-+
-+
 diff --git a/library/src/jit_library/include/ck/host/common.hpp b/library/src/jit_library/include/ck/host/common.hpp
 new file mode 100644
 index 000000000..77f607694
@@ -1317,11 +1315,11 @@ index 000000000..047d99046
 +} // namespace ck
 diff --git a/library/src/jit_library/util/file_templates.py b/library/src/jit_library/util/file_templates.py
 new file mode 100644
-index 000000000..108932720
+index 000000000..0ef0acfa2
 --- /dev/null
 +++ b/library/src/jit_library/util/file_templates.py
-@@ -0,0 +1,177 @@
-+out_file_with_quant = """// SPDX-License-Identifier: MIT 
+@@ -0,0 +1,174 @@
++out_file_with_quant = """// SPDX-License-Identifier: MIT
 +// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
 +
 +#pragma once
@@ -1336,49 +1334,49 @@ index 000000000..108932720
 +
 +struct {op_name}_instances
 +{{
-+    static inline std::vector<std::string> {col_row_name}  = 
++    static inline std::vector<std::string> {col_row_name}  =
 +    {{
 +{col_row_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {col_col_name}  = 
++    static inline std::vector<std::string> {col_col_name}  =
 +    {{
 +{col_col_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {row_row_name}  = 
++    static inline std::vector<std::string> {row_row_name}  =
 +    {{
 +{row_row_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {row_col_name}  = 
++    static inline std::vector<std::string> {row_col_name}  =
 +    {{
 +{row_col_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {int8_col_row_name}  = 
++    static inline std::vector<std::string> {int8_col_row_name}  =
 +    {{
 +{int8_col_row_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {int8_col_col_name}  = 
++    static inline std::vector<std::string> {int8_col_col_name}  =
 +    {{
 +{int8_col_col_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {int8_row_row_name}  = 
++    static inline std::vector<std::string> {int8_row_row_name}  =
 +    {{
 +{int8_row_row_instances}
 +    }};
 +
-+    static inline std::vector<std::string> {int8_row_col_name}  = 
++    static inline std::vector<std::string> {int8_row_col_name}  =
 +    {{
 +{int8_row_col_instances}
 +    }};
 +
 +    static auto get_col_row_instances(const bool quantize)
 +    {{
-+        return quantize ? {int8_col_row_name} : 
++        return quantize ? {int8_col_row_name} :
 +                          {col_row_name};
 +    }}
 +
@@ -1390,7 +1388,7 @@ index 000000000..108932720
 +
 +    static auto get_row_row_instances(const bool quantize)
 +    {{
-+        return quantize ? {int8_row_row_name} : 
++        return quantize ? {int8_row_row_name} :
 +                          {row_row_name};
 +    }}
 +
@@ -1411,7 +1409,7 @@ index 000000000..108932720
 +}} // namespace ck
 +"""
 +
-+out_file_no_quant = """// SPDX-License-Identifier: MIT 
++out_file_no_quant = """// SPDX-License-Identifier: MIT
 +// Copyright (c) 2018-2022, Advanced Micro Devices, Inc. All rights reserved.
 +
 +#pragma once
@@ -1426,7 +1424,7 @@ index 000000000..108932720
 +
 +struct {op_name}_instances
 +{{
-+    static inline std::vector<std::string> {instances_name}  = 
++    static inline std::vector<std::string> {instances_name}  =
 +    {{
 +{instances}
 +    }};
@@ -1495,15 +1493,12 @@ index 000000000..108932720
 +            instances_name=instances_name,
 +            instances=instances,
 +            include_header=include_header)
-+
-+
-+
 diff --git a/library/src/jit_library/util/make_instance_strings.py b/library/src/jit_library/util/make_instance_strings.py
 new file mode 100644
-index 000000000..46f08117a
+index 000000000..9b2f0f2de
 --- /dev/null
 +++ b/library/src/jit_library/util/make_instance_strings.py
-@@ -0,0 +1,367 @@
+@@ -0,0 +1,366 @@
 +import argparse, re, json, os, sys, file_templates
 +
 +def strip_sequences(str):
@@ -1511,14 +1506,14 @@ index 000000000..46f08117a
 +    for match in matches:
 +        str = str.replace(match, match.replace(' ', ''))
 +    str = str.replace('S<', "ck::Sequence<")
-+    
++
 +    return str
 +
 +def remove_commas_and_brackets(string):
 +    regex_matches = re.findall(r'ck::Sequence<.*?>', string)
 +    for match in regex_matches:
 +        string = string.replace(match, match.replace(',', '|').replace('<', '%').replace('>', '$'))
-+    
++
 +    string = string.replace(',', '').replace('<', '').replace('>', '')
 +    for match in regex_matches:
 +        string = string.replace(match.replace(',', '|').replace('<', '%').replace('>', '$'), match)
@@ -1552,7 +1547,7 @@ index 000000000..46f08117a
 +                    instances["col_col_name"] = re.search("device_gemm.*instance", line).group()
 +                elif bool(re.search(".*km.*kn.*", line)):
 +                    instances["col_row_name"] = re.search("device_gemm.*instance", line).group()
-+                
++
 +            elif template_name in line:
 +                # Turn all whitespace into single spaces
 +                new_line = " ".join(line.split())
@@ -1567,7 +1562,7 @@ index 000000000..46f08117a
 +                versions = []
 +                for key in aliases:
 +                    new_line = new_line.replace(key, aliases[key])
-+                
++
 +                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v1").replace("GemmLoopScheduler", "ck::LoopScheduler::Default"))
 +                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v1").replace("GemmLoopScheduler", "ck::LoopScheduler::Interwave"))
 +                versions.append(new_line.replace("GemmPipeline", "ck::PipelineVersion::v2").replace("GemmLoopScheduler", "ck::LoopScheduler::Default"))
@@ -1579,7 +1574,7 @@ index 000000000..46f08117a
 +                    instances["col_col"].extend(versions)
 +                elif "ck::tensor_layout::gemm::ColumnMajor ck::tensor_layout::gemm::RowMajor" in new_line:
 +                    instances["col_row"].extend(versions)
-+    
++
 +    instances["row_row"][-1] = instances["row_row"][-1][:-1]
 +    instances["row_col"][-1] = instances["row_col"][-1][:-1]
 +    instances["col_col"][-1] = instances["col_col"][-1][:-1]
@@ -1600,7 +1595,7 @@ index 000000000..46f08117a
 +    device_ops = {"gemm_add_add_fastgelu": "DeviceGemmMultipleD_Xdl_CShuffle",
 +                  #"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
 +                 }
-+    
++
 +    for root_, dirs_, files_ in os.walk(source):
 +        for dir in dirs_:
 +            op_name = os.path.split(dir)[-1]
@@ -1610,7 +1605,7 @@ index 000000000..46f08117a
 +            col_col_name = ""
 +            row_row_name = ""
 +            row_col_name = ""
-+            row_row_instances = [] 
++            row_row_instances = []
 +            col_row_instances = []
 +            row_col_instances = []
 +            col_col_instances = []
@@ -1686,7 +1681,7 @@ index 000000000..46f08117a
 +                        int8_instances["row_col_name"],
 +                        "\n".join(int8_instances["row_col"]),
 +                        include_header))
-+                    
++
 +def parse_device_gemm_multiple_d_instances(source, out_dir):
 +    aliases = {"F16_F16_Tuple": "ck::Tuple<F16,F16>",
 +               "Row_Row_Tuple": "ck::Tuple<Row,Row>",
@@ -1701,7 +1696,7 @@ index 000000000..46f08117a
 +    device_ops = {"gemm_add_add_fastgelu": "DeviceGemmMultipleD_Xdl_CShuffle",
 +                  #"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
 +                 }
-+    
++
 +    for root_, dirs_, files_ in os.walk(source):
 +        for dir in dirs_:
 +            op_name = os.path.split(dir)[-1]
@@ -1711,7 +1706,7 @@ index 000000000..46f08117a
 +            col_col_name = ""
 +            row_row_name = ""
 +            row_col_name = ""
-+            row_row_instances = [] 
++            row_row_instances = []
 +            col_row_instances = []
 +            row_col_instances = []
 +            col_col_instances = []
@@ -1815,7 +1810,7 @@ index 000000000..46f08117a
 +               "GemmDefault": "ck::tensor_operation::device::GemmSpecialization::Default"}
 +    device_ops = {"batched_gemm_softmax_gemm": "DeviceBatchedGemmSoftmaxGemm_Xdl_CShuffle"
 +                 }
-+    
++
 +    for root_, dirs_, files_ in os.walk(source):
 +        for dir in dirs_:
 +            op_name = os.path.split(dir)[-1]
@@ -1870,8 +1865,6 @@ index 000000000..46f08117a
 +
 +if __name__ == '__main__':
 +    run(sys.argv[1:])
-+    
-\ No newline at end of file
 diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
 index fa5f8583a..3a00fc0a7 100644
 --- a/test/CMakeLists.txt
