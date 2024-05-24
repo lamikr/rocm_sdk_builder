@@ -73,14 +73,15 @@ LIST_BINFO_FILE_BASENAME=(
     "035_AMDMIGraphX.binfo"
     "036_rocWMMA.binfo"
     "037_magma.binfo"
-    "038_01_aotriton.binfo"    
-    "038_02_pytorch.binfo"
-    "038_03_pytorch_vision.binfo"
-    "038_04_pytorch_audio.binfo"
-    "038_05_torch_migraphx.binfo"
-    "038_06_onnxruntime_rocm_training.binfo"
-    "038_08_onnxruntime_deepspeed.binfo"
-    "038_09_pytorch_bitsandbytes.binfo"
+    "038_01_zstd.binfo"
+    "038_02_aotriton.binfo"
+    "039_01_pytorch.binfo"
+    "039_02_pytorch_vision.binfo"
+    "039_03_pytorch_audio.binfo"
+    "039_04_torch_migraphx.binfo"
+    "039_05_pytorch_bitsandbytes.binfo"
+    "040_01_onnxruntime_rocm_training.binfo"
+    "040_02_onnxruntime_deepspeed.binfo"
 )
 
 # non-used/deprecated
