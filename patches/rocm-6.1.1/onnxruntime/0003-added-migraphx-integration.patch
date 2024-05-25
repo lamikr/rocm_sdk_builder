@@ -1,7 +1,7 @@
-From ac8013d4aea18acaecd56b5eaaf09019adf81a3e Mon Sep 17 00:00:00 2001
+From 1417f6bf787353845849b6c919a6a699a9e952d1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Wed, 22 May 2024 11:09:43 -0700
-Subject: [PATCH 3/6] added migraphx integration
+Subject: [PATCH 3/7] added migraphx integration
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---

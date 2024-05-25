@@ -1,7 +1,7 @@
-From 1248b4223408b1f78b16e027a72a04e5562ad920 Mon Sep 17 00:00:00 2001
+From 198f740b66e322dc48b373fd7ee5b2836d1493d7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:50:39 -0700
-Subject: [PATCH 6/6] disable USE_NEURAL_SPEED due to overload function error
+Subject: [PATCH 6/7] disable USE_NEURAL_SPEED due to overload function error
 
 - build error for overloaded functions
   causes build break on ubuntu and fedora

@@ -1,7 +1,7 @@
-From f330fe58e194b82f19ba5974ba593fecf9507071 Mon Sep 17 00:00:00 2001
+From a2d4623d93580745862cdc2ee66a6202801495f5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:47:18 -0700
-Subject: [PATCH 5/6] gradient_builder.cc dangling reference warning fix
+Subject: [PATCH 5/7] gradient_builder.cc dangling reference warning fix
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
