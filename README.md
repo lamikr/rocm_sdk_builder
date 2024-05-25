@@ -4,15 +4,17 @@
 
 ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs.  
 
-In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools like python, pytorch and jupyter-notebook that has been tested to work with rest of the system. SDK will be installed under /opt/rocm_sdk_<version> directory.
+In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools and frameworks like python, pytorch, jupyter-notebook, onnxruntime, deepspeed that has been tested to work with rest of the system. SDK will be installed under /opt/rocm_sdk_<version> directory.
 
 Latest ROCM release supported is the ROCM 6.1.1 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
 
 This project has been so far tested with following AMD GPUs:
 
-- AMD RX 6800
-- AMD RX 5700
-- AMD Mobile m680i
+- AMD RX 6800 (gfx1030)
+- AMD RX 5700 (gfx1010)
+- AMD Mobile m680i (gfx1035)
+
+In configuration it's possible to select also other GPU's for build target. If you can test with these or other GPU's like AMD RX 6700 (gfx1031) or RX 7000 series of GPU's like RX 7800 (gfx1101) or RX 7900 (gfx1100) the feedback is more than wellcome.
 
 ![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
 
