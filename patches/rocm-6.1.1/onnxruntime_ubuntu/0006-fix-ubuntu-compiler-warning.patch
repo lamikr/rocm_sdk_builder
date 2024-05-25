@@ -1,0 +1,26 @@
+From 3fa294a932a9cc654bf60b7964e1b889ee5f1aca Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 24 May 2024 16:47:18 -0700
+Subject: [PATCH 6/7] fix ubuntu compiler warning
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ orttraining/orttraining/core/graph/gradient_builder.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/orttraining/orttraining/core/graph/gradient_builder.cc b/orttraining/orttraining/core/graph/gradient_builder.cc
+index e675b55c8a..50487a1a67 100755
+--- a/orttraining/orttraining/core/graph/gradient_builder.cc
++++ b/orttraining/orttraining/core/graph/gradient_builder.cc
+@@ -657,7 +657,7 @@ IMPLEMENT_GRADIENT_BUILDER(GetTransposeGradient) {
+   auto attributes = SrcNodeAttributes();
+   std::vector<AttributeProto> new_attributes;
+   if (attributes.empty()) {
+-    const TensorShapeProto& input_shape = I(0).type_proto->tensor_type().shape();
++    const TensorShapeProto input_shape = I(0).type_proto->tensor_type().shape();
+     if (input_shape.dim_size() > 0) {  // input_shape is available
+       size_t n = static_cast<size_t>(input_shape.dim_size()) - 1;
+       bw_perm.resize(n + 1);
+-- 
+2.40.1
+

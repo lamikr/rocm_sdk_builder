@@ -1,7 +1,7 @@
-From 50558097f514c316eb67d5642b2fb7b4ab1ded0a Mon Sep 17 00:00:00 2001
+From 2705997a4210dbdf8384bce1f8c74aeaedec60f8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:21:15 -0700
-Subject: [PATCH 2/6] fix circular dependency error with DeepSpeed
+Subject: [PATCH 2/7] fix circular dependency error with DeepSpeed
 
 discussed here:
 https://github.com/ROCm/onnxruntime/commit/1caf38252b120caf64e891c2f1b8eb64e94fad97

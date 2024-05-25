@@ -1,0 +1,85 @@
+From 8100ab4d7f41c91896b0be840de9b7d2b3911d78 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 23 May 2024 23:18:32 -0700
+Subject: [PATCH 5/7] cmake fixes for rocm build
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/CMakeLists.txt                       | 10 ++++++++--
+ cmake/onnxruntime_providers_migraphx.cmake |  3 ++-
+ cmake/onnxruntime_providers_rocm.cmake     | 12 +++++++-----
+ 3 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
+index 3b0503fe66..729f4bc2a7 100644
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -294,8 +294,14 @@ if (onnxruntime_USE_ROCM)
+     set(CMAKE_HIP_ARCHITECTURES "gfx906;gfx908;gfx90a;gfx1030;gfx1100;gfx1101")
+   endif()
+ 
+-  file(GLOB rocm_cmake_components ${onnxruntime_ROCM_HOME}/lib/cmake/*)
+-  list(APPEND CMAKE_PREFIX_PATH ${rocm_cmake_components})
++  set(CMAKE_PREFIX_PATH "${onnxruntime_ROCM_HOME}/lib64/cmake;${onnxruntime_ROCM_HOME}/lib/cmake")
++  #file(GLOB rocm_cmake_components ${onnxruntime_ROCM_HOME}/lib64/cmake/*)
++  #list(APPEND CMAKE_PREFIX_PATH ${rocm_cmake_components})
++  #file(GLOB rocm_cmake_components ${onnxruntime_ROCM_HOME}/lib/cmake/*)
++  #list(APPEND CMAKE_PREFIX_PATH ${rocm_cmake_components})
++  message(STATUS "onnxruntime_ROCM_HOME: ${onnxruntime_ROCM_HOME}")
++  #set(CMAKE_PREFIX_PATH "${onnxruntime_ROCM_HOME}/lib64/cmake;${onnxruntime_ROCM_HOME}/lib/cmake")
++  message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+   # Force cmake to accept the configured HIP compiler. Because the configured CMAKE_PREFIX_PATH does not work during
+   # enable_language(HIP), we might need to move configuring of CMAKE_PREFIX_PATH to build.py (in the future).
+   set(CMAKE_HIP_COMPILER_FORCED ON)
+diff --git a/cmake/onnxruntime_providers_migraphx.cmake b/cmake/onnxruntime_providers_migraphx.cmake
+index 91ac66a407..c98edb568b 100644
+--- a/cmake/onnxruntime_providers_migraphx.cmake
++++ b/cmake/onnxruntime_providers_migraphx.cmake
+@@ -19,7 +19,8 @@
+   endif()
+ 
+   # Add search paths for default rocm installation
+-  list(APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip /opt/rocm)
++  #list(APPEND CMAKE_PREFIX_PATH /opt/rocm_sdk_611/lib64/cmake /opt/rocm_sdk_611/lib)
++  #set(CMAKE_PREFIX_PATH "${onnxruntime_ROCM_HOME}/lib64/cmake;${onnxruntime_ROCM_HOME}/lib/cmake")
+ 
+   find_package(hip)
+   find_package(migraphx PATHS ${AMD_MIGRAPHX_HOME})
+diff --git a/cmake/onnxruntime_providers_rocm.cmake b/cmake/onnxruntime_providers_rocm.cmake
+index b662682915..cea513b5ba 100644
+--- a/cmake/onnxruntime_providers_rocm.cmake
++++ b/cmake/onnxruntime_providers_rocm.cmake
+@@ -4,13 +4,13 @@
+   add_definitions(-DUSE_ROCM=1)
+   include(onnxruntime_rocm_hipify.cmake)
+ 
+-  list(APPEND CMAKE_PREFIX_PATH ${onnxruntime_ROCM_HOME})
+-
+   find_package(HIP)
+   find_package(hiprand REQUIRED)
+   find_package(rocblas REQUIRED)
+   find_package(MIOpen REQUIRED)
+   find_package(hipfft REQUIRED)
++  #find_library(rccl REQUIRED)
++  #find_library(roctracer64 REQUIRED)
+ 
+   # MIOpen version
+   if(NOT DEFINED ENV{MIOPEN_PATH})
+@@ -47,9 +47,11 @@
+   message("MIOPEN_VERSION_DEV_INT:   ${MIOPEN_VERSION_DEV_INT}")
+   add_definitions(-DMIOPEN_VERSION=${MIOPEN_VERSION_DEV_INT})
+ 
+-  find_library(RCCL_LIB rccl REQUIRED)
+-  find_library(ROCTRACER_LIB roctracer64 REQUIRED)
+-  set(ONNXRUNTIME_ROCM_LIBS roc::rocblas MIOpen hip::hipfft ${RCCL_LIB} ${ROCTRACER_LIB})
++  #set(CMAKE_PREFIX_PATH "${onnxruntime_ROCM_HOME}/lib64/cmake;${onnxruntime_ROCM_HOME}/lib/cmake")
++  #message(FATAL_ERROR "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
++  #find_library(RCCL_LIB rccl REQUIRED)
++  #find_library(ROCTRACER_LIB roctracer64 REQUIRED)
++  set(ONNXRUNTIME_ROCM_LIBS roc::rocblas MIOpen hip::hipfft rccl roctracer64)
+ 
+   file(GLOB_RECURSE onnxruntime_providers_rocm_cc_srcs CONFIGURE_DEPENDS
+     "${ONNXRUNTIME_ROOT}/core/providers/rocm/*.h"
+-- 
+2.40.1
+
