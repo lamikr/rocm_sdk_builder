@@ -98,6 +98,11 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
 
     "install -Dm644 ${BINFO_APP_BUILD_DIR}/rocclr/librocclr.a ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocclr/lib/librocclr.a"
     "rm -f ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/hipcc.bat"
+
+    #configure OpenCL library location
+    "if [[ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/OpenCL/vendors ]]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/OpenCL/vendors; fi"
+    "if [[ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/OpenCL/vendors/amdocl.icd ]]; then echo \"${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libamdocl64.so\" > ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/OpenCL/vendors/amdocl.icd; fi"
+    "echo "
 )
 
 #CFG_TEMP5=-DCMAKE_PREFIX_PATH="${INSTALL_DIR_PREFIX_HIP_LLVM};${INSTALL_DIR_PREFIX_HIP_CLANG};${INSTALL_DIR_PREFIX_SDK_ROOT}"
