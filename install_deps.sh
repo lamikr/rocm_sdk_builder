@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 func_is_supported_distro()
 {
   if [ -z ${ID+foo} ]; then
