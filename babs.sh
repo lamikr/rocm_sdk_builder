@@ -562,7 +562,7 @@ func_repolist_apply_patches() {
                     fi
                 else
                     true
-                    echo "${LIST_BINFO_APP_NAME[${jj}}: No patches to apply"
+                    echo "${LIST_BINFO_APP_NAME[${jj}]}: No patches to apply"
                     #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
                     #sleep 2
                 fi
