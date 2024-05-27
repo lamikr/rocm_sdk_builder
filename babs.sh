@@ -64,11 +64,11 @@ func_install_dir_init() {
             fi
         else
             echo "Trying to create install target direcory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
-            mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}
+            mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT} 2> /dev/null
             if [ ! -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                sudo mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}
+                sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}
                 if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                    echo "Install target directory created: 'sudo mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                    echo "Install target directory created: 'sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
                     sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
                     echo "Install target directory owner changed: 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
                     sleep 10
