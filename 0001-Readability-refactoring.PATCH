@@ -390,17 +390,17 @@ index 2df5e8b..7f1098f 100755
 -    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
 -    do
 -        cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-+    
++
 +    local jj=0
-+    
++
 +    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
 +        cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-+        
++
          if [ -f .gitmodules ]; then
              echo "submodule update"
              git submodule foreach git reset --hard
              git submodule update --recursive
-+            
++
              if [ $? -ne 0 ]; then
 -                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
 +                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
@@ -420,7 +420,7 @@ index 2df5e8b..7f1098f 100755
 -        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
 -            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
 +    local jj=0
-+    
++
 +    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
 +        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
 +            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[jj]}"
@@ -538,14 +538,14 @@ index 2df5e8b..7f1098f 100755
 +    DATE=$(date "+%Y%m%d")
 +    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
 +    PATCHES_DIR="$(pwd)/patches/${DATE_WITH_TIME}"
-+    
++
 +    echo "${PATCHES_DIR}"
 +    mkdir -p "${PATCHES_DIR}"
 +
 +    while [[ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]]; do
 +        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
 +            repo_dir="${LIST_APP_SRC_CLONE_DIR[jj]}"
-+            
++
 +            if [[ -d "$repo_dir" ]]; then
 +                cd "$repo_dir"
 +                func_is_current_dir_a_git_repo_dir
@@ -727,11 +727,11 @@ index 2df5e8b..7f1098f 100755
 +    declare -a LIST_TEMP=()
 +    readarray -t LIST_TEMP < "$FNAME_REPO_REVS_CUR"
 +    echo "reading: $FNAME_REPO_REVS_CUR"
-+    
++
 +    for (( jj=0; jj<${#LIST_TEMP[@]}; jj+=2 )); do
 +        TEMP_HASH=${LIST_TEMP[jj]}
 +        TEMP_NAME=${LIST_TEMP[jj+1]}
-+        
++
 +        func_repolist_find_app_index_by_app_name "$TEMP_NAME"
 +        if [ $RET_INDEX_BY_NAME -ge 0 ]; then
 +            LIST_REPO_REVS_CUR[$RET_INDEX_BY_NAME]=$TEMP_HASH
@@ -930,7 +930,7 @@ index 2df5e8b..7f1098f 100755
 +    for (( jj=0; jj<${#LIST_APP_SRC_CLONE_DIR[@]}; jj++ )); do
 +        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
 +            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}" || { echo "Failed to cd into ${LIST_APP_SRC_CLONE_DIR[$jj]}"; exit 1; }
-+            
++
 +            if func_is_current_dir_a_git_repo_dir; then
 +                if git checkout "${CHECKOUT_VERSION}"; then
 +                    echo "Repo checkout successful: ${LIST_BINFO_APP_NAME[jj]}"
@@ -1303,17 +1303,17 @@ index 2df5e8b..7f1098f 100755
      func_user_help_print
  else
      LIST_USER_CMD_ARGS=( "$@" )
-+    
++
 +    # Initialize build version
      func_build_version_init
 -    # handle help and version commands before possible prompting the user config menu
-+    
++
 +    # Handle help and version commands before prompting the user config menu
      func_handle_user_configure_help_and_version_args
-+    
++
 +    # Initialize environment setup
      func_envsetup_init
-+    
++
 +    # Handle user command arguments
      func_handle_user_command_args
  fi
