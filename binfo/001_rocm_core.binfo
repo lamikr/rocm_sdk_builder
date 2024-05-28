@@ -37,6 +37,9 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -Dm755 ${SDK_ROOT_DIR}/docs/examples/migraphx/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/migraphx"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/onnxruntime"
     "install -Dm655 ${SDK_ROOT_DIR}/docs/examples/onnxruntime/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/onnxruntime"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/check_opencl_caps"
+    "install -Dm755 ${SDK_ROOT_DIR}/docs/examples/opencl/check_opencl_caps/Makefile ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/check_opencl_caps"
+    "install -Dm755 ${SDK_ROOT_DIR}/docs/examples/opencl/check_opencl_caps/*.c ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/check_opencl_caps"
 )
 #echo "export ROCM_HOME=/opt/rocm_571" >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh
 #"install -Dm755 ${SDK_ROOT_DIR}/binfo/env/env_rocm.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin"
