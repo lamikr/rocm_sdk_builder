@@ -146,7 +146,7 @@ func_repolist_upstream_remote_repo_add() {
             LIST_APP_ADDED_UPSTREAM_REPO[jj]=0
             echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[jj]} ok"
         fi
-        jj=$(( jj + 1 ))
+        ((jj++))
         sleep 0.2
     done
 
@@ -173,7 +173,7 @@ func_repolist_upstream_remote_repo_add() {
                 fi
             fi
         fi
-        jj=$(( jj + 1 ))
+        ((jj++))
     done
 
     # Apply patches if patch directory exists
@@ -208,7 +208,7 @@ func_repolist_upstream_remote_repo_add() {
                 #sleep 2
             fi
         fi
-        jj=$(( jj + 1 ))
+        ((jj++))
     done
 }
 
@@ -246,7 +246,7 @@ func_repolist_fetch_top_repo() {
         else
             echo "No repository defined for project in directory: ${LIST_APP_SRC_CLONE_DIR[jj]}"
         fi
-        jj=$(( jj + 1 ))
+        ((jj++))
     done
 }
 
@@ -268,14 +268,12 @@ func_repolist_fetch_submodules() {
                 exit 1
             fi
         fi
-        
-        jj=$(( jj + 1 ))
+        ((jj++))
     done
 }
 
 func_repolist_checkout_default_versions() {
     echo "func_repolist_checkout_default_versions started"
-    
     local jj=0
     
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
@@ -286,142 +284,134 @@ func_repolist_checkout_default_versions() {
             git reset --hard
             git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
         fi
-        jj=$(( jj + 1 ))
+        ((jj++))
     done
 }
 
-# check that repos does not
-# - have uncommitted patches
-# - have changes that diff from original patches
-# - are not in state where am apply has failed
+# Function to check that repositories do not have uncommitted patches, changes that differ from original patches,
+# or are not in a state where 'git am' apply has failed.
 func_repolist_is_changes_committed() {
     echo "func_repolist_is_changes_committed started"
-    jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            func_is_current_dir_a_git_repo_dir
-            if [ $? -eq 0 ]; then
-                if [[ `git status --porcelain --ignore-submodules=all` ]]; then
-                    echo "git status error: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
-                    exit 1
-                else
-                    # No changes
-                    #echo "git status ok: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
-                    #if [[ `git am --show-current-patch > /dev/null ` ]]; then
-                    git status | grep "git am --skip" > /dev/null
-                    if [ ! "$?" == "1" ]; then
-                        echo "git am error: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
+    local jj=0
+
+    while [[ -n "${LIST_APP_PATCH_DIR[jj]}" ]]; do
+        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
+            repo_dir="${LIST_APP_SRC_CLONE_DIR[$jj]}"
+
+            if [[ -d "$repo_dir" ]]; then
+                cd "$repo_dir"
+                func_is_current_dir_a_git_repo_dir
+
+                if [[ $? -eq 0 ]]; then
+                    if [[ -n $(git status --porcelain --ignore-submodules=all) ]]; then
+                        echo "Uncommitted changes in: $repo_dir"
+                        exit 1
+                    fi
+
+                    if git status | grep -q "git am --skip"; then
+                        echo "Unresolved 'git am' in: $repo_dir"
                         exit 1
                     else
-                        echo "git am ok: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
+                        echo "Repository clean: $repo_dir"
                     fi
+                else
+                    echo "Not a git repository: $repo_dir"
                 fi
             else
-                echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
+                echo "Directory does not exist: $repo_dir"
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        ((jj++))
     done
 }
 
 func_repolist_appliad_patches_save() {
-    jj=0
+    local jj=0
     cmd_diff_check=(git diff --exit-code)
-    DATE=`date "+%Y%m%d"`
-    DATE_WITH_TIME=`date "+%Y%m%d-%H%M%S"`
-    PATCHES_DIR=$(pwd)/patches/${DATE_WITH_TIME}
-    echo ${PATCHES_DIR}
-    mkdir -p ${PATCHES_DIR}
-    if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-        cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-        func_is_current_dir_a_git_repo_dir
-        if [ $? -eq 0 ]; then
-            "${cmd_diff_check[@]}" &>/dev/null
-            if [ $? -ne 0 ]; then
-                fname=$(basename -- "${LIST_APP_SRC_CLONE_DIR[jj]}").patch
-                echo "diff: ${fname}"
-                "${cmd_diff_check[@]}" >${PATCHES_DIR}/${fname}
-            else
-                true
-                #echo "${LIST_APP_SRC_CLONE_DIR[jj]}"
-            fi
-        else
-            echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
-        fi
-    fi
-    jj=$(( ${jj} + 1 ))
-    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
-    do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-            func_is_current_dir_a_git_repo_dir
-            if [ $? -eq 0 ]; then
-                "${cmd_diff_check[@]}" &>/dev/null
-                if [ $? -ne 0 ]; then
-                    fname=$(basename -- "${LIST_APP_SRC_CLONE_DIR[jj]}").patch
-                    echo "diff: ${DATE_WITH_TIME}/${fname}"
-                    "${cmd_diff_check[@]}" >${PATCHES_DIR}/${fname}
+    DATE=$(date "+%Y%m%d")
+    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
+    PATCHES_DIR="$(pwd)/patches/${DATE_WITH_TIME}"
+    
+    echo "${PATCHES_DIR}"
+    mkdir -p "${PATCHES_DIR}"
+
+    while [[ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]]; do
+        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
+            repo_dir="${LIST_APP_SRC_CLONE_DIR[jj]}"
+            
+            if [[ -d "$repo_dir" ]]; then
+                cd "$repo_dir"
+                func_is_current_dir_a_git_repo_dir
+
+                if [[ $? -eq 0 ]]; then
+                    "${cmd_diff_check[@]}" &>/dev/null
+                    if [[ $? -ne 0 ]]; then
+                        fname="$(basename -- "$repo_dir").patch"
+                        echo "diff: ${DATE_WITH_TIME}/${fname}"
+                        "${cmd_diff_check[@]}" >"${PATCHES_DIR}/${fname}"
+                    fi
                 else
-                    true
-                    #echo "${LIST_APP_SRC_CLONE_DIR[jj]}"
+                    echo "Not a git repository: $repo_dir"
                 fi
             else
-                echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
+                echo "Directory does not exist: $repo_dir"
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        ((jj++))
     done
-    echo "patches generated: ${PATCHES_DIR}"
+
+    echo "Patches generated: ${PATCHES_DIR}"
 }
 
 func_repolist_export_version_tags_to_file() {
-    jj=0
-    if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-        cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-        func_is_current_dir_a_git_repo_dir
-        if [ $? -eq 0 ]; then
-            GITHASH=$(git rev-parse --short=8 HEAD)
-            echo "${GITHASH} ${LIST_BINFO_APP_NAME[${jj}]}" > ${FNAME_REPO_REVS_NEW}
-        else
-            echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
-        fi
-    fi
-    jj=$(( ${jj} + 1 ))
-    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
-    do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            func_is_current_dir_a_git_repo_dir
-            if [ $? -eq 0 ]; then
-                GITHASH=$(git rev-parse --short=8 HEAD 2>/dev/null)
-                echo "${GITHASH} ${LIST_BINFO_APP_NAME[${jj}]}" >> ${FNAME_REPO_REVS_NEW}
+    local jj=0
+
+    while [[ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]]; do
+        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
+            local repo_dir="${LIST_APP_SRC_CLONE_DIR[jj]}"
+            local app_name="${LIST_BINFO_APP_NAME[jj]}"
+
+            if [[ -d "$repo_dir" ]]; then
+                cd "$repo_dir"
+                func_is_current_dir_a_git_repo_dir
+
+                if [[ $? -eq 0 ]]; then
+                    local githash
+                    githash=$(git rev-parse --short=8 HEAD 2>/dev/null)
+
+                    if [[ $jj -eq 0 ]]; then
+                        echo "${githash} ${app_name}" > "${FNAME_REPO_REVS_NEW}"
+                    else
+                        echo "${githash} ${app_name}" >> "${FNAME_REPO_REVS_NEW}"
+                    fi
+                else
+                    echo "Not a git repository: $repo_dir"
+                fi
             else
-                echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
+                echo "Directory does not exist: $repo_dir"
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        ((jj++))
     done
-    echo "repo hash list generated: ${FNAME_REPO_REVS_NEW}"
+
+    echo "Repository hash list generated: ${FNAME_REPO_REVS_NEW}"
 }
 
 func_repolist_find_app_index_by_app_name() {
-    TEMP_SEARCH_NAME=$1
-    #echo "func_repolist_find_app_index_by_app_name: " ${TEMP_SEARCH_NAME}
+    local temp_search_name="$1"
+    local kk=0
 
     RET_INDEX_BY_NAME=-1
-    kk=0
-    while [ "x${LIST_BINFO_APP_NAME[kk]}" != "x" ]
-    do
-        if [ ${LIST_BINFO_APP_NAME[kk]} == ${TEMP_SEARCH_NAME} ]; then
-            RET_INDEX_BY_NAME=${kk}
-            #echo "RET_INDEX_BY_NAME" ${RET_INDEX_BY_NAME}
+
+    while [[ -n "${LIST_BINFO_APP_NAME[kk]}" ]]; do
+        if [[ "${LIST_BINFO_APP_NAME[kk]}" == "${temp_search_name}" ]]; then
+            RET_INDEX_BY_NAME=$kk
             break
         fi
-        kk=$(( ${kk} + 1 ))
+        ((kk++))
     done
 }
+
 
 func_repolist_fetch_by_version_tag_file() {
     echo "func_repolist_fetch_by_version_tag_file"
