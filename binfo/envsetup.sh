@@ -129,7 +129,14 @@ export SDK_CXX_COMPILER_HIP_CLANG="${INSTALL_DIR_PREFIX_HIP_LLVM}/bin/clang++"
 
 
 # Set SDK C++ compiler name based on selection
-SDK_CXX_COMPILER_NAME="hipcc"
+#Only choose one. SDK_CXX_COMPILER_NAME variable should not be used on any other scripts because
+# these 3 names does not match with the names used by rocm for detecting the compiler.
+# rocm is using only the following two names: "hcc" or "clang"
+
+SDK_CXX_COMPILER_NAME="hipcc" #Internal use only 
+#SDK_CXX_COMPILER_NAME="hip_clang" #Internal use only
+
+
 export SDK_PLATFORM_NAME_HIPCC="amd"
 export SDK_PLATFORM_NAME_HIPCLANG="clang"
 
