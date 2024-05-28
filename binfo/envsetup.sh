@@ -69,10 +69,10 @@ SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT=""
 
 if [ -e "${USER_CFG_FNAME}" ]; then
     while read CUR_GPU; do
-        if [[ ${CUR_GPU} == gfx* ]]; then
-            if [ -z ${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} ]; then
-                SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${CUR_GPU}"
-                SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${CUR_GPU}"
+        if [[ $CUR_GPU == gfx* ]]; then
+            if [[ -z $SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]]; then
+                SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="$CUR_GPU"
+                SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="$CUR_GPU"
             else
                 SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} ${CUR_GPU}"
                 SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT};${CUR_GPU}"
@@ -82,8 +82,8 @@ if [ -e "${USER_CFG_FNAME}" ]; then
 fi
 
 # Check for selected GPUs
-if [ -z ${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT} ]; then
-    echo "Error, no GPU selected"
+if [[ -z $SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT ]]; then
+    echo "Error: no GPU selected"
     echo "Enable at least one of the following variables in binfo/envsetup.sh file:"
     echo "    GPU_BUILD_AMD_VEGA_GFX902=1"
     echo "    GPU_BUILD_AMD_NAVI10_GFX1010=1"

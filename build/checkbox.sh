@@ -475,7 +475,7 @@ main() {
 
     while true; do
         validate_terminal_size
-        local key=$( get_pressed_key )
+        local key=$(get_pressed_key)
 
         case $key in
             _up|k) up;;
@@ -500,11 +500,12 @@ main() {
     done
 
     reset_screen
+    display_selected_options
+}
 
-	echo -e "\033[0;34m"
+display_selected_options() {
+    echo -e "\033[0;34m"
     if [[ ${#checkbox_output[@]} -gt 0 ]]; then
-        printf "Selected:\n"
-        #echo "" > build_cfg.user
         unset NEW_CFG_FILE_DONE
         for option in "${checkbox_output[@]}"; do
             if [ ! -v NEW_CFG_FILE_DONE ]; then
@@ -513,12 +514,10 @@ main() {
             else
                 echo "$option" >> build_cfg.user
             fi
-            #printf "$option\n"
         done
     else
         printf "No options selected\n"
     fi
-    return
 }
 
 main "$@"
