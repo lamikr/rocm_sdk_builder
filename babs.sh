@@ -10,30 +10,31 @@
 source binfo/user_config.sh
 
 func_build_version_init() {
-    if [ -e ./binfo/build_version.sh ]; then
-        #echo "Initializing build environment variables"
-        source ./binfo/build_version.sh
+    local build_version_file="./binfo/build_version.sh"
+    
+    if [ -e "$build_version_file" ]; then
+        source "$build_version_file"
     else
-        echo "Could not read ./binfo/build_version.sh"
+        echo "Error: Could not read $build_version_file"
         exit 1
     fi
 }
 
 func_envsetup_init() {
-    if [ -e ./binfo/envsetup.sh ]; then
-        #echo "Initializing build environment variables"
-        source ./binfo/envsetup.sh
+    local envsetup_file="./binfo/envsetup.sh"
+
+    if [ -e "$envsetup_file" ]; then
+        source "$envsetup_file"
     else
-        echo "Could not read ./binfo/envsetup.sh"
+        echo "Error: Could not read $envsetup_file"
         exit 1
     fi
 }
 
 func_is_current_dir_a_git_submodule_dir() {
     if [ -f .gitmodules ]; then
-        echo ".gitmodule file exist"
-        if test "$( wc -w < .gitmodules )" -gt 0
-        then
+        echo ".gitmodules file exists"
+        if [ "$(wc -w < .gitmodules)" -gt 0 ]; then
             return 1
         else
             return 0
@@ -43,179 +44,162 @@ func_is_current_dir_a_git_submodule_dir() {
     fi
 }
 
-#if success function sets ret_val=0, in error cases ret_val=1
 func_install_dir_init() {
-    ret_val=0
-    if [ ! -z ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-        if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-            if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                ret_val=0
-            else
-                echo "Warning, install direcory ${INSTALL_DIR_PREFIX_SDK_ROOT} is not writable for the user ${USER}"
-                sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                    echo "Install target directory owner changed with command 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
-                    sleep 10
-                    ret_val=0
-                else
-                    echo "Recommend using command 'sudo chown ${USER}:${USER} ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+    local ret_val=0
+
+    if [ -z "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
+        echo "Error: Environment variable not defined: INSTALL_DIR_PREFIX_SDK_ROOT"
+        ret_val=1
+    else
+        if [ -d "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
+            if [ ! -w "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
+                echo "Warning: Install directory $INSTALL_DIR_PREFIX_SDK_ROOT is not writable for the user $USER"
+                sudo chown "$USER:$USER" "$INSTALL_DIR_PREFIX_SDK_ROOT"
+                if [ ! -w "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
+                    echo "Recommend using command: sudo chown ${USER}:${USER} $INSTALL_DIR_PREFIX_SDK_ROOT"
                     ret_val=1
                 fi
             fi
         else
-            echo "Trying to create install target direcory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
-            mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}
-            if [ ! -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                sudo mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                    echo "Install target directory created: 'sudo mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
-                    sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                    echo "Install target directory owner changed: 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
-                    sleep 10
-                    ret_val=0
-                else
-                    echo "Failed to create install target directory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
-                    ret_val=1
-                fi
+            echo "Creating install target directory: $INSTALL_DIR_PREFIX_SDK_ROOT"
+            if ! mkdir -p "$INSTALL_DIR_PREFIX_SDK_ROOT"; then
+                echo "Failed to create install target directory: $INSTALL_DIR_PREFIX_SDK_ROOT"
+                ret_val=1
             else
-                echo "Install target directory created: 'mkdir ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                echo "Install target directory created: mkdir -p $INSTALL_DIR_PREFIX_SDK_ROOT"
                 sleep 10
-                ret_val=0
             fi
         fi
-    else
-        echo "Error, environment variable not defined: INSTALL_DIR_PREFIX_SDK_ROOT"
-        ret_val=1
     fi
-    return ${ret_val}
+    
+    return $ret_val
 }
 
 func_is_current_dir_a_git_repo_dir() {
+    local inside_git_repo
     inside_git_repo="$(git rev-parse --is-inside-work-tree 2>/dev/null)"
+    
     if [ "$inside_git_repo" ]; then
-        # is git repo
-        return 0
+        return 0  # is a git repo
     else
-        # not git repo
-        return 1
+        return 1  # not a git repo
     fi
-    #git rev-parse --is-inside-work-tree >/dev/null 2>&1
 }
 
 func_repolist_binfo_list_print() {
-    #echo "func_repolist_binfo_list_print started"
-    jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        echo "binfo appname:         " ${LIST_BINFO_APP_NAME[${jj}]}
-        echo "binfo file short name: " ${LIST_BINFO_FILE_BASENAME[${jj}]}
-        echo "binfo file full name:  " ${LIST_BINFO_FILE_FULLNAME[${jj}]}
-        echo "src clone dir:         " ${LIST_APP_SRC_CLONE_DIR[$jj]}
-        echo "src dir:               " ${LIST_APP_SRC_DIR[$jj]}
-        echo "patch dir:             " ${LIST_APP_PATCH_DIR[${jj}]}
-        echo "upstream repository:   " ${LIST_APP_UPSTREAM_REPO_URL[$jj]}
+    local jj=0
+
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+        echo "binfo appname:         ${LIST_BINFO_APP_NAME[jj]}"
+        echo "binfo file short name: ${LIST_BINFO_FILE_BASENAME[jj]}"
+        echo "binfo file full name:  ${LIST_BINFO_FILE_FULLNAME[jj]}"
+        echo "src clone dir:         ${LIST_APP_SRC_CLONE_DIR[jj]}"
+        echo "src dir:               ${LIST_APP_SRC_DIR[jj]}"
+        echo "patch dir:             ${LIST_APP_PATCH_DIR[jj]}"
+        echo "upstream repository:   ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
         echo ""
-        jj=$(( ${jj} + 1 ))
+        ((jj++))
     done
 }
 
 func_repolist_upstream_remote_repo_add() {
-    #echo "func_repolist_upstream_remote_repo_add started"
-    jj=0
-    # git init and upstream remote repo add for missing module directories
+    local jj=0
+
+    # Display a message if src_projects directory does not exist
     if [ ! -d src_projects ]; then
         echo ""
         echo "Download of source projects will start shortly"
-        echo "It will take up about 20 gb under 'src_projects' directory."
+        echo "It will take up about 20 GB under 'src_projects' directory."
         echo "Advice:"
-        echo "If you work with multible copies of this sdk,"
-        echo "you could tar 'src_projects' and extract it manually for other sdk copies."
+        echo "If you work with multiple copies of this SDK,"
+        echo "you could tar 'src_projects' and extract it manually for other SDK copies."
         echo ""
         sleep 3
     fi
-    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
-    do
-        if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
-            echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+
+    # Initialize git repositories and add upstream remote
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]; do
+        if [ ! -d "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; then
+            echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[jj]}"
             sleep 0.2
-            mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
-            LIST_APP_ADDED_UPSTREAM_REPO[$jj]=1
+            mkdir -p "${LIST_APP_SRC_CLONE_DIR[jj]}"
+            LIST_APP_ADDED_UPSTREAM_REPO[jj]=1
         fi
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]}/.git ]; then
-                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
+            if [ ! -d "${LIST_APP_SRC_CLONE_DIR[jj]}/.git" ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
                 echo "${jj}: Initializing new source code repository"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "VERSION_TAG[$jj]: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
+                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[jj]}"
+                echo "VERSION_TAG[$jj]: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
                 sleep 0.5
                 git init
-                echo ${LIST_APP_UPSTREAM_REPO_URL[$jj]}
-                git remote add upstream ${LIST_APP_UPSTREAM_REPO_URL[$jj]}
-                LIST_APP_ADDED_UPSTREAM_REPO[$jj]=1
+                echo "${LIST_APP_UPSTREAM_REPO_URL[jj]}"
+                git remote add upstream "${LIST_APP_UPSTREAM_REPO_URL[jj]}"
+                LIST_APP_ADDED_UPSTREAM_REPO[jj]=1
             else
-                LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
-                echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
+                LIST_APP_ADDED_UPSTREAM_REPO[jj]=0
+                echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[jj]} ok"
             fi
         else
-            LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
-            echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
+            LIST_APP_ADDED_UPSTREAM_REPO[jj]=0
+            echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[jj]} ok"
         fi
-        jj=$(( ${jj} + 1 ))
+        jj=$(( jj + 1 ))
         sleep 0.2
     done
+
+    # Fetch updates and initialize submodules
     jj=0
-    # git fetch and submodule init for missing module directories
-    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
-    do
-        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
-        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]; do
+        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[jj]} -eq 1 ]; then
+            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
             git fetch upstream
             if [ $? -ne 0 ]; then
-                echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
                 #exit 1
             fi
             git fetch upstream --force --tags
-            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
             func_is_current_dir_a_git_submodule_dir
             ret_val=$?
             if [ ${ret_val} == "1" ]; then
                 echo "submodule init and update"
                 git submodule update --init --recursive
                 if [ $? -ne 0 ]; then
-                    echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                    echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
                     exit 1
                 fi
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        jj=$(( jj + 1 ))
     done
+
+    # Apply patches if patch directory exists
     jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
-        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
-            TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[jj]} -eq 1 ]; then
+            TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[jj]}
+            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
             echo "patch dir: ${TEMP_PATCH_DIR}"
             if [ -d "${TEMP_PATCH_DIR}" ]; then
-                if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
-                    echo "git am: ${LIST_BINFO_APP_NAME[${jj}]}"
+                if [ "$(ls -A "$TEMP_PATCH_DIR")" ]; then
+                    echo "git am: ${LIST_BINFO_APP_NAME[jj]}"
                     git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
                     if [ $? -ne 0 ]; then
                         git am --abort
                         echo ""
                         echo "Failed to apply patches for repository"
-                        echo "${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                        echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
+                        echo "${LIST_APP_SRC_CLONE_DIR[jj]}"
+                        echo "git am ${TEMP_PATCH_DIR}/*.patch failed"
                         echo ""
                         exit 1
                     else
-                        echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                        echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[jj]}"
                     fi
                 else
-                   echo "Warning, patch directory exist but is empty: ${TEMP_PATCH_DIR}"
+                   echo "Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
                    sleep 2
                 fi
             else
@@ -224,75 +208,85 @@ func_repolist_upstream_remote_repo_add() {
                 #sleep 2
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        jj=$(( jj + 1 ))
     done
 }
 
 func_repolist_fetch_top_repo() {
     echo "func_repolist_fetch_top_repo started"
-    jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            if [ -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
-                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+    
+    local jj=0
+    
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
+            if [ -d "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+                
+                echo "Repository name: ${LIST_BINFO_APP_NAME[jj]}"
+                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
+                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[jj]}"
+                
                 git fetch upstream
+                
                 if [ $? -ne 0 ]; then
-                    echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                    echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
                     exit 1
                 fi
+                
                 git fetch upstream --force --tags
             else
                 echo ""
-                echo "Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[jj]}"
                 echo "Source directory[$jj] not initialized with '-i' command:"
-                echo "    ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "    ${LIST_APP_SRC_CLONE_DIR[jj]}"
+                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
                 echo ""
                 exit 1
             fi
         else
-            echo "No repository defined for project in directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "No repository defined for project in directory: ${LIST_APP_SRC_CLONE_DIR[jj]}"
         fi
-        jj=$(( ${jj} + 1 ))
+        jj=$(( jj + 1 ))
     done
 }
 
 func_repolist_fetch_submodules() {
     echo "func_repolist_fetch_submodules started"
-    jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+    
+    local jj=0
+    
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+        cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+        
         if [ -f .gitmodules ]; then
             echo "submodule update"
             git submodule foreach git reset --hard
             git submodule update --recursive
+            
             if [ $? -ne 0 ]; then
-                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
                 exit 1
             fi
         fi
-        jj=$(( ${jj} + 1 ))
+        
+        jj=$(( jj + 1 ))
     done
 }
 
 func_repolist_checkout_default_versions() {
     echo "func_repolist_checkout_default_versions started"
-    jj=0
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
-    do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            echo "Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
+    
+    local jj=0
+    
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
+            echo "Repository to reset: ${LIST_BINFO_APP_NAME[jj]}"
             sleep 0.2
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
             git reset --hard
-            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
         fi
-        jj=$(( ${jj} + 1 ))
+        jj=$(( jj + 1 ))
     done
 }
 
