@@ -1,0 +1,42 @@
+From b58f177e3886930d61ef77262b55b64e861e3957 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 29 May 2024 10:27:38 -0700
+Subject: [PATCH] fix the modify of readonly object detected by gcc_14
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- original patch and bugreports
+1) https://bugs.gentoo.org/918709
+2) https://github.com/ROCm/rocm_smi_lib/issues/170
+3) https://github.com/lamikr/rocm_sdk_builder/issues/12
+
+Fixes following error detected by gcc 14 on Fedora 40:
+
+[ 24%] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_utils.cc.o
+In file included from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/rocm_smi_lib/src/rocm_smi_power_mon.cc:52:
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h: In member function ‘amd::smi::ScopeGuard<lambda>& amd::smi::ScopeGuard<lambda>::operator=(const amd::smi::ScopeGuard<lambda>&)’:
+/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h:237:18: error: assignment of member ‘dismiss_’ in read-only object
+  237 |     rhs.dismiss_ = true;
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/rocm_smi/rocm_smi_utils.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/rocm_smi/rocm_smi_utils.h b/include/rocm_smi/rocm_smi_utils.h
+index 40f24ec..0b32148 100755
+--- a/include/rocm_smi/rocm_smi_utils.h
++++ b/include/rocm_smi/rocm_smi_utils.h
+@@ -231,7 +231,7 @@ class ScopeGuard {
+   __forceinline ~ScopeGuard() {
+     if (!dismiss_) release_();
+   }
+-  __forceinline ScopeGuard& operator=(const ScopeGuard& rhs) {
++  __forceinline ScopeGuard& operator=(ScopeGuard& rhs) {
+     dismiss_ = rhs.dismiss_;
+     release_ = rhs.release_;
+     rhs.dismiss_ = true;
+-- 
+2.45.1
+
