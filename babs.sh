@@ -139,6 +139,10 @@ func_repolist_upstream_remote_repo_add() {
             echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             sleep 0.2
             mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
+            # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
+            # situations where same src_code directory is used for building multiple projects
+            # with just different configure parameters (for example amd-fftw)
+            # in this case we want to add upstream repo and apply patches only once
             LIST_APP_ADDED_UPSTREAM_REPO[$jj]=1
         fi
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
@@ -169,7 +173,9 @@ func_repolist_upstream_remote_repo_add() {
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
         #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
+        # check if directory was just created and git fetch needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
+            echo "${jj}: git fetch on ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git fetch upstream
             if [ $? -ne 0 ]; then
@@ -195,6 +201,7 @@ func_repolist_upstream_remote_repo_add() {
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
     do
         #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
+        # check if directory was just created and git am needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
             TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
@@ -286,7 +293,7 @@ func_repolist_checkout_default_versions() {
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
     do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            echo "Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
             sleep 0.2
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git reset --hard
@@ -530,51 +537,57 @@ func_repolist_checkout_by_version_tag_file() {
 }
 
 func_repolist_apply_patches() {
+	declare -A DICTIONARY_PATCHED_PROJECTS
     echo "func_repolist_apply_patches"
     jj=0
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            func_is_current_dir_a_git_repo_dir
-            if [ $? -eq 0 ]; then
-                TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
-                echo "patch dir: ${TEMP_PATCH_DIR}"
-                if [ -d "${TEMP_PATCH_DIR}" ]; then
-                    if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
-                        echo "${LIST_BINFO_APP_NAME[${jj}]}: applying patches"
-                        sleep 0.2
-                        git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
-                        if [ $? -ne 0 ]; then
-                            git am --abort
-                            echo ""
-                            echo "repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                            echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
-                            echo ""
-                            exit 1
-                        else
-                            echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                            #echo "git am ok"
-                        fi
-                    else
-                       echo "Warning, empty patch directory: ${TEMP_PATCH_DIR}"
-                       sleep 2
-                    fi
-                else
-                    true
-                    echo "${LIST_BINFO_APP_NAME[${jj}]}: No patches to apply"
-                    #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
-                    #sleep 2
-                fi
-                sleep 0.2
-            else
-                echo "Warning, not a git repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                sleep 2
-            fi
-        else
-            echo "repo am paches skipped, no repository defined: ${LIST_BINFO_APP_NAME[${jj}]}"
-        fi
-        jj=$(( ${jj} + 1 ))
+        if [ -z ${DICTIONARY_PATCHED_PROJECTS[${LIST_BINFO_APP_NAME[${jj}]}]} ]; then
+			if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+				cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+				func_is_current_dir_a_git_repo_dir
+				if [ $? -eq 0 ]; then
+					TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
+					echo "patch dir: ${TEMP_PATCH_DIR}"
+					if [ -d "${TEMP_PATCH_DIR}" ]; then
+						if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
+							echo "[$jj]: ${LIST_BINFO_APP_NAME[${jj}]}: applying patches"
+							sleep 0.2
+							git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
+							if [ $? -ne 0 ]; then
+								git am --abort
+								echo ""
+								echo "repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+								echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
+								echo ""
+								exit 1
+							else
+								echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+								#echo "git am ok"
+							fi
+							DICTIONARY_PATCHED_PROJECTS[${LIST_BINFO_APP_NAME[${jj}]}]=1
+						else
+						   echo "Warning, empty patch directory: ${TEMP_PATCH_DIR}"
+						   sleep 2
+						fi
+					else
+						true
+						echo "${LIST_BINFO_APP_NAME[${jj}]}: No patches to apply"
+						#echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
+						#sleep 2
+					fi
+					sleep 0.2
+				else
+					echo "Warning, not a git repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+					sleep 2
+				fi
+			else
+				echo "repo am paches skipped, no repository defined: ${LIST_BINFO_APP_NAME[${jj}]}"
+			fi
+		else
+			echo "[$jj]: ${LIST_BINFO_APP_NAME[${jj}]}: patches already applied, skipping"
+		fi
+		jj=$(( ${jj} + 1 ))
     done
 }
 
