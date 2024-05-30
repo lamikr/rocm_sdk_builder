@@ -14,8 +14,8 @@ if [ -z ${SDK_ROOT_DIR} ]; then
 fi
 
 func_build_init() {
-    export CCACHE_DIR=/home/lamikr/.ccache
-    export CCACHE_TEMPDIR=/home/lamikr/.ccache
+    export CCACHE_DIR="${HOME}/.ccache"
+    export CCACHE_TEMPDIR="${HOME}/.ccache"
     ccache -M 30G
     echo "SDK_ROOT_DIR: ${SDK_ROOT_DIR}"
 }

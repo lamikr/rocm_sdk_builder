@@ -61,10 +61,20 @@ func_install_dir_init() {
                 fi
             fi
         else
-            echo "Creating install target directory: $INSTALL_DIR_PREFIX_SDK_ROOT"
-            if ! mkdir -p "$INSTALL_DIR_PREFIX_SDK_ROOT"; then
-                echo "Failed to create install target directory: $INSTALL_DIR_PREFIX_SDK_ROOT"
-                ret_val=1
+            echo "Trying to create install target direcory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
+            mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT} 2> /dev/null
+            if [ ! -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+                sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}
+                if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+                    echo "Install target directory created: 'sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                    sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
+                    echo "Install target directory owner changed: 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                    sleep 10
+                    ret_val=0
+                else
+                    echo "Failed to create install target directory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
+                    ret_val=1
+                fi
             else
                 echo "Install target directory created: mkdir -p $INSTALL_DIR_PREFIX_SDK_ROOT"
                 sleep 10
@@ -125,6 +135,10 @@ EOF
             echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[jj]}"
             sleep 0.2
             mkdir -p "${LIST_APP_SRC_CLONE_DIR[jj]}"
+            # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
+            # situations where same src_code directory is used for building multiple projects
+            # with just different configure parameters (for example amd-fftw)
+            # in this case we want to add upstream repo and apply patches only once
             LIST_APP_ADDED_UPSTREAM_REPO[jj]=1
         fi
 
@@ -157,7 +171,9 @@ EOF
     # Fetch updates and initialize submodules
     jj=0
     while [ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; do
+        # check if directory was just created and git fetch needs to be done
         if [[ "${LIST_APP_ADDED_UPSTREAM_REPO[jj]}" -eq 1 ]]; then
+            echo "${jj}: git fetch on ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
             git fetch upstream
             if [ $? -ne 0 ]; then
@@ -183,6 +199,7 @@ EOF
     # Apply patches if patch directory exists
     jj=0
     while [ -n "${LIST_APP_PATCH_DIR[jj]}" ]; do
+        # check if directory was just created and git am needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[jj]} -eq 1 ]; then
             TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[jj]}
             cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
@@ -282,7 +299,7 @@ func_repolist_checkout_default_versions() {
     
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
-            echo "Repository to reset: ${LIST_BINFO_APP_NAME[jj]}"
+            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[jj]}"
             sleep 0.2
             cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
             git reset --hard
@@ -491,6 +508,7 @@ func_repolist_checkout_by_version_tag_file() {
 }
 
 func_repolist_apply_patches() {
+	declare -A DICTIONARY_PATCHED_PROJECTS
     echo "func_repolist_apply_patches"
 
     for (( jj=0; jj<${#LIST_APP_SRC_CLONE_DIR[@]}; jj++ )); do

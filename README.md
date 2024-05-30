@@ -157,7 +157,18 @@ by using hipcc.
 ```
 # source /opt/rocm_sdk_611/bin/env_rocm.sh
 # cd /opt/rocm_sdk_611/docs/examples/hipcc/hello_world
-./build.sh
+# ./build.sh
+```
+
+## Test OpenCL Integration
+
+Following code printouts some information about OpenCL platform and devices found
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# docs/examples/opencl/check_opencl_caps
+# make
+# ./check_opencl_caps
 ```
 
 # Customizing the SDK Build
