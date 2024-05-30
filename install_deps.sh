@@ -8,7 +8,7 @@ func_is_supported_distro()
   fi
 
   case "${ID}" in
-    mageia|fedora|ubuntu)
+    mageia|fedora|ubuntu|arch)
         echo "Supported Linux distribution detected: ${ID}"
         true
         ;;
@@ -36,6 +36,11 @@ func_install_packages()
           sudo apt install gfortran make pkg-config libnuma1 cmake-curses-gui dpkg-dev rpm doxygen libelf-dev rename liburi-encode-perl libfile-basedir-perl libfile-copy-recursive-perl libfile-listing-perl build-essential wget libomp5 libomp-dev libpci3 libdrm-dev xxd libglew-dev autoconf automake libtool libbz2-dev liblzma-dev libicu-dev libfindbin-libs-perl libmsgpack-dev python3-pip libssl-dev python3-openssl libffi-dev nlohmann-json3-dev texinfo libnuma-dev cmake-extras cmake-gui sqlite3 libsqlite3-dev git git-lfs lbzip2 valgrind bison flex byacc gettext ninja-build texlive ocl-icd-opencl-dev protobuf-compiler pybind11-dev libaio-dev libgmp-dev libmpfr-dev libpng-dev libjpeg-dev
           pip3 install --break-system-packages --user CppHeaderParser
 	      git-lfs install
+          ;;
+        arch)
+          # elevate_if_not_root pacman -Syu
+          sudo pacman -S gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser
+        git-lfs install
           ;;
          *)
           echo "This script is currently supported on Mageia, Fedora and Ubuntu"
