@@ -1,7 +1,7 @@
-From 5982f2026cb9bf8f3c6454178a11f6b818de7218 Mon Sep 17 00:00:00 2001
+From 268f465c7d2b4123aeb50c09c0d92e3f6f8f4478 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 11:11:47 -0700
-Subject: [PATCH 4/6] LoadHIP lib and lib64 search path adjustements
+Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
 
 - search both lib and lib64 directories
   (note some libs still installed to lib-dir
@@ -116,5 +116,5 @@ index 0f7a61cf141..dfa4bab4df2 100644
    if(ROCM_VERSION_DEV VERSION_GREATER_EQUAL "5.7.0")
      # check whether hipblaslt is using its own datatype
 -- 
-2.41.0
+2.45.1
 

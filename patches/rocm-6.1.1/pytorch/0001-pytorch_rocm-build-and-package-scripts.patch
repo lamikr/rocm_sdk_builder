@@ -1,7 +1,7 @@
-From 19ce4ef2bb0c475d96e1ee163106e139ad4b0e2a Mon Sep 17 00:00:00 2001
+From e3509eae726e4bca1f61f9bb17686c0802a57faa Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/6] pytorch_rocm build and package scripts
+Subject: [PATCH 1/7] pytorch_rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -79,5 +79,5 @@ index 00000000000..8b3272e6c49
 +unset PKG_CONFIG_PATH
 +USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.41.0
+2.45.1
 
