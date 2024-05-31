@@ -1,7 +1,7 @@
-From b08d7f1a84bda691402a3bea22453639e376703f Mon Sep 17 00:00:00 2001
+From 9e1670018ce2e945407f3f364f0be1b4536b38dc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 14:02:57 -0700
-Subject: [PATCH 1/7] onnxruntime training rocm sdk builder script
+Subject: [PATCH 1/9] onnxruntime training rocm sdk builder script
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -45,5 +45,5 @@ index 0000000000..9f31121b84
 @@ -0,0 +1 @@
 +pip install ./build/Linux/Release/dist/onnxruntime_training*.whl
 -- 
-2.40.1
+2.45.1
 
