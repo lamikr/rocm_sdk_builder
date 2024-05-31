@@ -1,7 +1,7 @@
-From 2de1f3a0f061b2282671514b3215bf5316cf83bc Mon Sep 17 00:00:00 2001
+From ea33051c7477ec8098aab66c2337a26acdd3b81b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:21:15 -0700
-Subject: [PATCH 2/7] fix circular dependency error with DeepSpeed
+Subject: [PATCH 2/9] fix circular dependency error with DeepSpeed
 
 discussed here:
 https://github.com/ROCm/onnxruntime/commit/1caf38252b120caf64e891c2f1b8eb64e94fad97
@@ -49,5 +49,5 @@ index 779b6bfe50..fda6e345da 100755
  
              configure_ort_compatible_zero_stage3(debug=False, stats_output_dir="ort_output", stats_overwrite=True)
 -- 
-2.40.1
+2.45.1
 
