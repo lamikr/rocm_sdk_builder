@@ -8,11 +8,11 @@ func_is_supported_distro()
   fi
 
   case "${ID}" in
-    mageia|fedora|ubuntu|arch)
+    mageia|fedora|ubuntu|arch|manjaro)
         echo "Supported Linux distribution detected: ${ID}"
         true
         ;;
-    *)  printf "This script is currently supported on Mageia, Fedora and Ubuntu\n"
+    *)  printf "This script is currently supported on Mageia, Fedora, Ubuntu, Arch and Manjaro\n"
         exit 2
         ;;
   esac
@@ -37,13 +37,13 @@ func_install_packages()
           pip3 install --break-system-packages --user CppHeaderParser
 	      git-lfs install
           ;;
-        arch)
+        arch|manjaro)
           # elevate_if_not_root pacman -Syu
           sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx
 	      git-lfs install
           ;;
          *)
-          echo "This script is currently supported on Mageia, Fedora and Ubuntu"
+          echo "This script is currently supported on Mageia, Fedora, Ubuntu, Arch and Manjaro"
           exit 2
           ;;
     esac
