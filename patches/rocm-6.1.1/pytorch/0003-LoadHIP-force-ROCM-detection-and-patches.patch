@@ -1,7 +1,7 @@
-From 5046c437018a4c32307721657df7f2e8e5fe0404 Mon Sep 17 00:00:00 2001
+From bbfb6e70f3e2994766aa12cd11013c9ad17153e4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:32:33 -0700
-Subject: [PATCH 3/7] LoadHIP force ROCM detection and patches
+Subject: [PATCH 3/8] LoadHIP force ROCM detection and patches
 
 - set HIP_ROOT_DIR to ROCM_PATH which is set
   by the build scripts

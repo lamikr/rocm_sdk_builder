@@ -1,7 +1,7 @@
-From adbb347de92db04c15acfc9d1bd7c3ca62c95f34 Mon Sep 17 00:00:00 2001
+From a6bf3a1ab381f48c2596625a8575c99900590c60 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 20:17:36 -0700
-Subject: [PATCH 6/7] cherry-pick hipify fix from never version
+Subject: [PATCH 6/8] cherry-pick hipify fix from never version
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

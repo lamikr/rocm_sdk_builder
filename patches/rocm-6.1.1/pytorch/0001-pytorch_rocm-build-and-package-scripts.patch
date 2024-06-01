@@ -1,7 +1,7 @@
-From e3509eae726e4bca1f61f9bb17686c0802a57faa Mon Sep 17 00:00:00 2001
+From 57ea92a345b8bdf25893b548f8d9bbf74b6b0eb4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/7] pytorch_rocm build and package scripts
+Subject: [PATCH 1/8] pytorch_rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
