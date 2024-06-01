@@ -20,7 +20,7 @@ In configuration it's possible to select also other GPU's for build target. If y
 
 ## Installation Requirements
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39 and Ubuntu 230.10 Linux distributions.
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Ubuntu 23.10 and Arch Linux distributions.
 
 Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will naturally have their own build time dependencies.
 
