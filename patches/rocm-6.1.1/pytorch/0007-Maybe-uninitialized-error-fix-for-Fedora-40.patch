@@ -1,7 +1,7 @@
-From 2296735a9e3d8c5062111b95f8ea749e6569b306 Mon Sep 17 00:00:00 2001
+From 9c24891bc5fbe9796b35ff3b88ebbdbb3283dcb5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:34:17 -0700
-Subject: [PATCH 7/7] Maybe uninitialized error fix for Fedora 40
+Subject: [PATCH 7/8] Maybe uninitialized error fix for Fedora 40
 
 - Occurs on fbgemm submodule with Fedora 40/gcc 14
 
