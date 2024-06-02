@@ -19,6 +19,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "echo 'export ROCM_HOME=${INSTALL_DIR_PREFIX_SDK_ROOT}' >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
     "cat ${SDK_ROOT_DIR}/binfo/env/env_rocm_template.sh >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/pytorch"
+    "install -Dm750 ${SDK_ROOT_DIR}/docs/examples/pytorch/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/pytorch"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/pytorch/*.ipynb ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/pytorch"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/pytorch/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/pytorch"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/hipcc/hello_world"
