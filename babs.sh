@@ -740,11 +740,15 @@ func_handle_user_command_args() {
                     local res=$?
                     if [[ $res -eq 0 ]]; then
                         echo -e "\nROCM SDK build and install ready"
-                        echo "You can use the following commands to test the setup:"
-                        echo "source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
-                        echo "rocminfo\n"
+                        echo "You can use the following commands to test your gpu is detected:"
+			echo ""
+                        echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
+                        echo "    rocminfo"
+			echo ""
+			echo "If probelms, check read and write permissions of /dev/kfd AMD gpu device driver"
+			echo ""
                     else
-                        echo -e "\nBuild failed\n"
+                        echo -e "Build failed"
                     fi
                     exit 0
                 else
