@@ -1,7 +1,7 @@
-From 17b889089291c11e108a3b7bb011ff6f32b3b99d Mon Sep 17 00:00:00 2001
+From 1183293bec9ce1cbcb579b5b47e9370eda34d9f2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 17:06:25 -0700
-Subject: [PATCH 2/5] aotriton triton rocm home path update
+Subject: [PATCH 2/6] aotriton triton rocm home path update
 
 - change the location of rocm_home
   to triton subproject
@@ -150,5 +150,5 @@ index 60eaa30..c9df795 100755
 +cp $ROCM_HOME/llvm/bin/ld.lld $TRITON_ROCM_DIR/bin/
  
 -- 
-2.41.0
+2.45.1
 
