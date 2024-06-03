@@ -4,9 +4,12 @@
 # See coffeeware file in the root directory for details.
 
 # Set ROCM version information
+# these numbers are visible on /etc/.info/version
+# ROCM_SDK_RELEASE_VERSION is the fourth number and meant to used for reporting the tagged sdk releases
 export ROCM_MAJOR_VERSION=6
 export ROCM_MINOR_VERSION=1
 export ROCM_PATCH_VERSION=1
+export ROCM_SDK_RELEASE_VERSION=1
 
 # Set BABS version information
 export BABS_VERSION=2024_05_25_01
