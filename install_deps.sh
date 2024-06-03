@@ -8,11 +8,11 @@ func_is_supported_distro()
   fi
 
   case "${ID}" in
-    mageia|fedora|ubuntu|arch|manjaro)
+    mageia|fedora|ubuntu|linuxmint|arch|manjaro)
         echo "Supported Linux distribution detected: ${ID}"
         true
         ;;
-    *)  printf "This script is currently supported on Mageia, Fedora, Ubuntu, Arch and Manjaro\n"
+    *)  printf "This script is currently supported on Mageia, Fedora, Ubuntu, Linux Mint, Arch and Manjaro\n"
         exit 2
         ;;
   esac
@@ -31,7 +31,7 @@ func_install_packages()
           sudo dnf install cmake rpm-build gcc gcc-c++ openssl-devel zlib-devel gcc-gfortran make libcxx-devel numactl-libs numactl-devel dpkg-dev doxygen  elfutils-libelf-devel prename perl-URI-Encode perl-File-Listing perl-File-BaseDir fftw-devel wget libdrm-devel xxd glew-devel python3-cppheaderparser autoconf automake libtool icu bzip2-devel lzma-sdk-devel libicu-devel msgpack-devel libffi-devel json-devel texinfo python3-pip sqlite-devel git git-lfs lbzip2 opencv-devel ffmpeg-free valgrind perl-FindBin pmix-devel flex-devel bison-devel bison flex byacc gettext xz-devel ninja-build texlive-scheme-small protobuf-devel pybind11-devel libaio-devel gmp-devel mpfr-devel libpng-devel libjpeg-devel
 	      git-lfs install
           ;;
-        ubuntu)
+        ubuntu|linuxmint)
           # elevate_if_not_root apt-get update
           sudo apt install gfortran make pkg-config libnuma1 cmake-curses-gui dpkg-dev rpm doxygen libelf-dev rename liburi-encode-perl libfile-basedir-perl libfile-copy-recursive-perl libfile-listing-perl build-essential wget libomp5 libomp-dev libpci3 libdrm-dev xxd libglew-dev autoconf automake libtool libbz2-dev liblzma-dev libicu-dev libfindbin-libs-perl libmsgpack-dev python3-pip libssl-dev python3-openssl libffi-dev nlohmann-json3-dev texinfo libnuma-dev cmake-extras cmake-gui sqlite3 libsqlite3-dev git git-lfs lbzip2 valgrind bison flex byacc gettext ninja-build texlive ocl-icd-opencl-dev protobuf-compiler pybind11-dev libaio-dev libgmp-dev libmpfr-dev libpng-dev libjpeg-dev
           pip3 install --break-system-packages --user CppHeaderParser
