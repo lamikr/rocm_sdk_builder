@@ -1,7 +1,9 @@
-From 317bafe2793c3c97f7c4f7c84bc1b88f985b46c1 Mon Sep 17 00:00:00 2001
+From ef4b1840a05cc22751653b55f0d21dafac7321dc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
-Subject: [PATCH 2/4] path update
+Subject: [PATCH 4/4] hardcoded rocm path
+
+- todo: ROCM_HOME needs to be passed as an environment variable
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -31,5 +33,5 @@ index 18c13022..8dd45591 100644
              result = subprocess.check_output(rocm_wavefront_size_cmd, shell=True)
              rocm_wavefront_size = result.decode('utf-8').strip()
 -- 
-2.41.0
+2.45.2
 
