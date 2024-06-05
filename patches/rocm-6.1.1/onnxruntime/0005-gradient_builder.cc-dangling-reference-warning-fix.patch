@@ -1,4 +1,4 @@
-From 1ea84c195dcd21c6c313bb2dbebd3da63b10618c Mon Sep 17 00:00:00 2001
+From a2818a655cbda3c82257a6044b40cacb69670b8c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:47:18 -0700
 Subject: [PATCH 05/10] gradient_builder.cc dangling reference warning fix
@@ -31,5 +31,5 @@ index e675b55c8a..50487a1a67 100755
        size_t n = static_cast<size_t>(input_shape.dim_size()) - 1;
        bw_perm.resize(n + 1);
 -- 
-2.34.1
+2.45.2
 

@@ -1,15 +1,17 @@
-From 64f8c48298e1222bda2d7db27e292023b223d9cd Mon Sep 17 00:00:00 2001
+From 2aab5bdb4fddf79f7536ca0b18470eeecd2fef6f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 14:02:57 -0700
-Subject: [PATCH 01/10] onnxruntime training rocm sdk builder script
+Subject: [PATCH 01/10] onnxruntime training rocm sdk builder scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_onnxruntime_rocm_training.sh   | 20 ++++++++++++++++++++
  install_onnxruntime_rocm_training.sh |  1 +
- 2 files changed, 21 insertions(+)
+ preconfig_rocm.sh                    |  7 +++++++
+ 3 files changed, 28 insertions(+)
  create mode 100755 build_onnxruntime_rocm_training.sh
  create mode 100755 install_onnxruntime_rocm_training.sh
+ create mode 100755 preconfig_rocm.sh
 
 diff --git a/build_onnxruntime_rocm_training.sh b/build_onnxruntime_rocm_training.sh
 new file mode 100755
@@ -44,6 +46,19 @@ index 0000000000..9f31121b84
 +++ b/install_onnxruntime_rocm_training.sh
 @@ -0,0 +1 @@
 +pip install ./build/Linux/Release/dist/onnxruntime_training*.whl
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 0000000000..97ab2c15d5
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,7 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d ./build ]; then
++        # clean old build, python ./setup.py clean does not work in all cases
++        rm -r ./build
++    fi
++fi
 -- 
-2.34.1
+2.45.2
 

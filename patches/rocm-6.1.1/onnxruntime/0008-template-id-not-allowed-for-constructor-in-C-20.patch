@@ -1,4 +1,4 @@
-From ec38285fecf3bef22a4b453f26b238d43f4cddd2 Mon Sep 17 00:00:00 2001
+From 187d8d415e15625794b282569d33f41ac7370a60 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:08:25 -0700
 Subject: [PATCH 08/10] template-id not allowed for constructor in C++20
@@ -32,5 +32,5 @@ index b9f3050e59..896f2ad9af 100644
                                                            POST_EVAL_TRANSFORM post_transform,
                                                            const std::vector<ThresholdType>& base_values) : TreeAggregator<InputType, ThresholdType, OutputType>(n_trees, n_targets_or_classes,
 -- 
-2.34.1
+2.45.2
 
