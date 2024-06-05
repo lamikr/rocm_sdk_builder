@@ -1,4 +1,4 @@
-From ae0ca0699ed070b548469028a651d26e8d3f409c Mon Sep 17 00:00:00 2001
+From 2b9c3eeabde21aaace72e81cc83ab5f04c826dcd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:13:28 -0700
 Subject: [PATCH 09/10] fedora40 onnxruntime optimized maybe-uninitialized
@@ -41,5 +41,5 @@ index f15d5b8dd6..fde6941769 100644
  target_include_directories(onnxruntime_optimizer PRIVATE ${ONNXRUNTIME_ROOT})
  if (onnxruntime_ENABLE_TRAINING)
 -- 
-2.34.1
+2.45.2
 

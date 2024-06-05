@@ -1,4 +1,4 @@
-From 3a2386560fccbbc51bb9d098b852613cce8cd4d0 Mon Sep 17 00:00:00 2001
+From 6436facc2d803702a7d0d23e8d6ab20b205805d9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 3 Jun 2024 22:08:11 -0700
 Subject: [PATCH 10/10] add cmake version check to build script
@@ -36,5 +36,5 @@ index 8462abfa05..44d7022e2e 100755
  #
  #
 -- 
-2.34.1
+2.45.2
 

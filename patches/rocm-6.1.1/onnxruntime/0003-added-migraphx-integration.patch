@@ -1,4 +1,4 @@
-From e838e83e974946bbdb39c7b12e350318a095149a Mon Sep 17 00:00:00 2001
+From 51095c24c5a854c3227dd4815877ac7cbdec4f0f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Wed, 22 May 2024 11:09:43 -0700
 Subject: [PATCH 03/10] added migraphx integration
@@ -22,5 +22,5 @@ index 769dac0c37..8462abfa05 100755
  #
  #./build.sh --config RelWithDebInfo --build_shared_lib --parallel --compile_no_warning_as_error --skip_submodule_sync
 -- 
-2.34.1
+2.45.2
 

@@ -1,4 +1,4 @@
-From 75405dbf15ca90b4464c02037cc256fdc29b2998 Mon Sep 17 00:00:00 2001
+From 3d8a434a60262b24bb0ad78be1b7ddcba0f079f0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:03:37 -0700
 Subject: [PATCH 04/10] composable kernel patches to support gfx1010 and
@@ -271,5 +271,5 @@ index 0000000000..46a77fc78a
 +         clang_tidy_check(${INSTANCE_NAME})
 +         set(result 0)
 -- 
-2.34.1
+2.45.2
 
