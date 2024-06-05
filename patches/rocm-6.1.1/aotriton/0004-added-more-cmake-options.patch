@@ -1,7 +1,7 @@
-From 5883905718624eabf52db566d4644c35af8190f0 Mon Sep 17 00:00:00 2001
+From 15236d0f11ddfd4db5356d0d6ec50724ba43966b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 11:17:52 -0700
-Subject: [PATCH 4/6] added more cmake options
+Subject: [PATCH 4/5] added more cmake options
 
 following cmake options can now be passed from
 aotriton to triton
@@ -128,5 +128,5 @@ index 55425ad..02a0ccd 100644
              cmake_args.append("-DLLVM_EXTERNAL_LIT=" + lit_dir)
          cmake_args.extend(thirdparty_cmake_args)
 -- 
-2.45.1
+2.41.1
 

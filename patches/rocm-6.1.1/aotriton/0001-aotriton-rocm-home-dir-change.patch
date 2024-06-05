@@ -1,7 +1,7 @@
-From 8ee78241c7c18a6c1941d8fd096194f2908ed9a3 Mon Sep 17 00:00:00 2001
+From ea4cce300816802ad19a40e6373f3fe3e8026742 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 17:05:37 -0700
-Subject: [PATCH 1/6] aotriton rocm home dir change
+Subject: [PATCH 1/5] aotriton rocm home dir change
 
 - change the rocm sdk directory location
   on all possible places
@@ -98,5 +98,5 @@ index 8117e5d..e0f2a57 100644
          per_kernel_targets = []
          for k in triton_kernels:
 -- 
-2.45.1
+2.41.1
 
