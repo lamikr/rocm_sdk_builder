@@ -1,4 +1,4 @@
-From a6bf3a1ab381f48c2596625a8575c99900590c60 Mon Sep 17 00:00:00 2001
+From c42c84cb59183c6f0a7dabd3c7e2cd463a72c270 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 20:17:36 -0700
 Subject: [PATCH 6/8] cherry-pick hipify fix from never version
@@ -29,5 +29,5 @@ index 3dd5a8caf32..569191edbd1 100644
              "cuda_texture_types.h",
              ("hip/hip_texture_types.h", CONV_INCLUDE, API_RUNTIME),
 -- 
-2.45.1
+2.45.2
 

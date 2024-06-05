@@ -1,4 +1,4 @@
-From 4635e7834d872aedc71e33a4a7784bb3de4515eb Mon Sep 17 00:00:00 2001
+From df24b88a3f3441e491312d0ca3315abaadf74083 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 18:35:12 -0700
 Subject: [PATCH 8/8] replace clamp with min and max for fedora 40 issue
@@ -40,5 +40,5 @@ index 5682ba27573..862bcb9614d 100644
      });
    });
 -- 
-2.45.1
+2.45.2
 

@@ -1,4 +1,4 @@
-From 4644c90bcb782da01181a1b620fcd228acd42a5a Mon Sep 17 00:00:00 2001
+From a9deb258499d8caf1bf19109ced9f3255f9bf8e0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 19:25:50 -0700
 Subject: [PATCH 5/8] fix gcc parameter is null optimization error
@@ -29,5 +29,5 @@ index 42b67d8cb25..0bc7f79b709 100644
  
  if(INSTALL_TEST)
 -- 
-2.45.1
+2.45.2
 
