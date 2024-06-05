@@ -1,14 +1,14 @@
-From 57ea92a345b8bdf25893b548f8d9bbf74b6b0eb4 Mon Sep 17 00:00:00 2001
+From a529ec5c1c6feb90516928ad310db0eb96c4fd11 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/8] pytorch_rocm build and package scripts
+Subject: [PATCH 1/8] pytorch_rocm preconfig build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_pytorch_rocm.sh         | 23 +++++++++++++++++++++++
  package_pytorch_rocm_wheel.sh | 12 ++++++++++++
- preconfig_pytorch_rocm.sh     | 12 ++++++++++++
- 3 files changed, 47 insertions(+)
+ preconfig_pytorch_rocm.sh     | 22 ++++++++++++++++++++++
+ 3 files changed, 57 insertions(+)
  create mode 100755 build_pytorch_rocm.sh
  create mode 100755 package_pytorch_rocm_wheel.sh
  create mode 100755 preconfig_pytorch_rocm.sh
@@ -62,10 +62,10 @@ index 00000000000..abdc084540b
 +USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" python setup.py bdist_wheel
 diff --git a/preconfig_pytorch_rocm.sh b/preconfig_pytorch_rocm.sh
 new file mode 100755
-index 00000000000..8b3272e6c49
+index 00000000000..39baae92e22
 --- /dev/null
 +++ b/preconfig_pytorch_rocm.sh
-@@ -0,0 +1,12 @@
+@@ -0,0 +1,22 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
 +    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
@@ -77,7 +77,17 @@ index 00000000000..8b3272e6c49
 +unset CFLAGS
 +unset CPPFLAGS
 +unset PKG_CONFIG_PATH
++if [ -e ./preconfig_pytorch_rocm.sh ]; then
++    if [ -d ./build ]; then
++        #rm -rf build
++        #rm -rf torch (this is needed to really get all files regenerated for hip)
++        #git status | xargs -- rm -rf
++        #git reset --hard
++        #git submodule update --init --recursive
++        python setup.py clean
++    fi
++fi
 +USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.45.1
+2.45.2
 
