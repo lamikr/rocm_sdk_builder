@@ -1,4 +1,4 @@
-From f23750f2c7208c18439f7a0a94ef873918b93c1c Mon Sep 17 00:00:00 2001
+From 2b717afd08ea371f484d662f802ad11ef7dcb6df Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:18:53 -0800
 Subject: [PATCH 1/2] pytorch_vision rocm build and package scripts
@@ -7,9 +7,11 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_pytorch_vision_rocm.sh         | 18 ++++++++++++++++++
  package_pytorch_vision_rocm_wheel.sh | 16 ++++++++++++++++
- 2 files changed, 34 insertions(+)
+ preconfig_rocm.sh                    |  6 ++++++
+ 3 files changed, 40 insertions(+)
  create mode 100755 build_pytorch_vision_rocm.sh
  create mode 100755 package_pytorch_vision_rocm_wheel.sh
+ create mode 100755 preconfig_rocm.sh
 
 diff --git a/build_pytorch_vision_rocm.sh b/build_pytorch_vision_rocm.sh
 new file mode 100755
@@ -57,6 +59,18 @@ index 0000000000..6cad095eeb
 +export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
 +FORCE_CUDA=1 TORCHVISION_USE_NVJPEG=0 TORCHVISION_USE_VIDEO_CODEC=0 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 0000000000..9f71fe83b2
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,6 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d build ]; then
++        python ./setup.py clean
++    fi
++fi
 -- 
-2.41.0
+2.45.2
 

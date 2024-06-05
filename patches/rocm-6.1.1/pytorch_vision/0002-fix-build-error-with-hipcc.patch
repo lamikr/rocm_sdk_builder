@@ -1,4 +1,4 @@
-From e34943e339904a6ff5ce9930aa4bced1e97c51e2 Mon Sep 17 00:00:00 2001
+From 410299e9fae35c907a8d7773bf83e96c3efecc78 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 15:19:56 -0800
 Subject: [PATCH 2/2] fix build error with hipcc
@@ -28,5 +28,5 @@ index d2ed73071a..eada131d32 100644
    return out_tensor;
  }
 -- 
-2.41.0
+2.45.2
 
