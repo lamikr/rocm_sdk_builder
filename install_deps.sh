@@ -80,19 +80,45 @@ func_is_git_configured() {
             echo ""
             echo "You need to configure git user's email address. Example command:"
             echo "    git config --global user.email \"john.doe@emailserver.com\""
-            echo ""
-	    echo "Some git commands used by the tool does not work with without configuring the git user."
-            exit 2
+            echo "Some git commands used by the tool does not work with without configuring the git user."
+            return 1
         fi
     else
         echo ""
         echo "You need to configure git user's name and email address. Example commands:"
         echo "    git config --global user.name \"John Doe\""
         echo "    git config --global user.email \"john.doe@emailserver.com\""
-        echo ""
-	echo "Some git commands used by the tool does not work without configuring the git user."
-        exit 2
+        echo "Some git commands used by the tool does not work without configuring the git user."
+        return 1
     fi
+    return 0
+}
+
+func_is_user_in_dev_kfd_render_group() {
+    if [ -e /dev/kfd ]; then
+        test -w /dev/kfd || {
+            echo ""
+            echo "You need to set write permissions to /dev/kfd device driver for the user."
+            echo "This /dev/kfd is used by the ROCM applications to communicate with the AMD GPUs"
+            local group_owner_name=$(stat -c "%G" /dev/kfd)
+            if [ ${group_owner_name} = "render" ]; then
+                echo "Add your username to group render with command: "
+                echo "    sudo adduser $USERNAME render"
+		echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 2
+            else
+                echo "Unusual /dev/kfd group owner instead of 'render': ${group_owner_name}"
+                echo "Add your username to group ${group_owner_name} with command: "
+                echo "    sudo adduser $USERNAME ${group_owner_name}"
+		echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 3
+            fi
+        }
+    else
+        echo "Warning, /dev/kfd AMD GPU device driver does not exist"
+        return 4
+    fi
+    return 0
 }
 
 # /etc/*-release files describe the system
@@ -110,4 +136,13 @@ fi
 func_is_supported_distro
 func_install_packages
 func_is_git_configured
-echo "Dependencies installed, you can now start using the babs.sh command"
+res=$?
+func_is_user_in_dev_kfd_render_group
+res2=$?
+if [[ ${res} == 0 && ${res2} == 0 ]]; then
+    echo ""
+    echo "Dependencies installed, you can now start using the babs.sh command"
+else
+    echo ""
+    echo "Errors detected, fix them by following advices and run this script again to verify that they are fixed"
+fi
