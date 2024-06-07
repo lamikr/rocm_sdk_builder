@@ -8,23 +8,34 @@ In addition of the ROCm basic applications and libraries, the system will also i
 
 Latest ROCM release supported is the ROCM 6.1.1 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
 
-This project has been so far tested with following AMD GPUs:
+This project has been so far tested at least with the following AMD GPUs:
 
+- AMD RX 7900 XTX (gfx1100)
+- AMD RX 7800 XT (gfx1101)
+- AMD RX 6800 XT (gfx1030)
 - AMD RX 6800 (gfx1030)
+- AMD RX 6600 (gfx1032)
 - AMD RX 5700 (gfx1010)
+- AMD RX 5500 (gfx1012)
 - AMD Mobile m680i (gfx1035)
+- gfx1036
 
-In configuration it's possible to select also other GPU's for build target. If you can test with these or other GPU's like AMD RX 6700 (gfx1031) or RX 7000 series of GPU's like RX 7800 (gfx1101) or RX 7900 (gfx1100) the feedback is more than wellcome.
+AMD RX 5500 and AMD RX 6600 supoort is at the moment only partial. 
+
+For AMD RX 6600, select the RX 6800 (gfx1030) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.3.0
+For AMD RX 5500, select the RX 5700 (gfx1010) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.1.0
+
+In configuration it's possible to select also other GPU's for build target but with some of the older cards more work may be needed.
+All kind of feedback is more than welcome and can be discussed for example by opening a new issue to github.
 
 ![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
 
 ## Installation Requirements
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Ubuntu 23.10, Arch and Manjaro Linux distributions.
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Fedora 40, Ubuntu 22.04, Ubuntu 23.10, Ubuntu 24.04, Linux Mint 21, Arch and Manjaro Linux distributions.
 
-Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will naturally have their own build time dependencies.
-
-On Mageia, Fedora and Ubuntu these dependencies, the build time dependencies can be installed by executing a script:
+Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will have their own build time dependencies that can be
+installed by executing script:
 
 ```
 # ./install_deps.sh
