@@ -39,24 +39,94 @@ fi
 if [ ! -v BUILD_CPU_COUNT_MAX ]; then
     export BUILD_CPU_COUNT_MAX=`nproc`
 fi
-# use by default total - 4 cpu's for building apps
-if [ ! -v BUILD_CPU_COUNT_DEFAULT ]; then
-    export BUILD_CPU_COUNT_DEFAULT=`nproc --ignore=4`
+RAM_MEM_GB_TOTAL=`free -g | grep -oP '\d+' | head -n 1`
+if [ $RAM_MEM_GB_TOTAL -lt 32 ]; then
+    RAM_MEM_GB_TOTAL = 32
 fi
-if [ ! -v BUILD_CPU_COUNT ]; then
-    export BUILD_CPU_COUNT=$BUILD_CPU_COUNT_DEFAULT
+if [ $BUILD_CPU_COUNT_MAX -lt 1 ]; then
+    BUILD_CPU_COUNT_MAX = 1
 fi
-# and for the apps consuming lot of resources we use half of the cpu's compared to regular
-if [ ! -v BUILD_CPU_COUNT_HALF ]; then
-    let BUILD_CPU_COUNT_HALF=$BUILD_CPU_COUNT_MAX/2
-    export BUILD_CPU_COUNT_HALF
-    #echo "BUILD_CPU_COUNT_HALF: $BUILD_CPU_COUNT_HALF"
+
+RAM_MEM_GB_BY_CPU=$((${RAM_MEM_GB_TOTAL} / ${BUILD_CPU_COUNT_MAX}))
+
+if [ ${BUILD_CPU_COUNT_MAX} -gt 16 ]; then
+    if [ $RAM_MEM_GB_BY_CPU -gt 2 ]; then
+        if [ ! -v BUILD_CPU_COUNT_DEFAULT ]; then
+            export BUILD_CPU_COUNT_DEFAULT=$((7 * ${BUILD_CPU_COUNT_MAX} / 8))
+        fi
+        if [ ! -v BUILD_CPU_COUNT_MODERATE ]; then
+            export BUILD_CPU_COUNT_MODERATE=$((3 * ${BUILD_CPU_COUNT_MAX} / 4))
+        fi
+        if [ ! -v BUILD_CPU_COUNT_SAFE ]; then
+            # at least 5 GB per CPU
+            export BUILD_CPU_COUNT_SAFE=$(($RAM_MEM_GB_TOTAL / 5))
+        fi
+        if [ $BUILD_CPU_COUNT_SAFE -gt $BUILD_CPU_COUNT_MODERATE ]; then
+	        export BUILD_CPU_COUNT_SAFE=$BUILD_CPU_COUNT_MODERATE
+        fi
+    else
+        if [ ! -v BUILD_CPU_COUNT_DEFAULT ]; then
+            export BUILD_CPU_COUNT_DEFAULT=$((3 * ${BUILD_CPU_COUNT_MAX} / 4))
+        fi
+        if [ ! -v BUILD_CPU_COUNT_MODERATE ]; then
+            export BUILD_CPU_COUNT_MODERATE=$((5 * ${BUILD_CPU_COUNT_MAX} / 8))
+        fi
+        if [ ! -v BUILD_CPU_COUNT_SAFE ]; then
+            # at least 5 GB per CPU
+            export BUILD_CPU_COUNT_SAFE=$(($RAM_MEM_GB_TOTAL / 5))
+        fi
+        if [ $BUILD_CPU_COUNT_SAFE -gt $BUILD_CPU_COUNT_MODERATE ]; then
+	        export BUILD_CPU_COUNT_SAFE=$BUILD_CPU_COUNT_MODERATE
+        fi
+    fi
+else
+    if [ $RAM_MEM_GB_BY_CPU -gt 2 ]; then
+		# use by default total - 4 cpu's for building apps
+		if [ ! -v BUILD_CPU_COUNT_DEFAULT ]; then
+			export BUILD_CPU_COUNT_DEFAULT=$((7 * ${BUILD_CPU_COUNT_MAX} / 8))
+		fi
+		if [ ! -v BUILD_CPU_COUNT_MODERATE ]; then
+			export BUILD_CPU_COUNT_MODERATE=$((3 * ${BUILD_CPU_COUNT_MAX} / 4))
+		fi
+		if [ ! -v BUILD_CPU_COUNT_SAFE ]; then
+			export BUILD_CPU_COUNT_SAFE=$((${BUILD_CPU_COUNT_MAX} / 2))
+		fi
+	else
+		# use by default total - 4 cpu's for building apps
+		if [ ! -v BUILD_CPU_COUNT_DEFAULT ]; then
+			export BUILD_CPU_COUNT_DEFAULT=$((3 * ${BUILD_CPU_COUNT_MAX} / 4))
+		fi
+		if [ ! -v BUILD_CPU_COUNT_MODERATE ]; then
+			export BUILD_CPU_COUNT_MODERATE=$(( 5 * ${BUILD_CPU_COUNT_MAX} / 8))
+		fi
+		if [ ! -v BUILD_CPU_COUNT_SAFE ]; then
+			export BUILD_CPU_COUNT_SAFE=$(($RAM_MEM_GB_TOTAL / 5))
+		fi
+	fi
 fi
-if [ ! -v BUILD_CPU_COUNT_TENSILE_SAFE ]; then
-    let BUILD_CPU_COUNT_TENSILE_SAFE=$BUILD_CPU_COUNT_DEFAULT/2
-    export BUILD_CPU_COUNT_TENSILE_SAFE
-    #echo "BUILD_CPU_COUNT_HALF: $BUILD_CPU_COUNT_HALF"
+if [ $BUILD_CPU_COUNT_DEFAULT -le 1 ]; then
+    BUILD_CPU_COUNT_DEFAULT = 1
 fi
+if [ $BUILD_CPU_COUNT_MODERATE -le 1 ]; then
+    BUILD_CPU_COUNT_MODERATE = 1
+fi
+if [ $BUILD_CPU_COUNT_SAFE -le 1 ]; then
+    BUILD_CPU_COUNT_SAFE = 1
+fi
+
+# BINFO_BUILD_CPU_COUNT defines the cpu count that build.sh will use for app
+# each app's binfo file may change this value
+if [ ! -v BINFO_BUILD_CPU_COUNT ]; then
+    export BINFO_BUILD_CPU_COUNT=$BUILD_CPU_COUNT_DEFAULT
+fi
+
+echo "RAM_MEM_GB_TOTAL: ${RAM_MEM_GB_TOTAL}"
+echo "RAM_MEM_GB_BY_CPU: ${RAM_MEM_GB_BY_CPU}"
+echo "BINFO_BUILD_CPU_COUNT: ${BINFO_BUILD_CPU_COUNT}"
+echo "BUILD_CPU_COUNT_MAX: ${BUILD_CPU_COUNT_MAX}"
+echo "BUILD_CPU_COUNT_DEFAULT: ${BUILD_CPU_COUNT_DEFAULT}"
+echo "BUILD_CPU_COUNT_MODERATE: ${BUILD_CPU_COUNT_MODERATE}"
+echo "BUILD_CPU_COUNT_SAFE: ${BUILD_CPU_COUNT_SAFE}"
 
 #export ROCM_VERSION_STR="${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
 export ROCM_LIBPATCH_VERSION=${ROCM_MAJOR_VERSION}0${ROCM_MINOR_VERSION}0${ROCM_PATCH_VERSION}
