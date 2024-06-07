@@ -177,9 +177,18 @@ Following code printouts some information about OpenCL platform and devices foun
 
 ```
 # source /opt/rocm_sdk_611/bin/env_rocm.sh
-# docs/examples/opencl/check_opencl_caps
+# cd /opt/rocm_sdk_611/docs/examples/opencl/check_opencl_caps
 # make
 # ./check_opencl_caps
+```
+
+Following code sends 200 numbers for GPU kernels which modifies and sends them back to userspace.
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/opencl/hello_world
+# make
+# ./hello_world
 ```
 
 ## Run Pytorch GPU Benchmark
