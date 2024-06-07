@@ -16,7 +16,7 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
 
 BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin"
-    "install -Dm750 ${SDK_ROOT_DIR}/binfo/env/empty_file.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
+    "install -Dm750 ${SDK_ROOT_DIR}/binfo/env/need_to_be_sourced.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
     "echo 'export ROCM_HOME=${INSTALL_DIR_PREFIX_SDK_ROOT}' >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
     "cat ${SDK_ROOT_DIR}/binfo/env/env_rocm_template.sh >> ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/pytorch"
