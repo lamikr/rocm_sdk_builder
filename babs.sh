@@ -9,6 +9,33 @@
 
 source binfo/user_config.sh
 
+func_is_user_in_dev_kfd_render_group() {
+    if [ -e /dev/kfd ]; then
+        test -w /dev/kfd || {
+            echo ""
+            echo "You need to set write permissions to /dev/kfd device driver for the user."
+            echo "This /dev/kfd is used by the ROCM applications to communicate with the AMD GPUs"
+            local group_owner_name=$(stat -c "%G" /dev/kfd)
+            if [ ${group_owner_name} = "render" ]; then
+                echo "Add your username to group render with command: "
+                echo "    sudo adduser $USERNAME render"
+                echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 2
+            else
+                echo "Unusual /dev/kfd group owner instead of 'render': ${group_owner_name}"
+                echo "Add your username to group ${group_owner_name} with command: "
+                echo "    sudo adduser $USERNAME ${group_owner_name}"
+                echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 3
+            fi
+        }
+    else
+        echo "Warning, /dev/kfd AMD GPU device driver does not exist"
+        return 4
+    fi
+    return 0
+}
+
 func_build_version_init() {
     local build_version_file="./binfo/build_version.sh"
 
@@ -791,12 +818,16 @@ func_handle_user_command_args() {
                     local res=$?
                     if [[ $res -eq 0 ]]; then
                         echo -e "\nROCM SDK build and install ready"
-                        echo "You can use the following commands to test your gpu is detected:"
+                        func_is_user_in_dev_kfd_render_group
+                        res=$?
+                        if [ ${res} -eq 0 ]; then
+                            echo "You can use the following commands to test your gpu is detected:"
+                        else
+                            echo "After fixing /dev/kff permission problems, you can use the following commands to test that your gpu"
+                        fi
                         echo ""
                         echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
                         echo "    rocminfo"
-                        echo ""
-                        echo "If problems, check read and write permissions of /dev/kfd AMD gpu device driver"
                         echo ""
                     else
                         echo -e "Build failed"
