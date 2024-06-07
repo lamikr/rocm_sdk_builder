@@ -182,6 +182,21 @@ Following code printouts some information about OpenCL platform and devices foun
 # ./check_opencl_caps
 ```
 
+## Run Pytorch GPU Benchmark
+
+This test is pretty extensive and takes about 50 minutes on RX 6800.
+Test results are collected to result-folder but the python code which
+is supposed to parse the results from CSV files and plot pictures needs to be fixed.
+
+Results for different AMD and Nvidia GPUs are available in results folder.
+
+```
+# git clone https://github.com/lamikr/pytorch-gpu-benchmark/
+# cd pytorch-gpu-benchmark
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# ./test.sh
+```
+
 # Customizing the SDK Build
 
 Here is shortish but more detailed information how the SDK will work and can be modified.
@@ -281,15 +296,6 @@ For example:
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
-
-- more extensive GPU benchmark originally used with NVIDIA gpu's is available here. I have made some modifications to original benchmarks to update it to run with the newer pytorch and python numpy.
-
-```
-# git clone https://github.com/lamikr/pytorch-gpu-benchmark
-# cd pytorch-gpu-benchmark
-# source /opt/rocm_sdk_/bin/env_rocm.sh
-# ./test_with_torchvision_013.sh script
-```
 
 Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
