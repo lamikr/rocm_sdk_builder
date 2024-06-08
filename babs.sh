@@ -167,7 +167,7 @@ func_repolist_upstream_remote_repo_add() {
     do
         if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
             echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            sleep 0.2
+            sleep 0.1
             mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
             # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
             # situations where same src_code directory is used for building multiple projects
@@ -196,7 +196,7 @@ func_repolist_upstream_remote_repo_add() {
             echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
         fi
         ((jj++))
-        sleep 0.2
+        sleep 0.1
     done
     jj=0
     # Fetch updates and initialize submodules
@@ -331,7 +331,7 @@ func_repolist_checkout_default_versions() {
     do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
             echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
-            sleep 0.2
+            sleep 0.1
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git reset --hard
             git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
@@ -593,7 +593,7 @@ func_repolist_apply_patches() {
                     if [ -d "${TEMP_PATCH_DIR}" ]; then
                         if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
                             echo "[$jj]: ${LIST_BINFO_APP_NAME[${jj}]}: applying patches"
-                            sleep 0.2
+                            sleep 0.1
                             git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
                             if [ $? -ne 0 ]; then
                                 git am --abort
@@ -617,7 +617,7 @@ func_repolist_apply_patches() {
                         #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
                         #sleep 2
                     fi
-                    sleep 0.2
+                    sleep 0.1
                 else
                     echo "Warning, not a git repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
                     sleep 2
