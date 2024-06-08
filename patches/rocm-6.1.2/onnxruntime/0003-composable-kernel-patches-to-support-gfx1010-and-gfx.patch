@@ -1,8 +1,7 @@
-From 3d8a434a60262b24bb0ad78be1b7ddcba0f079f0 Mon Sep 17 00:00:00 2001
+From 5d4b76f942cf73b06f78efc575be12c77def58a9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:03:37 -0700
-Subject: [PATCH 04/10] composable kernel patches to support gfx1010 and
- gfx1035
+Subject: [PATCH 3/8] composable kernel patches to support gfx1010 and gfx1035
 
 add onnxruntime composable kernel patches required
 to build onxxruntime for gfx1010 or gfx1030
@@ -10,10 +9,10 @@ to build onxxruntime for gfx1010 or gfx1030
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  cmake/external/composable_kernel.cmake        |   2 +-
- ...RD_DWORD-support-for-not-listed-gpus.patch |  26 ++++
- ...-gfx1010-and-gfx1035-initial-support.patch |  63 ++++++++
+ ...RD_DWORD-support-for-not-listed-gpus.patch |  25 ++++
+ ...-gfx1010-and-gfx1035-initial-support.patch |  62 ++++++++
  .../composable_kernel_patches_combined.patch  | 135 ++++++++++++++++++
- 4 files changed, 225 insertions(+), 1 deletion(-)
+ 4 files changed, 223 insertions(+), 1 deletion(-)
  create mode 100644 cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
  create mode 100644 cmake/patches/composable_kernel/0003-gfx1010-and-gfx1035-initial-support.patch
  create mode 100644 cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
@@ -30,10 +29,10 @@ index b4e6c834c8..123bafa9b9 100644
  FetchContent_Declare(composable_kernel
 diff --git a/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch b/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
 new file mode 100644
-index 0000000000..382188e6e6
+index 0000000000..7fe3f07b50
 --- /dev/null
 +++ b/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,25 @@
 +From fe5fb410b74f6c5b0ea8471469f7b77e3b916b01 Mon Sep 17 00:00:00 2001
 +From: Mika Laitio <lamikr@gmail.com>
 +Date: Tue, 19 Dec 2023 15:16:58 -0800
@@ -55,17 +54,16 @@ index 0000000000..382188e6e6
 ++#else
 ++#define CK_BUFFER_RESOURCE_3RD_DWORD -1
 + #endif
-+ 
-+ // FMA instruction
-+-- 
-+2.41.0
 +
++ // FMA instruction
++--
++2.41.0
 diff --git a/cmake/patches/composable_kernel/0003-gfx1010-and-gfx1035-initial-support.patch b/cmake/patches/composable_kernel/0003-gfx1010-and-gfx1035-initial-support.patch
 new file mode 100644
-index 0000000000..28a7e5e1c1
+index 0000000000..624a7edd50
 --- /dev/null
 +++ b/cmake/patches/composable_kernel/0003-gfx1010-and-gfx1035-initial-support.patch
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,62 @@
 +From 26942bd2a0a7a1d341969095e51eeb2625c6b8b4 Mon Sep 17 00:00:00 2001
 +From: Mika Laitio <lamikr@gmail.com>
 +Date: Fri, 24 May 2024 03:50:43 -0700
@@ -98,7 +96,7 @@ index 0000000000..28a7e5e1c1
 +@@ -59,11 +59,14 @@
 + #define CK_BUFFER_RESOURCE_3RD_DWORD -1
 + #endif
-+ 
++
 ++// whether to use assembly or rely on compiler for these instructions
 ++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
 ++// TODO: check defined(__gfx1035__)
@@ -124,14 +122,13 @@ index 0000000000..28a7e5e1c1
 +         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
 ++        {"Rembrandt", "gfx1035"},
 +     };
-+ 
-+     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
-+-- 
-+2.41.0
 +
++     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
++--
++2.41.0
 diff --git a/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch b/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
 new file mode 100644
-index 0000000000..46a77fc78a
+index 0000000000..ee8eafe1bf
 --- /dev/null
 +++ b/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
 @@ -0,0 +1,135 @@
@@ -139,18 +136,18 @@ index 0000000000..46a77fc78a
 +--- composable_kernel-src-orig/CMakeLists.txt	2024-05-24 16:17:29.000000000 -0700
 ++++ composable_kernel-src/CMakeLists.txt	2024-05-24 16:19:07.628761994 -0700
 +@@ -19,7 +19,7 @@
-+ 
++
 + set(version 1.1.0)
 + # Check support for CUDA/HIP in Cmake
 +-project(composable_kernel VERSION ${version})
 ++project(composable_kernel VERSION ${version} LANGUAGES CXX HIP)
-+ 
++
 + list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-+ 
++
 +@@ -173,27 +173,6 @@
 + set(CMAKE_CXX_EXTENSIONS OFF)
 + message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
-+ 
++
 +-## OpenMP
 +-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 +-	# workaround issue hipcc in rocm3.5 cannot find openmp
@@ -181,7 +178,7 @@ index 0000000000..46a77fc78a
 + message(STATUS "Build with HIP ${HIP_VERSION}")
 +-link_libraries(hip::device)
 +-add_compile_definitions(__HIP_PLATFORM_HCC__=1)
-+ 
++
 + ## tidy
 + include(EnableCompilerWarnings)
 +@@ -376,7 +353,9 @@
@@ -193,10 +190,10 @@ index 0000000000..46a77fc78a
 ++# add_compile_options(-Oz -flto=thin)
 ++add_compile_options(-Oz)
 + message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-+ 
++
 + add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
 +@@ -482,11 +461,3 @@
-+ 
++
 + set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 + set(CPACK_RPM_PACKAGE_LICENSE "MIT")
 +-
@@ -225,7 +222,7 @@ index 0000000000..46a77fc78a
 ++#else
 ++#define CK_BUFFER_RESOURCE_3RD_DWORD -1
 + #endif
-+ 
++
 ++// whether to use assembly or rely on compiler for these instructions
 ++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
 ++// TODO: check defined(__gfx1035__)
@@ -250,7 +247,7 @@ index 0000000000..46a77fc78a
 +         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
 ++        {"Rembrandt", "gfx1035"},
 +     };
-+ 
++
 +     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
 +diff -Naur composable_kernel-src-orig/library/src/tensor_operation_instance/gpu/CMakeLists.txt composable_kernel-src/library/src/tensor_operation_instance/gpu/CMakeLists.txt
 +--- composable_kernel-src-orig/library/src/tensor_operation_instance/gpu/CMakeLists.txt	2024-05-24 16:17:29.000000000 -0700
@@ -271,5 +268,5 @@ index 0000000000..46a77fc78a
 +         clang_tidy_check(${INSTANCE_NAME})
 +         set(result 0)
 -- 
-2.45.2
+2.41.1
 

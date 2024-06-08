@@ -25,7 +25,7 @@ index 5f355b3..859c959 100644
 +++ b/CMakeLists.txt
 @@ -20,6 +20,16 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
  set(TARGET_GPUS "MI200;MI300X" CACHE STRING "Target Architecture (Note here uses Trade names)")
- set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_611/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
+ set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_612/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
  
 +option(TRITON_USE_ROCM "Enable build for ROCm" OFF)
 +option(ROCM_DEFAULT_DIR "ROCM_SDK_BUILD_DIR" "/opt/rocm")
@@ -64,9 +64,9 @@ index e880296..d63aabe 100644
  
  # Force TRITON_USE_ROCM for ROCm support
 -set(TRITON_USE_ROCM ON)
--set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
+-set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_612")
 +#set(TRITON_USE_ROCM ON)
-+#set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
++#set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_612")
 +option(TRITON_USE_ROCM "Enable build for ROCm" OFF)
 +option(ROCM_DEFAULT_DIR "ROCM_SDK_BUILD_DIR" "/opt/rocm")
 +option(MLIR_ENABLE_DUMP "Enable MLIR_DUMP" 0)
