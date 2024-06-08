@@ -1,0 +1,53 @@
+From 585089c089f2d10309662c80d30b5631acaa1cbe Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 May 2024 22:21:15 -0700
+Subject: [PATCH 02/10] fix circular dependency error with DeepSpeed
+
+discussed here:
+https://github.com/ROCm/onnxruntime/commit/1caf38252b120caf64e891c2f1b8eb64e94fad97
+https://github.com/microsoft/onnxruntime/pull/19579
+
+DeepSpeed (master)]$ DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py develop
+hip_fatbin.cpp: COMGR API could not find the CO for this GPU device/ISA: amdgcn-amd-amdhsa--gfx1035
+hip_fatbin.cpp: COMGR API could not find the CO for this GPU device/ISA: amdgcn-amd-amdhsa--gfx1035
+[2024-05-20 22:10:07,660] [INFO] [real_accelerator.py:203:get_accelerator] Setting ds_accelerator to cuda (auto detect)
+Traceback (most recent call last):
+  File "/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/DeepSpeed/setup.py", line 37, in <module>
+    from op_builder import get_default_compute_capabilities, OpBuilder
+...
+  File "/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/DeepSpeed/deepspeed/moe/sharded_moe.py", line 96, in <module>
+    class _AllToAll(torch.autograd.Function):
+  File "/home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_611/src_projects/DeepSpeed/deepspeed/moe/sharded_moe.py", line 99, in _AllToAll
+    def forward(ctx: Any, group: dist.ProcessGroup, input: Tensor) -> Tensor:  # type: ignore
+AttributeError: partially initialized module 'deepspeed.comm' has no attribute 'ProcessGroup' (most likely due to a circular import)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../python/training/ortmodule/_graph_execution_manager.py     | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/orttraining/orttraining/python/training/ortmodule/_graph_execution_manager.py b/orttraining/orttraining/python/training/ortmodule/_graph_execution_manager.py
+index 779b6bfe50..fda6e345da 100755
+--- a/orttraining/orttraining/python/training/ortmodule/_graph_execution_manager.py
++++ b/orttraining/orttraining/python/training/ortmodule/_graph_execution_manager.py
+@@ -20,7 +20,6 @@ import onnxruntime
+ from onnxruntime.capi import _pybind_state as C
+ from onnxruntime.tools.symbolic_shape_infer import SymbolicShapeInference
+ from onnxruntime.training.utils import ORTModelInputOutputSchemaType, PTable, onnx_dtype_to_pytorch_dtype
+-from onnxruntime.training.utils.hooks import configure_ort_compatible_zero_stage3
+ 
+ from . import _are_deterministic_algorithms_enabled, _io, _logger, _onnx_models, _utils
+ from ._fallback import (
+@@ -143,6 +142,9 @@ class GraphExecutionManager(GraphExecutionInterface):
+ 
+         self._zero_stage3_param_map = {}
+         if self._runtime_options.enable_zero_stage3_support:
++            # Move import to here to avoid circular dependency error
++            from onnxruntime.training.utils.hooks import configure_ort_compatible_zero_stage3  # type: ignore[import]
++
+             # Cannot toggle feature enabling/disabling after the first time enabled.
+ 
+             configure_ort_compatible_zero_stage3(debug=False, stats_output_dir="ort_output", stats_overwrite=True)
+-- 
+2.45.2
+

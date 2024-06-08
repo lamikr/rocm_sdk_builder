@@ -1,0 +1,30 @@
+From b432f8dc487741db3ae64ddf70218d40e1da874c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 15 May 2024 19:20:44 -0700
+Subject: [PATCH 2/6] add more gpus for default target list
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fec03c1b..c6a16e01 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -147,11 +147,9 @@ if (USE_CUDA)
+     find_package( HIP MODULE REQUIRED )
+     list( APPEND HIP_INCLUDE_DIRS "${HIP_ROOT_DIR}/include" )
+ else()
+-
+-
+     #Set the AMDGPU_TARGETS with backward compatiblity
+     rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-        TARGETS "gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942"
++        TARGETS "gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1035"
+     )
+ 
+     if (AMDGPU_TARGETS)
+-- 
+2.41.0
+

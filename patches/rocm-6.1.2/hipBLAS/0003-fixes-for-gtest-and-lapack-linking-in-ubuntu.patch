@@ -1,0 +1,72 @@
+From d7a6f0002b35ebcb6b6f861a5bf839aafb20c8b5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 23 May 2024 11:51:49 -0700
+Subject: [PATCH 3/3] fixes for gtest and lapack linking in ubuntu
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/CMakeLists.txt            | 12 +++++++++---
+ clients/benchmarks/CMakeLists.txt | 15 +++++++++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 0240293..e5d58d7 100644
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -27,11 +27,17 @@ function( get_lapack lapack_lib lapack_inc )
+     set( lib "${BUILD_DIR}/deps/deps-install/lib/liblapack.a" )
+     set( inc "${BUILD_DIR}/deps/deps-install/include" )
+     set( ${cblas_inc} ${inc} PARENT_SCOPE )
++    set( ${lapack_lib} ${lib} PARENT_SCOPE )
+   else()
+-    find_package( lapack REQUIRED CONFIG )
+-    set( lib "lapack" )
++    find_package( lapack CONFIG )
++    if ( lapack_FOUND )
++      message( STATUS "LAPACK FOUND")
++      set( lib "lapack" )
++      set( ${lapack_lib} ${lib} PARENT_SCOPE )
++    else()
++      message( STATUS "LAPACK NOT FOUND")
++    endif()
+   endif()
+-  set( ${lapack_lib} ${lib} PARENT_SCOPE )
+ endfunction( )
+ 
+ function( get_cblas cblas_libs cblas_inc )
+diff --git a/clients/benchmarks/CMakeLists.txt b/clients/benchmarks/CMakeLists.txt
+index b670407..8c66252 100644
+--- a/clients/benchmarks/CMakeLists.txt
++++ b/clients/benchmarks/CMakeLists.txt
+@@ -22,6 +22,18 @@
+ set( THREADS_PREFER_PTHREAD_FLAG ON )
+ find_package( Threads REQUIRED )
+ 
++find_package( GTest REQUIRED )
++# GTest findPackage does not set GTEST_INCLUDE_DIRS or GTEST_INCLUDE_DIR
++# variable in many linux distibutions like for example Ubuntu 23.
++# This bug is described in here:
++# https://stackoverflow.com/questions/67677786/gtest-include-dirs-not-set-after-find-packagegtest-required
++# https://gitlab.kitware.com/cmake/cmake/-/issues/22238
++# Instead of adding the INCLUDE_DIR directly, it must be linked
++# below with commands like
++# target_link_libraries(hipblas-bench PRIVATE GTest::gtest GTest::gtest_main)
++# This is done below in proper place
++# message( STATUS "GTEST_INCLUDE_DIR: ${GTEST_INCLUDE_DIR}")
++
+ # Linking lapack library requires fortran flags
+ enable_language( Fortran )
+ 
+@@ -137,6 +149,9 @@ else( )
+   target_link_libraries( hipblas_v2-bench PRIVATE ${CUDA_LIBRARIES} )
+ endif( )
+ 
++target_link_libraries(hipblas-bench PRIVATE GTest::gtest GTest::gtest_main)
++target_link_libraries(hipblas_v2-bench PRIVATE GTest::gtest GTest::gtest_main)
++
+ set_target_properties( hipblas-bench PROPERTIES
+   CXX_EXTENSIONS OFF
+   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
+-- 
+2.41.0
+

@@ -1,0 +1,40 @@
+From 6436facc2d803702a7d0d23e8d6ab20b205805d9 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 3 Jun 2024 22:08:11 -0700
+Subject: [PATCH 10/10] add cmake version check to build script
+
+- check if the cmake version is required 3.26.1
+  or newer. If not, add the rocm sdk builder cmake
+  to path. This fixes the ubuntu 22.04 and Linux Mint 21
+  builds which ships the 3.21 version of cmake.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_onnxruntime_rocm_training.sh | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/build_onnxruntime_rocm_training.sh b/build_onnxruntime_rocm_training.sh
+index 8462abfa05..44d7022e2e 100755
+--- a/build_onnxruntime_rocm_training.sh
++++ b/build_onnxruntime_rocm_training.sh
+@@ -13,6 +13,17 @@ else
+     echo "Using specified amd rocm gpu: ${amd_target_gpu}"
+ fi
+ 
++cmake_min_version=3.26.1
++cmake_installed_version=$(cmake --version | head -1 | cut -f3 -d" ")
++mapfile -t sorted < <(printf "%s\n" "$cmake_installed_version" "$cmake_min_version" | sort -V)
++if [[ ${sorted[0]} == "$cmake_min_version" ]]; then
++    echo "Linux distributions cmake version ok"
++    echo "    $cmake_installed_version >= $cmake_min_version"
++else
++    echo "Linux distribution version too old, using own build"
++    export PATH=${install_dir_prefix_rocm}/cmake/bin:$PATH
++fi
++
+ ./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --use_migraphx --migraphx_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
+ #
+ #
+-- 
+2.45.2
+

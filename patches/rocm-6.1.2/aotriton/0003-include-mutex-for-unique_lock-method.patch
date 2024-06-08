@@ -1,0 +1,44 @@
+From 1e8568cd2e41b46a4f9bcf0f6afd5c78fe2d0438 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Tue, 14 May 2024 21:15:22 -0700
+Subject: [PATCH 3/5] include mutex for unique_lock method
+
+fixes following error from hipcc:
+
+End of search list.
+/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:21: error: expected ';' after expression
+   63 |     std::unique_lock lock(mutex_);
+      |                     ^
+      |                     ;
+/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:10: error: no member named 'unique_lock' in namespace 'std'; did you mean 'unique_copy'?
+   63 |     std::unique_lock lock(mutex_);
+      |     ~~~~~^~~~~~~~~~~
+      |          unique_copy
+/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/bits/stl_algo.h:4461:5: note: 'unique_copy' declared here
+ 4461 |     unique_copy(_InputIterator __first, _InputIterator __last,
+      |     ^
+/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:22: error: use of undeclared identifier 'lock'
+   63 |     std::unique_lock lock(mutex_);
+      |                      ^
+3 errors generated when compiling for gfx1030.
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ v2src/triton_kernel.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/v2src/triton_kernel.cc b/v2src/triton_kernel.cc
+index 0f96477..84a38ce 100644
+--- a/v2src/triton_kernel.cc
++++ b/v2src/triton_kernel.cc
+@@ -5,6 +5,7 @@
+ #include <aotriton/runtime.h>
+ #include <incbin.h>
+ #include <iostream>
++#include <mutex>
+ #if AOTRITON_USE_ZSTD
+ #include <zstd.h>
+ #endif
+-- 
+2.41.1
+

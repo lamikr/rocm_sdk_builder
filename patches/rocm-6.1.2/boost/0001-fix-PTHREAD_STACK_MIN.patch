@@ -1,0 +1,53 @@
+From 4a5f2bf552328bd4232f436c717b7837c934ed39 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 6 Jan 2024 06:54:43 +0200
+Subject: [PATCH] fix PTHREAD_STACK_MIN
+
+fixes a following type of compilation errors:
+
+ /opt/rocm_571/include/boost/thread/pthread/thread_data.hpp:60:5:
+ error: function-like macro '__sysconf' is not defined
+  #if PTHREAD_STACK_MIN > 0
+ /usr/include/bits/pthread_stack_min-dynamic.h:26:30:
+ note: expanded from macro 'PTHREAD_STACK_MIN'
+  #   define PTHREAD_STACK_MIN __sysconf (__SC_THREAD_STACK_MIN_VALUE)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ boost/thread/pthread/thread_data.hpp | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/boost/thread/pthread/thread_data.hpp b/boost/thread/pthread/thread_data.hpp
+index aefbeb43c..5a54933de 100644
+--- a/boost/thread/pthread/thread_data.hpp
++++ b/boost/thread/pthread/thread_data.hpp
+@@ -57,8 +57,26 @@ namespace boost
+ #else
+           std::size_t page_size = ::sysconf( _SC_PAGESIZE);
+ #endif
++
++/*
++ * Disable dynamic PTHREAD_STACK_MIN query with syscall to
++ * fix a following type of compilation errors.
++ *
++ * /opt/rocm_571/include/boost/thread/pthread/thread_data.hpp:60:5:
++ * error: function-like macro '__sysconf' is not defined
++ * #if PTHREAD_STACK_MIN > 0
++ * /usr/include/bits/pthread_stack_min-dynamic.h:26:30:
++ * note: expanded from macro 'PTHREAD_STACK_MIN'
++ * #   define PTHREAD_STACK_MIN __sysconf (__SC_THREAD_STACK_MIN_VALUE)
++*/
++#if 0
+ #if PTHREAD_STACK_MIN > 0
+           if (size<PTHREAD_STACK_MIN) size=PTHREAD_STACK_MIN;
++#endif
++#else
++          /* Minimum size for a thread.  At least two pages for systems with 64k pages.  */
++          #define PTHREAD_STACK_MIN_WITHOUT_SYSCALL	131072
++          if (size<PTHREAD_STACK_MIN_WITHOUT_SYSCALL) size=PTHREAD_STACK_MIN_WITHOUT_SYSCALL;
+ #endif
+           size = ((size+page_size-1)/page_size)*page_size;
+           int res = pthread_attr_setstacksize(&val_, size);
+-- 
+2.41.0
+

@@ -1,0 +1,39 @@
+From 767c15711790798c6ed274f3205b1d741c4f88b5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 24 May 2024 16:50:39 -0700
+Subject: [PATCH 06/10] disable USE_NEURAL_SPEED due to overload function error
+
+- build error for overloaded functions
+  causes build break on ubuntu and fedora
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/CMakeLists.txt | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
+index 3b0503fe66..ed115341a8 100644
+--- a/cmake/CMakeLists.txt
++++ b/cmake/CMakeLists.txt
+@@ -87,7 +87,7 @@ option(onnxruntime_USE_QNN "Build with QNN support" OFF)
+ option(onnxruntime_USE_SNPE "Build with SNPE support" OFF)
+ option(onnxruntime_USE_RKNPU "Build with RKNPU support" OFF)
+ option(onnxruntime_USE_DNNL "Build with DNNL support" OFF)
+-option(onnxruntime_USE_NEURAL_SPEED "Build with Neural Speed support" ON)
++option(onnxruntime_USE_NEURAL_SPEED "Build with Neural Speed support" OFF)
+ option(onnxruntime_USE_JSEP "Build with JavaScript implemented kernels support" OFF)
+ option(onnxruntime_BUILD_UNIT_TESTS "Build ONNXRuntime unit tests" ON)
+ option(onnxruntime_BUILD_CSHARP "Build C# library" OFF)
+@@ -1006,6 +1006,9 @@ function(onnxruntime_set_compile_flags target_name)
+         list(APPEND ORT_HIP_WARNING_FLAGS "-Wno-deprecated-builtins")
+       endif()
+ 
++      # error on ubuntu build about overoaded functions on onnxruntime_USE_NEURAL_SPEED
++      #list(APPEND ORT_HIP_WARNING_FLAGS "-Wno-overloaded-virtual")
++
+       foreach(FLAG ${ORT_HIP_WARNING_FLAGS})
+         target_compile_options(${target_name} PRIVATE "$<$<COMPILE_LANGUAGE:HIP>:SHELL:${FLAG}>")
+       endforeach()
+-- 
+2.45.2
+

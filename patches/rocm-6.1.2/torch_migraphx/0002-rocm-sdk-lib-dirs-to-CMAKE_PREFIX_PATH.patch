@@ -1,0 +1,44 @@
+From c66df7fbada510fb5a81bce57d584b0e18968a05 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 23 May 2024 20:49:47 -0700
+Subject: [PATCH 2/2] rocm sdk lib dirs to CMAKE_PREFIX_PATH
+
+Fixes following error on ubuntu:
+
+Could not find a package configuration file provided by "migraphx" with any
+of the following names:
+
+    migraphxConfig.cmake
+    migraphx-config.cmake
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ py/setup.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/py/setup.py b/py/setup.py
+index 6f74d3c..6437648 100644
+--- a/py/setup.py
++++ b/py/setup.py
+@@ -41,6 +41,9 @@ from setuptools.command.test import test as TestCommand
+ 
+ __version__ = open("version.txt").read().strip()
+ 
++ROCM_PATH = os.environ.get("ROCM_PATH")
++if not ROCM_PATH:
++    ROCM_PATH = '/opt/rocm'
+ TORCH_CMAKE_PATH = os.environ.get("TORCH_CMAKE_PATH")
+ if not TORCH_CMAKE_PATH:
+     import torch
+@@ -76,7 +79,7 @@ class CMakeBuild(build_ext):
+         cmake_args = [
+             '-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=' + extdir,
+             '-DPYTHON_EXECUTABLE=' + sys.executable,
+-            '-DCMAKE_PREFIX_PATH=' + TORCH_CMAKE_PATH
++            '-DCMAKE_PREFIX_PATH=' + TORCH_CMAKE_PATH + ';' + ROCM_PATH + '/lib64/cmake' + ';' + ROCM_PATH + '/lib/cmake'
+         ]
+ 
+         cfg = 'Debug' if self.debug else 'Release'
+-- 
+2.45.2
+

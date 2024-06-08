@@ -1,0 +1,29 @@
+From b2a6d0e194c3bb11202d4e1ec756061e080efef1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:28:00 -0700
+Subject: [PATCH 2/2] rocBLAS mandatory if BUILD_WITH_ROCBLAS flag is set
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2f58b666..f4ddc8d8 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -169,9 +169,9 @@ message(STATUS "AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
+ # Find rocprim package
+ find_package(rocprim REQUIRED)
+ if (BUILD_WITH_ROCBLAS)
+-  find_package(rocblas 4.1.0 QUIET)
++  find_package(rocblas 4.1.0 REQUIRED)
+ else()
+-  message("Build rocSPARSE with rocBLAS is disabled")
++  message(STATUS "Build rocSPARSE with rocBLAS is disabled")
+ endif()
+ 
+ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+-- 
+2.41.0
+

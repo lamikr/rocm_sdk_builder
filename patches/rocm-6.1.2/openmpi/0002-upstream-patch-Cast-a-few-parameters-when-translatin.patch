@@ -1,0 +1,76 @@
+From 9037de8d1cfb749d5bf8e8a2223de8352b9bf6b6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 29 May 2024 12:09:47 -0700
+Subject: [PATCH 2/3] upstream patch: Cast a few parameters when translating
+ macros to functions
+
+original patch merged to 5.0.2 version
+https://github.com/open-mpi/ompi/issues/12169
+
+When we made the transition from macros to functions, we
+were forced to move things that went on the left side of
+an `=` sign to being addresses of params to the function
+call. Compilers are getting increasinly picky about matching
+parameter types, so cast a few that might cause trouble.
+
+Signed-off-by: Ralph Castain <rhc@pmix.org>
+
+Fixes following error:
+
+/home/chris/rocm_sdk_builder/src_projects/openmpi/3rd-party/openpmix/include/pmix_deprecated.h:851:32: error: passing argument 2 of 'PMIx_Data_buffer_unload' from incompatible pointer type [-Wincompatible-pointer-types]
+  851 |     PMIx_Data_buffer_unload(b, &(d), &(s))
+      |                                ^~~~
+      |                                |
+      |                                void **
+/home/chris/rocm_sdk_builder/src_projects/openmpi/oshmem/mca/memheap/base/memheap_base_mkey.c:451:5: note: in expansion of macro 'PMIX_DATA_BUFFER_UNLOAD'
+  451 |     PMIX_DATA_BUFFER_UNLOAD(msg, buffer, size);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+/home/chris/rocm_sdk_builder/src_projects/openmpi/3rd-party/openpmix/include/pmix_deprecated.h:352:49: note: expected 'char **' but argument is of type 'void **'
+  352 |                                          char **bytes, size_t *sz);
+      |                                          ~~~~~~~^~~~~
+/home/chris/rocm_sdk_builder/src_projects/openmpi/oshmem/mca/memheap/base/memheap_base_mkey.c: In function 'mca_memheap_modex_recv_all':
+/home/chris/rocm_sdk_builder/src_projects/openmpi/3rd-party/openpmix/include/pmix_deprecated.h:851:32: error: passing argument 2 of 'PMIx_Data_buffer_unload' from incompatible pointer type [-Wincompatible-pointer-types]
+  851 |     PMIx_Data_buffer_unload(b, &(d), &(s))
+      |                                ^~~~
+      |                                |
+      |                                void **
+/home/chris/rocm_sdk_builder/src_projects/openmpi/oshmem/mca/memheap/base/memheap_base_mkey.c:586:5: note: in expansion of macro 'PMIX_DATA_BUFFER_UNLOAD'
+  586 |     PMIX_DATA_BUFFER_UNLOAD(msg, send_buffer, size);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+/home/chris/rocm_sdk_builder/src_projects/openmpi/3rd-party/openpmix/include/pmix_deprecated.h:352:49: note: expected 'char **' but argument is of type 'void **'
+  352 |                                          char **bytes, size_t *sz);
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ 3rd-party/openpmix/include/pmix_deprecated.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/3rd-party/openpmix/include/pmix_deprecated.h b/3rd-party/openpmix/include/pmix_deprecated.h
+index 254dfb2..b5717ae 100644
+--- a/3rd-party/openpmix/include/pmix_deprecated.h
++++ b/3rd-party/openpmix/include/pmix_deprecated.h
+@@ -508,10 +508,10 @@ PMIX_EXPORT pmix_info_t* PMIx_Info_list_get_info(void *ptr, void *prev, void **n
+     (r) = PMIx_Argv_count(a)
+ 
+ #define PMIX_ARGV_APPEND(r, a, b) \
+-    (r) = PMIx_Argv_append_nosize(&(a), (b))
++    (r) = PMIx_Argv_append_nosize((char***)&(a), (b))
+ 
+ #define PMIX_ARGV_PREPEND(r, a, b) \
+-    (r) = PMIx_Argv_prepend_nosize(&(a), b)
++    (r) = PMIx_Argv_prepend_nosize((char***)&(a), b)
+ 
+ #define PMIX_ARGV_APPEND_UNIQUE(r, a, b) \
+     (r) = PMIx_Argv_append_unique_nosize(a, b)
+@@ -848,7 +848,7 @@ PMIX_EXPORT pmix_info_t* PMIx_Info_list_get_info(void *ptr, void *prev, void **n
+     PMIx_Data_buffer_load(b, d, s)
+ 
+ #define PMIX_DATA_BUFFER_UNLOAD(b, d, s)    \
+-    PMIx_Data_buffer_unload(b, &(d), &(s))
++    PMIx_Data_buffer_unload(b, (char**)&(d), (size_t*)&(s))
+ 
+ #define PMIX_PROC_CREATE(m, n) \
+     (m) = PMIx_Proc_create(n)
+-- 
+2.45.1
+
