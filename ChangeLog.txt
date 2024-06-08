@@ -1,3 +1,16 @@
+ROCM SDK Builder 6.1.2-1 (not yet released)
+- all rocm base libraries updated to rocm-6.1.2
+- cmake 3.26.6 is now build on early phase after python
+- added separate binfo file for pytorch_python dependencies
+- dropped patches merged on upstreams
+- other packages updated
+	- openmpi 5.0.3
+	- pytorch v.2.3.1
+	- pytorch v2.3.1
+	- pytorch vision v0.18.1
+	- onnxruntime v1.18.0
+	- deepspeed 31a57fa392 from June 7, 2024
+
 ROCM SDK Builder 6.1.1-2 (not yet released)
 ------------------------
 - Received lot of help for as a feedback, and pull requests and other help.
