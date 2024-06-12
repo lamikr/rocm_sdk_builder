@@ -1,7 +1,7 @@
-From 1bc2ebe70d2a0dd63261a103b81e3937ac25e069 Mon Sep 17 00:00:00 2001
+From 8784e66b5084ee2e2e0a4aeaf2e2e75e6ae803e9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:34:17 -0700
-Subject: [PATCH 7/8] Maybe uninitialized error fix for Fedora 40
+Subject: [PATCH 6/7] Maybe uninitialized error fix for Fedora 40
 
 - Occurs on fbgemm submodule with Fedora 40/gcc 14
 
@@ -21,5 +21,5 @@ index 5973cb1ffac..c98fe22cb02 100755
 -USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
 +USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
 -- 
-2.45.2
+2.41.1
 
