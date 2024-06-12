@@ -1,7 +1,7 @@
-From 72ba0a6d531ab0cc325895bf57e5fba2edebd591 Mon Sep 17 00:00:00 2001
+From f20a12071640dae9bf7b301167ffc9112bd83667 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 29 May 2024 14:15:28 -0700
-Subject: [PATCH 3/3] added construct_event_strings.py thats missing tar.gz
+Subject: [PATCH 2/2] added construct_event_strings.py thats missing tar.gz
 
 patching of git submodules does not work well
 yet with the rcom sdk builder, therefore openmpi
@@ -269,5 +269,5 @@ index 0000000..52f242f
 +if __name__ == '__main__':
 +    exit(main())
 -- 
-2.45.1
+2.41.1
 
