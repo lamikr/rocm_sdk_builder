@@ -1,7 +1,7 @@
-From 15236d0f11ddfd4db5356d0d6ec50724ba43966b Mon Sep 17 00:00:00 2001
+From 6770ced2df817859f9cc1960ce030cbdb4e9e769 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 11:17:52 -0700
-Subject: [PATCH 4/5] added more cmake options
+Subject: [PATCH 4/6] added more cmake options
 
 following cmake options can now be passed from
 aotriton to triton
@@ -20,7 +20,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  3 files changed, 53 insertions(+), 3 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5f355b3..859c959 100644
+index 034c7be..2a1d109 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -20,6 +20,16 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
@@ -56,7 +56,7 @@ index 5f355b3..859c959 100644
    WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/third_party/triton/python/"
    BYPRODUCTS "${VENV_SITE}/triton/_C/libtriton.so"
 diff --git a/third_party/triton/CMakeLists.txt b/third_party/triton/CMakeLists.txt
-index e880296..d63aabe 100644
+index 18062ae..43df74e 100644
 --- a/third_party/triton/CMakeLists.txt
 +++ b/third_party/triton/CMakeLists.txt
 @@ -34,10 +34,22 @@ option(TRITON_BUILD_PYTHON_MODULE "Build Python Triton bindings" OFF)

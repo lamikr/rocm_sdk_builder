@@ -1,7 +1,7 @@
-From f6f80681d39830f3c22ed2ba2b7389129bda7468 Mon Sep 17 00:00:00 2001
+From 04e22c0db60e50e8122937919bde9c5103afae5a Mon Sep 17 00:00:00 2001
 From: mritunjaymusale <mritunjaymusale@gmail.com>
 Date: Sun, 2 Jun 2024 18:00:59 +0530
-Subject: [PATCH 5/5] changed the line which allocates twice the number of max
+Subject: [PATCH 5/6] changed the line which allocates twice the number of max
  cpu threads to triton build
 
 Signed-off-by: mritunjaymusale <mritunjaymusale@gmail.com>
