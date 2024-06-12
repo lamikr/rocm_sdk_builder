@@ -166,7 +166,7 @@ func_repolist_upstream_remote_repo_add() {
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
         if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
-            echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "[${jj}]: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             sleep 0.1
             mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
             # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
@@ -178,10 +178,12 @@ func_repolist_upstream_remote_repo_add() {
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
             if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]}/.git ]; then
                 cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "${jj}: Initializing new source code repository"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "VERSION_TAG[$jj]: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo ""
+                echo "[${jj}]: Repository Init"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 sleep 0.5
                 git init
                 echo ${LIST_APP_UPSTREAM_REPO_URL[$jj]}
@@ -189,11 +191,11 @@ func_repolist_upstream_remote_repo_add() {
                 LIST_APP_ADDED_UPSTREAM_REPO[$jj]=1
             else
                 LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
-                echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
+                echo "[${jj}]: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
             fi
         else
             LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
-            echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
+            echo "[${jj}]: ${LIST_APP_SRC_CLONE_DIR[$jj]} submodule ok"
         fi
         ((jj++))
         sleep 0.1
@@ -205,7 +207,12 @@ func_repolist_upstream_remote_repo_add() {
         #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git fetch needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
-            echo "${jj}: git fetch on ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo ""
+            echo "[${jj}]: Source Fetch"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git fetch upstream
             if [ $? -ne 0 ]; then
@@ -217,7 +224,12 @@ func_repolist_upstream_remote_repo_add() {
             func_is_current_dir_a_git_submodule_dir
             ret_val=$?
             if [ ${ret_val} == "1" ]; then
-                echo "submodule init and update"
+                echo ""
+                echo "[${jj}]: Submodule Init"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 git submodule update --init --recursive
                 if [ $? -ne 0 ]; then
                     echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
@@ -236,24 +248,32 @@ func_repolist_upstream_remote_repo_add() {
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
             TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            echo "patch dir: ${TEMP_PATCH_DIR}"
             if [ -d "${TEMP_PATCH_DIR}" ]; then
                 if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
-                    echo "git am: ${LIST_BINFO_APP_NAME[${jj}]}"
+                    echo ""
+                    echo "[${jj}]: Applying Patches"
+                    echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                    echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                    echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                    echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                    echo "Patch dir: ${TEMP_PATCH_DIR}"
                     git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
                     if [ $? -ne 0 ]; then
                         git am --abort
                         echo ""
-                        echo "Failed to apply patches for repository"
-                        echo "${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                        echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
+                        echo "[${jj}]: Error, failed to Apply Patches"
+                        echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                        echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                        echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                        echo "Version tag: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                        echo "Patch dir: ${TEMP_PATCH_DIR}"
                         echo ""
                         exit 1
                     else
-                        echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                        echo "[${jj}]: Patches Applied: ${LIST_APP_SRC_CLONE_DIR}"
                     fi
                 else
-                   echo "Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
+                   echo "[${jj}]: Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
                    sleep 2
                 fi
             else
@@ -264,6 +284,8 @@ func_repolist_upstream_remote_repo_add() {
         fi
         ((jj++))
     done
+    echo ""
+    echo "All new source code repositories added and initialized ok"
 }
 
 func_repolist_fetch_top_repo() {
@@ -276,9 +298,12 @@ func_repolist_fetch_top_repo() {
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
             if [ -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
                 cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo ""
+                echo "[${jj}]: Repository Fetch"
                 echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 git fetch upstream
                 if [ $? -ne 0 ]; then
                     echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
@@ -287,10 +312,10 @@ func_repolist_fetch_top_repo() {
                 git fetch upstream --force --tags
             else
                 echo ""
-                echo "Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "[${jj}]: Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[${jj}]}"
                 echo "Source directory[$jj] not initialized with '-i' command:"
                 echo "    ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
                 echo ""
                 exit 1
             fi
@@ -299,6 +324,9 @@ func_repolist_fetch_top_repo() {
         fi
         ((jj++))
     done
+    echo ""
+    echo "All source code repositories fetched ok"
+
 }
 
 func_repolist_fetch_submodules() {
@@ -310,16 +338,38 @@ func_repolist_fetch_submodules() {
     do
         cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
         if [ -f .gitmodules ]; then
-            echo "submodule update"
+            echo ""
+            echo "[${jj}]: Repository Submodule Update"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            sleep 0.3
             git submodule foreach git reset --hard
             git submodule update --recursive
             if [ $? -ne 0 ]; then
-                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo ""
+                echo "[${jj}]: Error, failed to update repository submodules"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo ""
                 exit 1
             fi
+        else
+            echo ""
+            echo "[${jj}]: No Repository Submodules to Update"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            sleep 0.2
         fi
         ((jj++))
     done
+    echo ""
+    echo "All submodules of source code repositories fetched ok"
 }
 
 func_repolist_checkout_default_versions() {
@@ -330,14 +380,33 @@ func_repolist_checkout_default_versions() {
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
     do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo ""
+            echo "[$jj]: Repository Base Version Checkout"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
             sleep 0.1
             cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git reset --hard
             git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            if [ $? -ne 0 ]; then
+                echo ""
+                echo "[${jj}]: Error, failed to checkout repository base version"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo ""
+                exit 1
+            fi            
         fi
         ((jj++))
     done
+    echo ""
+    echo "All source code repositories checked out to default tag version ok"
+    echo "Use following command to apply rocm_sdk_builder patches before starting the build:"
+    echo "    ./babs.sh -ap"
 }
 
 # check that repos does not
@@ -592,18 +661,27 @@ func_repolist_apply_patches() {
                     echo "patch dir: ${TEMP_PATCH_DIR}"
                     if [ -d "${TEMP_PATCH_DIR}" ]; then
                         if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
-                            echo "[$jj]: ${LIST_BINFO_APP_NAME[${jj}]}: applying patches"
+                            echo ""
+                            echo "[$jj]: Repository Base Version Checkout"
+                            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                             sleep 0.1
                             git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
                             if [ $? -ne 0 ]; then
                                 git am --abort
                                 echo ""
-                                echo "repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
-                                echo "git am ${TEMP_PATCH_DIR[jj]}/*.patch failed"
+                                echo "[$jj]: Error, failed to apply patches"
+                                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                                echo "Patch directory: ${TEMP_PATCH_DIR[jj]}"
                                 echo ""
                                 exit 1
                             else
-                                echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                                echo "[$jj]: Patches applied ok: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
                                 #echo "git am ok"
                             fi
                             DICTIONARY_PATCHED_PROJECTS[${LIST_BINFO_APP_NAME[${jj}]}]=1
@@ -630,6 +708,8 @@ func_repolist_apply_patches() {
         fi
         ((jj++))
     done
+    echo ""
+    echo "Patches applied to all source code repositories ok"
 }
 
 func_repolist_checkout_by_version_param() {
@@ -806,7 +886,6 @@ func_handle_user_command_args() {
             -ap|--apply_patches)
                 func_is_git_configured
                 func_repolist_apply_patches
-                echo "Patches applied to git repositories"
                 exit 0
                 ;;
             -b|--build)
@@ -861,7 +940,6 @@ func_handle_user_command_args() {
             -i|--init)
                 func_is_git_configured
                 func_repolist_upstream_remote_repo_add
-                echo "All git repositories initialized"
                 exit 0
                 ;;
             -s|--sync)
