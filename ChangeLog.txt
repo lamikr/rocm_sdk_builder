@@ -2,18 +2,18 @@ ROCM SDK Builder 6.1.1-2 (not yet released)
 ------------------------
 - Received lot of help for as a feedback, and pull requests and other help.
   Thanks and sorry if I forget to mention somebody!
-	- daniandtheweb
-	- mritunjaymusale
-	- crizle
-	- JassonCordones
-	- hsmalley
-	- flip111
-	- Stefan-Oit
-	- Meso-uca
-	- eLBart0-DTG
-	- eitch
-	- AngryLoki
-	- Tuleo1
+    - daniandtheweb
+    - mritunjaymusale
+    - crizle
+    - JassonCordones
+    - hsmalley
+    - flip111
+    - Stefan-Oit
+    - Meso-uca
+    - eLBart0-DTG
+    - eitch
+    - AngryLoki
+    - Tuleo1
 - Support and testing done with multiple new Linux distributions
     - Fedora 40
     - Ubuntu 24.04
@@ -27,23 +27,32 @@ ROCM SDK Builder 6.1.1-2 (not yet released)
     - AMD RX 7800 XT
     - AMD RX 7900 XTX
     - gfx 1036?
-- Build system improvements
-	- cpu count and ram available is checked for trying to adjust the CPU count used
-	  during the build time being efficient while not putting the whole system down
-	  by running out of memory for example.
-	  (Should now use more cpu's on most cases than previous version)
-	- Build now checks and warns more clearly if the git configuration
-	  is missing or if the read-write permission to amd gpu driver
-	  /dev/kfd is not configured properly.
-	- Lot of improvements to error messages, code comments and bash code syntax used
-	- Fixes for the onnxruntime and deepspeed build
-	- Aotriton cpu usage fixes (allocated 2x cpus available and put build systems down)
-	- Upstream bug repors and fixes (rocm_smi_lib, pytorch)
-- Testing and benchmarks
-	- Improved various example codes under docs/examples folder to test
-	  pytorch, opencl, onnxruntime, amdmigraphx, etc.
-	- pytorch gpu benchmark tests execution improvements in
-	  https://github.com/lamikr/pytorch-gpu-benchmark
+- packages updated
+    - python 3.9.19
+    - openmpi 5.0.3
+    - pytorch v2.3.1
+    - pytorch vision v0.18.1
+    - pytorch audio v2.3.1
+    - onnxruntime 1.18.0
+    - DeepSpeed v0.14.3
+- build system improvements
+    - more heuristic approach for defining the CPU count used for building different apps
+      depending of the CPU count and ram available.
+      (To avoid running out of memory on some extensive apps like the llvm linking phase)
+    - Build now checks and warns more clearly if the git configuration
+      is missing or if the read-write permission to amd gpu driver
+      /dev/kfd is not configured properly.
+    - Lot of improvements to error messages, code comments and bash code syntax used
+    - Fixes for the onnxruntime and deepspeed build
+    - Aotriton cpu usage fixes (allocated 2x cpus available and put build systems down)
+    - Aotriton workaround for issue wheer triton compiler not always producing .hsaco files (issue 28)
+    - Upstream bug repors and fixes (rocm_smi_lib, pytorch)
+- test apps, documentation and benchmarking
+    - Improved various example codes under docs/examples folder to test
+      pytorch, opencl, onnxruntime, amdmigraphx, etc.
+    - added missing test apps launch scripts
+    - pytorch gpu benchmark tests execution improvements in
+      https://github.com/lamikr/pytorch-gpu-benchmark
   
 ROCM SDK Builder 6.1.1-1 (2024-05-25)
 ------------------------
