@@ -3,6 +3,7 @@ builddir
 envsetup_pre.cfg
 envsetup_post.cfg
 build_cfg.user
+python_cfg.user
 docs/examples/hipcc/hello_world/hello_world
 docs/examples/hipcc/hello_world/hello_world.o
 docs/examples/opencl/check_opencl_caps/check_opencl_caps
