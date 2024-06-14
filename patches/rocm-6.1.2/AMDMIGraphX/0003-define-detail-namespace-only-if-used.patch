@@ -1,0 +1,50 @@
+From 080b788b22ecbb49b751303bf8e5e7cd45fbb58e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 30 May 2024 09:51:05 -0700
+Subject: [PATCH 3/4] define detail namespace only if used
+
+This fixes the build problen on Fedora, not
+sure whether the real reason is some kind of optimization.
+Tested first that following did not help:
+	#ifndef HAS_EXCEPTION_PTR
+		#define HAS_EXCEPTION_PTR
+	#endif
+
+Builded ok on Fedora 39 and Ubuntu 23.10 but had following error in Fedora 40:
+cd /builddir/035_AMDMIGraphX/test && /opt/rocm_sdk_611/bin/clang++ -DHAVE_GPU -DMIGRAPHX_HAS_EXECUTORS=0 -DMIGRAPHX_HAS_FIND_2_API -DMIGRAPHX_HAS_FIND_MODE_API -DMIGRAPHX_PREALLOCATE_MIOPEN_BUFFERS -DMIGRAPHX_USE_ROCBLAS_FP8_API -DMIGRAPHX_USE_ROCBLAS_TUNING_API -DROCBLAS_BETA_FEATURES_API -DROCBLAS_NO_DEPRECATED_WARNINGS -DUSE_PROF_API=1 -D__HIP_PLATFORM_AMD__ -D__HIP_PLATFORM_AMD__=1 -I/src_projects/AMDMIGraphX/test/include -I/builddir/035_AMDMIGraphX/src/include -I/src_projects/AMDMIGraphX/src/include -I/builddir/035_AMDMIGraphX/src/onnx/include -I/builddir/035_AMDMIGraphX/src/tf/include -I/builddir/035_AMDMIGraphX/src/targets/ref/include -I/src_projects/AMDMIGraphX/src/targets/ref/include -I/builddir/035_AMDMIGraphX/src/targets/gpu/include -I/src_projects/AMDMIGraphX/src/targets/gpu/include -isystem /opt/rocm_sdk_611/include -O3 -DNDEBUG -std=c++17 -Wall -Wextra -Wcomment -Wendif-labels -Wformat -Winit-self -Wreturn-type -Wsequence-point -Wswitch -Wtrigraphs -Wundef -Wuninitialized -Wunreachable-code -Wunused -Wno-sign-compare -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-conversion -Wno-double-promotion -Wno-exit-time-destructors -Wno-extra-semi -Wno-extra-semi-stmt -Wno-float-conversion -Wno-gnu-anonymous-struct -Wno-gnu-zero-variadic-macro-arguments -Wno-missing-prototypes -Wno-nested-anon-types -Wno-option-ignored -Wno-padded -Wno-shorten-64-to-32 -Wno-sign-conversion -Wno-unused-command-line-argument -Wno-weak-vtables -Wno-c99-extensions -Wno-unsafe-buffer-usage -MD -MT test/CMakeFiles/header_src_include_migraphx_execution_environment_hpp.dir/header-static-include-header_src_include_migraphx_execution_environment_hpp.cpp.o -MF CMakeFiles/header_src_include_migraphx_execution_environment_hpp.dir/header-static-include-header_src_include_migraphx_execution_environment_hpp.cpp.o.d -o CMakeFiles/header_src_include_migraphx_execution_environment_hpp.dir/header-static-include-header_src_include_migraphx_execution_environment_hpp.cpp.o -c /builddir/035_AMDMIGraphX/test/header-static-include-header_src_include_migraphx_execution_environment_hpp.cpp
+In file included from /builddir/035_AMDMIGraphX/test/header-main-include-header_src_include_migraphx_convolution_hpp.cpp:2:
+In file included from /src_projects/AMDMIGraphX/src/include/migraphx/convolution.hpp:29:
+In file included from /src_projects/AMDMIGraphX/src/include/migraphx/par_for.hpp:27:
+/src_projects/AMDMIGraphX/src/include/migraphx/par.hpp:58:22: error: no member named 'exception_ptr' in namespace 'std'
+   58 |     std::vector<std::exception_ptr> exceptions;
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/include/migraphx/par.hpp | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/include/migraphx/par.hpp b/src/include/migraphx/par.hpp
+index 270d0f07b..46b27f516 100644
+--- a/src/include/migraphx/par.hpp
++++ b/src/include/migraphx/par.hpp
+@@ -37,6 +37,8 @@
+ namespace migraphx {
+ inline namespace MIGRAPHX_INLINE_NS {
+ 
++#if MIGRAPHX_HAS_EXECUTORS
++
+ namespace detail {
+ 
+ struct exception_list
+@@ -71,6 +73,8 @@ struct exception_list
+ 
+ } // namespace detail
+ 
++#endif
++
+ template <class InputIt, class OutputIt, class UnaryOperation>
+ OutputIt par_transform(InputIt first1, InputIt last1, OutputIt d_first, UnaryOperation unary_op)
+ {
+-- 
+2.43.0
+

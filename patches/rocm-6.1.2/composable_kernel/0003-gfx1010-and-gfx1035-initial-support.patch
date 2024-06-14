@@ -1,0 +1,63 @@
+From 26942bd2a0a7a1d341969095e51eeb2625c6b8b4 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 24 May 2024 03:50:43 -0700
+Subject: [PATCH 3/3] gfx1010 and gfx1035 initial support
+
+- needs more testing
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/ck/ck.hpp                       | 9 ++++++---
+ include/ck/host_utility/device_prop.hpp | 3 +++
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
+index da5bb86c6..266460342 100644
+--- a/include/ck/ck.hpp
++++ b/include/ck/ck.hpp
+@@ -49,9 +49,9 @@
+ #define CK_BUFFER_RESOURCE_3RD_DWORD -1
+ #elif defined(__gfx803__) || defined(__gfx900__) || defined(__gfx906__) || defined(__gfx908__) || \
+     defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__) ||                          \
+-    defined(__gfx942__) // for GPU code
++    defined(__gfx942__) || defined(__gfx1010__) // for GPU code
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
+-#elif defined(__gfx1030__) // for GPU code
++#elif defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1035__) // for GPU code
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
+ #elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
+@@ -59,11 +59,14 @@
+ #define CK_BUFFER_RESOURCE_3RD_DWORD -1
+ #endif
+ 
++// whether to use assembly or rely on compiler for these instructions
++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
++// TODO: check defined(__gfx1035__)
+ // FMA instruction
+ #ifndef __HIP_DEVICE_COMPILE__                   // for host code, define nothing
+ #elif defined(__gfx803__) || defined(__gfx900__) // for GPU code
+ #define CK_USE_AMD_V_MAC_F32
+-#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || \
++#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || defined(__gfx1031__) || \
+     defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) // for GPU code
+ #define CK_USE_AMD_V_FMAC_F32
+ #define CK_USE_AMD_V_DOT2_F32_F16
+diff --git a/include/ck/host_utility/device_prop.hpp b/include/ck/host_utility/device_prop.hpp
+index e8dabc997..0908f6757 100644
+--- a/include/ck/host_utility/device_prop.hpp
++++ b/include/ck/host_utility/device_prop.hpp
+@@ -40,7 +40,10 @@ inline std::string get_device_name()
+         {"gfx804", "gfx803"},
+         {"Vega10", "gfx900"},
+         {"gfx901", "gfx900"},
++        {"navi10", "gfx1010"},
++        {"gfx1031", "gfx1030"},
+         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
++        {"Rembrandt", "gfx1035"},
+     };
+ 
+     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
+-- 
+2.41.0
+

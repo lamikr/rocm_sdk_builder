@@ -1,0 +1,160 @@
+From e695996aa58e66a13de3c78ee516b6f8a1372f1d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:40:43 -0700
+Subject: [PATCH 6/6] OpenBLAS and BLIS library search improvements
+
+- works now with the rocm_sdks build
+  by rocm sdk builder
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/CMakeLists.txt            | 60 +++++++++++++++++++++++++++----
+ clients/benchmarks/CMakeLists.txt |  4 +--
+ clients/gtest/CMakeLists.txt      |  4 +--
+ cmake/findBLIS.cmake              | 22 +++++++++---
+ 4 files changed, 75 insertions(+), 15 deletions(-)
+
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 8c9ef190..d5be90ae 100755
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -86,13 +86,59 @@ endif( )
+ 
+ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
+ 
+-  # Linking lapack library requires fortran flags
+-  find_package( cblas REQUIRED CONFIG )
+-  if(${BLIS_FOUND})
+-    set( BLAS_LIBRARY ${BLIS_LIB} )
+-    set( BLIS_CPP ../common/blis_interface.cpp )
+-  else()
+-    set( BLAS_LIBRARY "blas" )
++  if ( NOT WIN32 )
++    if (LINK_BLIS)
++      if(EXISTS          "${BUILD_DIR}/deps/amd-blis/lib/ILP64/libblis-mt.a") # 4.0 and 4.1.0
++        set( BLAS_LIBRARY ${BUILD_DIR}/deps/amd-blis/lib/ILP64/libblis-mt.a )
++        set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/amd-blis/include/ILP64 )
++      elseif(EXISTS      "/opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a" )
++        set( BLAS_LIBRARY /opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/lib_ILP64/libblis-mt.a )
++        set( BLIS_INCLUDE_DIR /opt/AMD/aocl/aocl-linux-aocc-4.1.0/aocc/include_ILP64/ )
++      elseif(EXISTS      "/opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a" )
++        set( BLAS_LIBRARY /opt/AMD/aocl/aocl-linux-aocc-4.0/lib_ILP64/libblis-mt.a )
++        set( BLIS_INCLUDE_DIR /opt/AMD/aocl/aocl-linux-aocc-4.0/include_ILP64/ )
++      elseif(EXISTS      "${BLIS_DIR}/lib64/libblis.a")
++        set( BLAS_LIBRARY ${BLIS_DIR}/lib64/libblis.a )
++        set( BLIS_INCLUDE_DIR ${BLIS_DIR}/include/blis )
++      elseif(EXISTS      "${BLIS_DIR}/lib/libblis.a")
++        set( BLAS_LIBRARY ${BLIS_DIR}/lib/libblis.a )
++        set( BLIS_INCLUDE_DIR ${BLIS_DIR}/include/blis )
++      elseif(EXISTS      "${BUILD_DIR}/deps/blis/lib/libblis.a")
++        set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.a )
++        set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
++      elseif(EXISTS      "/usr/local/lib/libblis.a")
++        set( BLAS_LIBRARY /usr/local/lib/libblis.a )
++        set( BLIS_INCLUDE_DIR /usr/local/include/blis )
++      endif()
++      if ( DEFINED BLIS_INCLUDE_DIR )
++        set( BLIS_CPP ../common/blis_interface.cpp )
++        message(STATUS "Linking BLIS LIB: ${BLAS_LIBRARY}")
++      endif()
++    else()
++      find_package( OpenBLAS CONFIG REQUIRED )
++      message(STATUS "OpenBLAS_FOUND: ${OpenBLAS_FOUND}")
++      message(STATUS "OpenBLAS_VERSION: ${OpenBLAS_VERSION}")
++      message(STATUS "OpenBLAS_INCLUDE_DIR: ${OpenBLAS_INCLUDE_DIR}")
++      message(STATUS "OpenBLAS_INCLUDE_DIRS: ${OpenBLAS_INCLUDE_DIRS}")
++      message(STATUS "OpenBLAS_LIBRARY: ${OpenBLAS_LIBRARY}")
++      message(STATUS "OpenBLAS_LIBRARIES: ${OpenBLAS_LIBRARIES}")
++      #set( BLAS_LIBRARY ${OpenBLAS_LIBRARY} )
++      message(STATUS "OpenBLAS used")
++      set( BLAS_LIBRARY OpenBLAS::OpenBLAS )
++      set( BLAS_INCLUDE_DIR ${OpenBLAS_INCLUDE_DIRS} )
++    endif()
++  else() # WIN32
++    # Linking lapack library requires fortran flags
++    find_package( cblas REQUIRED CONFIG )
++    if(${BLIS_FOUND})
++      message(FATAL_ERROR "debug  BLIS FOUND")
++      set( BLAS_LIBRARY ${BLIS_LIB} )
++      set( BLIS_CPP ../common/blis_interface.cpp )
++    else()
++      set( BLAS_LIBRARY "blas" )
++      message(FATAL_ERROR "debug BLAS FOUND")
++    endif()
++    message(FATAL_ERROR "debug BLAS NOT FOUND")
+   endif()
+ 
+   # common source files used in subdirectories benchmarks and gtest thus ../common
+diff --git a/clients/benchmarks/CMakeLists.txt b/clients/benchmarks/CMakeLists.txt
+index 9d1cfe1d..6c64cbcc 100644
+--- a/clients/benchmarks/CMakeLists.txt
++++ b/clients/benchmarks/CMakeLists.txt
+@@ -73,8 +73,8 @@ endif()
+ if (NOT WIN32)
+   if (BUILD_CUDA)
+     target_link_libraries( hipblaslt-bench PRIVATE -llapack -lcblas )
+-  else()
+-    target_link_libraries( hipblaslt-bench PRIVATE lapack cblas )
++  #else()
++  #  target_link_libraries( hipblaslt-bench PRIVATE lapack cblas )
+   endif()
+   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+   if (NOT BUILD_FORTRAN_CLIENTS)
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 825bdca0..9cf3ac78 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -81,8 +81,8 @@ target_compile_options(hipblaslt-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON
+ 
+ if (BUILD_CUDA)
+   target_link_libraries( hipblaslt-test PRIVATE -llapack -lcblas )
+-else()
+-  target_link_libraries( hipblaslt-test PRIVATE lapack cblas )
++#else()
++#  target_link_libraries( hipblaslt-test PRIVATE lapack cblas )
+ endif()
+ 
+ list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+diff --git a/cmake/findBLIS.cmake b/cmake/findBLIS.cmake
+index bc9109d0..53b854e6 100644
+--- a/cmake/findBLIS.cmake
++++ b/cmake/findBLIS.cmake
+@@ -24,7 +24,9 @@
+ file(GLOB BLIS_AOCL_LIBS /opt/AMD/aocl/aocl-linux-aocc-*/aocc/lib_ILP64/libblis-mt.a)  # Possible location 1
+ file(GLOB BLIS_LOCAL_LIB /usr/local/lib/libblis.a)  # Possible location 2
+ file(GLOB BLIS_DEPS_LIB ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.a)  # wget location
+-set(BLIS_LIBS ${BLIS_LOCAL_LIB} ${BLIS_AOCL_LIBS} ${BLIS_DEPS_LIB})
++file(GLOB BLIS_ROCM_LIB ${BLIS_DIR}/lib64/libblis.a)  # rocm sdk builder location
++
++set(BLIS_LIBS ${BLIS_LOCAL_LIB} ${BLIS_AOCL_LIBS} ${BLIS_DEPS_LIB} ${BLIS_ROCM_LIB})
+ list(REVERSE BLIS_LIBS)
+ list (GET BLIS_LIBS 0 BLIS_LIB)
+ if("${BLIS_LIB}" STREQUAL "NOTFOUND")
+@@ -38,9 +40,21 @@ else()
+     set(BLIS_INCLUDE_DIR ${BLIS_ROOT}/include/blis)
+ endif()
+ 
+-set(BLIS_FOUND TRUE PARENT_SCOPE)
+-set(BLIS_INCLUDE_DIR ${BLIS_INCLUDE_DIR} PARENT_SCOPE)
+-set(BLIS_LIB ${BLIS_LIB} PARENT_SCOPE)
++message(STATUS "BLIS_INCLUDE_DIR: ${BLIS_INCLUDE_DIR}")
++
++get_directory_property(hasParent PARENT_DIRECTORY)
++if(hasParent)
++  message(STATUS "Has a parent scope.")
++  set(BLIS_FOUND TRUE PARENT_SCOPE)
++  set(BLIS_INCLUDE_DIR ${BLIS_INCLUDE_DIR} PARENT_SCOPE)
++  set(BLIS_LIB ${BLIS_LIB} PARENT_SCOPE)
++else()
++  message(STATUS "Doesn't have a parent scope.")
++  set(BLIS_FOUND TRUE)
++  set(BLIS_INCLUDE_DIR ${BLIS_INCLUDE_DIR})
++  set(BLIS_LIB ${BLIS_LIB})
++endif()
++
+ message("BLIS heeader directory found: ${BLIS_INCLUDE_DIR}")
+ message("BLIS lib found: ${BLIS_LIB}")
+ 
+-- 
+2.41.0
+

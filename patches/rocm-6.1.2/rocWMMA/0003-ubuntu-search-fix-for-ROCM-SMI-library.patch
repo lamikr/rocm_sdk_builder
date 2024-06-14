@@ -1,0 +1,32 @@
+From 3c2dd0a8ecdf830d1423aa7ddbe3935a28638b28 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 3 May 2024 14:24:53 -0700
+Subject: [PATCH 3/3] ubuntu search fix for ROCM SMI library
+
+CMake search behaves differently in ubuntu
+compared for example to fedora or mageia and
+does not find the library from lib64 folder
+unless explicitly asked to search from there.
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8dc0896..9801797 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -107,7 +107,8 @@ find_path(ROCM_SMI_ROOT "include/rocm_smi/rocm_smi.h"
+     )
+ 
+ find_library(ROCM_SMI_LIBRARY rocm_smi64
+-    PATHS "${ROCM_SMI_ROOT}/lib")
++    PATHS "${ROCM_SMI_ROOT}/lib"
++          "${ROCM_SMI_ROOT}/lib64")
+ 
+ add_library(rocwmma INTERFACE)
+ target_link_libraries(rocwmma INTERFACE hip::device hip::host hiprtc::hiprtc OpenMP::OpenMP_CXX ${ROCM_SMI_LIBRARY})
+-- 
+2.41.0
+

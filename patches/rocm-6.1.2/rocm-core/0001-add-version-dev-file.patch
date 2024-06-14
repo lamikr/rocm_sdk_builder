@@ -1,0 +1,30 @@
+From bbd015f1af005d7e31e961d884bdd55f482a2581 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 May 2024 14:00:37 -0700
+Subject: [PATCH] add version-dev file
+
+at least onnxruntime uses version-dev file
+instead of version file for checking rocm-version
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 35ec122..2b0c190 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -121,7 +121,9 @@ endif()
+ 
+ #intallation directive
+ file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${BUILD_ID}\n" )
++file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version-dev" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${BUILD_ID}\n" )
+ install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/version DESTINATION .info COMPONENT runtime )
++install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/version-dev DESTINATION .info COMPONENT runtime )
+ install ( TARGETS ${CORE_TARGET} DESTINATION ${CMAKE_INSTALL_LIBDIR}
+           PERMISSIONS OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+           COMPONENT ${COMP_TYPE} )
+-- 
+2.41.0
+

@@ -1,0 +1,35 @@
+From 8cdf8041e6650f4c85dc19282f6991eab7ff8f62 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 10 May 2024 10:16:19 -0700
+Subject: [PATCH 2/7] show error message if ROCM_SOURCE_DIR not defined
+
+ROCM_SOURCE_DIR is required by by third_party/kineto module
+and if it is not set, kineto will not find the
+the roctracer.h header file and fails to build.
+
+example how to define ROCM_SOURCE_DIR for rocm pytorch build:
+ROCM_PATH=/opt/rocm_sdk_610 ROCM_SOURCE_DIR=/opt/rocm_sdk_610 CMAKE_PREFIX_PATH=/opt/rocm_sdk_610 HIP_ROOT_DIR=/opt/rocm_sdk_610 ROCM_VERSION=60100 USE_ROCM=1 python setup.py install
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/Dependencies.cmake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
+index a96075245ae..8befd5b8294 100644
+--- a/cmake/Dependencies.cmake
++++ b/cmake/Dependencies.cmake
+@@ -1967,8 +1967,8 @@ if(USE_KINETO)
+   endif()
+ 
+   if(NOT LIBKINETO_NOROCTRACER)
+-    if("$ENV{ROCM_SOURCE_DIR}" STREQUAL "")
+-      set(ENV{ROCM_SOURCE_DIR} "/opt/rocm")
++    if(NOT DEFINED ENV{ROCM_SOURCE_DIR})
++      message(FATAL_ERROR " ROCM_SOURCE_DIR environment variable not defined. Pytorch build example: ROCM_SOURCE_DIR=/opt/rocm_sdk_610 python setup.py install")
+     endif()
+   endif()
+ 
+-- 
+2.41.1
+

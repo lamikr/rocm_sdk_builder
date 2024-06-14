@@ -1,0 +1,81 @@
+From 7551d8615d5d3fba5363e0a9b1404d0090e8bc91 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 19 Dec 2023 15:19:51 -0800
+Subject: [PATCH] tuple fix
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include_all_in_one/include/fplus/fplus.hpp | 48 ++++++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/include_all_in_one/include/fplus/fplus.hpp b/include_all_in_one/include/fplus/fplus.hpp
+index 0f621e4..3a91475 100644
+--- a/include_all_in_one/include/fplus/fplus.hpp
++++ b/include_all_in_one/include/fplus/fplus.hpp
+@@ -12682,8 +12682,10 @@ Container replace_tokens
+ 
+ #include <iomanip>
+ #include <ios>
++#include <list>
+ #include <sstream>
+ #include <string>
++#include <tuple>
+ 
+ namespace fplus
+ {
+@@ -12942,6 +12944,52 @@ std::string show_fill_right(const std::string::value_type& filler,
+     return fill_right(filler, min_size, show<T>(x));
+ }
+ 
++// Based on https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat
++// Case N, recursive
++template<class Tuple, std::size_t N>
++struct TupleStreamer {
++    static void stream(const Tuple& t, std::list<std::string>& sl)
++    {
++        TupleStreamer<Tuple, N-1>::stream(t,sl);
++        std::stringstream ss;
++        ss << std::get<N-1>(t);
++        sl.emplace_back(ss.str());
++    }
++};
++
++// Based on https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat
++// Case N=1
++template<class Tuple>
++struct TupleStreamer<Tuple, 1> {
++    static void stream(const Tuple& t, std::list<std::string>& sl)
++    {
++        std::stringstream ss;
++        ss << std::get<0>(t);
++        sl.emplace_back(ss.str());
++    }
++};
++
++// Based on https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat
++// Case N=0
++template<typename... Args, std::enable_if_t<sizeof...(Args) == 0, int> = 0>
++void stream(const std::tuple<Args...>& , std::list<std::string>& )
++{
++    return;
++}
++
++// Based on https://en.cppreference.com/w/cpp/utility/tuple/tuple_cat
++// Example:
++// std::tuple<int, std::string, float> t1(10, "Test", 3.14);
++// std::list<std::string> lt1 = stream(t1);
++// std::cout << fplus::show_cont(lt1);
++template<typename... Args, std::enable_if_t<sizeof...(Args) != 0, int> = 0>
++std::list<std::string> stream(const std::tuple<Args...>& t)
++{
++    std::list<std::string> sl;
++    TupleStreamer<decltype(t), sizeof...(Args)>::stream(t,sl);
++    return sl;
++}
++
+ } // namespace fplus
+ 
+ //
+-- 
+2.41.0
+
