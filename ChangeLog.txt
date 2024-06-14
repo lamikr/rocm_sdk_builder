@@ -1,3 +1,13 @@
+ROCM SDK Builder 6.1.2-1 (not yet released)
+-------------------------------------
+- updated the rocm base components from 6.1.1 to 6.1.2
+- rebased the patches and dropped the one applied to upstream
+- changes
+	- env_rocm.sh
+		- better check for whether bashscript is sourced (daniandtheweb)
+	- onnxruntime
+		- better patch for broken test (Jeroen Mostert)
+
 ROCM SDK Builder 6.1.1-2 (2024-06-14)
 -------------------------------------
   Thanks for the following people for contributions, feedbacks, bugreporting and testing since the previous release
