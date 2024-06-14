@@ -19,7 +19,7 @@ index df54415c..febf6613 100644
          if OpBuilder._rocm_gpu_arch:
              return OpBuilder._rocm_gpu_arch
 -        rocm_gpu_arch_cmd = "/opt/rocm/bin/rocminfo | grep -o -m 1 'gfx.*'"
-+        rocm_gpu_arch_cmd = "/opt/rocm_sdk_611/bin/rocminfo | grep -o -m 1 'gfx.*'"
++        rocm_gpu_arch_cmd = "/opt/rocm_sdk_612/bin/rocminfo | grep -o -m 1 'gfx.*'"
          try:
              result = subprocess.check_output(rocm_gpu_arch_cmd, shell=True)
              rocm_gpu_arch = result.decode('utf-8').strip()
@@ -28,7 +28,7 @@ index df54415c..febf6613 100644
          if OpBuilder._rocm_wavefront_size:
              return OpBuilder._rocm_wavefront_size
 -        rocm_wavefront_size_cmd = "/opt/rocm/bin/rocminfo | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
-+        rocm_wavefront_size_cmd = "/opt/rocm_sdk_611/bin/rocminfo | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
++        rocm_wavefront_size_cmd = "/opt/rocm_sdk_612/bin/rocminfo | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
          try:
              result = subprocess.check_output(rocm_wavefront_size_cmd, shell=True)
              rocm_wavefront_size = result.decode('utf-8').strip()

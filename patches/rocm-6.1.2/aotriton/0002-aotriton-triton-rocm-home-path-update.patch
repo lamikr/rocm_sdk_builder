@@ -28,12 +28,12 @@ index fd87f8f..c73f6a9 100644
            amdgpu-install -y --usecase=rocm --no-dkms
            # remove unused packages to free some disk space
 -          cp /opt/rocm/llvm/bin/ld.lld .
-+          cp /opt/rocm_sdk_611/bin/ld.lld .
++          cp /opt/rocm_sdk_612/bin/ld.lld .
            apt purge -y rocblas rocm-llvm
 -          mkdir -p /opt/rocm/llvm/bin
 -          mv ld.lld /opt/rocm/llvm/bin/ld.lld
-+          mkdir -p /opt/rocm_sdk_611/bin
-+          mv ld.lld /opt/rocm_sdk_611/bin/ld.lld
++          mkdir -p /opt/rocm_sdk_612/bin
++          mv ld.lld /opt/rocm_sdk_612/bin/ld.lld
            # install pytorch
            pip3 install torch==2.0.1 --index-url https://download.pytorch.org/whl/rocm5.4.2
            # uninstall system triton to eliminate conflicts with testing version
@@ -46,7 +46,7 @@ index 55a5d8b..18062ae 100644
  # Force TRITON_USE_ROCM for ROCm support
  set(TRITON_USE_ROCM ON)
 -set(ROCM_DEFAULT_DIR "/opt/rocm")
-+set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
++set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_612")
  add_definitions( -DROCM_DEFAULT_DIR="${ROCM_DEFAULT_DIR}")
  
  # Ensure Python3 vars are set correctly
@@ -83,7 +83,7 @@ index 8cc87ea..04078bc 100644
          return default_path
      else:
 -        return os.getenv("ROCM_PATH", default="/opt/rocm")
-+        return os.getenv("ROCM_PATH", default="/opt/rocm_sdk_611")
++        return os.getenv("ROCM_PATH", default="/opt/rocm_sdk_612")
  
  
  @contextlib.contextmanager
@@ -96,7 +96,7 @@ index 1c5977f..90f9952 100644
  # FLAGS
  message(STATUS "HIP_BACKEND_MODE = ${HIP_BACKEND_MODE}")
 -set(ROCM_DEFAULT_DIR "/opt/rocm")
-+set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_611")
++set(ROCM_DEFAULT_DIR "/opt/rocm_sdk_612")
  add_definitions( -DROCM_DEFAULT_DIR="${ROCM_DEFAULT_DIR}")
  set(ROCM_LIBRARIES
    ${CMAKE_CURRENT_SOURCE_DIR}/lib/hsa/libhsa-runtime64.so
@@ -136,7 +136,7 @@ index 60eaa30..79ca9cb 100755
  # Set ROCM_HOME if not set
  if [[ -z "${ROCM_HOME}" ]]; then
 -    export ROCM_HOME=/opt/rocm
-+    export ROCM_HOME=/opt/rocm_sdk_611
++    export ROCM_HOME=/opt/rocm_sdk_612
  fi
  
  # Check TRITON_ROCM_DIR is set
