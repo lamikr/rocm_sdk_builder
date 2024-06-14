@@ -1,7 +1,7 @@
-From efde7b0710d3694ec92f12d9f3310a6916fa32db Mon Sep 17 00:00:00 2001
+From 83c3025fe29b143e27c96e0038b3d7f3c5d38724 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 3 Jun 2024 22:08:11 -0700
-Subject: [PATCH 8/8] add cmake version check to build script
+Subject: [PATCH 8/9] add cmake version check to build script
 
 - check if the cmake version is required 3.26.1
   or newer. If not, add the rocm sdk builder cmake
@@ -36,5 +36,5 @@ index 8462abfa05..44d7022e2e 100755
  #
  #
 -- 
-2.41.1
+2.45.2
 

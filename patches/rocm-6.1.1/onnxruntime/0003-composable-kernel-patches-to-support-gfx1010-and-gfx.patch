@@ -1,7 +1,7 @@
-From 5d4b76f942cf73b06f78efc575be12c77def58a9 Mon Sep 17 00:00:00 2001
+From b5d1456e6f8fc3ded958c1e1f73bf4770b45267c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:03:37 -0700
-Subject: [PATCH 3/8] composable kernel patches to support gfx1010 and gfx1035
+Subject: [PATCH 3/9] composable kernel patches to support gfx1010 and gfx1035
 
 add onnxruntime composable kernel patches required
 to build onxxruntime for gfx1010 or gfx1030
@@ -268,5 +268,5 @@ index 0000000000..ee8eafe1bf
 +         clang_tidy_check(${INSTANCE_NAME})
 +         set(result 0)
 -- 
-2.41.1
+2.45.2
 
