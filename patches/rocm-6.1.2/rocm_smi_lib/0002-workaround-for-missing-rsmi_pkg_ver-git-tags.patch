@@ -1,0 +1,72 @@
+From f555a43f00e49818375de555666bde2027c24ca8 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 6 Jun 2024 10:21:09 -0700
+Subject: [PATCH 2/3] workaround for missing rsmi_pkg_ver git tags
+
+use the suggested default versions of tags
+(7.0.0 in rocm-6.1.1 for example) instead
+of trying to parse it from rsmi_pkg_ver git tag.
+
+Because those are not uptodate on github repo,
+the version returned would be old 2.8.0
+instead of current 7.0.0 causing problems
+at least for rocm-smi.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake_modules/utils.cmake | 4 ++--
+ oam/CMakeLists.txt        | 2 +-
+ rocm_smi/CMakeLists.txt   | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/cmake_modules/utils.cmake b/cmake_modules/utils.cmake
+index 7131761..823bfc1 100755
+--- a/cmake_modules/utils.cmake
++++ b/cmake_modules/utils.cmake
+@@ -44,7 +44,6 @@
+ ## the first, second and third number values in
+ ## the major, minor and patch variables.
+ function( parse_version VERSION_STRING )
+-
+     string ( FIND ${VERSION_STRING} "-" STRING_INDEX )
+ 
+     if ( ${STRING_INDEX} GREATER -1 )
+@@ -84,7 +83,8 @@ endfunction ()
+ function(get_version_from_tag DEFAULT_VERSION_STRING VERSION_PREFIX GIT)
+     parse_version ( ${DEFAULT_VERSION_STRING} )
+ 
+-    if ( GIT )
++    # https://github.com/ROCm/rocm_smi_lib/issues/178
++    if ( rsmi_pkg_ver_GIT_TAGS_ARE_UP_TODATE )
+         execute_process ( COMMAND git describe --tags --dirty --long --match ${VERSION_PREFIX}-[0-9.]*
+                           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                           OUTPUT_VARIABLE GIT_TAG_STRING
+diff --git a/oam/CMakeLists.txt b/oam/CMakeLists.txt
+index 6927d24..0ca8b5d 100644
+--- a/oam/CMakeLists.txt
++++ b/oam/CMakeLists.txt
+@@ -37,7 +37,7 @@ message("Package version: ${PKG_VERSION_STR}")
+ 
+ # Debian package specific variables
+ # Set a default value for the package version
+-get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
++get_version_from_tag("7.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
+ 
+ # VERSION_* variables should be set by get_version_from_tag
+ if ( ${ROCM_PATCH_VERSION} )
+diff --git a/rocm_smi/CMakeLists.txt b/rocm_smi/CMakeLists.txt
+index 012ce9a..5c691b2 100755
+--- a/rocm_smi/CMakeLists.txt
++++ b/rocm_smi/CMakeLists.txt
+@@ -39,7 +39,7 @@ message("Package version: ${PKG_VERSION_STR}")
+ 
+ # Debian package specific variables
+ # Set a default value for the package version
+-get_version_from_tag("1.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
++get_version_from_tag("7.0.0.0" ${SO_VERSION_GIT_TAG_PREFIX} GIT)
+ 
+ # VERSION_* variables should be set by get_version_from_tag
+ if ( ${ROCM_PATCH_VERSION} )
+-- 
+2.41.1
+

@@ -1,0 +1,219 @@
+From 8f987d49054d66e382b7406c99928225f037ab5e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Wed, 15 May 2024 15:38:52 -0700
+Subject: [PATCH 1/2] fix missing blasint definition from tests
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- fixes a following type of error:
+cc -I/opt/rocm_sdk_611/include -I/opt/rocm_sdk_611/hsa/include -I/opt/rocm_sdk_611/rocm_smi/include -I/opt/rocm_sdk_611/rocblas/include -O2 -DMAX_STACK_ALLOC=2048 -Wall -m64 -DF_INTERFACE_GFORT -fPIC -DSMP_SERVER -DNO_WARMUP -DMAX_CPU_NUMBER=16 -DMAX_PARALLEL_NUMBER=1 -DBUILD_SINGLE=1 -DBUILD_DOUBLE=1 -DBUILD_COMPLEX=1 -DBUILD_COMPLEX16=1 -DVERSION=\"0.3.27\" -msse3 -mssse3 -msse4.1 -mavx -mavx2 -mavx2 -UASMNAME -UASMFNAME -UNAME -UCNAME -UCHAR_NAME -UCHAR_CNAME -DASMNAME= -DASMFNAME=_ -DNAME=_ -DCNAME= -DCHAR_NAME=\"_\" -DCHAR_CNAME=\"\" -DNO_AFFINITY -I. -O2 -DSMALL_MATRIX_OPT -DUTEST_CHECK -DSANITY_CHECK -DREFNAME=f_ -DMAX_STACK_ALLOC=2048 -Wall -m64 -DF_INTERFACE_GFORT -fPIC -DSMP_SERVER -DNO_WARMUP -DMAX_CPU_NUMBER=16 -DMAX_PARALLEL_NUMBER=1 -DBUILD_SINGLE=1 -DBUILD_DOUBLE=1 -DBUILD_COMPLEX=1 -DBUILD_COMPLEX16=1 -DVERSION=\"0.3.27\" -msse3 -mssse3 -msse4.1 -mavx -mavx2 -mavx2 -UASMNAME -UASMFNAME -UNAME -UCNAME -UCHAR_NAME -UCHAR_CNAME -DASMNAME= -DASMFNAME=_ -DNAME=_ -DCNAME= -DCHAR_NAME=\"_\" -DCHAR_CNAME=\"\" -DNO_AFFINITY -I.. -L/opt/rocm_sdk_611/lib64 -L/opt/rocm_sdk_611/lib -L/opt/rocm_sdk_611/hsa/lib -L/opt/rocm_sdk_611/rocblas/lib -L/opt/rocm_sdk_611/hcc/lib -o openblas_utest utest_main.o test_min.o test_amax.o test_ismin.o test_rotmg.o test_axpy.o test_dotu.o test_dsdot.o test_swap.o test_rot.o test_dnrm2.o test_zscal.o test_amin.o test_axpby.o test_potrs.o test_kernel_regress.o test_fork.o test_post_fork.o ../libopenblas_zenp-r0.3.27.a -lm -lpthread -lgfortran -lm -lpthread -lgfortran -L/usr/lib/gcc/x86_64-mageia-linux/12 -L/usr/lib/gcc/x86_64-mageia-linux/12/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib/gcc/x86_64-mageia-linux/12/../../..  -lgfortran -lm -lquadmath -lm -lc
+cc -I/opt/rocm_sdk_611/include -I/opt/rocm_sdk_611/hsa/include -I/opt/rocm_sdk_611/rocm_smi/include -I/opt/rocm_sdk_611/rocblas/include -O2 -DMAX_STACK_ALLOC=2048 -Wall -m64 -DF_INTERFACE_GFORT -fPIC -DSMP_SERVER -DNO_WARMUP -DMAX_CPU_NUMBER=16 -DMAX_PARALLEL_NUMBER=1 -DBUILD_SINGLE=1 -DBUILD_DOUBLE=1 -DBUILD_COMPLEX=1 -DBUILD_COMPLEX16=1 -DVERSION=\"0.3.27\" -msse3 -mssse3 -msse4.1 -mavx -mavx2 -mavx2 -UASMNAME -UASMFNAME -UNAME -UCNAME -UCHAR_NAME -UCHAR_CNAME -DASMNAME= -DASMFNAME=_ -DNAME=_ -DCNAME= -DCHAR_NAME=\"_\" -DCHAR_CNAME=\"\" -DNO_AFFINITY -I. -O2 -DSMALL_MATRIX_OPT -DUTEST_CHECK -DSANITY_CHECK -DREFNAME=xerblaf_ -DMAX_STACK_ALLOC=2048 -Wall -m64 -DF_INTERFACE_GFORT -fPIC -DSMP_SERVER -DNO_WARMUP -DMAX_CPU_NUMBER=16 -DMAX_PARALLEL_NUMBER=1 -DBUILD_SINGLE=1 -DBUILD_DOUBLE=1 -DBUILD_COMPLEX=1 -DBUILD_COMPLEX16=1 -DVERSION=\"0.3.27\" -msse3 -mssse3 -msse4.1 -mavx -mavx2 -mavx2 -UASMNAME -UASMFNAME -UNAME -UCNAME -UCHAR_NAME -UCHAR_CNAME -DASMNAME=xerbla -DASMFNAME=xerbla_ -DNAME=xerbla_ -DCNAME=xerbla -DCHAR_NAME=\"xerbla_\" -DCHAR_CNAME=\"xerbla\" -DNO_AFFINITY -I..   -c -o test_extensions/xerbla.o test_extensions/xerbla.c
+In file included from test_extensions/xerbla.c:34:
+test_extensions/common.h:48:41: error: unknown type name ‘blasint’
+   48 | extern int BLASFUNC(xerbla)(char *name, blasint *info, blasint length);
+      |                                         ^~~~~~~
+test_extensions/common.h:48:56: error: unknown type name ‘blasint’
+   48 | extern int BLASFUNC(xerbla)(char *name, blasint *info, blasint length);
+      |                                                        ^~~~~~~
+test_extensions/common.h:50:42: error: unknown type name ‘blasint’
+   50 | extern void srand_generate(float *alpha, blasint n);
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ utest/test_extensions/common.h         | 5 +++--
+ utest/test_extensions/test_cgemm.c     | 4 ++--
+ utest/test_extensions/test_ctrmv.c     | 4 ++--
+ utest/test_extensions/test_ctrsv.c     | 4 ++--
+ utest/test_extensions/test_domatcopy.c | 2 ++
+ utest/test_extensions/test_zgemm.c     | 4 ++--
+ utest/test_extensions/test_ztrmv.c     | 4 ++--
+ utest/test_extensions/test_ztrsv.c     | 4 ++--
+ utest/test_extensions/xerbla.c         | 4 ++--
+ 9 files changed, 19 insertions(+), 16 deletions(-)
+
+diff --git a/utest/test_extensions/common.h b/utest/test_extensions/common.h
+index 62b84325c..463d8d556 100644
+--- a/utest/test_extensions/common.h
++++ b/utest/test_extensions/common.h
+@@ -34,7 +34,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #ifndef _TEST_EXTENSION_COMMON_H_
+ #define _TEST_EXTENSION_COMMON_H_
+ 
+-#include <cblas.h>
++#include "../../common.h"
++#include "../../cblas.h"
+ #include <ctype.h>
+ 
+ #define TRUE 1
+@@ -73,4 +74,4 @@ extern void ccopy(blasint rows, blasint cols, float *alpha, float *a_src, int ld
+            float *a_dst, blasint lda_dst, int conj);
+ extern void zcopy(blasint rows, blasint cols, double *alpha, double *a_src, int lda_src, 
+            double *a_dst, blasint lda_dst, int conj);                
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_cgemm.c b/utest/test_extensions/test_cgemm.c
+index cd38d710b..f29e8f37e 100644
+--- a/utest/test_extensions/test_cgemm.c
++++ b/utest/test_extensions/test_cgemm.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 100
+ #define INCREMENT 2
+@@ -270,4 +270,4 @@ CTEST(cgemm, transa_conjnotransb)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0f, norm, SINGLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_ctrmv.c b/utest/test_extensions/test_ctrmv.c
+index 2a3f27416..8789ae338 100644
+--- a/utest/test_extensions/test_ctrmv.c
++++ b/utest/test_extensions/test_ctrmv.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 300
+ #define INCREMENT 2
+@@ -263,4 +263,4 @@ CTEST(ctrmv, conj_notrans_lower_unit_triangular_incx_2)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0f, norm, SINGLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_ctrsv.c b/utest/test_extensions/test_ctrsv.c
+index 0e639bb2a..091aa95b9 100644
+--- a/utest/test_extensions/test_ctrsv.c
++++ b/utest/test_extensions/test_ctrsv.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 300
+ #define INCREMENT 2
+@@ -264,4 +264,4 @@ CTEST(ctrsv, conj_notrans_lower_unit_triangular_incx_2)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0f, norm, DOUBLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_domatcopy.c b/utest/test_extensions/test_domatcopy.c
+index e60b9c83d..b70a0af5e 100644
+--- a/utest/test_extensions/test_domatcopy.c
++++ b/utest/test_extensions/test_domatcopy.c
+@@ -32,7 +32,9 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
++#define CBLAS
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 100
+ 
+diff --git a/utest/test_extensions/test_zgemm.c b/utest/test_extensions/test_zgemm.c
+index 4160a5086..f2e7badf4 100644
+--- a/utest/test_extensions/test_zgemm.c
++++ b/utest/test_extensions/test_zgemm.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 100
+ #define INCREMENT 2
+@@ -270,4 +270,4 @@ CTEST(zgemm, transa_conjnotransb)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0, norm, DOUBLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_ztrmv.c b/utest/test_extensions/test_ztrmv.c
+index 5668ec296..3c99b34ae 100644
+--- a/utest/test_extensions/test_ztrmv.c
++++ b/utest/test_extensions/test_ztrmv.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 300
+ #define INCREMENT 2
+@@ -263,4 +263,4 @@ CTEST(ztrmv, conj_notrans_lower_unit_triangular_incx_2)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0, norm, DOUBLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/test_ztrsv.c b/utest/test_extensions/test_ztrsv.c
+index 4b7ec6aaf..542c1fe9d 100644
+--- a/utest/test_extensions/test_ztrsv.c
++++ b/utest/test_extensions/test_ztrsv.c
+@@ -32,8 +32,8 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ **********************************************************************************/
+ 
+ #include "utest/openblas_utest.h"
+-#include <cblas.h>
+ #include "common.h"
++#include "../../common.h"
+ 
+ #define DATASIZE 300
+ #define INCREMENT 2
+@@ -264,4 +264,4 @@ CTEST(ztrsv, conj_notrans_lower_unit_triangular_incx_2)
+ 
+ 	ASSERT_DBL_NEAR_TOL(0.0, norm, DOUBLE_EPS);
+ }
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/utest/test_extensions/xerbla.c b/utest/test_extensions/xerbla.c
+index 9487b20a6..babe4bb97 100644
+--- a/utest/test_extensions/xerbla.c
++++ b/utest/test_extensions/xerbla.c
+@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ **********************************************************************************/
+-
+ #include "common.h"
++#include "../../common.h"
+ 
+ static int link_xerbla=TRUE;
+ static int lerr, _info, ok;
+@@ -85,4 +85,4 @@ void set_xerbla(char* current_rout, int expected_info){
+    lerr = TRUE;
+    _info = expected_info;
+    rout = current_rout;
+-}
+\ No newline at end of file
++}
+-- 
+2.41.0
+

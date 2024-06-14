@@ -1,0 +1,88 @@
+From 73281f46189f7012334d3b1a7e52baffade5295f Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 3 May 2024 13:13:02 -0700
+Subject: [PATCH 2/3] Tensile, add gfx1035 support
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ Tensile/AsmCaps.py | 42 ++++++++++++++++++++++++++++++++++++++++++
+ Tensile/Common.py  |  3 ++-
+ 2 files changed, 44 insertions(+), 1 deletion(-)
+
+diff --git a/Tensile/AsmCaps.py b/Tensile/AsmCaps.py
+index fa61708b..ef93f53f 100644
+--- a/Tensile/AsmCaps.py
++++ b/Tensile/AsmCaps.py
+@@ -587,6 +587,48 @@ CACHED_ASM_CAPS = \
+               'v_mad_mix_f32': False,
+               'v_pk_fma_f16': True,
+               'v_pk_fmac_f16': False},
++ (10, 3, 5): {'HasAddLshl': True,
++              'HasAtomicAdd': False,
++              'HasDirectToLdsDest': False,
++              'HasDirectToLdsNoDest': True,
++              'HasExplicitCO': True,
++              'HasExplicitNC': True,
++              'HasGLCModifier': True,
++              'HasLshlOr': True,
++              'HasMFMA': False,
++              'HasMFMA_b8': False,
++              'HasMFMA_bf16_1k': False,
++              'HasMFMA_bf16_original': False,
++              'HasMFMA_constSrc': False,
++              'HasMFMA_f64': False,
++              'HasMFMA_f8': False,
++              'HasMFMA_i8_908': False,
++              'HasMFMA_i8_940': False,
++              'HasMFMA_vgpr': False,
++              'HasMFMA_xf32': False,
++              'HasSMulHi': True,
++              'HasWMMA': False,
++              'KernargPreloading': False,
++              'MaxLgkmcnt': 15,
++              'MaxVmcnt': 63,
++              'SupportedISA': True,
++              'SupportedSource': True,
++              'VOP3v_dot4_i32_i8': True,
++              'v_dot2_f32_f16': True,
++              'v_dot2c_f32_f16': True,
++              'v_dot4_i32_i8': False,
++              'v_dot4c_i32_i8': True,
++              'v_fma_f16': True,
++              'v_fma_f32': True,
++              'v_fma_f64': True,
++              'v_fma_mix_f32': True,
++              'v_fmac_f16': False,
++              'v_fmac_f32': True,
++              'v_mac_f16': False,
++              'v_mac_f32': False,
++              'v_mad_mix_f32': False,
++              'v_pk_fma_f16': True,
++              'v_pk_fmac_f16': False},
+  (11, 0, 0): {'HasAddLshl': True,
+               'HasAtomicAdd': True,
+               'HasDirectToLdsDest': False,
+diff --git a/Tensile/Common.py b/Tensile/Common.py
+index 6ececf1c..a89b7c39 100644
+--- a/Tensile/Common.py
++++ b/Tensile/Common.py
+@@ -227,7 +227,7 @@ globalParameters["MaxFileName"] = 64              # If a file name would be long
+ globalParameters["SupportedISA"] = [(8,0,3),
+                                     (9,0,0), (9,0,6), (9,0,8), (9,0,10),
+                                     (9,4,0), (9,4,1), (9,4,2),
+-                                    (10,1,0), (10,1,1), (10,1,2), (10,3,0), (10,3,1),
++                                    (10,1,0), (10,1,1), (10,1,2), (10,3,0), (10,3,1), (10,3,5),
+                                     (11,0,0), (11,0,1), (11,0,2)] # assembly kernels writer supports these architectures
+ 
+ globalParameters["CleanupBuildFiles"] = False                     # cleanup build files (e.g. kernel assembly) once no longer needed
+@@ -2039,6 +2039,7 @@ def GetAsmCaps(isaVersion):
+     # check if derived caps matches asm cap cache
+     if not ignoreCacheCheck and derivedAsmCaps != CACHED_ASM_CAPS[isaVersion]:
+       printExit("Cached asm caps differ from derived asm caps for {}".format(isaVersion))      
++    print("Cached asm caps ok, isaVersion {}, ROCm: {}".format(isaVersion, globalParameters['HipClangVersion']))
+     return derivedAsmCaps
+   else:
+     printWarning("Assembler not present, asm caps loaded from cache are unverified")
+-- 
+2.41.0
+

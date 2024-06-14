@@ -1,0 +1,57 @@
+From 55bb9a72de1235d8df19dfe496ae784e5fc05e6b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 5 Jan 2024 10:43:18 +0200
+Subject: [PATCH] rocRAND build gfx1035 options
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                           | 2 +-
+ library/include/rocrand/rocrand_common.h | 3 ++-
+ rmake.py                                 | 4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6e1dec5..f05f64d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -91,7 +91,7 @@ endif()
+ set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
+ # Set the AMDGPU_TARGETS
+ rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-    TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102"
++    TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102"
+ )
+ if (AMDGPU_TARGETS)
+     if( AMDGPU_TARGETS STREQUAL "all" )
+diff --git a/library/include/rocrand/rocrand_common.h b/library/include/rocrand/rocrand_common.h
+index 1aad64f..0311ac2 100644
+--- a/library/include/rocrand/rocrand_common.h
++++ b/library/include/rocrand/rocrand_common.h
+@@ -61,7 +61,8 @@ namespace detail {
+       defined(__gfx906__) || \
+       defined(__gfx908__) || \
+       defined(__gfx909__) || \
+-      defined(__gfx1030__) )
++      defined(__gfx1030__) || \
++      defined(__gfx1035__) )
+   #if !defined(ROCRAND_ENABLE_INLINE_ASM)
+     #define ROCRAND_ENABLE_INLINE_ASM
+   #endif
+diff --git a/rmake.py b/rmake.py
+index 93e4dc1..5955cc2 100644
+--- a/rmake.py
++++ b/rmake.py
+@@ -37,8 +37,8 @@ def parse_args():
+                         help='Install after build (default: False)')
+     parser.add_argument(      '--cmake-darg', required=False, dest='cmake_dargs', action='append', default=[],
+                         help='List of additional cmake defines for builds (e.g. CMAKE_CXX_COMPILER_LAUNCHER=ccache)')
+-    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906;gfx1030;gfx1100;gfx1101;gfx1102", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
+-                        help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-;gfx1030;gfx1100 (optional, default: all)')
++    parser.add_argument('-a', '--architecture', dest='gpu_architecture', required=False, default="gfx906;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102", #:sramecc+:xnack-" ) #gfx1030" ) #gfx906" ) # gfx1030" )
++                        help='Set GPU architectures, e.g. all, gfx000, gfx803, gfx906:xnack-;gfx1030;gfx1035;gfx1100 (optional, default: all)')
+     parser.add_argument('-v', '--verbose', required=False, default=False, action='store_true',
+                         help='Verbose build (default: False)')
+     return parser.parse_args()
+-- 
+2.41.0
+

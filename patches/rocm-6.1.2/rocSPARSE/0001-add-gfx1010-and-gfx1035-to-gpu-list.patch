@@ -1,0 +1,26 @@
+From c10276d84eb596d1cb36a03be74a853feafb5997 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:26:50 -0700
+Subject: [PATCH 1/2] add gfx1010 and gfx1035 to gpu list
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b5ce2bc1..2f58b666 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -142,7 +142,7 @@ endif()
+ #Set the AMDGPU_TARGETS with backward compatibility
+  if(COMMAND rocm_check_target_ids)
+     rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-        TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102"
++        TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102"
+    )
+ else()
+     # Use target ID syntax if supported for AMDGPU_TARGETS
+-- 
+2.41.0
+
