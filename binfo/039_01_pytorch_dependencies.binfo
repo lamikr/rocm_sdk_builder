@@ -1,0 +1,12 @@
+BINFO_APP_NAME=pytorch_dependencies
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+
+BINFO_APP_NO_CONFIG=1
+BINFO_APP_NO_BUILD=1
+BINFO_APP_NO_POSTINSTALL=1
+
+BINFO_APP_INSTALL_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "pip install future leveldb numpy protobuf pydot python-gflags pyyaml scikit-image setuptools six hypothesis typing tqdm typing_extensions jupyterlab notebook pandas seaborn matplotlib opencv-python cufflinks ipywidgets wheel opt_einsum keras_preprocessing"
+)

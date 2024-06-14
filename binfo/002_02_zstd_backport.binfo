@@ -3,7 +3,8 @@ BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_SUBDIR_BASENAME=
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/facebook/zstd.git
-# v1.5.6 version is incompatible at least with the suitesparse 6.1.1:
+# zstd backport is needed by fedora where some apps using cmake does not find the fedora packaged version of it/
+# use v1.5.5 because v1.5.6 version is incompatible at least with the suitesparse 6.1.1 due to following change:
 # ZSTD_c_experimentalParam6=1003; is now ZSTD_c_targetCBlockSize
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=v1.5.5
 
