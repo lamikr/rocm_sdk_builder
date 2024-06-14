@@ -26,7 +26,7 @@ index fbc4717..034c7be 100644
  option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
  set(TARGET_GPUS "MI200;MI300X" CACHE STRING "Target Architecture (Note here uses Trade names)")
 -set(AMDHSA_LD_PRELOAD "/opt/rocm/lib/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
-+set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_611/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
++set(AMDHSA_LD_PRELOAD "/opt/rocm_sdk_612/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
  
  # GPU kernel compression related options
  option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
@@ -40,7 +40,7 @@ index fbc4717..034c7be 100644
  endif()
  
 -set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm/include/ ")
-+set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm_sdk_611/include/ ")
++set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm_sdk_612/include/ ")
  if(AOTRITON_ENABLE_ASAN)
      set(AOTRITON_EXTRA_COMPILER_OPTIONS "${AOTRITON_EXTRA_COMPILER_OPTIONS} -g -fsanitize=address -fno-omit-frame-pointer")
      set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AOTRITON_EXTRA_COMPILER_OPTIONS}")
@@ -53,7 +53,7 @@ index 29c3526..9e50216 100644
      build_dir = Path(args.build_dir)
      with open(build_dir / 'Makefile.compile', 'w') as f:
 -        print('LIBHSA_RUNTIME64=/opt/rocm/lib/libhsa-runtime64.so\n', file=f)
-+        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_611/lib64/libhsa-runtime64.so\n', file=f)
++        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_612/lib64/libhsa-runtime64.so\n', file=f)
          makefile_content = io.StringIO()
          per_kernel_targets = []
          for k in rules.kernels:
@@ -66,7 +66,7 @@ index 8578d69..f7c62f7 100644
  
  def rocm_get_gpuarch():
 -    # return subprocess.check_output(['/opt/rocm/bin/offload-arch']).decode('utf8', errors='ignore').strip()
-+    # return subprocess.check_output(['/opt/rocm_sdk_611/bin/offload-arch']).decode('utf8', errors='ignore').strip()
++    # return subprocess.check_output(['/opt/rocm_sdk_612/bin/offload-arch']).decode('utf8', errors='ignore').strip()
      out = subprocess.check_output(['rocm_agent_enumerator -name'], shell=True).decode('utf8', errors='ignore').strip()
      lines = out.splitlines()
      assert lines
@@ -80,7 +80,7 @@ index cad0e38..dd68ee1 100755
          else:
 -            subprocess.run(['/opt/rocm/llvm/bin/llvm-objcopy', '--remove-section', '.debug_*', str(hsaco_path), str(out_path.with_suffix('.hsaco'))])
 -
-+            subprocess.run(['/opt/rocm_sdk_611/bin/llvm-objcopy', '--remove-section', '.debug_*', str(hsaco_path), str(out_path.with_suffix('.hsaco'))])
++            subprocess.run(['/opt/rocm_sdk_612/bin/llvm-objcopy', '--remove-section', '.debug_*', str(hsaco_path), str(out_path.with_suffix('.hsaco'))])
      with out_path.with_suffix('.json').open("w") as fp:
          json.dump(ccinfo.metadata, fp, indent=2)
  
@@ -93,7 +93,7 @@ index 8117e5d..9e6eb3c 100644
      build_dir = Path(args.build_dir)
      with open(build_dir / 'Makefile.compile', 'w') as f:
 -        print('LIBHSA_RUNTIME64=/opt/rocm/lib/libhsa-runtime64.so\n', file=f)
-+        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_611/lib64/libhsa-runtime64.so\n', file=f)
++        print('LIBHSA_RUNTIME64=/opt/rocm_sdk_612/lib64/libhsa-runtime64.so\n', file=f)
          makefile_content = io.StringIO()
          per_kernel_targets = []
          for k in triton_kernels:
