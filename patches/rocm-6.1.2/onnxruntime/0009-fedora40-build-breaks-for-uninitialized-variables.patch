@@ -42,30 +42,28 @@ diff --git a/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc b/on
 index 98a65b8eff..d8a9b9ea32 100644
 --- a/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc
 +++ b/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc
-@@ -4244,7 +4244,8 @@ TEST(ReductionOpTest, OptimizeShapeForFastReduce_KR) {
+@@ -4242,17 +4242,15 @@ TEST(ReductionOpTest, OptimizeShapeForFastReduce_KR) {
+ }
+ 
  TEST(ReductionOpTest, OptimizeShapeForFastReduce_KR_neg) {
-   FastReduceKind fast_kind;
+-  FastReduceKind fast_kind;
    TensorShapeVector fast_shape, fast_output_shape, fast_axes;
 -  TensorShapeVector expected_fast_shape, expected_fast_output_shape, expected_fast_axes;
-+  //TensorShapeVector expected_fast_shape, expected_fast_output_shape, expected_fast_axes;
-+  TensorShapeVector expected_fast_shape, expected_fast_output_shape;
  
    // KR - keep_dims=1
-   fast_kind = OptimizeShapeForFastReduce(
-@@ -4252,11 +4253,11 @@ TEST(ReductionOpTest, OptimizeShapeForFastReduce_KR_neg) {
+-  fast_kind = OptimizeShapeForFastReduce(
++  auto fast_kind = OptimizeShapeForFastReduce(
+       TensorShapeVector{10, 11}, TensorShapeVector{-1},
        fast_shape, fast_output_shape, fast_axes, true);
-   expected_fast_shape = TensorShapeVector{10, 11};
-   expected_fast_output_shape = TensorShapeVector{10, 1};
+-  expected_fast_shape = TensorShapeVector{10, 11};
+-  expected_fast_output_shape = TensorShapeVector{10, 1};
 -  expected_fast_axes = TensorShapeVector{1};
-+  //expected_fast_axes = TensorShapeVector{1};
++  auto expected_fast_shape = TensorShapeVector{10, 11};
++  auto expected_fast_output_shape = TensorShapeVector{10, 1};
++  auto expected_fast_axes = TensorShapeVector{1};
    ASSERT_EQ(fast_kind, FastReduceKind::kKR);
    ASSERT_EQ(fast_shape, expected_fast_shape);
    ASSERT_EQ(fast_output_shape, expected_fast_output_shape);
--  ASSERT_EQ(fast_axes, expected_fast_axes);
-+  //ASSERT_EQ(fast_axes, expected_fast_axes);
- }
- 
- TEST(ReductionOpTest, OptimizeShapeForFastReduce_RK) {
 -- 
 2.45.2
 
