@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script needs to be sourced
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
