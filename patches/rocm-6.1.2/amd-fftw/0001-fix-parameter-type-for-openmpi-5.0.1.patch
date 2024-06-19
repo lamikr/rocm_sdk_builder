@@ -12,40 +12,40 @@ parameter on some function calls needs to be
 MPI_Request instead of MPI_Status
 
 original build error
-rocm_sdk_builder_611/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:108:115: error: passing argument 7 of ‘MPI_Isend’ from incompatible pointer type [-Wincompatible-pointer-types]
+rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:108:115: error: passing argument 7 of ‘MPI_Isend’ from incompatible pointer type [-Wincompatible-pointer-types]
   108 |                    MPI_Isend(buf[j&0x1], (int) (sbs[pe]), FFTW_MPI_TYPE, pe, (my_pe * n_pes + pe) & 0xffff, comm, &send_status);
       |                                                                                                                   ^~~~~~~~~~~~
       |                                                                                                                   |
       |                                                                                                                   MPI_Status * {aka struct ompi_status_public_t *}
-libtool: compile:  mpicc -DHAVE_CONFIG_H -I. -Irocm_sdk_builder_611/src_projects/amd-fftw/mpi -I.. -I rocm_sdk_builder_611/src_projects/amd-fftw -I rocm_sdk_builder_611/src_projects/amd-fftw/api -I/opt/rocm_sdk_611/include -I/opt/rocm_sdk_611/hsa/include -I/opt/rocm_sdk_611/rocm_smi/include -I/opt/rocm_sdk_611/rocblas/include -I/opt/rocm_sdk_611/include -I/opt/rocm_sdk_611/hsa/include -I/opt/rocm_sdk_611/rocm_smi/include -I/opt/rocm_sdk_611/rocblas/include -mno-avx256-split-unaligned-store -mno-avx256-split-unaligned-load -mno-prefer-avx128 -MT dft-rank-geq2-transposed.lo -MD -MP -MF .deps/dft-rank-geq2-transposed.Tpo -c rocm_sdk_builder_611/src_projects/amd-fftw/mpi/dft-rank-geq2-transposed.c  -fPIC -DPIC -o .libs/dft-rank-geq2-transposed.o
-In file included from rocm_sdk_builder_611/src_projects/amd-fftw/mpi/ifftw-mpi.h:28,
-                 from rocm_sdk_builder_611/src_projects/amd-fftw/mpi/mpi-transpose.h:22,
-                 from rocm_sdk_builder_611/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:32:
-/opt/rocm_sdk_611/include/mpi.h:1783:67: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
+libtool: compile:  mpicc -DHAVE_CONFIG_H -I. -Irocm_sdk_builder_xyz/src_projects/amd-fftw/mpi -I.. -I rocm_sdk_builder_xyz/src_projects/amd-fftw -I rocm_sdk_builder_xyz/src_projects/amd-fftw/api -I/opt/rocm_sdk_xyz/include -I/opt/rocm_sdk_xyz/hsa/include -I/opt/rocm_sdk_xyz/rocm_smi/include -I/opt/rocm_sdk_xyz/rocblas/include -I/opt/rocm_sdk_xyz/include -I/opt/rocm_sdk_xyz/hsa/include -I/opt/rocm_sdk_xyz/rocm_smi/include -I/opt/rocm_sdk_xyz/rocblas/include -mno-avx256-split-unaligned-store -mno-avx256-split-unaligned-load -mno-prefer-avx128 -MT dft-rank-geq2-transposed.lo -MD -MP -MF .deps/dft-rank-geq2-transposed.Tpo -c rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/dft-rank-geq2-transposed.c  -fPIC -DPIC -o .libs/dft-rank-geq2-transposed.o
+In file included from rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/ifftw-mpi.h:28,
+                 from rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/mpi-transpose.h:22,
+                 from rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:32:
+/opt/rocm_sdk_xyz/include/mpi.h:1783:67: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
  1783 |                              int tag, MPI_Comm comm, MPI_Request *request);
       |                                                      ~~~~~~~~~~~~~^~~~~~~
-rocm_sdk_builder_611/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:109:116: error: passing argument 7 of ‘MPI_Irecv’ from incompatible pointer type [-Wincompatible-pointer-types]
+rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:109:116: error: passing argument 7 of ‘MPI_Irecv’ from incompatible pointer type [-Wincompatible-pointer-types]
   109 |                    MPI_Irecv(O + rbo[pe], (int) (rbs[pe]), FFTW_MPI_TYPE, pe, (pe * n_pes + my_pe) & 0xffff, comm, &recv_status);
       |                                                                                                                    ^~~~~~~~~~~~
       |                                                                                                                    |
       |                                                                                                                    MPI_Status * {aka struct ompi_status_public_t *}
-/opt/rocm_sdk_611/include/mpi.h:1779:67: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
+/opt/rocm_sdk_xyz/include/mpi.h:1779:67: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
  1779 |                              int tag, MPI_Comm comm, MPI_Request *request);
       |                                                      ~~~~~~~~~~~~~^~~~~~~
-rocm_sdk_builder_611/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:113:29: error: passing argument 1 of ‘MPI_Wait’ from incompatible pointer type [-Wincompatible-pointer-types]
+rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:113:29: error: passing argument 1 of ‘MPI_Wait’ from incompatible pointer type [-Wincompatible-pointer-types]
   113 |                    MPI_Wait(&send_status, MPI_STATUS_IGNORE);
       |                             ^~~~~~~~~~~~
       |                             |
       |                             MPI_Status * {aka struct ompi_status_public_t *}
-/opt/rocm_sdk_611/include/mpi.h:2099:42: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
+/opt/rocm_sdk_xyz/include/mpi.h:2099:42: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
  2099 | OMPI_DECLSPEC  int MPI_Wait(MPI_Request *request, MPI_Status *status);
       |                             ~~~~~~~~~~~~~^~~~~~~
-rocm_sdk_builder_611/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:114:29: error: passing argument 1 of ‘MPI_Wait’ from incompatible pointer type [-Wincompatible-pointer-types]
+rocm_sdk_builder_xyz/src_projects/amd-fftw/mpi/transpose-pairwise-omc.c:114:29: error: passing argument 1 of ‘MPI_Wait’ from incompatible pointer type [-Wincompatible-pointer-types]
   114 |                    MPI_Wait(&recv_status, MPI_STATUS_IGNORE);
       |                             ^~~~~~~~~~~~
       |                             |
       |                             MPI_Status * {aka struct ompi_status_public_t *}
-/opt/rocm_sdk_611/include/mpi.h:2099:42: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
+/opt/rocm_sdk_xyz/include/mpi.h:2099:42: note: expected ‘struct ompi_request_t **’ but argument is of type ‘MPI_Status *’ {aka ‘struct ompi_status_public_t *’}
  2099 | OMPI_DECLSPEC  int MPI_Wait(MPI_Request *request, MPI_Status *status);
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>

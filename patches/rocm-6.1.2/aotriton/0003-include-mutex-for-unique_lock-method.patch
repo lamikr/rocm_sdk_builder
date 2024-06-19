@@ -6,18 +6,18 @@ Subject: [PATCH 3/6] include mutex for unique_lock method
 fixes following error from hipcc:
 
 End of search list.
-/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:21: error: expected ';' after expression
+/rocm_sdk_builder_xyz/src_projects/aotriton/v2src/triton_kernel.cc:63:21: error: expected ';' after expression
    63 |     std::unique_lock lock(mutex_);
       |                     ^
       |                     ;
-/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:10: error: no member named 'unique_lock' in namespace 'std'; did you mean 'unique_copy'?
+/rocm_sdk_builder_xyz/src_projects/aotriton/v2src/triton_kernel.cc:63:10: error: no member named 'unique_lock' in namespace 'std'; did you mean 'unique_copy'?
    63 |     std::unique_lock lock(mutex_);
       |     ~~~~~^~~~~~~~~~~
       |          unique_copy
 /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/bits/stl_algo.h:4461:5: note: 'unique_copy' declared here
  4461 |     unique_copy(_InputIterator __first, _InputIterator __last,
       |     ^
-/rocm_sdk_builder_611/src_projects/aotriton/v2src/triton_kernel.cc:63:22: error: use of undeclared identifier 'lock'
+/rocm_sdk_builder_xyz/src_projects/aotriton/v2src/triton_kernel.cc:63:22: error: use of undeclared identifier 'lock'
    63 |     std::unique_lock lock(mutex_);
       |                      ^
 3 errors generated when compiling for gfx1030.

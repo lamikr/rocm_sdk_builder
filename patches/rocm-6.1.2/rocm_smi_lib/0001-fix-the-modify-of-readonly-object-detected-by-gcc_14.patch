@@ -14,9 +14,9 @@ Content-Transfer-Encoding: 8bit
 Fixes following error detected by gcc 14 on Fedora 40:
 
 [ 24%] Building CXX object oam/CMakeFiles/oam.dir/__/src/rocm_smi_utils.cc.o
-In file included from /rocm_sdk_builder_611/src_projects/rocm_smi_lib/src/rocm_smi_power_mon.cc:52:
-/rocm_sdk_builder_611/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h: In member function ‘amd::smi::ScopeGuard<lambda>& amd::smi::ScopeGuard<lambda>::operator=(const amd::smi::ScopeGuard<lambda>&)’:
-/rocm_sdk_builder_611/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h:237:18: error: assignment of member ‘dismiss_’ in read-only object
+In file included from /rocm_sdk_builder_xyz/src_projects/rocm_smi_lib/src/rocm_smi_power_mon.cc:52:
+/rocm_sdk_builder_xyz/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h: In member function ‘amd::smi::ScopeGuard<lambda>& amd::smi::ScopeGuard<lambda>::operator=(const amd::smi::ScopeGuard<lambda>&)’:
+/rocm_sdk_builder_xyz/src_projects/rocm_smi_lib/include/rocm_smi/rocm_smi_utils.h:237:18: error: assignment of member ‘dismiss_’ in read-only object
   237 |     rhs.dismiss_ = true;
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
