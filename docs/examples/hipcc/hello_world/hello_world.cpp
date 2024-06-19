@@ -45,54 +45,72 @@ int main(int argc, char* argv[])
 {
 	int ret;
 	hipDeviceProp_t devProp;
-	hipGetDeviceProperties(&devProp, 0);
-	/* Initial input and output for the host and create memory objects for the kernel*/
-	const char* input = "GdkknVnqkc";
-	size_t strlength = strlen(input);
-	char *output = (char *)malloc(strlength + 1);
-	char* inputBuffer;
-	char* outputBuffer;
-
-	cout << " System minor: " << devProp.minor << endl;
-        cout << " System major: " << devProp.major << endl;
-        cout << " Agent name: " << devProp.name << endl;
+	hipError_t  res;
 	
-	cout << "Input string: ";
-        cout << input << endl;
-	hipMalloc((void**)&inputBuffer,
-		(strlength + 1) * sizeof(char));
-	hipMalloc((void**)&outputBuffer,
-		(strlength + 1) * sizeof(char));
-	hipMemcpy(inputBuffer,
-		input,
-		(strlength + 1) * sizeof(char),
-		hipMemcpyHostToDevice);
-	hipLaunchKernelGGL(gpu_memcpy_callback_helloworld,
-                  dim3(1),
-                  dim3(strlength),
-                  0,
-		  0,
-                  inputBuffer,
-		  outputBuffer);
-	hipMemcpy(output,
-		outputBuffer,
-		(strlength + 1) * sizeof(char),
-		hipMemcpyDeviceToHost);
-	hipFree(inputBuffer);
-	hipFree(outputBuffer);
+	ret = FAILURE;
+	res = hipGetDeviceProperties(&devProp, 0);
+	if (res == hipSuccess) {
+		/* Initial input and output for the host and create memory objects for the kernel*/
+		const char* input = "GdkknVnqkc";
+		size_t strlength = strlen(input);
+		char *output = (char *)malloc(strlength + 1);
+		char* inputBuffer;
+		char* outputBuffer;
 
-	output[strlength] = '\0';	//Add the terminal character to the end of output.
-	cout << "Output string: ";
-	cout << output << endl;
-
-	if (strcmp(output, "HelloWorld") == 0) {
-		std::cout << "Test ok!\n";
-		ret = SUCCESS;
+		cout << " System minor: " << devProp.minor << endl;
+		cout << " System major: " << devProp.major << endl;
+		cout << " Agent name: " << devProp.name << endl;
+		cout << "Kernel input: " << input << endl;
+		cout << "Expecting that kernel increases each character from input string by one" << endl;
+		res = hipMalloc((void**)&inputBuffer, (strlength + 1) * sizeof(char));
+		if (res == hipSuccess) {
+			res = hipMalloc((void**)&outputBuffer, (strlength + 1) * sizeof(char));
+			if (res == hipSuccess) {
+				res = hipMemcpy(inputBuffer, input, (strlength + 1) * sizeof(char), hipMemcpyHostToDevice);
+				if (res == hipSuccess) {
+					hipLaunchKernelGGL(gpu_memcpy_callback_helloworld,
+								  dim3(1),
+								  dim3(strlength),
+								  0,
+								  0,
+								  inputBuffer,
+								  outputBuffer);
+					res = hipMemcpy(output,	outputBuffer, (strlength + 1) * sizeof(char), hipMemcpyDeviceToHost);
+					if (res == hipSuccess) {
+						output[strlength] = '\0';	//Add the terminal character to the end of output.
+						cout << "Kernel output string: " << output << endl;
+						if (strcmp(output, "HelloWorld") == 0) {
+							cout << "Output string matched with HelloWorld" << endl;
+							ret = SUCCESS;
+						}
+						else {
+							cout << "Error, output string did not match with HelloWorld" << endl;
+						}
+					}
+					else {
+						cout << "Error, Kernel response copy failed" << endl;
+					}
+					res = hipFree(outputBuffer);
+					if (res != hipSuccess) {
+						cout << "warning, hipFree(outputBuffer) failed" << endl; 
+					}
+				}
+				else {
+				    cout << "Error, input string copy to kernel failed" << endl;
+				}
+			}
+			res = hipFree(inputBuffer);
+			if (res != hipSuccess) {
+				cout << "warning, hipFree(inputbuffer) failed" << endl; 
+			}
+		}
+		free(output);
+	}
+	if (ret == SUCCESS) {
+		std::cout << "Test ok!" << endl;
 	}
 	else {
-		std::cout << "Test failed!\n";
-		ret = FAILURE;
+		std::cout << "Test failed!" << endl;
 	}
-	free(output);
 	return ret;
 }

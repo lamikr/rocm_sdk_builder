@@ -1,7 +1,7 @@
-From 17b889089291c11e108a3b7bb011ff6f32b3b99d Mon Sep 17 00:00:00 2001
+From d79419770f398b685584b7e5299bfd3f19510643 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 17:06:25 -0700
-Subject: [PATCH 2/5] aotriton triton rocm home path update
+Subject: [PATCH 2/6] aotriton triton rocm home path update
 
 - change the location of rocm_home
   to triton subproject
@@ -20,7 +20,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  8 files changed, 17 insertions(+), 13 deletions(-)
 
 diff --git a/third_party/triton/.github/workflows/amd-offline-tests.yml b/third_party/triton/.github/workflows/amd-offline-tests.yml
-index fd87f8f..2b7ccc3 100644
+index fd87f8f..c73f6a9 100644
 --- a/third_party/triton/.github/workflows/amd-offline-tests.yml
 +++ b/third_party/triton/.github/workflows/amd-offline-tests.yml
 @@ -36,10 +36,10 @@ jobs:
@@ -38,7 +38,7 @@ index fd87f8f..2b7ccc3 100644
            pip3 install torch==2.0.1 --index-url https://download.pytorch.org/whl/rocm5.4.2
            # uninstall system triton to eliminate conflicts with testing version
 diff --git a/third_party/triton/CMakeLists.txt b/third_party/triton/CMakeLists.txt
-index 55a5d8b..e880296 100644
+index 55a5d8b..18062ae 100644
 --- a/third_party/triton/CMakeLists.txt
 +++ b/third_party/triton/CMakeLists.txt
 @@ -35,7 +35,7 @@ set(TRITON_CODEGEN_BACKENDS "" CACHE STRING "Enable different codegen backends")
@@ -75,7 +75,7 @@ index e6d36ad..1f5c31a 100644
  
    int lld_result =
 diff --git a/third_party/triton/python/triton/common/build.py b/third_party/triton/python/triton/common/build.py
-index 8cc87ea..d5551b7 100644
+index 8cc87ea..04078bc 100644
 --- a/third_party/triton/python/triton/common/build.py
 +++ b/third_party/triton/python/triton/common/build.py
 @@ -85,7 +85,7 @@ def rocm_path_dir():
@@ -88,7 +88,7 @@ index 8cc87ea..d5551b7 100644
  
  @contextlib.contextmanager
 diff --git a/third_party/triton/python/triton/third_party/hip/CMakeLists.txt b/third_party/triton/python/triton/third_party/hip/CMakeLists.txt
-index 1c5977f..92a080c 100644
+index 1c5977f..90f9952 100644
 --- a/third_party/triton/python/triton/third_party/hip/CMakeLists.txt
 +++ b/third_party/triton/python/triton/third_party/hip/CMakeLists.txt
 @@ -2,7 +2,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -128,7 +128,7 @@ index fd78d62..93e860b 100644
 -${ROCM_PATH}/llvm/bin/ld.lld -flavor gnu -shared _empty.o -o _empty.hsaco
 +${ROCM_PATH}/bin/ld.lld -flavor gnu -shared _empty.o -o _empty.hsaco
 diff --git a/third_party/triton/scripts/amd/setup_rocm_libs.sh b/third_party/triton/scripts/amd/setup_rocm_libs.sh
-index 60eaa30..c9df795 100755
+index 60eaa30..79ca9cb 100755
 --- a/third_party/triton/scripts/amd/setup_rocm_libs.sh
 +++ b/third_party/triton/scripts/amd/setup_rocm_libs.sh
 @@ -4,7 +4,7 @@ set -ex
@@ -150,5 +150,5 @@ index 60eaa30..c9df795 100755
 +cp $ROCM_HOME/llvm/bin/ld.lld $TRITON_ROCM_DIR/bin/
  
 -- 
-2.41.0
+2.41.1
 

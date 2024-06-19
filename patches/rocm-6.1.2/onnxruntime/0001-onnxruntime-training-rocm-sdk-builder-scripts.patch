@@ -1,0 +1,64 @@
+From 43c81c631dfe1d4190aaaaa20b804496e9a5e7a6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 May 2024 14:02:57 -0700
+Subject: [PATCH 1/9] onnxruntime training rocm sdk builder scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_onnxruntime_rocm_training.sh   | 20 ++++++++++++++++++++
+ install_onnxruntime_rocm_training.sh |  1 +
+ preconfig_rocm.sh                    |  7 +++++++
+ 3 files changed, 28 insertions(+)
+ create mode 100755 build_onnxruntime_rocm_training.sh
+ create mode 100755 install_onnxruntime_rocm_training.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_onnxruntime_rocm_training.sh b/build_onnxruntime_rocm_training.sh
+new file mode 100755
+index 0000000000..769dac0c37
+--- /dev/null
++++ b/build_onnxruntime_rocm_training.sh
+@@ -0,0 +1,20 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    amd_target_gpu=\"gfx90a\"
++    echo "No rocm gpu specified, using default: ${amd_target_gpu}"
++else
++    amd_target_gpu="$2"
++    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
++fi
++
++./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
++#
++#
++#./build.sh --config RelWithDebInfo --build_shared_lib --parallel --compile_no_warning_as_error --skip_submodule_sync
++#./build.sh --config RelWithDebInfo --build_shared_lib --parallel --enable_training_apis
+diff --git a/install_onnxruntime_rocm_training.sh b/install_onnxruntime_rocm_training.sh
+new file mode 100755
+index 0000000000..9f31121b84
+--- /dev/null
++++ b/install_onnxruntime_rocm_training.sh
+@@ -0,0 +1 @@
++pip install ./build/Linux/Release/dist/onnxruntime_training*.whl
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 0000000000..97ab2c15d5
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,7 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d ./build ]; then
++        # clean old build, python ./setup.py clean does not work in all cases
++        rm -r ./build
++    fi
++fi
+-- 
+2.45.2
+

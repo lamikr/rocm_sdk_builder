@@ -1,0 +1,71 @@
+ROCM SDK Builder 6.1.2-1 (not yet released)
+-------------------------------------
+- updated the rocm base components from 6.1.1 to 6.1.2
+- rebased the patches and dropped the one applied to upstream
+- changes
+	- env_rocm.sh
+		- better check for whether bashscript is sourced (daniandtheweb)
+	- onnxruntime
+		- better patch for broken test (Jeroen Mostert)
+
+ROCM SDK Builder 6.1.1-2 (2024-06-14)
+-------------------------------------
+  Thanks for the following people for contributions, feedbacks, bugreporting and testing since the previous release
+    - daniandtheweb
+    - mritunjaymusale
+    - crizle
+    - JassonCordones
+    - hsmalley
+    - flip111
+    - Stefan-Oit
+    - Meso-uca
+    - eLBart0-DTG
+    - eitch
+    - AngryLoki
+    - Tuleo1
+- Support added for a many Linux distributions thanks by the testing by others
+    - Fedora 40
+    - Ubuntu 24.04
+    - Ubuntu 22.04
+    - Linux Mint 21
+    - Arch Linux
+    - Manjaro
+- GPU's tested
+    - AMD RX 5500
+    - AMD RX 6600
+    - AMD RX 6800
+    - AMD RX 7800 XT
+    - AMD RX 7900 XTX
+    - AMD 680i Mobile / gfx1035
+    - gfx 1036?
+- Packages updated to never releases
+    - python 3.9.19
+    - openmpi 5.0.3
+    - pytorch v2.3.1
+    - pytorch vision v0.18.1
+    - pytorch audio v2.3.1
+    - onnxruntime 1.18.0
+    - DeepSpeed v0.14.3
+    - zstd v1.5.5
+- Build System Improvements
+    - more heuristic approach for defining the CPU count used for building different apps
+      depending of the CPU count and ram available.
+      (To avoid running out of memory on some extensive apps like the llvm linking phase)
+    - Build now checks and warns more clearly if the git configuration
+      is missing or if the read-write permission to amd gpu driver
+      /dev/kfd is not configured properly.
+    - Lot of improvements to error messages, code comments and bash code syntax used
+    - Fixes for the onnxruntime and deepspeed build
+    - Aotriton cpu usage fixes (allocated 2x cpus available and put build systems down)
+    - Aotriton workaround for issue wheer triton compiler not always producing .hsaco files (issue 28)
+    - Upstream bug repors and fixes (rocm_smi_lib, pytorch)
+- test apps, documentation and benchmarking
+    - Improved various example codes under docs/examples folder to test
+      pytorch, opencl, onnxruntime, amdmigraphx, etc.
+    - added missing test apps launch scripts
+    - pytorch gpu benchmark tests execution improvements in
+      https://github.com/lamikr/pytorch-gpu-benchmark
+  
+ROCM SDK Builder 6.1.1-1 (2024-05-25)
+------------------------
+- first version publicly announced and mentioned in https://www.phoronix.com/news/Making-ROCm-Build-Easier

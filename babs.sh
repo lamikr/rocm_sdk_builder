@@ -9,9 +9,36 @@
 
 source binfo/user_config.sh
 
+func_is_user_in_dev_kfd_render_group() {
+    if [ -e /dev/kfd ]; then
+        test -w /dev/kfd || {
+            echo ""
+            echo "You need to set write permissions to /dev/kfd device driver for the user."
+            echo "This /dev/kfd is used by the ROCM applications to communicate with the AMD GPUs"
+            local group_owner_name=$(stat -c "%G" /dev/kfd)
+            if [ ${group_owner_name} = "render" ]; then
+                echo "Add your username to group render with command: "
+                echo "    sudo adduser $USERNAME render"
+                echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 2
+            else
+                echo "Unusual /dev/kfd group owner instead of 'render': ${group_owner_name}"
+                echo "Add your username to group ${group_owner_name} with command: "
+                echo "    sudo adduser $USERNAME ${group_owner_name}"
+                echo "Usually you need then reboot to get change to in permissions to take effect"
+                return 3
+            fi
+        }
+    else
+        echo "Warning, /dev/kfd AMD GPU device driver does not exist"
+        return 4
+    fi
+    return 0
+}
+
 func_build_version_init() {
     local build_version_file="./binfo/build_version.sh"
-    
+
     if [ -e "$build_version_file" ]; then
         source "$build_version_file"
     else
@@ -45,18 +72,24 @@ func_is_current_dir_a_git_submodule_dir() {
 }
 
 func_install_dir_init() {
-    local ret_val=0
 
-    if [ -z "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
-        echo "Error: Environment variable not defined: INSTALL_DIR_PREFIX_SDK_ROOT"
-        ret_val=1
-    else
-        if [ -d "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
-            if [ ! -w "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
-                echo "Warning: Install directory $INSTALL_DIR_PREFIX_SDK_ROOT is not writable for the user $USER"
-                sudo chown "$USER:$USER" "$INSTALL_DIR_PREFIX_SDK_ROOT"
-                if [ ! -w "$INSTALL_DIR_PREFIX_SDK_ROOT" ]; then
-                    echo "Recommend using command: sudo chown ${USER}:${USER} $INSTALL_DIR_PREFIX_SDK_ROOT"
+    local ret_val
+
+    ret_val=0
+    if [ ! -z ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+        if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+            if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+                ret_val=0
+            else
+                echo "Warning, install direcory ${INSTALL_DIR_PREFIX_SDK_ROOT} is not writable for the user ${USER}"
+                sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
+                if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+                    echo "Install target directory owner changed with command 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                    sleep 10
+                    ret_val=0
+                else
+                    echo "Recommend using command 'sudo chown ${USER}:${USER} ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+
                     ret_val=1
                 fi
             fi
@@ -76,7 +109,9 @@ func_install_dir_init() {
                     ret_val=1
                 fi
             else
-                echo "Install target directory created: mkdir -p $INSTALL_DIR_PREFIX_SDK_ROOT"
+
+                echo "Install target directory created: 'mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+
                 sleep 10
             fi
         fi
@@ -113,28 +148,29 @@ func_repolist_binfo_list_print() {
 }
 
 func_repolist_upstream_remote_repo_add() {
-    local jj=0
+
+    local jj
 
     # Display a message if src_projects directory does not exist
+    jj=0
     if [ ! -d src_projects ]; then
-        printf "\n"
-        cat <<EOF
-Download of source projects will start shortly.
-It will take up about 20 GB under 'src_projects' directory.
-Advice:
-If you work with multiple copies of this SDK,
-you could tar 'src_projects' and extract it manually for other SDK copies.
-
-EOF
+        echo ""
+        echo "Download of source projects will start shortly"
+        echo "It will take up about 20 gb under 'src_projects' directory."
+        echo "Advice:"
+        echo "If you work with multible copies of this sdk,"
+        echo "you could tar 'src_projects' and extract it manually for other SDK copies."
+        echo ""
         sleep 3
     fi
-    
     # Initialize git repositories and add upstream remote
-    while [ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; do
-        if [ ! -d "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; then
-            echo "${jj}: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[jj]}"
-            sleep 0.2
-            mkdir -p "${LIST_APP_SRC_CLONE_DIR[jj]}"
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
+    do
+        if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
+            echo "[${jj}]: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            sleep 0.1
+            mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
+
             # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
             # situations where same src_code directory is used for building multiple projects
             # with just different configure parameters (for example amd-fftw)
@@ -142,13 +178,16 @@ EOF
             LIST_APP_ADDED_UPSTREAM_REPO[jj]=1
         fi
 
-        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]]; then
-            if [ ! -d "${LIST_APP_SRC_CLONE_DIR[jj]}/.git" ]; then
-                cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-                echo "${jj}: Initializing new source code repository"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[jj]}"
-                echo "VERSION_TAG[$jj]: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]}/.git ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo ""
+                echo "[${jj}]: Repository Init"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+
                 sleep 0.5
                 git init
                 echo "${LIST_APP_UPSTREAM_REPO_URL[jj]}"
@@ -156,25 +195,36 @@ EOF
                 LIST_APP_ADDED_UPSTREAM_REPO[jj]=1
                 echo -e "\n"
             else
-                LIST_APP_ADDED_UPSTREAM_REPO[jj]=0
-                echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[jj]} ok"
-                echo -e "\n"
+
+                LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
+                echo "[${jj}]: ${LIST_APP_SRC_CLONE_DIR[$jj]} ok"
             fi
         else
-            LIST_APP_ADDED_UPSTREAM_REPO[jj]=0
-            echo "${jj}: ${LIST_APP_SRC_CLONE_DIR[jj]} ok"
+            LIST_APP_ADDED_UPSTREAM_REPO[$jj]=0
+            echo "[${jj}]: ${LIST_APP_SRC_CLONE_DIR[$jj]} submodule ok"
         fi
         ((jj++))
-        sleep 0.2
+        sleep 0.1
+
     done
 
     # Fetch updates and initialize submodules
     jj=0
-    while [ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; do
+
+    # Fetch updates and initialize submodules
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
+    do
+        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git fetch needs to be done
-        if [[ "${LIST_APP_ADDED_UPSTREAM_REPO[jj]}" -eq 1 ]]; then
-            echo "${jj}: git fetch on ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
+            echo ""
+            echo "[${jj}]: Source Fetch"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+
             git fetch upstream
             if [ $? -ne 0 ]; then
                 echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
@@ -185,7 +235,12 @@ EOF
             func_is_current_dir_a_git_submodule_dir
             ret_val=$?
             if [ ${ret_val} == "1" ]; then
-                echo "submodule init and update"
+                echo ""
+                echo "[${jj}]: Submodule Init"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 git submodule update --init --recursive
                 if [ $? -ne 0 ]; then
                     echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
@@ -198,29 +253,43 @@ EOF
 
     # Apply patches if patch directory exists
     jj=0
-    while [ -n "${LIST_APP_PATCH_DIR[jj]}" ]; do
+
+    # Apply patches if patch directory exists
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
+    do
+        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git am needs to be done
-        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[jj]} -eq 1 ]; then
-            TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[jj]}
-            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-            echo "patch dir: ${TEMP_PATCH_DIR}"
+        if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
+            TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
+            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             if [ -d "${TEMP_PATCH_DIR}" ]; then
-                if [ -n "$(ls -A "$TEMP_PATCH_DIR")" ]; then
-                    echo "git am: ${LIST_BINFO_APP_NAME[jj]}"
+                if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
+                    echo ""
+                    echo "[${jj}]: Applying Patches"
+                    echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                    echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                    echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                    echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                    echo "Patch dir: ${TEMP_PATCH_DIR}"
+
                     git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
                     if [ $? -ne 0 ]; then
                         git am --abort
                         echo ""
-                        echo "Failed to apply patches for repository"
-                        echo "${LIST_APP_SRC_CLONE_DIR[jj]}"
-                        echo "git am ${TEMP_PATCH_DIR}/*.patch failed"
+                        echo "[${jj}]: Error, failed to Apply Patches"
+                        echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                        echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                        echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                        echo "Version tag: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                        echo "Patch dir: ${TEMP_PATCH_DIR}"
                         echo ""
                         exit 1
                     else
-                        echo "patches applied: ${LIST_APP_SRC_CLONE_DIR[jj]}"
+                        echo "[${jj}]: Patches Applied: ${LIST_APP_SRC_CLONE_DIR}"
                     fi
                 else
-                   echo "Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
+                   echo "[${jj}]: Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
+
                    sleep 2
                 fi
             else
@@ -231,22 +300,28 @@ EOF
         fi
         ((jj++))
     done
+    echo ""
+    echo "All new source code repositories added and initialized ok"
 }
 
 func_repolist_fetch_top_repo() {
+
+    local jj
+
+    jj=0
     echo "func_repolist_fetch_top_repo started"
-    
-    local jj=0
-    
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
-            if [ -d "${LIST_APP_SRC_CLONE_DIR[jj]}" ]; then
-                cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-                
-                echo "Repository name: ${LIST_BINFO_APP_NAME[jj]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
-                echo "Source directory[$jj]: ${LIST_APP_SRC_CLONE_DIR[jj]}"
-                
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
+    do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            if [ -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo ""
+                echo "[${jj}]: Repository Fetch"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+
                 git fetch upstream
                 
                 if [ $? -ne 0 ]; then
@@ -257,10 +332,12 @@ func_repolist_fetch_top_repo() {
                 git fetch upstream --force --tags
             else
                 echo ""
-                echo "Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[jj]}"
+
+                echo "[${jj}]: Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[${jj}]}"
                 echo "Source directory[$jj] not initialized with '-i' command:"
-                echo "    ${LIST_APP_SRC_CLONE_DIR[jj]}"
-                echo "Repository URL[$jj]: ${LIST_APP_UPSTREAM_REPO_URL[jj]}"
+                echo "    ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+
                 echo ""
                 exit 1
             fi
@@ -269,68 +346,123 @@ func_repolist_fetch_top_repo() {
         fi
         ((jj++))
     done
+    echo ""
+    echo "All source code repositories fetched ok"
+
 }
 
 func_repolist_fetch_submodules() {
+
+    local jj
+
+    jj=0
     echo "func_repolist_fetch_submodules started"
-    
-    local jj=0
-    
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
-        cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
-        
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
+    do
+        cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+
         if [ -f .gitmodules ]; then
-            echo "submodule update"
+            echo ""
+            echo "[${jj}]: Repository Submodule Update"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            sleep 0.3
             git submodule foreach git reset --hard
             git submodule update --recursive
             
             if [ $? -ne 0 ]; then
-                echo "git submodule update failed: ${LIST_APP_SRC_CLONE_DIR[jj]}"
+
+                echo ""
+                echo "[${jj}]: Error, failed to update repository submodules"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo ""
+
                 exit 1
             fi
+        else
+            echo ""
+            echo "[${jj}]: No Repository Submodules to Update"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            sleep 0.2
         fi
         ((jj++))
     done
+    echo ""
+    echo "All submodules of source code repositories fetched ok"
 }
 
 func_repolist_checkout_default_versions() {
+
+    local jj
+
+    jj=0
     echo "func_repolist_checkout_default_versions started"
-    local jj=0
-    
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
-        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" == "1" ]; then
-            echo "[$jj]: Repository to reset: ${LIST_BINFO_APP_NAME[jj]}"
-            sleep 0.2
-            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
+    do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            echo ""
+            echo "[$jj]: Repository Base Version Checkout"
+            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            sleep 0.1
+            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
             git reset --hard
-            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[jj]}"
+            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+            if [ $? -ne 0 ]; then
+                echo ""
+                echo "[${jj}]: Error, failed to checkout repository base version"
+                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                echo ""
+                exit 1
+            fi            
+
         fi
         ((jj++))
     done
+    echo ""
+    echo "All source code repositories checked out to default tag version ok"
+    echo "Use following command to apply rocm_sdk_builder patches before starting the build:"
+    echo "    ./babs.sh -ap"
 }
 
 # Function to check that repositories do not have uncommitted patches, changes that differ from original patches,
 # or are not in a state where 'git am' apply has failed.
 func_repolist_is_changes_committed() {
+
+    local jj
+
+    jj=0
     echo "func_repolist_is_changes_committed started"
-    local jj=0
+    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
+    do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            func_is_current_dir_a_git_repo_dir
+            if [ $? -eq 0 ]; then
+                if [[ `git status --porcelain --ignore-submodules=all` ]]; then
+                    echo "git status error: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
+                    exit 1
+                else
+                    # No changes
+                    #echo "git status ok: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
+                    #if [[ `git am --show-current-patch > /dev/null ` ]]; then
+                    git status | grep "git am --skip" > /dev/null
+                    if [ ! "$?" == "1" ]; then
+                        echo "git am error: " ${LIST_APP_SRC_CLONE_DIR[$jj]}
 
-    while [[ -n "${LIST_APP_PATCH_DIR[jj]}" ]]; do
-        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
-            repo_dir="${LIST_APP_SRC_CLONE_DIR[$jj]}"
-
-            if [[ -d "$repo_dir" ]]; then
-                cd "$repo_dir"
-                func_is_current_dir_a_git_repo_dir
-
-                if [[ $? -eq 0 ]]; then
-                    if [[ -n $(git status --porcelain --ignore-submodules=all) ]]; then
-                        echo "Uncommitted changes in: $repo_dir"
-                        exit 1
-                    fi
-
-                    if git status | grep -q "git am --skip"; then
-                        echo "Unresolved 'git am' in: $repo_dir"
                         exit 1
                     else
                         echo "Repository clean: $repo_dir"
@@ -347,30 +479,46 @@ func_repolist_is_changes_committed() {
 }
 
 func_repolist_appliad_patches_save() {
-    local jj=0
+
+    local jj
+
+    jj=0
     cmd_diff_check=(git diff --exit-code)
-    DATE=$(date "+%Y%m%d")
-    DATE_WITH_TIME=$(date "+%Y%m%d-%H%M%S")
-    PATCHES_DIR="$(pwd)/patches/${DATE_WITH_TIME}"
-    
-    echo "${PATCHES_DIR}"
-    mkdir -p "${PATCHES_DIR}"
+    DATE=`date "+%Y%m%d"`
+    DATE_WITH_TIME=`date "+%Y%m%d-%H%M%S"`
+    PATCHES_DIR=$(pwd)/patches/${DATE_WITH_TIME}
+    echo ${PATCHES_DIR}
+    mkdir -p ${PATCHES_DIR}
+    if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+        cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+        func_is_current_dir_a_git_repo_dir
+        if [ $? -eq 0 ]; then
+            "${cmd_diff_check[@]}" &>/dev/null
+            if [ $? -ne 0 ]; then
+                fname=$(basename -- "${LIST_APP_SRC_CLONE_DIR[jj]}").patch
+                echo "diff: ${fname}"
+                "${cmd_diff_check[@]}" >${PATCHES_DIR}/${fname}
+            else
+                true
+                #echo "${LIST_APP_SRC_CLONE_DIR[jj]}"
+            fi
+        else
+            echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
+        fi
+    fi
+    ((jj++))
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
+    do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            cd "${LIST_APP_SRC_CLONE_DIR[jj]}"
+            func_is_current_dir_a_git_repo_dir
+            if [ $? -eq 0 ]; then
+                "${cmd_diff_check[@]}" &>/dev/null
+                if [ $? -ne 0 ]; then
+                    fname=$(basename -- "${LIST_APP_SRC_CLONE_DIR[jj]}").patch
+                    echo "diff: ${DATE_WITH_TIME}/${fname}"
+                    "${cmd_diff_check[@]}" >${PATCHES_DIR}/${fname}
 
-    while [[ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]]; do
-        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
-            repo_dir="${LIST_APP_SRC_CLONE_DIR[jj]}"
-            
-            if [[ -d "$repo_dir" ]]; then
-                cd "$repo_dir"
-                func_is_current_dir_a_git_repo_dir
-
-                if [[ $? -eq 0 ]]; then
-                    "${cmd_diff_check[@]}" &>/dev/null
-                    if [[ $? -ne 0 ]]; then
-                        fname="$(basename -- "$repo_dir").patch"
-                        echo "diff: ${DATE_WITH_TIME}/${fname}"
-                        "${cmd_diff_check[@]}" >"${PATCHES_DIR}/${fname}"
-                    fi
                 else
                     echo "Not a git repository: $repo_dir"
                 fi
@@ -385,29 +533,30 @@ func_repolist_appliad_patches_save() {
 }
 
 func_repolist_export_version_tags_to_file() {
-    local jj=0
 
-    while [[ -n "${LIST_APP_SRC_CLONE_DIR[jj]}" ]]; do
-        if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
-            local repo_dir="${LIST_APP_SRC_CLONE_DIR[jj]}"
-            local app_name="${LIST_BINFO_APP_NAME[jj]}"
+    local jj
 
-            if [[ -d "$repo_dir" ]]; then
-                cd "$repo_dir"
-                func_is_current_dir_a_git_repo_dir
+    jj=0
+    if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+        cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+        func_is_current_dir_a_git_repo_dir
+        if [ $? -eq 0 ]; then
+            GITHASH=$(git rev-parse --short=8 HEAD)
+            echo "${GITHASH} ${LIST_BINFO_APP_NAME[${jj}]}" > ${FNAME_REPO_REVS_NEW}
+        else
+            echo "Not a git repo: " ${LIST_APP_SRC_CLONE_DIR[jj]}
+        fi
+    fi
+    ((jj++))
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
+    do
+        if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            func_is_current_dir_a_git_repo_dir
+            if [ $? -eq 0 ]; then
+                GITHASH=$(git rev-parse --short=8 HEAD 2>/dev/null)
+                echo "${GITHASH} ${LIST_BINFO_APP_NAME[${jj}]}" >> ${FNAME_REPO_REVS_NEW}
 
-                if [[ $? -eq 0 ]]; then
-                    local githash
-                    githash=$(git rev-parse --short=8 HEAD 2>/dev/null)
-
-                    if [[ $jj -eq 0 ]]; then
-                        echo "${githash} ${app_name}" > "${FNAME_REPO_REVS_NEW}"
-                    else
-                        echo "${githash} ${app_name}" >> "${FNAME_REPO_REVS_NEW}"
-                    fi
-                else
-                    echo "Not a git repository: $repo_dir"
-                fi
             else
                 echo "Directory does not exist: $repo_dir"
             fi
@@ -420,9 +569,11 @@ func_repolist_export_version_tags_to_file() {
 
 func_repolist_find_app_index_by_app_name() {
     local temp_search_name="$1"
-    local kk=0
+
+    local kk
 
     RET_INDEX_BY_NAME=-1
+    kk=0
 
     while [[ -n "${LIST_BINFO_APP_NAME[kk]}" ]]; do
         if [[ "${LIST_BINFO_APP_NAME[kk]}" == "${temp_search_name}" ]]; then
@@ -449,31 +600,42 @@ func_repolist_fetch_by_version_tag_file() {
         else
             echo "Upstream fetch all skipped, no repository defined: ${LIST_BINFO_APP_NAME[$jj]}"
         fi
+
+        ((jj++))
+
     done
 }
 
 func_repolist_version_tag_read_to_array_list_from_file() {
     echo "func_repolist_version_tag_read_to_array_list_from_file"
 
-    declare -a LIST_REPO_REVS_CUR=()
-    declare -a LIST_TEMP=()
-    readarray -t LIST_TEMP < "$FNAME_REPO_REVS_CUR"
-    echo "reading: $FNAME_REPO_REVS_CUR"
-    
-    for (( jj=0; jj<${#LIST_TEMP[@]}; jj+=2 )); do
-        TEMP_HASH=${LIST_TEMP[jj]}
-        TEMP_NAME=${LIST_TEMP[jj+1]}
-        
-        func_repolist_find_app_index_by_app_name "$TEMP_NAME"
-        if [ $RET_INDEX_BY_NAME -ge 0 ]; then
-            LIST_REPO_REVS_CUR[$RET_INDEX_BY_NAME]=$TEMP_HASH
-            if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$RET_INDEX_BY_NAME]}" == "1" ]; then
-                echo "find_index_by_name $TEMP_NAME: ${LIST_REPO_REVS_CUR[$RET_INDEX_BY_NAME]}, repo: ${LIST_APP_UPSTREAM_REPO_URL[$RET_INDEX_BY_NAME]}"
+
+    LIST_REPO_REVS_CUR=()
+    LIST_TEMP=()
+    LIST_TEMP=(`cat "${FNAME_REPO_REVS_CUR}"`)
+    echo "reading: ${FNAME_REPO_REVS_CUR}"
+    jj=0
+    while [ "x${LIST_TEMP[jj]}" != "x" ]
+    do
+        TEMP_HASH=${LIST_TEMP[$jj]}
+        ((jj++))
+        #echo "Element [$jj]: ${LIST_TEMP[$jj]}"
+        TEMP_NAME=${LIST_TEMP[$jj]}
+        #echo "Element [$jj]: ${TEMP_NAME}"
+        func_repolist_find_app_index_by_app_name ${TEMP_NAME}
+        if [ ${RET_INDEX_BY_NAME} -ge 0 ]; then
+            LIST_REPO_REVS_CUR[$RET_INDEX_BY_NAME]=${TEMP_HASH}
+            if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$RET_INDEX_BY_NAME]]}" == "1" ]; then
+                echo "find_index_by_name ${TEMP_NAME}: " ${LIST_REPO_REVS_CUR[$RET_INDEX_BY_NAME]} ", repo: " ${LIST_APP_UPSTREAM_REPO_URL[$RET_INDEX_BY_NAME]}
+
             fi
         else
             echo "Find_index_by_name failed for name: $TEMP_NAME"
             exit 1
         fi
+
+        ((jj++))
+
     done
 }
 
@@ -503,13 +665,79 @@ func_repolist_checkout_by_version_tag_file() {
             fi
         else
             echo "Upstream repository checkout skipped, no repository defined: ${LIST_BINFO_APP_NAME[$jj]}"
-        fi
+
+        ((jj++))
+
     done
 }
 
 func_repolist_apply_patches() {
-	declare -A DICTIONARY_PATCHED_PROJECTS
+    declare -A DICTIONARY_PATCHED_PROJECTS
     echo "func_repolist_apply_patches"
+
+    jj=0
+    while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
+    do
+        if [ -z ${DICTIONARY_PATCHED_PROJECTS[${LIST_BINFO_APP_NAME[${jj}]}]} ]; then
+            if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                func_is_current_dir_a_git_repo_dir
+                if [ $? -eq 0 ]; then
+                    TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
+                    echo "patch dir: ${TEMP_PATCH_DIR}"
+                    if [ -d "${TEMP_PATCH_DIR}" ]; then
+                        if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
+                            echo ""
+                            echo "[$jj]: Repository Base Version Checkout"
+                            echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                            echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                            echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                            echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                            sleep 0.1
+                            git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
+                            if [ $? -ne 0 ]; then
+                                git am --abort
+                                echo ""
+                                echo "[$jj]: Error, failed to apply patches"
+                                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                                echo "Patch directory: ${TEMP_PATCH_DIR[jj]}"
+                                echo ""
+                                exit 1
+                            else
+                                echo "[$jj]: Patches applied ok: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                                #echo "git am ok"
+                            fi
+                            DICTIONARY_PATCHED_PROJECTS[${LIST_BINFO_APP_NAME[${jj}]}]=1
+                        else
+                            echo "Warning, empty patch directory: ${TEMP_PATCH_DIR}"
+                            sleep 2
+                        fi
+                    else
+                        true
+                        echo "${LIST_BINFO_APP_NAME[${jj}]}: No patches to apply"
+                        #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
+                        #sleep 2
+                    fi
+                    sleep 0.1
+                else
+                    echo "Warning, not a git repository: ${LIST_APP_SRC_CLONE_DIR[${jj}]}"
+                    sleep 2
+                fi
+            else
+                echo "repo am paches skipped, no repository defined: ${LIST_BINFO_APP_NAME[${jj}]}"
+            fi
+        else
+            echo "[$jj]: ${LIST_BINFO_APP_NAME[${jj}]}: patches already applied, skipping"
+        fi
+        ((jj++))
+    done
+    echo ""
+    echo "Patches applied to all source code repositories ok"
+}
+
 
     for (( jj=0; jj<${#LIST_APP_SRC_CLONE_DIR[@]}; jj++ )); do
         if [[ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]]; then
@@ -546,16 +774,13 @@ func_repolist_apply_patches() {
                 echo "Warning: not a git repository: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
                 sleep 2
             fi
-        else
-            echo "repo am patches skipped, no repository defined: ${LIST_BINFO_APP_NAME[$jj]}"
-        fi
-    done
-}
 
-func_repolist_checkout_by_version_param() {
-    if [[ -z $1 ]]; then
-        echo "Error: git version parameter missing"
-        exit 1
+            ((jj++))
+        done
+    else
+        echo "    Error, git version parameter missing"
+        exit
+
     fi
 
     CHECKOUT_VERSION=$1
@@ -719,7 +944,7 @@ func_handle_user_command_args() {
             -ap|--apply_patches)
                 func_is_git_configured
                 func_repolist_apply_patches
-                echo "Patches applied to git repositories"
+
                 exit 0
                 ;;
             -b|--build)
@@ -731,22 +956,31 @@ func_handle_user_command_args() {
                     local res=$?
                     if [[ $res -eq 0 ]]; then
                         echo -e "\nROCM SDK build and install ready"
-                        echo "You can use the following commands to test the setup:"
-                        echo "source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
-                        echo "rocminfo\n"
+                        func_is_user_in_dev_kfd_render_group
+                        res=$?
+                        if [ ${res} -eq 0 ]; then
+                            echo "You can use the following commands to test your gpu is detected:"
+                        else
+                            echo "After fixing /dev/kff permission problems, you can use the following commands to test that your gpu"
+                        fi
+                        echo ""
+                        echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
+                        echo "    rocminfo"
+                        echo ""
                     else
-                        echo -e "\nBuild failed\n"
+                        echo -e "Build failed"
                     fi
                     exit 0
-                else
+               else
                     echo "Failed to initialize install directory"
                     exit 1
-                fi
-                ;;
+               fi
+               ;;
             -cp|--create_patches)
                 func_repolist_appliad_patches_save
                 exit 0
                 ;;
+
             -co|--checkout)
                 func_repolist_checkout_default_versions
                 exit 0
@@ -766,7 +1000,7 @@ func_handle_user_command_args() {
             -i|--init)
                 func_is_git_configured
                 func_repolist_upstream_remote_repo_add
-                echo "All git repositories initialized"
+
                 exit 0
                 ;;
             -s|--sync)
@@ -775,8 +1009,10 @@ func_handle_user_command_args() {
                 ;;
             *)
                 echo "Unknown user command parameter: ${LIST_USER_CMD_ARGS[ii]}"
-                exit 1
-                ;;
+
+                 exit 0
+                 ;;
+
         esac
         ((ii++))
     done
@@ -786,16 +1022,14 @@ if [ "$#" -eq 0 ]; then
     func_user_help_print
 else
     LIST_USER_CMD_ARGS=( "$@" )
-    
+
     # Initialize build version
     func_build_version_init
-    
     # Handle help and version commands before prompting the user config menu
     func_handle_user_configure_help_and_version_args
-    
     # Initialize environment setup
     func_envsetup_init
-    
+
     # Handle user command arguments
     func_handle_user_command_args
 fi

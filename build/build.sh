@@ -262,8 +262,8 @@ func_build_all() {
                 if [ ! -v BINFO_APP_NO_BUILD ]; then
                     echo "Building ${BINFO_APP_NAME}"
                     if [ -z "${BINFO_APP_BUILD_CMD_ARRAY}" ]; then
-                        echo "make -j${BUILD_CPU_COUNT}"
-                        make VERBOSE=1 -j${BUILD_CPU_COUNT}
+                        echo "make -j${BINFO_BUILD_CPU_COUNT}"
+                        make VERBOSE=1 -j${BINFO_BUILD_CPU_COUNT}
                         res=$?
                     else
                         res=0

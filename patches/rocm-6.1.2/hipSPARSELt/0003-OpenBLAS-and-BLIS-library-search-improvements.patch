@@ -1,0 +1,88 @@
+From 3089f89c3c3e85c3b7068c76c1a890cee4039f9d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 19:38:52 -0700
+Subject: [PATCH 3/3] OpenBLAS and BLIS library search improvements
+
+- OpenBLAS and BLIS can now be found from
+  rocm_sdk build by rocm sdk builder
+- selection whether to build client apps with
+  OpenBLAS or BLIS can be done with
+  cmake parameters
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/CMakeLists.txt            | 25 +++++++++++++++++++------
+ clients/benchmarks/CMakeLists.txt |  4 ++--
+ clients/gtest/CMakeLists.txt      |  4 ++--
+ 3 files changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
+index 665c13b..79918d6 100755
+--- a/clients/CMakeLists.txt
++++ b/clients/CMakeLists.txt
+@@ -82,13 +82,26 @@ endif( )
+ 
+ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS)
+ 
+-  # Linking lapack library requires fortran flags
+-  find_package( cblas REQUIRED CONFIG )
+-  if (LINK_BLIS)
+-    set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
+-    set( BLIS_CPP ../common/blis_interface.cpp )
+-    set( BLAS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.a )
++  if ( NOT WIN32 )
++    if (LINK_BLIS)
++      message(FATAL_ERROR "debug  BLIS FOUND")
++      set( BLIS_INCLUDE_DIR ${BLIS_DIR}/include/blis )
++      set( BLIS_CPP ../common/blis_interface.cpp )
++      set( BLAS_LIBRARY ${BLIS_DIR}/lib64/libblis.a )
++    else()
++      find_package( OpenBLAS CONFIG REQUIRED )
++      message(STATUS "OpenBLAS_FOUND: ${OpenBLAS_FOUND}")
++      message(STATUS "OpenBLAS_VERSION: ${OpenBLAS_VERSION}")
++      message(STATUS "OpenBLAS_INCLUDE_DIR: ${OpenBLAS_INCLUDE_DIR}")
++      message(STATUS "OpenBLAS_INCLUDE_DIRS: ${OpenBLAS_INCLUDE_DIRS}")
++      message(STATUS "OpenBLAS_LIBRARY: ${OpenBLAS_LIBRARY}")
++      message(STATUS "OpenBLAS_LIBRARIES: ${OpenBLAS_LIBRARIES}")
++      set( BLAS_LIBRARY ${OpenBLAS_LIBRARY} )
++      set( BLAS_INCLUDE_DIR ${OpenBLAS_INCLUDE_DIRS} )
++    endif()
+   else()
++    # Linking lapack library requires fortran flags
++    find_package( cblas REQUIRED CONFIG )
+     set( BLAS_LIBRARY "blas" )
+   endif()
+ 
+diff --git a/clients/benchmarks/CMakeLists.txt b/clients/benchmarks/CMakeLists.txt
+index 31479ab..62b9935 100644
+--- a/clients/benchmarks/CMakeLists.txt
++++ b/clients/benchmarks/CMakeLists.txt
+@@ -74,8 +74,8 @@ endif()
+ if (NOT WIN32)
+   if (BUILD_CUDA)
+     target_link_libraries( hipsparselt-bench PRIVATE -llapack -lcblas )
+-  else()
+-    target_link_libraries( hipsparselt-bench PRIVATE lapack cblas )
++  #else()
++  #  target_link_libraries( hipsparselt-bench PRIVATE lapack cblas )
+   endif()
+   list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+   if (NOT BUILD_FORTRAN_CLIENTS)
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 2057db0..b4bd01d 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -81,8 +81,8 @@ target_compile_options(hipsparselt-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMM
+ 
+ if (BUILD_CUDA)
+   target_link_libraries( hipsparselt-test PRIVATE -llapack -lcblas )
+-else()
+-  target_link_libraries( hipsparselt-test PRIVATE lapack cblas )
++#else()
++ # target_link_libraries( hipsparselt-test PRIVATE lapack cblas )
+ endif()
+ 
+ list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+-- 
+2.41.0
+

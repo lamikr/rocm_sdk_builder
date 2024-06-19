@@ -3,24 +3,26 @@
 # License of this file: "THE COFFEEWARE LICENSE" (Revision 2).
 # See coffeeware file in the root directory for details.
 
-# Set ROCM version information
+
+# rocm release numbers
+#
+# Three first numbers are used for example to create a string that
+# some applications like pytorch uses in #ifdefs
+#
+# In addition content of /opt/rocm_sdk_611/.info/version is bases on to these numbers
 export ROCM_MAJOR_VERSION=6
 export ROCM_MINOR_VERSION=1
-export ROCM_PATCH_VERSION=1
+export ROCM_PATCH_VERSION=2
+export ROCM_SDK_RELEASE_VERSION=1
 
 # Set BABS version information
-export BABS_VERSION=2024_05_25_01
+# Stored in /opt/rocm_sdk_611/.info/rocm_sdk_builder
+export BABS_VERSION=2024_06_12_01
 
-# Construct the full ROCM SDK version info string
-export ROCM_SDK_VERSION_INFO="rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
+# Get git hash used to build the system
+# Stored in /opt/rocm_sdk_611/.info/rocm_sdk_builder
+export ROCM_SDK_BUILDER_SRC_REV=$(git rev-parse --short=8 HEAD)
 
-# Set the default upstream repo version tag
-export UPSTREAM_REPO_VERSION_TAG_DEFAULT="rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}"
+export ROCM_SDK_VERSION_INFO=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
+export UPSTREAM_REPO_VERSION_TAG_DEFAULT=rocm-${ROCM_MAJOR_VERSION}.${ROCM_MINOR_VERSION}.${ROCM_PATCH_VERSION}
 
-# Print the set variables (optional, for debugging)
-echo "ROCM_MAJOR_VERSION=${ROCM_MAJOR_VERSION}"
-echo "ROCM_MINOR_VERSION=${ROCM_MINOR_VERSION}"
-echo "ROCM_PATCH_VERSION=${ROCM_PATCH_VERSION}"
-echo "BABS_VERSION=${BABS_VERSION}"
-echo "ROCM_SDK_VERSION_INFO=${ROCM_SDK_VERSION_INFO}"
-echo "UPSTREAM_REPO_VERSION_TAG_DEFAULT=${UPSTREAM_REPO_VERSION_TAG_DEFAULT}"

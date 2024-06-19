@@ -1,0 +1,22 @@
+BINFO_APP_NAME=python
+BINFO_APP_SRC_TOPDIR_BASENAME=cpython
+BINFO_APP_SRC_SUBDIR_BASENAME=
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/python/cpython.git
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=v3.9.19
+
+BINFO_APP_CONFIG_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "${BINFO_APP_SRC_DIR}/configure --enable-optimizations --enable-shared --with-ensurepip=install --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT}"
+)
+
+BINFO_APP_POST_INSTALL_CMD_ARRAY=(
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/2to3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/2to ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/2to3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/2to; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/idle3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/idle ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/idle3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/idle; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pip3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pip ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pip3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pip; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pydoc3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pydoc ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pydoc3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/pydoc; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config; fi"
+    "python -m pip install --upgrade pip"
+    "pip install lxml pyaml barectf joblib jsonschema CppHeaderParser"
+)

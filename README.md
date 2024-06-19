@@ -8,23 +8,34 @@ In addition of the ROCm basic applications and libraries, the system will also i
 
 Latest ROCM release supported is the ROCM 6.1.1 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
 
-This project has been so far tested with following AMD GPUs:
+This project has been so far tested at least with the following AMD GPUs:
 
+- AMD RX 7900 XTX (gfx1100)
+- AMD RX 7800 XT (gfx1101)
+- AMD RX 6800 XT (gfx1030)
 - AMD RX 6800 (gfx1030)
+- AMD RX 6600 (gfx1032)
 - AMD RX 5700 (gfx1010)
+- AMD RX 5500 (gfx1012)
 - AMD Mobile m680i (gfx1035)
+- gfx1036
 
-In configuration it's possible to select also other GPU's for build target. If you can test with these or other GPU's like AMD RX 6700 (gfx1031) or RX 7000 series of GPU's like RX 7800 (gfx1101) or RX 7900 (gfx1100) the feedback is more than wellcome.
+AMD RX 5500 and AMD RX 6600 supoort is at the moment only partial. 
+
+For AMD RX 6600, select the RX 6800 (gfx1030) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.3.0
+For AMD RX 5500, select the RX 5700 (gfx1010) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.1.0
+
+In configuration it's possible to select also other GPU's for build target but with some of the older cards more work may be needed.
+All kind of feedback is more than welcome and can be discussed for example by opening a new issue to github.
 
 ![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
 
 ## Installation Requirements
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39 and Ubuntu 230.10 Linux distributions.
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Fedora 40, Ubuntu 22.04, Ubuntu 23.10, Ubuntu 24.04, Linux Mint 21, Arch and Manjaro Linux distributions.
 
-Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will naturally have their own build time dependencies.
-
-On Mageia, Fedora and Ubuntu these dependencies, the build time dependencies can be installed by executing a script:
+Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will have their own build time dependencies that can be
+installed by executing script:
 
 ```
 # ./install_deps.sh
@@ -166,9 +177,33 @@ Following code printouts some information about OpenCL platform and devices foun
 
 ```
 # source /opt/rocm_sdk_611/bin/env_rocm.sh
-# docs/examples/opencl/check_opencl_caps
+# cd /opt/rocm_sdk_611/docs/examples/opencl/check_opencl_caps
 # make
 # ./check_opencl_caps
+```
+
+Following code sends 200 numbers for GPU kernels which modifies and sends them back to userspace.
+
+```
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# cd /opt/rocm_sdk_611/docs/examples/opencl/hello_world
+# make
+# ./hello_world
+```
+
+## Run Pytorch GPU Benchmark
+
+This test is pretty extensive and takes about 50 minutes on RX 6800.
+Test results are collected to result-folder but the python code which
+is supposed to parse the results from CSV files and plot pictures needs to be fixed.
+
+Results for different AMD and Nvidia GPUs are available in results folder.
+
+```
+# git clone https://github.com/lamikr/pytorch-gpu-benchmark/
+# cd pytorch-gpu-benchmark
+# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# ./test.sh
 ```
 
 # Customizing the SDK Build
@@ -270,15 +305,6 @@ For example:
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
-
-- more extensive GPU benchmark originally used with NVIDIA gpu's is available here. I have made some modifications to original benchmarks to update it to run with the newer pytorch and python numpy.
-
-```
-# git clone https://github.com/lamikr/pytorch-gpu-benchmark
-# cd pytorch-gpu-benchmark
-# source /opt/rocm_sdk_/bin/env_rocm.sh
-# ./test_with_torchvision_013.sh script
-```
 
 Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
