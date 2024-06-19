@@ -1,7 +1,7 @@
-From e695996aa58e66a13de3c78ee516b6f8a1372f1d Mon Sep 17 00:00:00 2001
+From 7f742b5b8d1eb725692637f1ad5fb8a7afed663e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:40:43 -0700
-Subject: [PATCH 6/6] OpenBLAS and BLIS library search improvements
+Subject: [PATCH 6/7] OpenBLAS and BLIS library search improvements
 
 - works now with the rocm_sdks build
   by rocm sdk builder
@@ -156,5 +156,5 @@ index bc9109d0..53b854e6 100644
  message("BLIS lib found: ${BLIS_LIB}")
  
 -- 
-2.41.0
+2.41.1
 

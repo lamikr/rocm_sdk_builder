@@ -1,7 +1,7 @@
-From 697691fe9a83e8e245fa99a17b56b39c0b4f0e67 Mon Sep 17 00:00:00 2001
+From 2e546f462c68d7c807d517091e329cc1521fdd69 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 20:56:51 -0700
-Subject: [PATCH 4/6] Tensilelite add gfx1035 to supported isa list
+Subject: [PATCH 4/7] Tensilelite add gfx1035 to supported isa list
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -22,5 +22,5 @@ index c47a8752..1751e0b4 100644
  globalParameters["GenerateManifestAndExit"] = False               # Output manifest file with list of expected library objects and exit
  globalParameters["NewClient"] = 2                                 # Old client deprecated: NewClient must be set to 2.
 -- 
-2.41.0
+2.41.1
 
