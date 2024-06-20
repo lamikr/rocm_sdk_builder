@@ -1,0 +1,26 @@
+From 5b9617af96bdd131d24fe9279c9cf52b305664b3 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 19:37:44 -0700
+Subject: [PATCH 2/3] rocm_install llvm-cov path
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9c9c0dd..65fb651 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -373,7 +373,7 @@ if(BUILD_CODE_COVERAGE)
+     COMMAND mkdir -p lcoverage
+     COMMAND echo "\\#!/bin/bash" > llvm-gcov.sh
+     COMMAND echo "\\# THIS FILE HAS BEEN GENERATED" >> llvm-gcov.sh
+-    COMMAND printf "exec /opt/rocm/llvm/bin/llvm-cov gcov $$\\@" >> llvm-gcov.sh
++    COMMAND printf "exec ${CMAKE_INSTALL_PREFIX}/bin/llvm-cov gcov $$\\@" >> llvm-gcov.sh
+     COMMAND chmod +x llvm-gcov.sh
+     )
+ 
+-- 
+2.34.1
+
