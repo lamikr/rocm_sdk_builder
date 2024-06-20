@@ -1,7 +1,7 @@
-From 7f70c9f5da126da1134aee75e0e4b5bb02fefc3e Mon Sep 17 00:00:00 2001
+From 2b12f9cb4dd78f3d82747f4a3719bcc4758437fc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Tue, 14 May 2024 21:15:22 -0700
-Subject: [PATCH 3/6] include mutex for unique_lock method
+Subject: [PATCH 2/4] include mutex for unique_lock method
 
 fixes following error from hipcc:
 
@@ -40,5 +40,5 @@ index 0f96477..84a38ce 100644
  #include <zstd.h>
  #endif
 -- 
-2.41.1
+2.34.1
 
