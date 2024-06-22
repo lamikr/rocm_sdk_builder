@@ -1,7 +1,7 @@
-From 8442781a4737828a4b5cb53039a468bc67a7424e Mon Sep 17 00:00:00 2001
+From 07b3c90906f8c162a1efd6264eee6ea2faafbac1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 23:14:41 -0800
-Subject: [PATCH 1/2] rocm build and package scripts
+Subject: [PATCH 1/4] rocm build and package scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -66,5 +66,5 @@ index 00000000..9f71fe83
 +    fi
 +fi
 -- 
-2.45.2
+2.34.1
 

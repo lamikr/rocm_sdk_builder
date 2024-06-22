@@ -1,0 +1,43 @@
+From caf57e6e0c1f68723fab6b5c013401314468cdbe Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 21 Jun 2024 21:23:57 -0700
+Subject: [PATCH 4/4] fix distro ffmpeg search on fedora40 and ubuntu 22.04
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ third_party/ffmpeg/single/CMakeLists.txt | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/third_party/ffmpeg/single/CMakeLists.txt b/third_party/ffmpeg/single/CMakeLists.txt
+index b3246c08..70f13f19 100644
+--- a/third_party/ffmpeg/single/CMakeLists.txt
++++ b/third_party/ffmpeg/single/CMakeLists.txt
+@@ -7,8 +7,23 @@ if (NOT DEFINED ENV{FFMPEG_ROOT})
+ endif()
+ 
+ set(_root $ENV{FFMPEG_ROOT})
+-set(lib_dirs "${_root}/lib" "${_root}/bin")
+-set(include_dir "${_root}/include")
++
++if (EXISTS "${_root}/lib/x86_64-linux-gnu/libavutil.so")
++    #fedora 22.04
++    set(lib_dirs "${_root}/lib/x86_64-linux-gnu" "${_root}/bin")
++else()
++    set(lib_dirs "${_root}/lib" "${_root}/bin")
++endif()
++
++if (EXISTS "${_root}/include/ffmpeg")
++    # at least fedora 40
++    set(include_dir "${_root}/include/ffmpeg")
++elseif(EXISTS "${_root}/include/x86_64-linux-gnu/libavutil")
++	# ubuntu 22.04
++	set(include_dir "${_root}/include/x86_64-linux-gnu")
++else()
++    set(include_dir "${_root}/include")
++endif()
+ 
+ add_library(ffmpeg INTERFACE)
+ target_include_directories(ffmpeg INTERFACE "${include_dir}")
+-- 
+2.34.1
+

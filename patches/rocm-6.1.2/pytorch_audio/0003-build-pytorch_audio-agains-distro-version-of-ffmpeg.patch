@@ -1,0 +1,33 @@
+From d5fcb8bdab30d5292023453ae5a80d65ec61dda8 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 21 Jun 2024 20:29:49 -0700
+Subject: [PATCH 3/4] build pytorch_audio agains distro version of ffmpeg
+
+- by default the pytorch_audio is build against the prebuild
+  ffmpeg that is downloaded by the third_party/ffmpeg/multi/CMakeLists.txt
+- those libraries are however not used during the runtime
+  and in some linux distributions they are incompatible
+  with the distro version of ffmpeg that is loaded on runtime and
+  that can cause segfaults
+- ffmpeg-devel dependencies needs to be added also to install_deps.sh
+  file for all supported linux distributions
+- fixes https://github.com/lamikr/rocm_sdk_builder/issues/74
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_pytorch_audio_rocm.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/build_pytorch_audio_rocm.sh b/build_pytorch_audio_rocm.sh
+index 5b8a478b..28127642 100755
+--- a/build_pytorch_audio_rocm.sh
++++ b/build_pytorch_audio_rocm.sh
+@@ -11,4 +11,5 @@ unset CPPFLAGS
+ unset PKG_CONFIG_PATH
+ export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
+ export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
++export FFMPEG_ROOT=/usr
+ ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py install
+-- 
+2.34.1
+
