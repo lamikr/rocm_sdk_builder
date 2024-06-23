@@ -7,8 +7,5 @@ BINFO_APP_UPSTREAM_REPO_VERSION_TAG=4.1
 
 BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_BUILD_DIR}"
-    "${BINFO_APP_SRC_DIR}/configure -enable-sse2 --enable-avx --enable-avx2 --enable-avx512 --enable-mpi --enable-openmp --enable-shared --enable-amd-opt --enable-amd-mpifft --enable-dynamic-dispatcher --enable-single --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64"
-    "export LDFLAGS=$LDFLAGS_OLD"
-    "export CPPFLAGS=$CPPFLAGS_OLD"
-
+    "${BINFO_APP_SRC_DIR}/configure --enable-sse2 --enable-avx --enable-avx2 --enable-avx512 --enable-mpi --enable-openmp --enable-shared --enable-amd-opt --enable-amd-mpifft --enable-single --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64"
 )
