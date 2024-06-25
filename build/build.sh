@@ -186,7 +186,7 @@ func_build_all() {
                         do
                             echo "${BINFO_APP_NAME}, config command ${jj}"
                             echo "${BINFO_APP_CONFIG_CMD_ARRAY[jj]}"
-                            ${BINFO_APP_CONFIG_CMD_ARRAY[jj]}
+                            eval ${BINFO_APP_CONFIG_CMD_ARRAY[jj]} || exit
                             res=$?
                             if [ ${res} -eq 0 ]; then
                                 jj=$(( ${jj} + 1 ))
