@@ -1,4 +1,4 @@
-From 8784e66b5084ee2e2e0a4aeaf2e2e75e6ae803e9 Mon Sep 17 00:00:00 2001
+From 6464bc542fe0e27b49e0ebf5d158ef550fac3355 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:34:17 -0700
 Subject: [PATCH 6/7] Maybe uninitialized error fix for Fedora 40
@@ -7,13 +7,13 @@ Subject: [PATCH 6/7] Maybe uninitialized error fix for Fedora 40
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_pytorch_rocm.sh | 2 +-
+ build_and_install_rocm.sh | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/build_pytorch_rocm.sh b/build_pytorch_rocm.sh
+diff --git a/build_and_install_rocm.sh b/build_and_install_rocm.sh
 index 5973cb1ffac..c98fe22cb02 100755
---- a/build_pytorch_rocm.sh
-+++ b/build_pytorch_rocm.sh
+--- a/build_and_install_rocm.sh
++++ b/build_and_install_rocm.sh
 @@ -20,4 +20,4 @@ unset LDFLAGS
  unset CFLAGS
  unset CPPFLAGS

@@ -1,4 +1,4 @@
-From be0cac0cb9a6292f18263a6a3be332b4b6fb8c77 Mon Sep 17 00:00:00 2001
+From 620dd53152488e0a5f0d8e942511d59a31f6d065 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 11:18:24 -0800
 Subject: [PATCH 2/2] append CMAKE_PREFIX_PATH from ENV
@@ -30,5 +30,5 @@ index ddc6dc15..4ca3f550 100644
  
  # https://github.com/pytorch/pytorch/issues/54174
 -- 
-2.45.2
+2.41.1
 

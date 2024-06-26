@@ -1,4 +1,4 @@
-From 404d60c271bcd43b9faf603573a97823fd703d32 Mon Sep 17 00:00:00 2001
+From 473027511ebda21baa99cb23d2760c47b31ed5ec Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 19:25:50 -0700
 Subject: [PATCH 5/7] fix gcc parameter is null optimization error
