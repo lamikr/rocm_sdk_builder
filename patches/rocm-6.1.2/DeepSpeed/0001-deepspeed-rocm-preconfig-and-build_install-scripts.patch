@@ -1,7 +1,7 @@
-From 69e95609c918f8e0e38b9cdcdc4961bbbb922f60 Mon Sep 17 00:00:00 2001
+From 65f5eac2c5b3e4e8bd369969711096529c695ed0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:36:23 -0700
-Subject: [PATCH 1/3] deepspeed rocm preconfig and build_install scripts
+Subject: [PATCH 1/4] deepspeed rocm preconfig and build_install scripts
 
 discussed here:
 https://github.com/microsoft/DeepSpeed/issues/4989
@@ -55,5 +55,5 @@ index 00000000..1730e027
 +    fi
 +fi
 -- 
-2.41.1
+2.45.2
 

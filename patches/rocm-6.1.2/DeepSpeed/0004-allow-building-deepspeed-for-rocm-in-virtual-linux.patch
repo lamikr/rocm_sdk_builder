@@ -1,0 +1,88 @@
+From aa9574025ea9fbd6c4781f8a8775410ae0862048 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 26 Jun 2024 14:44:04 -0700
+Subject: [PATCH 4/4] allow building deepspeed for rocm in virtual linux
+
+enable the deepspeed rocm build on virtual linux env
+without access to real GPU. (gpu list is also passed as a parameter)
+
+fixes: https://github.com/lamikr/rocm_sdk_builder/issues/75
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_and_install_rocm.sh |  2 ++
+ op_builder/builder.py     |  2 +-
+ setup.py                  | 18 ++++++++++--------
+ 3 files changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/build_and_install_rocm.sh b/build_and_install_rocm.sh
+index 68e96b40..7a504cf4 100755
+--- a/build_and_install_rocm.sh
++++ b/build_and_install_rocm.sh
+@@ -15,6 +15,8 @@ mkdir -p deepspeed/ops/spatial
+ #export CFLAGS="-I/usr/include"
+ #export LDFLAGS="-L/usr/lib64"
+ 
++# needed by real accelerator.py to detect the cuda when build on virtual linux without access to real hardware
++export DS_ACCELERATOR=cuda
+ # install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
+ AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py install
+ 
+diff --git a/op_builder/builder.py b/op_builder/builder.py
+index a27b134c..4980a528 100644
+--- a/op_builder/builder.py
++++ b/op_builder/builder.py
+@@ -512,7 +512,7 @@ class OpBuilder(ABC):
+             # Ensure the op we're about to load was compiled with the same
+             # torch/cuda versions we are currently using at runtime.
+             self.validate_torch_version(torch_info)
+-            if torch.cuda.is_available() and isinstance(self, CUDAOpBuilder):
++            if (self.is_rocm_pytorch() or torch.cuda.is_available()) and isinstance(self, CUDAOpBuilder):
+                 self.validate_torch_op_version(torch_info)
+ 
+             op_module = importlib.import_module(self.absolute_name())
+diff --git a/setup.py b/setup.py
+index 408b300a..cbeda1eb 100755
+--- a/setup.py
++++ b/setup.py
+@@ -90,19 +90,21 @@ extras_require = {
+ }
+ 
+ # Add specific cupy version to both onebit extension variants.
+-if torch_available and torch.cuda.is_available():
+-    cupy = None
++if torch_available:
+     if is_rocm_pytorch:
++        cupy = None
+         rocm_major, rocm_minor = rocm_version
+         # XXX cupy support for rocm 5 is not available yet.
+         if rocm_major <= 4:
+             cupy = f"cupy-rocm-{rocm_major}-{rocm_minor}"
+     else:
+-        cuda_major_ver, cuda_minor_ver = installed_cuda_version()
+-        if (cuda_major_ver < 11) or ((cuda_major_ver == 11) and (cuda_minor_ver < 3)):
+-            cupy = f"cupy-cuda{cuda_major_ver}{cuda_minor_ver}"
+-        else:
+-            cupy = f"cupy-cuda{cuda_major_ver}x"
++        if toch.cuda.is_available():
++            cupy = None
++            cuda_major_ver, cuda_minor_ver = installed_cuda_version()
++            if (cuda_major_ver < 11) or ((cuda_major_ver == 11) and (cuda_minor_ver < 3)):
++                cupy = f"cupy-cuda{cuda_major_ver}{cuda_minor_ver}"
++            else:
++                cupy = f"cupy-cuda{cuda_major_ver}x"
+ 
+     if cupy:
+         extras_require['1bit'].append(cupy)
+@@ -130,7 +132,7 @@ else:
+     TORCH_MAJOR = "0"
+     TORCH_MINOR = "0"
+ 
+-if torch_available and not torch.cuda.is_available():
++if torch_available and not is_rocm_pytorch and not torch.cuda.is_available():
+     # Fix to allow docker builds, similar to https://github.com/NVIDIA/apex/issues/486.
+     print("[WARNING] Torch did not find cuda available, if cross-compiling or running with cpu only "
+           "you can ignore this message. Adding compute capability for Pascal, Volta, and Turing "
+-- 
+2.45.2
+
