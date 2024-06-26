@@ -6,7 +6,6 @@
 # License: GNU Lesser General Public License (LGPL), version 2.1 or later.
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
-
 if [ -z ${SDK_ROOT_DIR} ]; then
     echo "initializing build environment variables"
     source ./binfo/envsetup.sh
@@ -309,7 +308,7 @@ func_build_all() {
                 res=0
                 if [ ! -v BINFO_APP_NO_INSTALL ]; then
                     echo "installing ${BINFO_APP_NAME}"
-                    if [ -z ${BINFO_APP_INSTALL_CMD_ARRAY} ]; then
+                    if [ -z "${BINFO_APP_INSTALL_CMD_ARRAY}" ]; then
                         echo "make install"
                         make install
                         res=$?
