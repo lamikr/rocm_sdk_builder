@@ -1,4 +1,4 @@
-From 11d3ab5df8e1d39292183406a0bc634c6205c312 Mon Sep 17 00:00:00 2001
+From 301ea4a7cb40db991673b823fab91a22a04b3a18 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
 Subject: [PATCH 2/3] check rocm path from installed pytorch variables
@@ -72,5 +72,5 @@ index df54415c..a27b134c 100644
          OpBuilder._rocm_wavefront_size = rocm_wavefront_size
          return OpBuilder._rocm_wavefront_size
 -- 
-2.34.1
+2.41.1
 

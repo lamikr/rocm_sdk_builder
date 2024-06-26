@@ -1,23 +1,21 @@
-From 3bb5895700013dd7e255c7f95951ac578d7ce0cd Mon Sep 17 00:00:00 2001
+From 5cf200ceb00a1afabb5a0ba446795c45e2f1bb87 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/7] pytorch_rocm preconfig build and package scripts
+Subject: [PATCH 1/7] pytorch_rocm preconfig and build_install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_pytorch_rocm.sh         | 23 +++++++++++++++++++++++
- package_pytorch_rocm_wheel.sh | 12 ++++++++++++
- preconfig_pytorch_rocm.sh     | 22 ++++++++++++++++++++++
- 3 files changed, 57 insertions(+)
- create mode 100755 build_pytorch_rocm.sh
- create mode 100755 package_pytorch_rocm_wheel.sh
- create mode 100755 preconfig_pytorch_rocm.sh
+ build_and_install_rocm.sh | 23 +++++++++++++++++++++++
+ preconfig_rocm.sh         | 22 ++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
+ create mode 100755 build_and_install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
 
-diff --git a/build_pytorch_rocm.sh b/build_pytorch_rocm.sh
+diff --git a/build_and_install_rocm.sh b/build_and_install_rocm.sh
 new file mode 100755
 index 00000000000..5973cb1ffac
 --- /dev/null
-+++ b/build_pytorch_rocm.sh
++++ b/build_and_install_rocm.sh
 @@ -0,0 +1,23 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
@@ -42,29 +40,11 @@ index 00000000000..5973cb1ffac
 +unset CPPFLAGS
 +unset PKG_CONFIG_PATH
 +USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 python setup.py install
-diff --git a/package_pytorch_rocm_wheel.sh b/package_pytorch_rocm_wheel.sh
-new file mode 100755
-index 00000000000..abdc084540b
---- /dev/null
-+++ b/package_pytorch_rocm_wheel.sh
-@@ -0,0 +1,12 @@
-+if [ -z "$1" ]; then
-+    install_dir_prefix_rocm=/opt/rocm
-+    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
-+else
-+    install_dir_prefix_rocm=${1}
-+    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
-+fi
-+unset LDFLAGS
-+unset CFLAGS
-+unset CPPFLAGS
-+unset PKG_CONFIG_PATH
-+USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" python setup.py bdist_wheel
-diff --git a/preconfig_pytorch_rocm.sh b/preconfig_pytorch_rocm.sh
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
 index 00000000000..39baae92e22
 --- /dev/null
-+++ b/preconfig_pytorch_rocm.sh
++++ b/preconfig_rocm.sh
 @@ -0,0 +1,22 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm

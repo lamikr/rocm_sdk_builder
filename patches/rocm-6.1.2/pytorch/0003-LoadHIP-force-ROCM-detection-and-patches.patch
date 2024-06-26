@@ -1,4 +1,4 @@
-From bebf65363c9cea41ef4d8d667d0bb62ef72bc645 Mon Sep 17 00:00:00 2001
+From 6f95ff179da59e9ddf3d9af70f134922ce516a21 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:32:33 -0700
 Subject: [PATCH 3/7] LoadHIP force ROCM detection and patches

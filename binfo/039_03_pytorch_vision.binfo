@@ -6,18 +6,15 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/pytorch/vision.git
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=v0.18.1
 
 BINFO_APP_NO_CONFIG=1
+BINFO_APP_NO_BUILD=1
 
 BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
     "./preconfig_rocm.sh"
 )
 
-BINFO_APP_BUILD_CMD_ARRAY=(
-    "cd ${BINFO_APP_SRC_DIR}"
-    "./build_pytorch_vision_rocm.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}"
-)
-
 BINFO_APP_INSTALL_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
-    "./package_pytorch_vision_rocm_wheel.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}"
+    "./build_and_install_rocm.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}"
 )
+

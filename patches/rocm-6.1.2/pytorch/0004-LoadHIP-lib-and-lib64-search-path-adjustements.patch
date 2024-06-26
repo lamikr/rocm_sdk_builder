@@ -1,4 +1,4 @@
-From c7c697a53a02b520076e77bd2e53afe604658079 Mon Sep 17 00:00:00 2001
+From 59ea775f3dfc47219a4d1a214721a3a95143096a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 11:11:47 -0700
 Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
