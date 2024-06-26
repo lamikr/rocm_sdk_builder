@@ -1,0 +1,409 @@
+From a01d03cc39733ca12fccd73c29d3518a2e1be3ba Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Thu, 27 Jun 2024 00:56:17 +0200
+Subject: [PATCH 2/2] use inline copies of AVX checks for ifuncs (fixes #74 in
+ a better way)
+
+Provide inlinable copies of the `have_simd_avx` and `have_simd_avx512` feature functions
+for use in ifunc resolvers, and make the external implementations defer to these.
+Resolvers aren't supposed to call external functions since these may not have been
+relocated yet, and on at least some distros this causes segfaults when this library is
+loaded under `RTLD_NOW`/`LD_BIND_NOW`.
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ kernel/cpy2d-pair.c   |  7 +++--
+ kernel/cpy2d.c        |  7 +++--
+ kernel/transpose.c    | 24 +++------------
+ simd-support/avx.c    | 38 ++++-------------------
+ simd-support/avx.h    | 62 +++++++++++++++++++++++++++++++++++++
+ simd-support/avx512.c | 40 +++---------------------
+ simd-support/avx512.h | 72 +++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 159 insertions(+), 91 deletions(-)
+ create mode 100644 simd-support/avx.h
+ create mode 100644 simd-support/avx512.h
+
+diff --git a/kernel/cpy2d-pair.c b/kernel/cpy2d-pair.c
+index b0f6328b..d23a4ab5 100644
+--- a/kernel/cpy2d-pair.c
++++ b/kernel/cpy2d-pair.c
+@@ -23,6 +23,9 @@
+ #include "kernel/ifftw.h"
+ #include <string.h>
+ 
++#include "simd-support/avx.h"
++#include "simd-support/avx512.h"
++
+ #ifdef AMD_OPT_ALL
+ #include "immintrin.h"
+ #endif
+@@ -2001,7 +2004,7 @@ void X(cpy2d_pair)(R *I0, R *I1, R *O0, R *O1,
+ static void *fmv_resolver_cpy2d_pair(void)
+ {
+ #if defined(HAVE_AVX512)
+-    if (X(have_simd_avx512)())
++    if (have_simd_avx512())
+     {
+         return X(cpy2d_pair_avx512);
+     }
+@@ -2009,7 +2012,7 @@ static void *fmv_resolver_cpy2d_pair(void)
+ #endif
+     {
+ #if defined(HAVE_AVX)
+-        if (X(have_simd_avx)())
++        if (have_simd_avx())
+         {
+                 return X(cpy2d_pair_avx);
+         }
+diff --git a/kernel/cpy2d.c b/kernel/cpy2d.c
+index e5515be4..718280e9 100644
+--- a/kernel/cpy2d.c
++++ b/kernel/cpy2d.c
+@@ -22,6 +22,9 @@
+ /* out of place 2D copy routines */
+ #include "kernel/ifftw.h"
+ 
++#include "simd-support/avx.h"
++#include "simd-support/avx512.h"
++
+ #ifdef AMD_OPT_ALL
+ #include "immintrin.h"
+ #endif
+@@ -2792,7 +2795,7 @@ void X(cpy2d)(R *I, R *O,
+ static void *fmv_resolver_cpy2d(void)
+ {
+ #if defined(HAVE_AVX512)
+-    if (X(have_simd_avx512)())
++    if (have_simd_avx512())
+     {
+         return X(cpy2d_avx512);
+     }
+@@ -2800,7 +2803,7 @@ static void *fmv_resolver_cpy2d(void)
+ #endif
+     {
+ #if defined(HAVE_AVX)
+-        if (X(have_simd_avx)())
++        if (have_simd_avx())
+         {
+             return X(cpy2d_avx);
+         }
+diff --git a/kernel/transpose.c b/kernel/transpose.c
+index a6e84b40..7e4a3ddb 100644
+--- a/kernel/transpose.c
++++ b/kernel/transpose.c
+@@ -20,6 +20,8 @@
+  */
+ 
+ #include "kernel/ifftw.h"
++#include "simd-support/avx.h"
++#include "simd-support/avx512.h"
+ 
+ #if 0 //#ifdef AMD_FMV_AUTO //Let the manual FMV option be enabled
+ /* in place square transposition, iterative */
+@@ -329,28 +331,12 @@ void X(transpose_c)(R *I, INT n, INT s0, INT s1, INT vl)
+ }
+ 
+ 
+-int is_avx512, is_avx;
+-
+-void X(transpose_internal)(R* I, INT n, INT s0, INT s1, INT vl) __attribute__((ifunc("fmv_resolver_transpose")));
+-void X(transpose)(R* I, INT n, INT s0, INT s1, INT vl)
+-{
+-#if defined(HAVE_AVX512)
+-	is_avx512 = X(have_simd_avx512)();
+-#else
+-	is_avx512 = 0;
+-#endif
+-#if defined(HAVE_AVX)
+-	is_avx = X(have_simd_avx)();
+-#else
+-	is_avx = 0;
+-#endif
+-	X(transpose_internal)(I, n, s0, s1, vl);
+-}
++void X(transpose)(R* I, INT n, INT s0, INT s1, INT vl) __attribute__((ifunc("fmv_resolver_transpose")));
+ 
+ static void* fmv_resolver_transpose(void)
+ {
+ #if defined(HAVE_AVX512)
+-	if (is_avx512)
++	if (have_simd_avx512())
+ 	{
+ 		return X(transpose_avx512);
+ 	}
+@@ -358,7 +344,7 @@ static void* fmv_resolver_transpose(void)
+ #endif
+ 	{
+ #if defined(HAVE_AVX)
+-		if (is_avx)
++		if (have_simd_avx())
+ 		{
+ 			return X(transpose_avx);
+ 		}
+diff --git a/simd-support/avx.c b/simd-support/avx.c
+index b64b05be..c41b0405 100644
+--- a/simd-support/avx.c
++++ b/simd-support/avx.c
+@@ -20,46 +20,18 @@
+  */
+ 
+ 
+-#include "kernel/ifftw.h"
++#include "avx.h"
+ 
+ #if HAVE_AVX
+ 
+-#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+-#    include "amd64-cpuid.h"
+-#else
+-#    include "x86-cpuid.h"
+-#endif
++int have_simd_avx_init;
++int have_simd_avx_res;
+ 
+ int X(have_simd_avx)(void)
+ {
+-     static int init = 0, res = 0;
+-     int max_stdfn, eax, ebx, ecx, edx;
+-
+-     if (!init) {
+-          cpuid_all(0,0,&eax,&ebx,&ecx,&edx);
+-          max_stdfn = eax;
+-          if (max_stdfn >= 0x1) {
+-               /* have AVX and OSXSAVE? (implies XGETBV exists) */
+-               cpuid_all(0x1, 0, &eax, &ebx, &ecx, &edx);
+-               if ((ecx & 0x18000000) == 0x18000000) {
+-                    /* have OS support for XMM, YMM? */
+-                    res = ((xgetbv_eax(0) & 0x6) == 0x6);                    
+-               }
+-#ifdef AMD_DYNAMIC_DISPATCHER
+-               /* Check for FMA support.
+-		* If yes, then enable AVX kernels with FMA for use on such CPUs
+-		* by Dynamic Dispatcher. Otherwise disable AVX kernels on those
+-		* older CPUs where FMA support is not there. */
+-               res &= ((ecx & 0x1000) == 0x1000);
+-#endif
+-          }
+-          init = 1;
+-     }
+-     return res;
++     return have_simd_avx();
+ }
+ 
+-#endif
+-
+ #ifdef AMD_OPT_TRANS
+ #if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+ #    include "amd64-cpuid.h"
+@@ -75,3 +47,5 @@ void X(enquire_L1DcacheSize) (void)
+ 	L1D_blk_size = L1D_blk_size&0xFF0; //block size is chosen that is multiple of 16/8, currently chosen that is multiple of 16.
+ }
+ #endif
++
++#endif
+diff --git a/simd-support/avx.h b/simd-support/avx.h
+new file mode 100644
+index 00000000..137ddaea
+--- /dev/null
++++ b/simd-support/avx.h
+@@ -0,0 +1,62 @@
++/*
++ * Copyright (c) 2003, 2007-14 Matteo Frigo
++ * Copyright (c) 2003, 2007-14 Massachusetts Institute of Technology
++ * Copyright (C) 2019-2021, Advanced Micro Devices, Inc. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
++ *
++ */
++
++#include "kernel/ifftw.h"
++
++#if HAVE_AVX
++
++#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
++#    include "amd64-cpuid.h"
++#else
++#    include "x86-cpuid.h"
++#endif
++
++extern int have_simd_avx_init;
++extern int have_simd_avx_res;
++
++static inline int have_simd_avx(void)
++{
++     int max_stdfn, eax, ebx, ecx, edx;
++
++     if (!have_simd_avx_init) {
++          cpuid_all(0,0,&eax,&ebx,&ecx,&edx);
++          max_stdfn = eax;
++          if (max_stdfn >= 0x1) {
++               /* have AVX and OSXSAVE? (implies XGETBV exists) */
++               cpuid_all(0x1, 0, &eax, &ebx, &ecx, &edx);
++               if ((ecx & 0x18000000) == 0x18000000) {
++                    /* have OS support for XMM, YMM? */
++                    have_simd_avx_res = ((xgetbv_eax(0) & 0x6) == 0x6);
++               }
++#ifdef AMD_DYNAMIC_DISPATCHER
++               /* Check for FMA support.
++		* If yes, then enable AVX kernels with FMA for use on such CPUs
++		* by Dynamic Dispatcher. Otherwise disable AVX kernels on those
++		* older CPUs where FMA support is not there. */
++               have_simd_avx_res &= ((ecx & 0x1000) == 0x1000);
++#endif
++          }
++          have_simd_avx_init = 1;
++     }
++     return have_simd_avx_res;
++}
++
++#endif
+diff --git a/simd-support/avx512.c b/simd-support/avx512.c
+index df94316a..5c1b0c97 100644
+--- a/simd-support/avx512.c
++++ b/simd-support/avx512.c
+@@ -23,48 +23,16 @@
+  *
+  */
+ 
+-#include "kernel/ifftw.h"
++#include "avx512.h"
+ 
+ #if HAVE_AVX512
+ 
+-#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
+-
+-#include "amd64-cpuid.h"
++int have_simd_avx512_init;
++int have_simd_avx512_res;
+ 
+ int X(have_simd_avx512)(void)
+ {
+-     static int init = 0, res;     
+-     int max_stdfn, eax, ebx, ecx, edx;
+-
+-     /* NOTE: this code is a total guess.  I don't have an avx512
+-        machine available.  The code contributed by Erik Lindahl would
+-        crash on a machine without XGETBV, so I had to guess a fix. */
+-     if (!init) {
+-          cpuid_all(0,0,&eax,&ebx,&ecx,&edx);
+-          max_stdfn = eax;
+-          if (max_stdfn >= 0x1) {
+-               /* have OSXSAVE? (implies XGETBV exists) */
+-               cpuid_all(0x1, 0, &eax, &ebx, &ecx, &edx);
+-               if ((ecx & 0x08000000) == 0x08000000) {
+-                    /* have AVX512? */
+-                    cpuid_all(7,0,&eax,&ebx,&ecx,&edx);
+-                    if (ebx & (1 << 16)) {
+-                         /* have OS support for XMM, YMM, ZMM */
+-                         int zmm_ymm_xmm = (7 << 5) | (1 << 2) | (1 << 1);
+-                         res = ((xgetbv_eax(0) & zmm_ymm_xmm) == zmm_ymm_xmm);
+-                    }
+-               }
+-          }
+-          init = 1;
+-     }
+-
+-     return res;
++     return have_simd_avx512();
+ }
+ 
+-#else /* 32-bit code */
+-
+-#error "Avx512 is 64 bits only"
+-
+-#endif
+-
+ #endif
+diff --git a/simd-support/avx512.h b/simd-support/avx512.h
+new file mode 100644
+index 00000000..17c41b6f
+--- /dev/null
++++ b/simd-support/avx512.h
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (c) 2003, 2007-11 Matteo Frigo
++ * Copyright (c) 2003, 2007-11 Massachusetts Institute of Technology
++ * Copyright (c) 2012-2013 Romain Dolbeau
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining a copy
++ * of this software and associated documentation files (the "Software"), to deal
++ * in the Software without restriction, including without limitation the rights
++ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
++ * copies of the Software, and to permit persons to whom the Software is
++ * furnished to do so, subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be included in
++ * all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
++ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
++ * THE SOFTWARE.
++ *
++ */
++
++#include "kernel/ifftw.h"
++
++#if HAVE_AVX512
++
++#if defined(__x86_64__) || defined(_M_X64) || defined(_M_AMD64)
++
++#include "amd64-cpuid.h"
++
++extern int have_simd_avx512_init;
++extern int have_simd_avx512_res;
++
++static inline int have_simd_avx512(void)
++{
++     int max_stdfn, eax, ebx, ecx, edx;
++
++     /* NOTE: this code is a total guess.  I don't have an avx512
++        machine available.  The code contributed by Erik Lindahl would
++        crash on a machine without XGETBV, so I had to guess a fix. */
++     if (!have_simd_avx512_init) {
++          cpuid_all(0,0,&eax,&ebx,&ecx,&edx);
++          max_stdfn = eax;
++          if (max_stdfn >= 0x1) {
++               /* have OSXSAVE? (implies XGETBV exists) */
++               cpuid_all(0x1, 0, &eax, &ebx, &ecx, &edx);
++               if ((ecx & 0x08000000) == 0x08000000) {
++                    /* have AVX512? */
++                    cpuid_all(7,0,&eax,&ebx,&ecx,&edx);
++                    if (ebx & (1 << 16)) {
++                         /* have OS support for XMM, YMM, ZMM */
++                         int zmm_ymm_xmm = (7 << 5) | (1 << 2) | (1 << 1);
++                         have_simd_avx512_res = ((xgetbv_eax(0) & zmm_ymm_xmm) == zmm_ymm_xmm);
++                    }
++               }
++          }
++          have_simd_avx512_init = 1;
++     }
++
++     return have_simd_avx512_res;
++}
++
++#else /* 32-bit code */
++
++#error "Avx512 is 64 bits only"
++
++#endif
++
++#endif
+-- 
+2.45.2
+

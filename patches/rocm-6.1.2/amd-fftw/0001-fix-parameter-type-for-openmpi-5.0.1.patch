@@ -1,10 +1,11 @@
-From 7d168fcd8b3d015fb9d06876e2d43e8cc38f8efe Mon Sep 17 00:00:00 2001
+From 704164a043c099b07ade4e5f50ef070e2d7c4c06 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 29 May 2024 15:16:57 -0700
-Subject: [PATCH] fix parameter type for openmpi 5.0.1
+Subject: [PATCH 1/2] fix parameter type for openmpi 5.0.1
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+
 rocm_sdk_builder_611
 detected on fedora 40/gcc build that
 at least OpenMPI 5.0.1 request that last
@@ -67,5 +68,5 @@ index 41b588c7..298ab644 100644
  #ifdef AMD_MPI_TRANSPOSE_LOGS
             printf("TRANSPOSE-PAIRWISE: n_pes[%d], my_pe[%d], first_pe[%d]\n", n_pes, my_pe, pe);
 -- 
-2.45.1
+2.45.2
 
