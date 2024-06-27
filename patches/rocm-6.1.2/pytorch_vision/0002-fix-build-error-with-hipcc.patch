@@ -1,7 +1,7 @@
-From e08a5eb9836b29855533b358b33768274a03db62 Mon Sep 17 00:00:00 2001
+From cb0db21064d95ac85b24a1a124cbb8c89023d30d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 15:19:56 -0800
-Subject: [PATCH 2/2] fix build error with hipcc
+Subject: [PATCH 2/3] fix build error with hipcc
 
 Following error occured when building with hipcc
 instead of gcc/g++.
@@ -28,5 +28,5 @@ index d2ed73071a..eada131d32 100644
    return out_tensor;
  }
 -- 
-2.41.1
+2.45.2
 
