@@ -82,6 +82,7 @@ LIST_BINFO_FILE_BASENAME=(
     "039_04_pytorch_audio.binfo"
     "039_05_torch_migraphx.binfo"
     "039_06_pytorch_bitsandbytes.binfo"
+    "039_07_triton.binfo"
     "040_01_onnxruntime_rocm_training.binfo"
     "040_02_onnxruntime_deepspeed.binfo"
 )

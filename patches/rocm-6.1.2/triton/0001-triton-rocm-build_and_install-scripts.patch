@@ -1,0 +1,48 @@
+From 3b84c8ac6b61e3ca4b3963b0a859fdd36406c0c6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 28 Jun 2024 02:58:51 -0700
+Subject: [PATCH] triton rocm build_and_install scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh     | 4 ++++
+ install_rocm.sh   | 1 +
+ preconfig_rocm.sh | 7 +++++++
+ 3 files changed, 12 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 000000000..216108218
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,4 @@
++export TRITON_BUILD_WITH_CLANG_LLD=true
++# can not call python python/setup.py because then some relative paths are not found
++cd python
++python setup.py bdist_wheel -vvv
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 000000000..c5449b95f
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1 @@
++pip install python/dist/triton-3.0.0-cp39-cp39-linux_x86_64.whl
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 000000000..70048ac26
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,7 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./python/setup.py ]]; then
++    if [ -d ./python/build ]; then
++        cd python
++        python ./setup.py clean
++    fi
++fi
+-- 
+2.41.1
+
