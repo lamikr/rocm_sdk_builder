@@ -1,0 +1,1 @@
+example from README in https://github.com/ROCm/rocm-examples.git dir AI/MIGraphX/Quantization
