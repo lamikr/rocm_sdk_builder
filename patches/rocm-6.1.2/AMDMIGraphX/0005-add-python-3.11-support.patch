@@ -1,0 +1,30 @@
+From 439e63779c307c71989bc2ca40eb5504826e552d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 1 Jul 2024 02:23:00 +0200
+Subject: [PATCH 5/5] Add-python-3.11-support
+
+Fix provided by @lamikr here:
+https://github.com/lamikr/rocm_sdk_builder/issues/66#issuecomment-2198566018.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+
+---
+ cmake/PythonModules.cmake | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/cmake/PythonModules.cmake b/cmake/PythonModules.cmake
+index 661621a2a..a25437677 100755
+--- a/cmake/PythonModules.cmake
++++ b/cmake/PythonModules.cmake
+@@ -86,7 +86,7 @@ function(py_add_module NAME)
+     )
+ 
+ endfunction()
+-set(PYTHON_SEARCH_VERSIONS 3.5 3.6 3.7 3.8 3.9 3.10)
++set(PYTHON_SEARCH_VERSIONS 3.5 3.6 3.7 3.8 3.9 3.10 3.11)
+ set(PYTHON_DISABLE_VERSIONS "" CACHE STRING "")
+ foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
+     list(REMOVE_ITEM PYTHON_SEARCH_VERSIONS ${PYTHON_DISABLE_VERSION})
+-- 
+2.45.2
+

@@ -29,7 +29,7 @@ index 000000000..c5449b95f
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1 @@
-+pip install python/dist/triton-3.0.0-cp39-cp39-linux_x86_64.whl
++pip install python/dist/triton-3.0.0-cp311-cp311-linux_x86_64.whl
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
 index 000000000..70048ac26
