@@ -1,0 +1,34 @@
+From 5e1b1f5fca32505eab43e81a9c55ba037205b49c Mon Sep 17 00:00:00 2001
+From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
+Date: Sun, 30 Jun 2024 01:25:34 +0200
+Subject: [PATCH 4/4] pytorch-vision build fix for Python 3.11
+
+Thanks to @jeroen-mostert to point out the best way to fix the issue.
+
+Signed-off-by: Daniele <57776841+daniandtheweb@users.noreply.github.com>
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+
+---
+ setup.py | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index ce1cd90ca0..4a27281e8a 100644
+--- a/setup.py
++++ b/setup.py
+@@ -384,8 +384,10 @@ def get_extensions():
+         ffmpeg_library_dir = os.path.join(ffmpeg_root, "lib")
+ 
+         gcc = os.environ.get("CC", shutil.which("gcc"))
+-        platform_tag = subprocess.run([gcc, "-print-multiarch"], stdout=subprocess.PIPE)
+-        platform_tag = platform_tag.stdout.strip().decode("utf-8")
++        platform_tag = ""
++        if not is_rocm_pytorch:
++            platform_tag = subprocess.run([gcc, "-print-multiarch"], stdout=subprocess.PIPE)
++            platform_tag = platform_tag.stdout.strip().decode("utf-8")
+ 
+         if platform_tag:
+             # Most probably a Debian-based distribution
+-- 
+2.45.2
+
