@@ -3,7 +3,7 @@ BINFO_APP_SRC_TOPDIR_BASENAME=cpython
 BINFO_APP_SRC_SUBDIR_BASENAME=
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/python/cpython.git
-BINFO_APP_UPSTREAM_REPO_VERSION_TAG=v3.9.19
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=v3.11.9
 
 BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_BUILD_DIR}"
@@ -18,5 +18,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python; fi"
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config; fi"
     "python -m pip install --upgrade pip"
-    "pip install lxml pyaml barectf joblib jsonschema CppHeaderParser"
+    "pip install lxml pyaml joblib jsonschema CppHeaderParser"
+    "echo 'Cython<3' > constraint.txt"
+    "PIP_CONSTRAINT=constraint.txt pip install barectf"
 )
