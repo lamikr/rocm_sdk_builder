@@ -1,7 +1,7 @@
 From bc663cf5ce68a01646e33c0b222a4faf846f2064 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 1 Jun 2024 19:06:33 -0700
-Subject: [PATCH 4/4] AMDMIGraphX msgpack-cxx ubuntu 24.04 search fix
+Subject: [PATCH 4/5] AMDMIGraphX msgpack-cxx ubuntu 24.04 search fix
 
 Ubuntu 24.04 has renamed msgpackc-cxx to
 msgpack-cxx and AMDMIGraphX configure failed to

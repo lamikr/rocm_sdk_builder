@@ -2,7 +2,7 @@ From e76c4df71cad0d30b8ffac23bac7c092c8d00326 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Robert-Andr=C3=A9=20Mauchin?=
  <30413512+eclipseo@users.noreply.github.com>
 Date: Thu, 6 Jun 2024 16:02:45 +0200
-Subject: [PATCH 3/3] Add compatibility with FFMPEG 7.0
+Subject: [PATCH 3/4] Add compatibility with FFMPEG 7.0
 
 Originally from https://gitlab.archlinux.org/archlinux/packaging/packages/torchvision/-/blob/main/torchvision-ffmpeg7.patch
 
