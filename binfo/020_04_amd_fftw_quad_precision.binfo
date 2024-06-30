@@ -8,5 +8,5 @@ BINFO_APP_UPSTREAM_REPO_VERSION_TAG=4.2
 BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_BUILD_DIR}"
     "export CFLAGS=\"${CFLAGS} -O3\""
-    "${BINFO_APP_SRC_DIR}/configure --enable-openmp --enable-shared --enable-amd-opt --enable-amd-mpifft --enable-quad-precision --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64"
+    "${BINFO_APP_SRC_DIR}/configure --enable-openmp --enable-shared --enable-amd-opt --enable-amd-mpifft --enable-quad-precision --enable-dynamic-dispatcher --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64"
 )
