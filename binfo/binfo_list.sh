@@ -6,6 +6,7 @@ LIST_BINFO_FILE_BASENAME=(
     "002_01_cmake_backport.binfo"
     "002_02_zstd_backport.binfo"
     "002_03_python_backport.binfo"
+    "002_04_ffmpeg7_devel.binfo"
     "003_llvm_project_llvm.binfo"
     "004_01_roct-thunk-interface_shared.binfo"
     "004_02_roct-thunk-interface_static.binfo"
