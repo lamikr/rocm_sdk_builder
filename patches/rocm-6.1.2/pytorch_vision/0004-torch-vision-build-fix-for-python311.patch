@@ -1,0 +1,37 @@
+From 63d479033ec1412e53c8aa969ce6e525cc9d53d2 Mon Sep 17 00:00:00 2001
+From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
+Date: Mon, 1 Jul 2024 02:12:12 +0200
+Subject: [PATCH 4/4] pytorch-vision build fix for Python 3.11
+
+Thanks to @jeroen-mostert and @lamikr for the fix.
+
+Signed-off-by: Daniele <57776841+daniandtheweb@users.noreply.github.com>
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+
+---
+ setup.py | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/setup.py b/setup.py
+index ce1cd90ca0..2ec99a6a66 100644
+--- a/setup.py
++++ b/setup.py
+@@ -384,11 +384,11 @@ def get_extensions():
+         ffmpeg_library_dir = os.path.join(ffmpeg_root, "lib")
+ 
+         gcc = os.environ.get("CC", shutil.which("gcc"))
++        # hipcc/clang does not support print-multiarch, so check error code first
+         platform_tag = subprocess.run([gcc, "-print-multiarch"], stdout=subprocess.PIPE)
+-        platform_tag = platform_tag.stdout.strip().decode("utf-8")
+-
+-        if platform_tag:
++        if platform_tag and platform_tag.returncode == 0:
+             # Most probably a Debian-based distribution
++            platform_tag = platform_tag.stdout.strip().decode("utf-8")
+             ffmpeg_include_dir = [ffmpeg_include_dir, os.path.join(ffmpeg_include_dir, platform_tag)]
+             ffmpeg_library_dir = [ffmpeg_library_dir, os.path.join(ffmpeg_library_dir, platform_tag)]
+         else:
+-- 
+2.45.2
+
