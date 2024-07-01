@@ -1,7 +1,7 @@
 From 379bc45fc32b55dfafa44f7e83520298674e03db Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Thu, 9 May 2024 09:11:08 -0700
-Subject: [PATCH 1/4] fix no matching constructor build error
+Subject: [PATCH 1/5] fix no matching constructor build error
 
 fix the build error for no matching constructor
 by type casting auto arguments x and y to int.

@@ -1,7 +1,7 @@
 From 080b788b22ecbb49b751303bf8e5e7cd45fbb58e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 30 May 2024 09:51:05 -0700
-Subject: [PATCH 3/4] define detail namespace only if used
+Subject: [PATCH 3/5] define detail namespace only if used
 
 This fixes the build problen on Fedora, not
 sure whether the real reason is some kind of optimization.
