@@ -1,12 +1,12 @@
 From 439e63779c307c71989bc2ca40eb5504826e552d Mon Sep 17 00:00:00 2001
-From: Jeroen Mostert <jeroen.mostert@cm.com>
+From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 1 Jul 2024 02:23:00 +0200
 Subject: [PATCH 5/5] Add-python-3.11-support
 
-Fix provided by @jeroen-mostert here:
+Fix provided by @lamikr here:
 https://github.com/lamikr/rocm_sdk_builder/issues/66#issuecomment-2198566018.
 
-Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
 
 ---
  cmake/PythonModules.cmake | 2 +-
