@@ -7,7 +7,33 @@ SDK_ROOT_DIR="$PWD"
 
 source binfo/user_config.sh
 
-export INSTALL_DIR_PREFIX_SDK_ROOT=/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}
+# check the linux distribution for the target triplet
+export ROCM_TARGET_TRIPLED=x86_64-rocm-linux-gnu
+if [[ -e "/etc/os-release" ]]; then
+    source /etc/os-release
+elif [[ -e "/etc/centos-release" ]]; then
+    ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
+    VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
+fi
+if [ ! -z ${ID+foo} ]; then
+    case "${ID}" in
+        mageia)
+            # mageia linux 9 requires the triplet to be x86_64-mageia-linux
+            # otherwise there are problem for hipcc to find internal include files when it calls gcc
+            # https://github.com/lamikr/rocm_sdk_builder/issues/87
+            export ROCM_TARGET_TRIPLED=x86_64-mageia-linux
+            echo "Supported Linux distribution detected: ${ID}"
+            true
+        ;;
+    *)
+    esac
+fi
+echo "ROCM_TARGET_TRIPLED: ${ROCM_TARGET_TRIPLED}"
+
+# set INSTALL_DIR_PREFIX_SDK_ROOT only if it not already set in the user environment variable or user_config.sh
+INSTALL_DIR_PREFIX_SDK_ROOT="${INSTALL_DIR_PREFIX_SDK_ROOT:-/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}}"
+export INSTALL_DIR_PREFIX_SDK_ROOT
+
 export ROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}
 export BUILD_RULE_ROOT_DIR=${SDK_ROOT_DIR}/binfo
 export BUILD_SCRIPT_ROOT_DIR=${SDK_ROOT_DIR}/build
