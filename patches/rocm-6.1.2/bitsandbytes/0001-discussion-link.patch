@@ -1,7 +1,7 @@
-From 82633ab4779054e0a165daec14f43fd9acedf960 Mon Sep 17 00:00:00 2001
+From f7ad331c899ac899026f9fd3766783625450bacf Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 20:19:29 -0700
-Subject: [PATCH] discussion link
+Subject: [PATCH 1/2] discussion link
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -17,5 +17,5 @@ index 0000000..f20417e
 @@ -0,0 +1 @@
 +https://github.com/ROCm/ROCm/issues/3132
 -- 
-2.41.0
+2.45.2
 

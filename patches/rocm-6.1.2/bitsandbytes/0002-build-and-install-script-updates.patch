@@ -1,0 +1,43 @@
+From 557bd5f58a0d36e5f96e428e1c961b34b7ff2f41 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 4 Jul 2024 23:52:04 -0400
+Subject: [PATCH 2/2] build and install script updates
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ install_rocm.sh | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+ create mode 100755 install_rocm.sh
+
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 0000000..d12a3a6
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,23 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying bitsandbytes python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find bitsandbytes python whl file to install"
++    exit 1
++fi
+-- 
+2.45.2
+

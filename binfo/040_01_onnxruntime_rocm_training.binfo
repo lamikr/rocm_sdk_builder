@@ -14,10 +14,10 @@ BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
 
 BINFO_APP_BUILD_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
-    "./build_onnxruntime_rocm_training.sh ${INSTALL_DIR_PREFIX_SDK_ROOT} ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
+    "./build_rocm.sh ${INSTALL_DIR_PREFIX_SDK_ROOT} ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
 )
 
 BINFO_APP_INSTALL_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
-    "./install_onnxruntime_rocm_training.sh"
+    "./install_rocm.sh ${SDK_SRC_PYTHON_WHEEL_BACKUP_DIR}"
 )

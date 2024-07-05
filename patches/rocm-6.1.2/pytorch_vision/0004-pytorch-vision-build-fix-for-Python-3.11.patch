@@ -1,4 +1,4 @@
-From 63d479033ec1412e53c8aa969ce6e525cc9d53d2 Mon Sep 17 00:00:00 2001
+From 00dedc05faec8006d9ab08c75d1dedbfc07b39bc Mon Sep 17 00:00:00 2001
 From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
 Date: Mon, 1 Jul 2024 02:12:12 +0200
 Subject: [PATCH 4/4] pytorch-vision build fix for Python 3.11
@@ -8,7 +8,6 @@ Thanks to @jeroen-mostert and @lamikr for the fix.
 Signed-off-by: Daniele <57776841+daniandtheweb@users.noreply.github.com>
 Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
-
 ---
  setup.py | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)

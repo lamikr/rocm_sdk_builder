@@ -1,4 +1,4 @@
-From 65f5eac2c5b3e4e8bd369969711096529c695ed0 Mon Sep 17 00:00:00 2001
+From 108755dda9e284382bd0b63e5e351cba9f7abb16 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:36:23 -0700
 Subject: [PATCH 1/4] deepspeed rocm preconfig and build_install scripts
@@ -8,17 +8,19 @@ https://github.com/microsoft/DeepSpeed/issues/4989
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_and_install_rocm.sh | 21 +++++++++++++++++++++
- preconfig_rocm.sh         |  7 +++++++
- 2 files changed, 28 insertions(+)
- create mode 100755 build_and_install_rocm.sh
+ build_rocm.sh     | 21 +++++++++++++++++++++
+ install_rocm.sh   | 23 +++++++++++++++++++++++
+ preconfig_rocm.sh |  7 +++++++
+ 3 files changed, 51 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
 
-diff --git a/build_and_install_rocm.sh b/build_and_install_rocm.sh
+diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000..68e96b40
+index 00000000..f4a75855
 --- /dev/null
-+++ b/build_and_install_rocm.sh
++++ b/build_rocm.sh
 @@ -0,0 +1,21 @@
 +if [ -z "$1" ]; then
 +    amd_target_gpu=""
@@ -38,9 +40,38 @@ index 00000000..68e96b40
 +#export LDFLAGS="-L/usr/lib64"
 +
 +# install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
-+AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py install
++AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
 +
 +#DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 00000000..ef220611
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,23 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying DeepSpeed python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find DeepSpeed python whl file to install"
++    exit 1
++fi
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
 index 00000000..1730e027

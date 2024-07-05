@@ -1,24 +1,24 @@
-From 43c81c631dfe1d4190aaaaa20b804496e9a5e7a6 Mon Sep 17 00:00:00 2001
+From dd64c46c98dbe8655fa26827df23a84b51e835f0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 14:02:57 -0700
-Subject: [PATCH 1/9] onnxruntime training rocm sdk builder scripts
+Subject: [PATCH 1/7] onnxruntime training rocm sdk builder scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_onnxruntime_rocm_training.sh   | 20 ++++++++++++++++++++
- install_onnxruntime_rocm_training.sh |  1 +
- preconfig_rocm.sh                    |  7 +++++++
- 3 files changed, 28 insertions(+)
- create mode 100755 build_onnxruntime_rocm_training.sh
- create mode 100755 install_onnxruntime_rocm_training.sh
+ build_rocm.sh     | 31 +++++++++++++++++++++++++++++++
+ install_rocm.sh   | 23 +++++++++++++++++++++++
+ preconfig_rocm.sh |  7 +++++++
+ 3 files changed, 61 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
 
-diff --git a/build_onnxruntime_rocm_training.sh b/build_onnxruntime_rocm_training.sh
+diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 0000000000..769dac0c37
+index 0000000000..44d7022e2e
 --- /dev/null
-+++ b/build_onnxruntime_rocm_training.sh
-@@ -0,0 +1,20 @@
++++ b/build_rocm.sh
+@@ -0,0 +1,31 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
 +    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
@@ -34,18 +34,51 @@ index 0000000000..769dac0c37
 +    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
 +fi
 +
-+./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
++cmake_min_version=3.26.1
++cmake_installed_version=$(cmake --version | head -1 | cut -f3 -d" ")
++mapfile -t sorted < <(printf "%s\n" "$cmake_installed_version" "$cmake_min_version" | sort -V)
++if [[ ${sorted[0]} == "$cmake_min_version" ]]; then
++    echo "Linux distributions cmake version ok"
++    echo "    $cmake_installed_version >= $cmake_min_version"
++else
++    echo "Linux distribution version too old, using own build"
++    export PATH=${install_dir_prefix_rocm}/cmake/bin:$PATH
++fi
++
++./build.sh --config Release --enable_training --build_wheel --parallel --skip_tests  --build_shared_lib --use_rocm --rocm_home ${install_dir_prefix_rocm} --use_migraphx --migraphx_home ${install_dir_prefix_rocm} --cmake_extra_defines CMAKE_HIP_COMPILER=${install_dir_prefix_rocm}/bin/clang++ CMAKE_INSTALL_PREFIX=${install_dir_prefix_rocm} CMAKE_HIP_ARCHITECTURES=${amd_target_gpu}
 +#
 +#
 +#./build.sh --config RelWithDebInfo --build_shared_lib --parallel --compile_no_warning_as_error --skip_submodule_sync
 +#./build.sh --config RelWithDebInfo --build_shared_lib --parallel --enable_training_apis
-diff --git a/install_onnxruntime_rocm_training.sh b/install_onnxruntime_rocm_training.sh
+diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 0000000000..9f31121b84
+index 0000000000..fb10604cda
 --- /dev/null
-+++ b/install_onnxruntime_rocm_training.sh
-@@ -0,0 +1 @@
-+pip install ./build/Linux/Release/dist/onnxruntime_training*.whl
++++ b/install_rocm.sh
+@@ -0,0 +1,23 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying pytorch vision python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in ./build/Linux/Release/dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find pytorch vision whl file to install"
++    exit 1
++fi
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
 index 0000000000..97ab2c15d5

@@ -1,7 +1,7 @@
-From 0c47b9fecc05c8f19954d8275473a1822a159af7 Mon Sep 17 00:00:00 2001
+From 0d639cea739ecaa963835836fc0d3c68a596edfc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:08:25 -0700
-Subject: [PATCH 6/9] template-id not allowed for constructor in C++20
+Subject: [PATCH 5/7] template-id not allowed for constructor in C++20
 
 following error in Fedora 40/gcc14
 
