@@ -1,13 +1,13 @@
-From eb95b63764e1f10b019d998d111fd9b341f08060 Mon Sep 17 00:00:00 2001
+From 8648b381fa28d797532e00d8fe280c68f1911bb4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 14 Jun 2024 14:32:34 -0400
-Subject: [PATCH 9/9] fedora40 build breaks for uninitialized variables
+Subject: [PATCH 7/7] fedora40 build breaks for uninitialized variables
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- onnxruntime/test/providers/cpu/ml/write_scores_test.cc     | 6 +++---
- .../test/providers/cpu/reduction/reduction_ops_test.cc     | 7 ++++---
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ onnxruntime/test/providers/cpu/ml/write_scores_test.cc |  6 +++---
+ .../test/providers/cpu/reduction/reduction_ops_test.cc | 10 ++++------
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
 diff --git a/onnxruntime/test/providers/cpu/ml/write_scores_test.cc b/onnxruntime/test/providers/cpu/ml/write_scores_test.cc
 index 3bb323fd7e..5b787ee6c3 100644
@@ -39,7 +39,7 @@ index 3bb323fd7e..5b787ee6c3 100644
 \ No newline at end of file
 +}
 diff --git a/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc b/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc
-index 98a65b8eff..d8a9b9ea32 100644
+index 98a65b8eff..19c5b2ab36 100644
 --- a/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc
 +++ b/onnxruntime/test/providers/cpu/reduction/reduction_ops_test.cc
 @@ -4242,17 +4242,15 @@ TEST(ReductionOpTest, OptimizeShapeForFastReduce_KR) {

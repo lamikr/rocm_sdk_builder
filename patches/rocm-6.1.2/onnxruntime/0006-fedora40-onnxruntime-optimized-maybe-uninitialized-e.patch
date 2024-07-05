@@ -1,7 +1,7 @@
-From c86ab586ed0b2e1d1f6e3acc7b64a1defb126b06 Mon Sep 17 00:00:00 2001
+From b03a7bfd7c702e9acac7257329bdf1c0d38d0f4b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:13:28 -0700
-Subject: [PATCH 7/9] fedora40 onnxruntime optimized maybe-uninitialized error
+Subject: [PATCH 6/7] fedora40 onnxruntime optimized maybe-uninitialized error
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit

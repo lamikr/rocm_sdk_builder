@@ -6,14 +6,18 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/torch_migraphx
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=912db917af6815b49a49d31f8dcca89b43627034
 
 BINFO_APP_NO_CONFIG=1
-BINFO_APP_NO_BUILD=1
 
 BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
     "./preconfig_rocm.sh"
 )
 
+BINFO_APP_BUILD_CMD_ARRAY=(
+    "cd ${BINFO_APP_SRC_DIR}"
+    "./build_rocm.sh"
+)
+
 BINFO_APP_INSTALL_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
-    "./build_and_install_rocm.sh"
+    "./install_rocm.sh ${SDK_SRC_PYTHON_WHEEL_BACKUP_DIR}"
 )

@@ -39,6 +39,7 @@ export BUILD_RULE_ROOT_DIR=${SDK_ROOT_DIR}/binfo
 export BUILD_SCRIPT_ROOT_DIR=${SDK_ROOT_DIR}/build
 export PATCH_FILE_ROOT_DIR=${SDK_ROOT_DIR}/patches/${UPSTREAM_REPO_VERSION_TAG_DEFAULT}
 export SDK_SRC_ROOT_DIR=${SDK_ROOT_DIR}/src_projects
+export SDK_SRC_PYTHON_WHEEL_BACKUP_DIR=${SDK_ROOT_DIR}/packages/whl
 
 if [ -e ${SDK_ROOT_DIR}/envsetup_pre.cfg ]; then
     source ${SDK_ROOT_DIR}/envsetup_pre.cfg
