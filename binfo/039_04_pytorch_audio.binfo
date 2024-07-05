@@ -20,4 +20,6 @@ BINFO_APP_BUILD_CMD_ARRAY=(
 BINFO_APP_INSTALL_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
     "./install_rocm.sh ${SDK_SRC_PYTHON_WHEEL_BACKUP_DIR}"
+    "if [[ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libsox.so  && ! -e /usr/lib64/libsox.so && -e /usr/lib64/libsox.so.3 ]]; then ln -s /usr/lib64/libsox.so.3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libsox.so; fi"
+    "if [[ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libsox.so  && ! -e /usr/lib/x86_64-linux-gnu/libsox.so && -e /usr/lib/x86_64-linux-gnu/libsox.so.3 ]]; then ln -s /usr/lib/x86_64-linux-gnu/libsox.so.3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/libsox.so; fi"
 )
