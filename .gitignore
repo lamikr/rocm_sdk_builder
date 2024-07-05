@@ -7,3 +7,4 @@ docs/examples/hipcc/hello_world/hello_world
 docs/examples/hipcc/hello_world/hello_world.o
 docs/examples/opencl/check_opencl_caps/check_opencl_caps
 docs/examples/opencl/hello_world/hello_world
+packages
