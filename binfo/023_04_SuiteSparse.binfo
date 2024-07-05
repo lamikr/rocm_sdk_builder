@@ -26,9 +26,9 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
 #    "unset FC"
 #)
 
-BINFO_BUILD_CMD_ARRAY=(
-    "make -j1"
-)
+#BINFO_BUILD_CMD_ARRAY=(
+#    "make -j1"
+#)
 
 BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -Dm644 ${BINFO_APP_SRC_DIR}/CHOLMOD/Include/cholmod.h ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/cholmod.h"
