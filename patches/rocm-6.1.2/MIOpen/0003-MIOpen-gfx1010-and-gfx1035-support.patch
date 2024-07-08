@@ -1,7 +1,7 @@
-From f8b408ae6cf7ba18041831c1385091c2392211c3 Mon Sep 17 00:00:00 2001
+From 6578a68e3226e97716aad12d445632358f2a463e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 19 Dec 2023 15:13:46 -0800
-Subject: [PATCH 3/3] MIOpen gfx1010 and gfx1035 support
+Subject: [PATCH 3/4] MIOpen gfx1010 and gfx1035 support
 
 - todo: check gfx1010 specific parts
 
@@ -174,5 +174,5 @@ index 16ce78f04..2ec3eaf09 100644
                         "gfx1101",
                         "gfx1102"};
 -- 
-2.41.0
+2.41.1
 
