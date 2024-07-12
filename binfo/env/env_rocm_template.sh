@@ -18,4 +18,7 @@ export OCL_ICD_VENDORS=${ROCM_HOME}/etc/OpenCL/vendors/
 # pythonpath is required at least by AMDMIGraphX pytorch module
 export PYTHONPATH=${ROCM_HOME}/lib64:${ROCM_HOME}/lib:$PYTHONPATH
 
+# TRITON_HIP_LLD_PATH is needed by upstream triton in compiler.py
+export TRITON_HIP_LLD_PATH=${ROCM_HOME}/bin/ld.lld
+
 export PATH=${ROCM_HOME}/bin:${PATH}

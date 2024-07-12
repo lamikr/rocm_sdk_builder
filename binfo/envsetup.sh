@@ -323,6 +323,9 @@ export LD_LIBRARY_PATH=${HCC_HOME}/lib:${LD_LIBRARY_PATH}
 export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/hcc/bin:${PATH}
 export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin:${PATH}
 
+# TRITON_HIP_LLD_PATH is needed by upstream triton in compiler.py
+export TRITON_HIP_LLD_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/ld.lld
+
 # pythonpath is required at least by AMDMIGraphX pytorch module
 # but if it is set, then the Tensile virtual env creation fails on rocBLAS
 #export PYTHONPATH=${ROCM_HOME}/lib64:${ROCM_HOME}/lib:$PYTHONPATH
