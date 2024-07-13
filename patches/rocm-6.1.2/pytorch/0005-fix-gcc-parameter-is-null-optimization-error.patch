@@ -1,7 +1,7 @@
-From 9b939062b118322f53a8c284f4cd99721b887fd5 Mon Sep 17 00:00:00 2001
+From 74aff7b057c92d3772b6a64ddfbe3cb13fdfd1af Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 19:25:50 -0700
-Subject: [PATCH 5/6] fix gcc parameter is null optimization error
+Subject: [PATCH 5/7] fix gcc parameter is null optimization error
 
 https://github.com/pytorch/pytorch/issues/112089
 and

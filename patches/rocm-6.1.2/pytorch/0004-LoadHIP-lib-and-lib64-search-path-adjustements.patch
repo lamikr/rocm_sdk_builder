@@ -1,7 +1,7 @@
-From 043f85f904000acc0c9680c4094dcdbf56d187e7 Mon Sep 17 00:00:00 2001
+From 374e4f1044d82e3b69b0f0e00daf65bfe629881d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 11:11:47 -0700
-Subject: [PATCH 4/6] LoadHIP lib and lib64 search path adjustements
+Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
 
 - search both lib and lib64 directories
   (note some libs still installed to lib-dir

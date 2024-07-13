@@ -1,0 +1,32 @@
+From 84c0a10418197083e0f6be8be99f51937f333641 Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Sat, 13 Jul 2024 13:18:54 +0200
+Subject: [PATCH 7/7] override version check to ignore patches
+
+The package version logic only applies the tag version if it matches
+the commit exactly. Our patches mess this up, causing it to use a
+version number that is one lower than the actual version, due to how
+versioning in torch works. Since we know our patches only apply to
+released versions, simply remove the requirement for an exact match.
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ tools/generate_torch_version.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/generate_torch_version.py b/tools/generate_torch_version.py
+index 936896934c..74b110da02 100644
+--- a/tools/generate_torch_version.py
++++ b/tools/generate_torch_version.py
+@@ -26,7 +26,7 @@ def get_sha(pytorch_root: Union[str, Path]) -> str:
+ def get_tag(pytorch_root: Union[str, Path]) -> str:
+     try:
+         tag = subprocess.run(
+-            ["git", "describe", "--tags", "--exact"],
++            ["git", "describe", "--tags", "--abbrev=0"],
+             cwd=pytorch_root,
+             encoding="ascii",
+             capture_output=True,
+-- 
+2.45.2
+
