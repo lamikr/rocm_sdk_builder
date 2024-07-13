@@ -1,0 +1,26 @@
+From 2fe70f877629bc944bf41c5deb89350989c2a5df Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 13 Jul 2024 20:06:14 -0400
+Subject: [PATCH] fedora40 buildbreak fix for assignment to readonly object
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ rocm_smi/include/rocm_smi/rocm_smi_utils.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/rocm_smi/include/rocm_smi/rocm_smi_utils.h b/rocm_smi/include/rocm_smi/rocm_smi_utils.h
+index 67d9d8b..e492978 100755
+--- a/rocm_smi/include/rocm_smi/rocm_smi_utils.h
++++ b/rocm_smi/include/rocm_smi/rocm_smi_utils.h
+@@ -218,7 +218,7 @@ class ScopeGuard {
+   __forceinline ~ScopeGuard() {
+     if (!dismiss_) release_();
+   }
+-  __forceinline ScopeGuard& operator=(const ScopeGuard& rhs) {
++  __forceinline ScopeGuard& operator=(ScopeGuard& rhs) {
+     dismiss_ = rhs.dismiss_;
+     release_ = rhs.release_;
+     rhs.dismiss_ = true;
+-- 
+2.45.2
+

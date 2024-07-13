@@ -1,0 +1,13 @@
+BINFO_APP_NAME=rocgdb
+BINFO_APP_SRC_SUBDIR_BASENAME=
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/ROCgdb.git
+#use default git tag
+#BINFO_APP_UPSTREAM_REPO_VERSION_TAG=amd-staging
+
+BINFO_APP_CONFIG_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "export PKG_CONFIG_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/share/pkgconfig:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/pkgconfig:${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/pkgconfig"
+    "${BINFO_APP_SRC_DIR}/configure --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --program-prefix=roc --with-rocm-dbgapi=${INSTALL_DIR_PREFIX_SDK_ROOT} --enable-64-bit-bfd --enable-targets="x86_64-linux-gnu,amdgcn-amd-amdhsa" --disable-ld --disable-gas --disable-gdbserver --disable-sim --enable-tui --disable-gdbtk --disable-gprofng --disable-shared --with-expat --with-system-zlib --without-guile --with-babeltrace --with-lzma --with-python=python3"
+)
