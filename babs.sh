@@ -7,7 +7,11 @@
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
 
+# user configuration menu functionality
 source binfo/user_config.sh
+
+# allow enable doing some user specific extra actions before the build start
+source ./envsetup_pre.sh
 
 func_is_user_in_dev_kfd_render_group() {
     if [ -e /dev/kfd ]; then

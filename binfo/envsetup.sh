@@ -5,7 +5,12 @@
 
 SDK_ROOT_DIR="$PWD"
 
+# user configuration menu functionality
 source binfo/user_config.sh
+
+# allow enable doing some user specific extra actions before the build start
+# like setting the INSTALL_DIR_PREFIX_SDK_ROOT
+source ../envsetup_pre.sh
 
 # check the linux distribution for the target triplet
 export ROCM_TARGET_TRIPLED=x86_64-rocm-linux-gnu
@@ -33,6 +38,7 @@ echo "ROCM_TARGET_TRIPLED: ${ROCM_TARGET_TRIPLED}"
 # set INSTALL_DIR_PREFIX_SDK_ROOT only if it not already set in the user environment variable or user_config.sh
 INSTALL_DIR_PREFIX_SDK_ROOT="${INSTALL_DIR_PREFIX_SDK_ROOT:-/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}}"
 export INSTALL_DIR_PREFIX_SDK_ROOT
+echo "INSTALL_DIR_PREFIX_SDK_ROOT: $INSTALL_DIR_PREFIX_SDK_ROOT"
 
 export ROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}
 export BUILD_RULE_ROOT_DIR=${SDK_ROOT_DIR}/binfo
