@@ -1,7 +1,7 @@
-From 5e7803271cbbe475da352ab188f09b345006d9c0 Mon Sep 17 00:00:00 2001
+From 3c0552223df66774e8f3613826a6094939763cce Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Mon, 8 Jul 2024 21:44:10 +0300
-Subject: [PATCH 4/4] improved gfx1010 support
+Subject: [PATCH 4/5] improved gfx1010 support
 
 - allows running pytorch gpu benchmark
   on gfx1010/amd rx 5700
@@ -135,5 +135,5 @@ index bf02d4d55..c3fa2bd3a 100644
          {"Rembrandt", "gfx1035"},
      };
 -- 
-2.41.1
+2.45.2
 

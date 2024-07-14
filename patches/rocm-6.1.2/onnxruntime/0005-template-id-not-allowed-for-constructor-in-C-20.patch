@@ -1,4 +1,4 @@
-From 0d639cea739ecaa963835836fc0d3c68a596edfc Mon Sep 17 00:00:00 2001
+From 04f2bf647b3ff4b5b7bffc1565492f6381f7e3ff Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:08:25 -0700
 Subject: [PATCH 5/7] template-id not allowed for constructor in C++20

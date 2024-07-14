@@ -1,4 +1,4 @@
-From 8648b381fa28d797532e00d8fe280c68f1911bb4 Mon Sep 17 00:00:00 2001
+From c463c3fe97893f1e3dcaccc979ded77e7fd9da3a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 14 Jun 2024 14:32:34 -0400
 Subject: [PATCH 7/7] fedora40 build breaks for uninitialized variables

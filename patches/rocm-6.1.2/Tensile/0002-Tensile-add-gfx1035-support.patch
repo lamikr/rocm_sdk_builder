@@ -1,7 +1,7 @@
-From 73281f46189f7012334d3b1a7e52baffade5295f Mon Sep 17 00:00:00 2001
+From cbec649b52abb1e45d72a3755fa01a77cf9784e7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 13:13:02 -0700
-Subject: [PATCH 2/3] Tensile, add gfx1035 support
+Subject: [PATCH 2/4] Tensile, add gfx1035 support
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -84,5 +84,5 @@ index 6ececf1c..a89b7c39 100644
    else:
      printWarning("Assembler not present, asm caps loaded from cache are unverified")
 -- 
-2.41.0
+2.45.2
 

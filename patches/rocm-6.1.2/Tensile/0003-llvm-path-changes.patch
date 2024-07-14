@@ -1,7 +1,7 @@
-From 3ffffba383528d997372861fb5d940d09ebe2996 Mon Sep 17 00:00:00 2001
+From 80776357e8f44019675a224474e314bbb551bc8a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 21:09:56 -0700
-Subject: [PATCH 3/3] llvm path changes
+Subject: [PATCH 3/4] llvm path changes
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -18,17 +18,18 @@ index a89b7c39..9b24aee7 100644
      else:
 -      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang++")
 +      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang++")
-
+ 
    globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
-
+ 
 @@ -2277,7 +2277,7 @@ def assignGlobalParameters( config ):
      if os.name == "nt":
        globalParameters["ClangOffloadBundlerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang-offload-bundler.exe")
      else:
 -      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang-offload-bundler")
 +      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang-offload-bundler")
-
+ 
    if "ROCmAgentEnumeratorPath" in config:
      globalParameters["ROCmAgentEnumeratorPath"] = config["ROCmAgentEnumeratorPath"]
---
-2.41.0
+-- 
+2.45.2
+

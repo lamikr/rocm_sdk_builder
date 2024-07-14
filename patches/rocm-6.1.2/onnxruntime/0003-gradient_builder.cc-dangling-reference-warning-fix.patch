@@ -1,4 +1,4 @@
-From 7c9284f3711c57552c2b38ab6b3194d7ebbec5fc Mon Sep 17 00:00:00 2001
+From 99b06be5ecf3d3388e69e5bcca7c676bdb9e440f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:47:18 -0700
 Subject: [PATCH 3/7] gradient_builder.cc dangling reference warning fix

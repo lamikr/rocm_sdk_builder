@@ -1,0 +1,35 @@
+From 20d5f12ea0cf48dcdd463ae231d7ee4139514c58 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 15 Jul 2024 00:57:55 -0400
+Subject: [PATCH 7/7] handle hipcc verbose output on dumpversion command
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ torch/utils/cpp_extension.py | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/torch/utils/cpp_extension.py b/torch/utils/cpp_extension.py
+index d3d264d6172..30da0f7fc4d 100644
+--- a/torch/utils/cpp_extension.py
++++ b/torch/utils/cpp_extension.py
+@@ -372,8 +372,16 @@ def get_compiler_abi_compatibility_and_version(compiler) -> Tuple[bool, TorchVer
+     try:
+         if IS_LINUX:
+             minimum_required_version = MINIMUM_GCC_VERSION
++            # if compiler is the HIPCC and environment variable HIPCC_VERBOSE > 0, then
++            # hipcc prints extra information on \n character separated lines before the real
++            # output on last line.
++            # split therefore the lines to an string array and then select the last line for versionstr.
+             versionstr = subprocess.check_output([compiler, '-dumpfullversion', '-dumpversion'])
+-            version = versionstr.decode(*SUBPROCESS_DECODE_ARGS).strip().split('.')
++            versionstr = versionstr.decode(*SUBPROCESS_DECODE_ARGS).strip()
++            versionstr_list = versionstr.splitlines()
++            versionstr = versionstr_list[-1]
++            #print("versionstr: " + str(versionstr))
++            version = versionstr.split('.')
+         else:
+             minimum_required_version = MINIMUM_MSVC_VERSION
+             compiler_info = subprocess.check_output(compiler, stderr=subprocess.STDOUT)
+-- 
+2.45.2
+
