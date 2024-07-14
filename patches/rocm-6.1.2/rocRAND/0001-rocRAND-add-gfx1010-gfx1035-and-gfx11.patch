@@ -1,14 +1,14 @@
-From 55bb9a72de1235d8df19dfe496ae784e5fc05e6b Mon Sep 17 00:00:00 2001
+From 39a9b24ea6c945795f101364b2f65d24fe552f8b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 5 Jan 2024 10:43:18 +0200
-Subject: [PATCH] rocRAND build gfx1035 options
+Subject: [PATCH] rocRAND add gfx1010 gfx1035 and gfx11
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- CMakeLists.txt                           | 2 +-
- library/include/rocrand/rocrand_common.h | 3 ++-
- rmake.py                                 | 4 ++--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ CMakeLists.txt                           |  2 +-
+ library/include/rocrand/rocrand_common.h | 11 ++++++++++-
+ rmake.py                                 |  4 ++--
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index 6e1dec5..f05f64d 100644
@@ -24,16 +24,24 @@ index 6e1dec5..f05f64d 100644
  if (AMDGPU_TARGETS)
      if( AMDGPU_TARGETS STREQUAL "all" )
 diff --git a/library/include/rocrand/rocrand_common.h b/library/include/rocrand/rocrand_common.h
-index 1aad64f..0311ac2 100644
+index 1aad64f..cc4883a 100644
 --- a/library/include/rocrand/rocrand_common.h
 +++ b/library/include/rocrand/rocrand_common.h
-@@ -61,7 +61,8 @@ namespace detail {
+@@ -61,7 +61,16 @@ namespace detail {
        defined(__gfx906__) || \
        defined(__gfx908__) || \
        defined(__gfx909__) || \
 -      defined(__gfx1030__) )
++      defined(__gfx1010__) || \
 +      defined(__gfx1030__) || \
-+      defined(__gfx1035__) )
++      defined(__gfx1031__) || \
++      defined(__gfx1032__) || \
++      defined(__gfx1035__) || \
++      defined(__gfx1036__) || \
++      defined(__gfx1100__) || \
++      defined(__gfx1101__) || \
++      defined(__gfx1102__) || \
++      defined(__gfx1103__) )
    #if !defined(ROCRAND_ENABLE_INLINE_ASM)
      #define ROCRAND_ENABLE_INLINE_ASM
    #endif
@@ -53,5 +61,5 @@ index 93e4dc1..5955cc2 100644
                          help='Verbose build (default: False)')
      return parser.parse_args()
 -- 
-2.41.0
+2.45.2
 

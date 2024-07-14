@@ -1,4 +1,4 @@
-From d7a6f0002b35ebcb6b6f861a5bf839aafb20c8b5 Mon Sep 17 00:00:00 2001
+From 95c06ec97e891829b2d525c9bee1da21a52fdfc8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 23 May 2024 11:51:49 -0700
 Subject: [PATCH 3/3] fixes for gtest and lapack linking in ubuntu
@@ -68,5 +68,5 @@ index b670407..8c66252 100644
    CXX_EXTENSIONS OFF
    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 -- 
-2.41.0
+2.45.2
 

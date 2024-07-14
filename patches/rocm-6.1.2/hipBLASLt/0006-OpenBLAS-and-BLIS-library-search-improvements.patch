@@ -1,4 +1,4 @@
-From 24f6c1010ce3941833b40b4faad775de320caa3f Mon Sep 17 00:00:00 2001
+From 992e946dddb9e1714da704bd1277b291496f5f69 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:40:43 -0700
 Subject: [PATCH 6/7] OpenBLAS and BLIS library search improvements
@@ -156,5 +156,5 @@ index bc9109d0..53b854e6 100644
  message("BLIS lib found: ${BLIS_LIB}")
  
 -- 
-2.41.1
+2.45.2
 

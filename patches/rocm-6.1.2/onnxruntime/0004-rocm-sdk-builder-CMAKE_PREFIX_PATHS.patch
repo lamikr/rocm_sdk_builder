@@ -1,4 +1,4 @@
-From 5ed9381ce48cc4f9e83b609b4004dc6d106b8150 Mon Sep 17 00:00:00 2001
+From 6cf6ca95d440d8ce633d287e13f795e8acaf2f82 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 21:16:06 -0700
 Subject: [PATCH 4/7] rocm sdk builder CMAKE_PREFIX_PATHS

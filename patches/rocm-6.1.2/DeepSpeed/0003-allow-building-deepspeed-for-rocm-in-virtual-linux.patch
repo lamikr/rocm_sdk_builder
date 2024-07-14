@@ -1,4 +1,4 @@
-From 59fe85c08a0900acaf07bd2aa506853af3fbd83e Mon Sep 17 00:00:00 2001
+From e423db20d2eb75934214c4487fb4193f3df389a9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 26 Jun 2024 14:44:04 -0700
 Subject: [PATCH 3/4] allow building deepspeed for rocm in virtual linux
@@ -10,24 +10,26 @@ fixes: https://github.com/lamikr/rocm_sdk_builder/issues/75
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_rocm.sh         |  2 ++
+ build_rocm.sh         |  4 +++-
  op_builder/builder.py |  2 +-
  setup.py              | 18 ++++++++++--------
- 3 files changed, 13 insertions(+), 9 deletions(-)
+ 3 files changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/build_rocm.sh b/build_rocm.sh
-index f4a75855..3f3ce526 100755
+index f4a75855..b48a0ad9 100755
 --- a/build_rocm.sh
 +++ b/build_rocm.sh
-@@ -15,6 +15,8 @@ mkdir -p deepspeed/ops/spatial
+@@ -15,7 +15,9 @@ mkdir -p deepspeed/ops/spatial
  #export CFLAGS="-I/usr/include"
  #export LDFLAGS="-L/usr/lib64"
  
 +# needed by real accelerator.py to detect the cuda when build on virtual linux without access to real hardware
 +export DS_ACCELERATOR=cuda
  # install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
- AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
+-AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
++AMDGPU_TARGETS="${amd_target_gpu}" DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
  
+ #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
 diff --git a/op_builder/builder.py b/op_builder/builder.py
 index a27b134c..4980a528 100644
 --- a/op_builder/builder.py

@@ -1,4 +1,4 @@
-From 05c7fa87dabe346ed68a338aaa967a90bdfc9832 Mon Sep 17 00:00:00 2001
+From e5daa8fa4cf061e18c4b6bfb27c318f0d79bf594 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 13:16:31 -0700
 Subject: [PATCH 1/7] tensilelite llvm path changes
@@ -49,5 +49,5 @@ index 230c4469..81a1a015 100644
  . ${venv}/bin/activate
  
 -- 
-2.41.1
+2.45.2
 

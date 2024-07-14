@@ -1,4 +1,4 @@
-From 108755dda9e284382bd0b63e5e351cba9f7abb16 Mon Sep 17 00:00:00 2001
+From 3d237f904f4f74618da216179f9279fd027b05e8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:36:23 -0700
 Subject: [PATCH 1/4] deepspeed rocm preconfig and build_install scripts

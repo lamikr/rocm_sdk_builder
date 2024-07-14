@@ -1,7 +1,7 @@
-From 0741820ac794fa369685f2ed4fdfdbc8970d36a7 Mon Sep 17 00:00:00 2001
+From 855c5e9e4121043c80b5330bab26d0bf8f6faf5e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 13:04:15 -0700
-Subject: [PATCH] disable DPP from gfx1035
+Subject: [PATCH] disable DPP from gfx1035 1036 and 1103
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -9,14 +9,14 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 7 insertions(+)
 
 diff --git a/rocprim/include/rocprim/config.hpp b/rocprim/include/rocprim/config.hpp
-index b78afff2..0b189c31 100644
+index b78afff2..b563a416 100644
 --- a/rocprim/include/rocprim/config.hpp
 +++ b/rocprim/include/rocprim/config.hpp
 @@ -80,6 +80,13 @@
      #define ROCPRIM_DETAIL_HAS_DPP 1
  #endif
  
-+#if ( defined(__gfx1035__))
++#if defined(__gfx1035__) || defined(__gfx1036__) || defined(__gfx1103__)
 +        #ifndef ROCPRIM_DISABLE_DPP
 +                #define ROCPRIM_DISABLE_DPP
 +                #define ROCPRIM_DETAIL_USE_DPP 0
@@ -27,5 +27,5 @@ index b78afff2..0b189c31 100644
      #define ROCPRIM_DETAIL_USE_DPP 1
  #else
 -- 
-2.41.0
+2.45.2
 

@@ -1,4 +1,4 @@
-From dd64c46c98dbe8655fa26827df23a84b51e835f0 Mon Sep 17 00:00:00 2001
+From 929438e2cbadac5ad9fb8cdb415baeb9e6d598ee Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 14:02:57 -0700
 Subject: [PATCH 1/7] onnxruntime training rocm sdk builder scripts
