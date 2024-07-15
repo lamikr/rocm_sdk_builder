@@ -8,5 +8,5 @@ BINFO_APP_NO_POSTINSTALL=1
 
 BINFO_APP_INSTALL_CMD_ARRAY=(
     "cd ${BINFO_APP_BUILD_DIR}"
-    "pip install future leveldb numpy protobuf pydot python-gflags pyyaml scikit-image setuptools six hypothesis typing tqdm typing_extensions jupyterlab notebook pandas seaborn matplotlib opencv-python cufflinks ipywidgets wheel opt_einsum keras_preprocessing librosa boto3 pyqt6"
+    "pip install future leveldb numpy protobuf pydot python-gflags pyyaml scikit-image setuptools six hypothesis typing tqdm typing_extensions jupyterlab notebook pandas seaborn matplotlib opencv-python cufflinks ipywidgets wheel opt_einsum keras_preprocessing librosa boto3 pyqt5"
 )
