@@ -22,7 +22,6 @@ BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
 )
 
 BINFO_APP_POST_INSTALL_CMD_ARRAY=(
-    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/hiprand ]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/hiprand/include ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/hiprand; fi"
-    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocrand ]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocrand/include ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocrand; fi"
+    "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocrand && ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocrand/include ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocrand ${INSTALL_DIR_PREFIX_SDK_ROOT}/rocrand/include; fi"
     "unset LDFLAGS"
 )
