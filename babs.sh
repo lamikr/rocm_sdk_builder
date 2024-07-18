@@ -914,7 +914,7 @@ func_handle_user_command_args() {
                         echo ""
                     else
                         echo -e "Failed to build ROCM_SDK_BUILDER"
-			echo ""
+                        echo ""
                     fi
                     exit 0
                else
