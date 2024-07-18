@@ -1,0 +1,23 @@
+kernel_tuning.pdf contains details but this file has brief information how to do the kernel tuning logic file for rocBLAS.
+
+example tuning of one kernel for gfx1035/rembrandt with rocm_sdk_builder v6.1.2
+===============================================================================
+1) This example assumes that you have laptop with gfx1035/rembrandt sdk.
+2) Build first the rocm sdk build with having only the gfx1035 as a target
+   because having multiple GPU's selected seems to cause problem on Tensile
+   tuning process. (It can build the .so files for other architecture than\
+   what is specified in the yaml file)
+3) Create one tuning file for rocBLAS once rocm sdk build is done   
+   $ source /opt/rocm_sdk_612/bin/env_rocm.sh
+   $ cd /opt/rocm_sdk_612/docs/tutorial/kernel_tuning
+   $ cp rocm_sdk_builder/src_projects/Tensile/Tensile/Configs/navi21/rocblas_hgemm_gb_nn_asm_full.yaml rembrandt_rocblas_hgemm_gb_nn_asm_full.yaml
+   $ vi rembrandt_rocblas_hgemm_gb_nn_asm_full.yaml and change the librarylogic section in the end of the file to
+     LibraryLogic:
+       ScheduleName: "rembrandt"
+       DeviceNames: ["Device 1681"]
+       ArchitectureName: "gfx1035"
+   $ rocm_sdk_builder_611/src_projects/Tensile/Tensile/bin/Tensile rembrandt_rocblas_hgemm_gb_nn_asm_full.yaml . > tuning1.out 2>&1
+   ..wait couple of hours
+4) Copy generated tuning file to rocBLAS
+   cp 3_LibraryLogic/rembrandt_Cijk_Ailk_Bljk_HB_GB.yaml rocm_sdk_builder/src_projects/rocBLAS/library/src/blas3/Tensile/Logic/asm_full/rembrandt/rembrandt_Cijk_Ailk_Bljk_HB_GB.yaml
+      
