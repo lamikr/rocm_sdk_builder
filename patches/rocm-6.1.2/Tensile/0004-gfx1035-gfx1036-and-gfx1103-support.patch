@@ -1,4 +1,4 @@
-From 73507ebe45ae8a9e5f47197ae5e4aa77c560a7a6 Mon Sep 17 00:00:00 2001
+From a54533695913d7c3da826a34e6fe72666bcbc369 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 13 Jul 2024 15:50:11 -0400
 Subject: [PATCH 4/4] gfx1035,gfx1036 and gfx1103 support
@@ -6,7 +6,7 @@ Subject: [PATCH 4/4] gfx1035,gfx1036 and gfx1103 support
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  Tensile/AsmCaps.py                            | 84 +++++++++++++++++++
- Tensile/Common.py                             | 12 +--
+ Tensile/Common.py                             | 14 ++--
  Tensile/SolutionLibrary.py                    |  4 +-
  Tensile/Source/CMakeLists.txt                 |  4 +-
  Tensile/Source/lib/include/Tensile/AMDGPU.hpp | 20 ++++-
@@ -14,7 +14,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  .../Tensile/Serialization/Predicates.hpp      |  2 +
  .../preload_kernel_arguments_always_half.yaml |  5 +-
  pytest.ini                                    |  4 +
- 9 files changed, 128 insertions(+), 13 deletions(-)
+ 9 files changed, 129 insertions(+), 14 deletions(-)
 
 diff --git a/Tensile/AsmCaps.py b/Tensile/AsmCaps.py
 index ef93f53f..4ba97887 100644
@@ -119,7 +119,7 @@ index ef93f53f..4ba97887 100644
                'HasDirectToLdsDest': False,
                'HasDirectToLdsNoDest': False,
 diff --git a/Tensile/Common.py b/Tensile/Common.py
-index 9b24aee7..3920717e 100644
+index 9b24aee7..4a5fb540 100644
 --- a/Tensile/Common.py
 +++ b/Tensile/Common.py
 @@ -227,8 +227,8 @@ globalParameters["MaxFileName"] = 64              # If a file name would be long
@@ -144,13 +144,15 @@ index 9b24aee7..3920717e 100644
  }
  
  def getArchitectureName(gfxName):
-@@ -2291,8 +2291,8 @@ def assignGlobalParameters( config ):
+@@ -2290,9 +2290,9 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
        globalParameters["CurrentISA"] = (9,0,6)
        printWarning("Failed to detect ISA so forcing (gfx906) on windows")
-   if globalParameters["CurrentISA"] == (9,4,1) or globalParameters["CurrentISA"] == (9,4,2) or globalParameters["CurrentISA"] == (11,0,0) or \
+-  if globalParameters["CurrentISA"] == (9,4,1) or globalParameters["CurrentISA"] == (9,4,2) or globalParameters["CurrentISA"] == (11,0,0) or \
 -     globalParameters["CurrentISA"] == (11,0,1) or globalParameters["CurrentISA"] == (11,0,2):
 -    printWarning("HardwareMonitor currently disabled for gfx941/942 or gfx1100/gfx1101/gfx1102")
-+     globalParameters["CurrentISA"] == (11,0,1) or globalParameters["CurrentISA"] == (11,0,2) or globalParameters["CurrentISA"] == (11,0,3):
++  if globalParameters["CurrentISA"] == (9,4,1) or globalParameters["CurrentISA"] == (9,4,2) or globalParameters["CurrentISA"] == (10,3,5) or globalParameters["CurrentISA"] == (10,3,6) or \
++     globalParameters["CurrentISA"] == (11,0,0) or globalParameters["CurrentISA"] == (11,0,1) or globalParameters["CurrentISA"] == (11,0,2) or globalParameters["CurrentISA"] == (11,0,3):
 +    printWarning("HardwareMonitor currently disabled for gfx941/942 or gfx1100/gfx1101/gfx1102/gfx1103")
      globalParameters["HardwareMonitor"] = False
  
@@ -337,5 +339,5 @@ index 2dc9a329..f16a65e3 100644
   skip-gfx1102: architecture
 + skip-gfx1103: architecture
 -- 
-2.45.2
+2.41.1
 
