@@ -807,6 +807,8 @@ func_user_help_print() {
     echo "-fs or --fetch_submod:  Fetch and checkout git submodules for all repositories which have them."
     echo "-b or --build:          Start or continue the building of rocm_sdk."
     echo "                        Build files are located under 'builddir' directory and install is done under '/opt/rocm_sdk_version' directory."
+    echo "-b or --build binfo/myapp.binfo: Start building individual application based on to it's binfo file."    
+    echo "                        If source directory does not exist, it will first download and apply patches if them are available"
     echo "-v or --version:        Show babs build system version information"
     #echo "-cp or --create_patches: generate patches by checking git diff for each repository"
     #echo "-g or --generate_repo_list: generates repo_list_new.txt file containing current repository revision hash for each project"
@@ -863,6 +865,40 @@ func_is_git_configured() {
     fi
 }
 
+func_babs_handle_build() {
+	func_env_variables_print
+	func_install_dir_init
+	local ret_val=$?
+	if [[ $ret_val -eq 0 ]]; then
+        if [[ -n "$1" ]]; then
+            echo "func_build param: $1"
+            source ./build/build_func.sh
+            func_init_and_build_single_binfo $1
+        else
+            echo "func_build no params"
+            source ./build/build_core.sh
+        fi
+        res=$?
+		if [[ $res -eq 0 ]]; then
+			echo -e "\nROCM SDK build and install ready"
+			func_is_user_in_dev_kfd_render_group
+			res=$?
+			if [ ${res} -eq 0 ]; then
+				echo "You can use the following commands to test your gpu is detected:"
+			else
+				echo "After fixing /dev/kff permission problems, you can use the following commands to test that your gpu"
+			fi
+			echo ""
+			echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
+			echo "    rocminfo"
+			echo ""
+		else
+			echo -e "Failed to build ROCM_SDK_BUILDER"
+			echo ""
+		fi        
+    fi
+}
+
 func_handle_user_configure_help_and_version_args() {
     for arg in "${LIST_USER_CMD_ARGS[@]}"; do
         case $arg in
@@ -884,78 +920,73 @@ func_handle_user_configure_help_and_version_args() {
 
 func_handle_user_command_args() {
     local ii=0
+    local res
+    local ARG__USER_CMD
+    local ARG__USER_CMD_PARAM1
 
     while [[ -n "${LIST_USER_CMD_ARGS[ii]}" ]]; do
-        case "${LIST_USER_CMD_ARGS[ii]}" in
-            -ap|--apply_patches)
-                func_is_git_configured
-                func_repolist_apply_patches
-                exit 0
-                ;;
-            -b|--build)
-                func_env_variables_print
-                func_install_dir_init
-                local ret_val=$?
-                if [[ $ret_val -eq 0 ]]; then
-                    ./build/build.sh
-                    local res=$?
-                    if [[ $res -eq 0 ]]; then
-                        echo -e "\nROCM SDK build and install ready"
-                        func_is_user_in_dev_kfd_render_group
-                        res=$?
-                        if [ ${res} -eq 0 ]; then
-                            echo "You can use the following commands to test your gpu is detected:"
-                        else
-                            echo "After fixing /dev/kff permission problems, you can use the following commands to test that your gpu"
-                        fi
-                        echo ""
-                        echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"
-                        echo "    rocminfo"
-                        echo ""
-                    else
-                        echo -e "Failed to build ROCM_SDK_BUILDER"
-                        echo ""
-                    fi
+        unset ARG__USER_CMD_PARAM1
+        ARG__USER_CMD=${LIST_USER_CMD_ARGS[ii]}
+        if [[ ${ARG__USER_CMD:0:1} == '-' ]]; then
+            echo "ARG__USER_CMD: ${ARG__USER_CMD}"
+            if [ -n "${LIST_USER_CMD_ARGS[ii + 1]}" ]; then
+                ARG__USER_CMD_PARAM1=${SDK_ROOT_DIR}/${LIST_USER_CMD_ARGS[ii + 1]}
+                if [[ ! ${ARG__USER_CMD_PARAM1:0:1} == '-' ]]; then
+                    # should be a valid parameter for command
+                    ((ii++))
+                    echo "ARG__USER_CMD_PARAM1: ${ARG__USER_CMD_PARAM1}"
+                else
+                    # another command starting with "-"-character
+                    unset ARG__USER_CMD_PARAM1
+                    echo "ARG__USER_CMD_PARAM1 not provided for ${ARG__USER_CMD}"
+                fi
+            fi    
+            case "${ARG__USER_CMD}" in
+                -ap|--apply_patches)
+                    func_is_git_configured
+                    func_repolist_apply_patches
                     exit 0
-               else
-                    echo "Failed to initialize install directory"
-                    exit 1
-               fi
-               ;;
-            -cp|--create_patches)
-                func_repolist_appliad_patches_save
-                exit 0
-                ;;
-            -co|--checkout)
-                func_repolist_checkout_default_versions
-                exit 0
-                ;;
-            -f|--fetch)
-                func_repolist_fetch_top_repo
-                exit 0
-                ;;
-            -fs|--fetch_submod)
-                func_repolist_fetch_submodules
-                exit 0
-                ;;
-            -g|--generate_repo_list)
-                func_repolist_export_version_tags_to_file
-                exit 0
-                ;;
-            -i|--init)
-                func_is_git_configured
-                func_repolist_upstream_remote_repo_add
-                exit 0
-                ;;
-            -s|--sync)
-                func_repolist_checkout_by_version_tag_file
-                exit 0
-                ;;
-            *)
-                echo "Unknown user command parameter: ${LIST_USER_CMD_ARGS[ii]}"
-                 exit 0
-                 ;;
-        esac
+                    ;;
+                -b|--build)
+		            echo "build"
+		            func_babs_handle_build ${ARG__USER_CMD_PARAM1}
+		            exit 0
+                    ;;
+                -cp|--create_patches)
+                    func_repolist_appliad_patches_save
+                    exit 0
+                    ;;
+                -co|--checkout)
+                    func_repolist_checkout_default_versions
+                    exit 0
+                    ;;
+                -f|--fetch)
+                    func_repolist_fetch_top_repo
+                    exit 0
+                    ;;
+                -fs|--fetch_submod)
+                    func_repolist_fetch_submodules
+                    exit 0
+                    ;;
+                -g|--generate_repo_list)
+                    func_repolist_export_version_tags_to_file
+                    exit 0
+                    ;;
+                -i|--init)
+                    func_is_git_configured
+                    func_repolist_upstream_remote_repo_add
+                    exit 0
+                    ;;
+                -s|--sync)
+                    func_repolist_checkout_by_version_tag_file
+                    exit 0
+                    ;;
+                *)
+                    echo "Unknown user command parameter: ${LIST_USER_CMD_ARGS[ii]}"
+                    exit 0
+                    ;;
+            esac
+        fi
         ((ii++))
     done
 }

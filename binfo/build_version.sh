@@ -16,7 +16,7 @@ export ROCM_SDK_RELEASE_VERSION=1
 
 # Set BABS version information
 # Stored in /opt/rocm_sdk_xyz/.info/rocm_sdk_builder
-export BABS_VERSION=2024_07_14_01
+export BABS_VERSION=2024_07_19_01
 
 # Get git hash used to build the system
 # Stored in /opt/rocm_sdk_xyz/.info/rocm_sdk_builder
