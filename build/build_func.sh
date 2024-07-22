@@ -130,6 +130,53 @@ func_upstream_remote_repo_add() {
     echo "All new source code repositories added and initialized ok"
 }
 
+func_upstream_remote_repo_add_by_binfo() {
+	APP_INFO_FULL_NAME=$1
+    echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
+    
+	#set build and install array commands that can be used for overriding default behavior to empty
+	unset BINFO_APP_CMAKE_CFG
+	unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
+	unset BINFO_APP_CONFIG_CMD_ARRAY
+	unset BINFO_APP_POST_CONFIG_CMD_ARRAY
+	unset BINFO_APP_BUILD_CMD_ARRAY
+	unset BINFO_APP_INSTALL_CMD_ARRAY
+	unset BINFO_APP_POST_INSTALL_CMD_ARRAY
+	unset BINFO_APP_CMAKE_BUILD_TYPE
+
+	unset BINFO_APP_NO_PRECONFIG
+	unset BINFO_APP_NO_CONFIG
+	unset BINFO_APP_NO_POSTCONFIG
+	unset BINFO_APP_NO_BUILD
+	unset BINFO_APP_NO_INSTALL
+	unset BINFO_APP_NO_POSTINSTALL
+	unset BINFO_APP_NO_BUILD_CMD_RESULT_CHECK
+	unset BINFO_APP_NO_INSTALL_CMD_RESULT_CHECK
+	unset BINFO_APP_PRE_CONFIG_CMD_EXECUTE_ALWAYS
+	unset BINFO_APP_CONFIG_CMD_EXECUTE_ALWAYS
+	unset BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS
+	unset BINFO_APP_POST_INSTALL_CMD_EXECUTE_ALWAYS
+    unset BINFO_APP_UPSTREAM_REPO_VERSION_TAG
+
+	#read config and build commands
+	source ${APP_INFO_FULL_NAME}
+	res=$?
+	if [ ! $res -eq 0 ]; then
+		echo "failed to execute build env script: ${APP_INFO_FULL_NAME}"
+		exit 1
+	fi
+
+    # Initialize upstream repository version tag
+    if [[ -n "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG-}" ]]; then
+        BINFO_APP_UPSTREAM_REPO_VERSION_TAG="${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+    else
+        BINFO_APP_UPSTREAM_REPO_VERSION_TAG="${UPSTREAM_REPO_VERSION_TAG_DEFAULT}"
+    fi
+    if [ ! -d ${BINFO_APP_SRC_DIR} ]; then
+        func_upstream_remote_repo_add
+    fi
+}
+
 func_build_env_init() {
     if [ -z ${SDK_ROOT_DIR} ]; then
         echo "initializing build environment variables"
@@ -161,6 +208,12 @@ func_build_env_deinit() {
 func_build_single_binfo() {
 	APP_INFO_FULL_NAME=$1
     echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
+    
+    if [[ -n "$2" ]]; then
+        ii=$2
+    else
+        ii=1
+    fi
     
 	#set build and install array commands that can be used for overriding default behavior to empty
 	unset BINFO_APP_CMAKE_CFG
@@ -228,7 +281,7 @@ func_build_single_binfo() {
 
 	echo ""
 	echo "---------------------------"
-	echo "BINFO_APP_NAME: ${BINFO_APP_NAME}"
+	echo "[${ii}] BINFO_APP_NAME: ${BINFO_APP_NAME}"
 	echo "BINFO FILE: ${APP_INFO_FULL_NAME}"
 	echo "BINFO_APP_SRC_SUBDIR_BASENAME: ${BINFO_APP_SRC_SUBDIR_BASENAME}"
 	echo "BINFO_APP_SRC_TOPDIR_BASENAME: ${BINFO_APP_SRC_TOPDIR_BASENAME}"
@@ -255,11 +308,11 @@ func_build_single_binfo() {
 			pwd
 			res=0
 			if [ ! -v BINFO_APP_NO_PRECONFIG ]; then
-				echo "pre-configuring ${BINFO_APP_NAME}"
+				echo "[${ii}] Pre-configuration: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_PRE_CONFIG_CMD_ARRAY}" ]; then
 					echo "no pre-configuration commands"
 				else
-					echo "pre-configuration"
+					echo "[Pre-configuration"
 					jj=0
 					while [ "x${BINFO_APP_PRE_CONFIG_CMD_ARRAY[jj]}" != "x" ]
 					do
@@ -269,9 +322,9 @@ func_build_single_binfo() {
 						res=$?
 						if [ ${res} -eq 0 ]; then
 							jj=$(( ${jj} + 1 ))
-							echo "pre-configuration cmd ok: ${BINFO_APP_NAME}"
+							echo "Pre-configuration cmd ok: ${BINFO_APP_NAME}"
 						else
-							echo "pre-configuration failed: ${BINFO_APP_NAME}"
+							echo "Pre-configuration failed: ${BINFO_APP_NAME}"
 							echo "  error in pre-configuration cmd: ${BINFO_APP_PRE_CONFIG_CMD_ARRAY[jj]}"
 							exit 1
 						fi
@@ -280,10 +333,10 @@ func_build_single_binfo() {
 				fi
 			fi
 			if [ ${res} -eq 0 ]; then
-				echo "pre-configuration ok: ${BINFO_APP_NAME}"
+				echo "Pre-configuration ok: ${BINFO_APP_NAME}"
 				echo ${res} > ${TASK_RESULT_FILE_PRECONFIG}
 			else
-				echo "pre-configuration failed: ${BINFO_APP_NAME}"
+				echo "Pre-configuration failed: ${BINFO_APP_NAME}"
 				exit 1
 			fi
 		fi
@@ -298,7 +351,7 @@ func_build_single_binfo() {
 			res=0
 			if [ ! -v BINFO_APP_NO_CONFIG ]; then
 			    pwd
-				echo "Configuring: ${BINFO_APP_NAME}"
+				echo "[${ii}] Configuration: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_CONFIG_CMD_ARRAY}" ]; then
 					if [[ -z ${BINFO_APP_CMAKE_CFG} || ${BINFO_APP_CMAKE_CFG} = ’’ ]]; then
 						echo "BINFO_APP_CMAKE_CFG not set"
@@ -359,7 +412,7 @@ func_build_single_binfo() {
 			pwd
 			res=0
 			if [ ! -v BINFO_APP_NO_POSTCONFIG ]; then
-				echo "post-configuration ${BINFO_APP_NAME}"
+				echo "[${ii}] Post-configuration: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_POST_CONFIG_CMD_ARRAY}" ]; then
 					echo "no post-configuration commands"
 				else
@@ -393,13 +446,13 @@ func_build_single_binfo() {
 		fi
 	fi
 	if [ $res -eq 0 ]; then
-		if [ ! -f ${TASK_RESULT_FILE_BUILD} ]; then
+	    if [ ! -z ${BINFO_APP_BUILD_CMD_EXECUTE_ALWAYS} ] || [ ! -f ${TASK_RESULT_FILE_BUILD} ]; then
 			cd ${BINFO_APP_BUILD_DIR}
 			echo ""
 			pwd
 			res=0
 			if [ ! -v BINFO_APP_NO_BUILD ]; then
-				echo "Building ${BINFO_APP_NAME}"
+				echo "[${ii}] Building: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_BUILD_CMD_ARRAY}" ]; then
 					echo "make -j${BINFO_BUILD_CPU_COUNT}"
 					make VERBOSE=1 -j${BINFO_BUILD_CPU_COUNT}
@@ -441,13 +494,13 @@ func_build_single_binfo() {
 		fi
 	fi
 	if [ $res -eq 0 ]; then
-		if [ ! -f ${TASK_RESULT_FILE_INSTALL} ]; then
+	    if [ ! -z ${BINFO_APP_INSTALL_CMD_EXECUTE_ALWAYS} ] || [ ! -f ${TASK_RESULT_FILE_INSTALL} ]; then
 			cd ${BINFO_APP_BUILD_DIR}
 			echo ""
 			pwd
 			res=0
 			if [ ! -v BINFO_APP_NO_INSTALL ]; then
-				echo "installing ${BINFO_APP_NAME}"
+				echo "[${ii}] Installing: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_INSTALL_CMD_ARRAY}" ]; then
 					echo "make install"
 					make install
@@ -494,11 +547,11 @@ func_build_single_binfo() {
 			pwd
 			res=0
 			if [ ! -v BINFO_APP_NO_POSTINSTALL ]; then
-				echo "post installing ${BINFO_APP_NAME}"
+				echo "[${ii}] Post-installing: ${BINFO_APP_NAME}"
 				if [ -z "${BINFO_APP_POST_INSTALL_CMD_ARRAY}" ]; then
-					echo "no post install commands"
+					echo "no post-install commands"
 				else
-					echo "post install"
+					echo "post-install"
 					jj=0
 					while [ "x${BINFO_APP_POST_INSTALL_CMD_ARRAY[jj]}" != "x" ]
 					do
@@ -519,10 +572,10 @@ func_build_single_binfo() {
 				fi
 			fi
 			if [ ${res} -eq 0 ]; then
-				echo "post install ok: ${BINFO_APP_NAME}"
+				echo "post-install ok: ${BINFO_APP_NAME}"
 				echo ${res} > ${TASK_RESULT_FILE_POSTINSTALL}
             else
-                echo "post install failed: ${BINFO_APP_NAME}"
+                echo "post-install failed: ${BINFO_APP_NAME}"
                 exit 1
             fi
         fi
@@ -531,7 +584,10 @@ func_build_single_binfo() {
 
 func_init_and_build_single_binfo() {
     func_build_env_init
-    func_build_single_binfo $1
+    # force to run build and install steps always when doing single app build
+    BINFO_APP_BUILD_CMD_EXECUTE_ALWAYS=1
+    BINFO_APP_INSTALL_CMD_EXECUTE_ALWAYS=1
+    func_build_single_binfo $1 1
     func_build_env_deinit
     return 0
 }
@@ -541,7 +597,7 @@ func_build_core() {
     while [ "x${LIST_BINFO_FILE_FULLNAME[ii]}" != "x" ]
     do
         echo "LIST_BINFO_FILE_FULLNAME[${ii}]: ${LIST_BINFO_FILE_FULLNAME[${ii}]}"
-        func_build_single_binfo ${LIST_BINFO_FILE_FULLNAME[${ii}]}
+        func_build_single_binfo ${LIST_BINFO_FILE_FULLNAME[${ii}]} ${ii}
         ii=$(( ${ii} + 1 ))
     done
 }
