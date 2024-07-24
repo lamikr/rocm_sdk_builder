@@ -20,6 +20,7 @@ elif [[ -e "/etc/centos-release" ]]; then
     ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
     VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 fi
+export ROCM_PYTHON_VERSION=v3.11.9
 if [ ! -z ${ID+foo} ]; then
     case "${ID}" in
         mageia)
@@ -29,11 +30,25 @@ if [ ! -z ${ID+foo} ]; then
             export ROCM_TARGET_TRIPLED=x86_64-mageia-linux
             echo "Supported Linux distribution detected: ${ID}"
             true
-        ;;
-    *)
+            ;;
+	ubuntu|linuxmint)
+            case "$VERSION_ID" in
+                21.*|22.04)
+                    # ubuntu 22.04 would fail on AMDMIGraphX with python 3.11 to error:
+		    # error: member access into incomplete type 'PyFrameObject' (aka '_frame')
+                    export ROCM_PYTHON_VERSION=v3.10.14
+		    true
+                    ;;
+                *)
+		    ;;
+            esac
+	    ;;
+	*)
+	    ;;
     esac
 fi
 echo "ROCM_TARGET_TRIPLED: ${ROCM_TARGET_TRIPLED}"
+echo "ROCM_PYTHON_VERSION: ${ROCM_PYTHON_VERSION}"
 
 # set INSTALL_DIR_PREFIX_SDK_ROOT only if it not already set in the user environment variable or user_config.sh
 INSTALL_DIR_PREFIX_SDK_ROOT="${INSTALL_DIR_PREFIX_SDK_ROOT:-/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}}"

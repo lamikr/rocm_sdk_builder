@@ -13,7 +13,7 @@ func_is_supported_distro()
             true
         ;;
     *)
-	echo "Unsupported Linux distribution detected: ${ID} $VERSION_ID"
+        echo "Unsupported Linux distribution detected: ${ID} $VERSION_ID"
         printf "This script is currently supported on Mageia, Fedora, Ubuntu, Linux Mint, Arch and Manjaro\n"
         exit 2
         ;;
@@ -63,7 +63,7 @@ func_install_packages()
             git-lfs install
             ;;
         *)
-	    echo "Unsupported Linux distribution detected: ${ID} $VERSION_ID"
+            echo "Unsupported Linux distribution detected: ${ID} $VERSION_ID"
             echo "This script is currently supported on Mageia, Fedora, Ubuntu, Linux Mint, Arch and Manjaro"
             exit 2
             ;;
