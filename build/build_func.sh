@@ -56,7 +56,7 @@ func_upstream_remote_repo_add() {
         if [ ${CUR_APP_UPSTREAM_REPO_ADDED} -eq 1 ]; then
             echo ""
             echo "Source Fetch"
-            echo "Repository name: $BINFO_APP_NAME}"
+            echo "Repository name: ${BINFO_APP_NAME}"
             echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
             echo "Source directory: ${BINFO_APP_SRC_DIR}"
             echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
@@ -73,7 +73,7 @@ func_upstream_remote_repo_add() {
             if [ ${ret_val} == "1" ]; then
                 echo ""
                 echo "Submodule Init"
-                echo "Repository name: $BINFO_APP_NAME}"
+                echo "Repository name: ${BINFO_APP_NAME}"
                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                 echo "Source directory: ${BINFO_APP_SRC_DIR}"
                 echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
@@ -95,7 +95,7 @@ func_upstream_remote_repo_add() {
                 if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
                     echo ""
                     echo "Applying Patches"
-                    echo "Repository name: $BINFO_APP_NAME}"
+                    echo "Repository name: ${BINFO_APP_NAME}"
                     echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                     echo "Source directory: ${BINFO_APP_SRC_DIR}"
                     echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
@@ -105,7 +105,7 @@ func_upstream_remote_repo_add() {
                         git am --abort
                         echo ""
                         echo "Error, failed to Apply Patches"
-                        echo "Repository name: $BINFO_APP_NAME}"
+                        echo "Repository name: ${BINFO_APP_NAME}"
                         echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                         echo "Source directory: ${BINFO_APP_SRC_DIR}"
                         echo "Version tag: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
