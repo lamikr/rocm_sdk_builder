@@ -1,7 +1,10 @@
-From 3fcd05e8663accc97ba118dbc02bb48e3ee656a9 Mon Sep 17 00:00:00 2001
+From a5ee7714848dd262f1c92767b7b5e142a94c1761 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Sat, 13 Jul 2024 04:57:37 -0400
-Subject: [PATCH] gfx1103 support
+Date: Thu, 25 Jul 2024 14:36:23 -0700
+Subject: [PATCH 2/2] do not use s_getreg_b32 HW_REG_HW_ID to trace_hwid in
+ gfx1103
+
+- register HW_REG_HW_ID is not supported by gfx1103
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -43,5 +46,5 @@ index 8fad0ac..8728833 100644
    val = 0
  #else
 -- 
-2.45.2
+2.43.0
 
