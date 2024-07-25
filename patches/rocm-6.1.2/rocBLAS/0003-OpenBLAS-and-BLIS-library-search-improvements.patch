@@ -1,7 +1,7 @@
-From b1b3f0d3e9ea5d4dac0e9df3930ec6e3f188f461 Mon Sep 17 00:00:00 2001
+From d83d8f588ae01d7cd3c3d92e6b810ae8377b65b9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:15:13 -0700
-Subject: [PATCH 3/5] OpenBLAS and BLIS library search improvements
+Subject: [PATCH 3/6] OpenBLAS and BLIS library search improvements
 
 - OpenBLAS and BLIS can now be found from
   rocm_sdk build by rocm sdk builder
