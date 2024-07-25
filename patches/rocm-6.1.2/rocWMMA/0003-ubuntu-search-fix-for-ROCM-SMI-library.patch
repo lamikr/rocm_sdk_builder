@@ -1,7 +1,7 @@
-From 3c2dd0a8ecdf830d1423aa7ddbe3935a28638b28 Mon Sep 17 00:00:00 2001
+From 9f54e1fbc8b78e3dfdbc9043028a278da288d472 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 14:24:53 -0700
-Subject: [PATCH 3/3] ubuntu search fix for ROCM SMI library
+Subject: [PATCH 3/4] ubuntu search fix for ROCM SMI library
 
 CMake search behaves differently in ubuntu
 compared for example to fedora or mageia and
@@ -28,5 +28,5 @@ index 8dc0896..9801797 100644
  add_library(rocwmma INTERFACE)
  target_link_libraries(rocwmma INTERFACE hip::device hip::host hiprtc::hiprtc OpenMP::OpenMP_CXX ${ROCM_SMI_LIBRARY})
 -- 
-2.41.0
+2.43.0
 

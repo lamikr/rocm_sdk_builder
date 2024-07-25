@@ -1,0 +1,445 @@
+From b47b65a3d613538573a915880610dc34462460be Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 25 Jul 2024 15:33:18 -0700
+Subject: [PATCH 4/4] rocWMMA gfx1103 support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                                             | 2 +-
+ library/include/rocwmma/internal/config.hpp                | 7 ++++++-
+ library/include/rocwmma/internal/constants.hpp             | 3 +++
+ library/include/rocwmma/internal/dpp_impl.hpp              | 6 +++---
+ library/include/rocwmma/internal/permute.hpp               | 4 ++--
+ library/include/rocwmma/internal/swizzle.hpp               | 2 +-
+ library/include/rocwmma/rocwmma.hpp                        | 2 +-
+ samples/common.hpp                                         | 3 ++-
+ test/dlrm/dlrm_kernel_base_impl.hpp                        | 2 +-
+ test/gemm/gemm_kernel_base_dispatch_impl.hpp               | 5 +++--
+ test/gemm/gemm_test_traits.hpp                             | 3 ++-
+ test/hip_device.cpp                                        | 4 ++++
+ test/hip_device.hpp                                        | 1 +
+ test/unit/contamination_test/detail/load_contamination.hpp | 3 ++-
+ .../unit/contamination_test/detail/store_contamination.hpp | 3 ++-
+ test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp    | 3 ++-
+ test/unit/fill_fragment_test/detail/fill_fragment.hpp      | 3 ++-
+ test/unit/layout_test/detail/col_layout.hpp                | 3 ++-
+ test/unit/layout_test/detail/colnt_layout.hpp              | 3 ++-
+ test/unit/layout_test/detail/row_layout.hpp                | 3 ++-
+ test/unit/layout_test/detail/rownt_layout.hpp              | 3 ++-
+ .../detail/load_store_matrix_sync.hpp                      | 3 ++-
+ .../map_util_test/detail/map_block_to_matrix_override.hpp  | 3 ++-
+ .../map_util_test/detail/map_matrix_to_data_override.hpp   | 3 ++-
+ test/unit/unit_test_traits.hpp                             | 3 ++-
+ 25 files changed, 54 insertions(+), 26 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9801797..343b44b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -83,7 +83,7 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/library/include/rocwmma/internal/roc
+                "${CMAKE_CURRENT_SOURCE_DIR}/library/include/rocwmma/rocwmma-version.hpp" )
+ 
+ rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-  TARGETS "gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102" )
++  TARGETS "gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103" )
+ 
+ # Variable AMDGPU_TARGET must be a cached variable and must be specified before calling find_package(hip)
+ # This is because hip-config.cmake sets --offload-arch via AMDGPU_TARGET cached variable __after__ setting
+diff --git a/library/include/rocwmma/internal/config.hpp b/library/include/rocwmma/internal/config.hpp
+index b97b281..9b97e6e 100644
+--- a/library/include/rocwmma/internal/config.hpp
++++ b/library/include/rocwmma/internal/config.hpp
+@@ -56,6 +56,8 @@ namespace rocwmma
+ #define ROCWMMA_ARCH_GFX1101 __gfx1101__
+ #elif defined(__gfx1102__)
+ #define ROCWMMA_ARCH_GFX1102 __gfx1102__
++#elif defined(__gfx1103__)
++#define ROCWMMA_ARCH_GFX1103 __gfx1103__
+ #else
+ #define ROCWMMA_ARCH_HOST 1
+ #endif
+@@ -84,6 +86,9 @@ namespace rocwmma
+ #if !defined(ROCWMMA_ARCH_GFX1102)
+ #define ROCWMMA_ARCH_GFX1102 0
+ #endif
++#if !defined(ROCWMMA_ARCH_GFX1103)
++#define ROCWMMA_ARCH_GFX1103 0
++#endif
+ #if !defined(ROCWMMA_ARCH_HOST)
+ #define ROCWMMA_ARCH_HOST 0
+ #endif
+@@ -106,7 +111,7 @@ namespace rocwmma
+ #define ROCWMMA_BLOCK_DIM_32_SUPPORTED 1
+ #endif
+ 
+-#if ROCWMMA_ARCH_GFX1100 || ROCWMMA_ARCH_GFX1101 || ROCWMMA_ARCH_GFX1102
++#if ROCWMMA_ARCH_GFX1100 || ROCWMMA_ARCH_GFX1101 || ROCWMMA_ARCH_GFX1102 || ROCWMMA_ARCH_GFX1103
+ #define ROCWMMA_ARCH_GFX11 1
+ #define ROCWMMA_WAVE32_MODE 1
+ #define ROCWMMA_BLOCK_DIM_16_SUPPORTED 1
+diff --git a/library/include/rocwmma/internal/constants.hpp b/library/include/rocwmma/internal/constants.hpp
+index 10edcea..5576f9f 100644
+--- a/library/include/rocwmma/internal/constants.hpp
++++ b/library/include/rocwmma/internal/constants.hpp
+@@ -44,6 +44,7 @@ namespace rocwmma
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1100 = 0x1100;
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1101 = 0x1101;
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1102 = 0x1102;
++        static constexpr uint32_t AMDGCN_ARCH_ID_GFX1103 = 0x1103;
+         static constexpr uint32_t AMDGCN_ARCH_ID_NONE    = 0x0;
+ 
+         ///
+@@ -72,6 +73,8 @@ namespace rocwmma
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1101;
+ #elif ROCWMMA_ARCH_GFX1102
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1102;
++#elif ROCWMMA_ARCH_GFX1103
++        static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1103;
+ #else
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_NONE;
+ #endif
+diff --git a/library/include/rocwmma/internal/dpp_impl.hpp b/library/include/rocwmma/internal/dpp_impl.hpp
+index 3244ad3..fd7fbd7 100644
+--- a/library/include/rocwmma/internal/dpp_impl.hpp
++++ b/library/include/rocwmma/internal/dpp_impl.hpp
+@@ -278,7 +278,7 @@ namespace rocwmma
+ 
+ // GPU exclusion for unsupported targets, but assume host is valid
+ // for testing purposes.
+-#if !__gfx1100__ && !__gfx1101__ && !__gfx1102__ // + Host
++#if !__gfx1100__ && !__gfx1101__ && !__gfx1102__ && !__gfx1103__ // + Host
+ 
+             template <uint32_t ShiftDir>
+             struct WaveShift1
+@@ -358,7 +358,7 @@ namespace rocwmma
+                 }
+             };
+ 
+-#else // __gfx1100__ || __gfx1101__ || __gfx1102__
++#else // __gfx1100__ || __gfx1101__ || __gfx1102__ || __gfx1103__
+ 
+             template <uint32_t ShiftDir>
+             struct WaveShift1
+@@ -434,7 +434,7 @@ namespace rocwmma
+                 // clang-format on
+             };
+ 
+-#endif // !__gfx1100__ && !__gfx1101__ && !__gfx1102__
++#endif // !__gfx1100__ && !__gfx1101__ && !__gfx1102__ && !__gfx1103__
+ 
+             using WaveRotateR1 = WaveRotate1<OP_DIR_R>;
+             using WaveRotateL1 = WaveRotate1<OP_DIR_L>;
+diff --git a/library/include/rocwmma/internal/permute.hpp b/library/include/rocwmma/internal/permute.hpp
+index 765d767..3968329 100644
+--- a/library/include/rocwmma/internal/permute.hpp
++++ b/library/include/rocwmma/internal/permute.hpp
+@@ -69,7 +69,7 @@ namespace rocwmma
+             ROCWMMA_DEVICE static inline auto exec(VecT<DataT, VecSize> const& src)
+             {
+ // TODO: Investigate static unroll validation
+-#if ROCWMMA_ARCH_GFX1102
++#if defined(ROCWMMA_ARCH_GFX1102) || defined(ROCWMMA_ARCH_GFX1103)
+                 VecT<DataT, VecSize> result;
+                 auto                 itW = makeVectorIterator(result).begin();
+                 auto const           itR = makeVectorIterator(src).begin();
+@@ -89,7 +89,7 @@ namespace rocwmma
+ #else
+ 
+                 return forEach(src, detail::WaveSpace<>::localLaneId(), detail::Seq<VecSize>{});
+-#endif // ROCWMMA_ARCH_GFX1102
++#endif // ROCWMMA_ARCH_GFX1102 || ROCWMMA_ARCH_GFX1103
+             }
+         };
+ 
+diff --git a/library/include/rocwmma/internal/swizzle.hpp b/library/include/rocwmma/internal/swizzle.hpp
+index 44f40e8..88f75b5 100644
+--- a/library/include/rocwmma/internal/swizzle.hpp
++++ b/library/include/rocwmma/internal/swizzle.hpp
+@@ -99,7 +99,7 @@ namespace rocwmma
+             template <typename DataT, uint32_t VecSize>
+             ROCWMMA_DEVICE static inline auto exec(VecT<DataT, VecSize> const& src)
+             {
+-#if ROCWMMA_ARCH_GFX1102
++#if defined(ROCWMMA_ARCH_GFX1102) || defined(ROCWMMA_ARCH_GFX1103)
+                 VecT<DataT, VecSize> result;
+                 auto const           itR = makeVectorIterator(src).begin();
+                 auto                 itW = makeVectorIterator(result).begin();
+diff --git a/library/include/rocwmma/rocwmma.hpp b/library/include/rocwmma/rocwmma.hpp
+index f5263b7..2336f63 100644
+--- a/library/include/rocwmma/rocwmma.hpp
++++ b/library/include/rocwmma/rocwmma.hpp
+@@ -48,7 +48,7 @@
+  *
+  * **Supported Hardware**
+  * - CDNA architecture: gfx908, gfx90a, gfx940, gfx941, gfx942 (gfx9)
+- * - RDNA3 architecture: gfx1100, gfx1101, gfx1102 (gfx11)
++ * - RDNA3 architecture: gfx1100, gfx1101, gfx1102, gfx1103 (gfx11)
+  *
+  * **Supported Wave Sizes**
+  * - Wave 32 (gfx11 only)
+diff --git a/samples/common.hpp b/samples/common.hpp
+index 5593619..812830d 100644
+--- a/samples/common.hpp
++++ b/samples/common.hpp
+@@ -91,7 +91,8 @@ bool isGfx11()
+ 
+     return ((deviceName.find("gfx1100") != std::string::npos)
+             || (deviceName.find("gfx1101") != std::string::npos)
+-            || (deviceName.find("gfx1102") != std::string::npos));
++            || (deviceName.find("gfx1102") != std::string::npos)
++            || (deviceName.find("gfx1103") != std::string::npos));
+ }
+ 
+ // HIP Host function to find if the device supports f64
+diff --git a/test/dlrm/dlrm_kernel_base_impl.hpp b/test/dlrm/dlrm_kernel_base_impl.hpp
+index 522b3cc..6e87077 100644
+--- a/test/dlrm/dlrm_kernel_base_impl.hpp
++++ b/test/dlrm/dlrm_kernel_base_impl.hpp
+@@ -108,7 +108,7 @@ namespace rocwmma
+         // Arch
+         auto isGfx908 = deviceArch == DeviceInfo::GFX908;
+         auto isGfx11  = (deviceArch == DeviceInfo::GFX1100) || (deviceArch == DeviceInfo::GFX1101)
+-                       || (deviceArch == DeviceInfo::GFX1102);
++                       || (deviceArch == DeviceInfo::GFX1102) || (deviceArch == DeviceInfo::GFX1103);
+ 
+         // Datatypes
+         auto isF64 = std::is_same<DataT, float64_t>::value;
+diff --git a/test/gemm/gemm_kernel_base_dispatch_impl.hpp b/test/gemm/gemm_kernel_base_dispatch_impl.hpp
+index c75f39c..ee39b2a 100644
+--- a/test/gemm/gemm_kernel_base_dispatch_impl.hpp
++++ b/test/gemm/gemm_kernel_base_dispatch_impl.hpp
+@@ -59,7 +59,7 @@ namespace rocwmma
+         // - TBlockX [32, 64, 128, 256]
+         // - TBlockY [1, 2, 4]
+         // - Wave Size [32, 64]
+-        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102]
++        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102, gfx1103]
+         auto dispatchGuardFunc = [this]() {
+             bool dispatchResult = false;
+ 
+@@ -90,7 +90,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+             DISPATCH_GUARD_BODY
+ 
+diff --git a/test/gemm/gemm_test_traits.hpp b/test/gemm/gemm_test_traits.hpp
+index d147ab5..91a4022 100644
+--- a/test/gemm/gemm_test_traits.hpp
++++ b/test/gemm/gemm_test_traits.hpp
+@@ -103,9 +103,10 @@ namespace rocwmma
+             IsGfx1100 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1100),
+             IsGfx1101 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1101),
+             IsGfx1102 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1102),
++            IsGfx1103 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1103),
+ 
+             IsGfx9  = IsGfx908 || IsGfx90A || IsGfx940 || IsGfx941 || IsGfx942,
+-            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102,
++            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102 || IsGfx1103,
+         };
+ 
+         enum struct InputType : bool
+diff --git a/test/hip_device.cpp b/test/hip_device.cpp
+index 420f2c7..f1dff04 100644
+--- a/test/hip_device.cpp
++++ b/test/hip_device.cpp
+@@ -77,6 +77,10 @@ namespace rocwmma
+         {
+             mGcnArch = hipGcnArch_t::GFX1102;
+         }
++        else if(deviceName.find("gfx1103") != std::string::npos)
++        {
++            mGcnArch = hipGcnArch_t::GFX1103;
++        }
+ 
+         switch(mProps.warpSize)
+         {
+diff --git a/test/hip_device.hpp b/test/hip_device.hpp
+index f078c7e..fbe7e75 100644
+--- a/test/hip_device.hpp
++++ b/test/hip_device.hpp
+@@ -54,6 +54,7 @@ namespace rocwmma
+             GFX1100          = Constants::AMDGCN_ARCH_ID_GFX1100,
+             GFX1101          = Constants::AMDGCN_ARCH_ID_GFX1101,
+             GFX1102          = Constants::AMDGCN_ARCH_ID_GFX1102,
++            GFX1103          = Constants::AMDGCN_ARCH_ID_GFX1103,
+             UNSUPPORTED_ARCH = Constants::AMDGCN_ARCH_ID_NONE,
+         };
+ 
+diff --git a/test/unit/contamination_test/detail/load_contamination.hpp b/test/unit/contamination_test/detail/load_contamination.hpp
+index 90a3fb2..fd15943 100644
+--- a/test/unit/contamination_test/detail/load_contamination.hpp
++++ b/test/unit/contamination_test/detail/load_contamination.hpp
+@@ -131,7 +131,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/contamination_test/detail/store_contamination.hpp b/test/unit/contamination_test/detail/store_contamination.hpp
+index 5106727..a0a1123 100644
+--- a/test/unit/contamination_test/detail/store_contamination.hpp
++++ b/test/unit/contamination_test/detail/store_contamination.hpp
+@@ -131,7 +131,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp b/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
+index cd2abb4..a63fe00 100644
+--- a/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
++++ b/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
+@@ -91,7 +91,8 @@ namespace rocwmma
+             // gfx11 doesn't support dpp wave shift / rotate, bcast15x16 or bcast31x32
+             bool isGfx11 = (deviceArch == Base::DeviceInfo::GFX1100
+                             || deviceArch == Base::DeviceInfo::GFX1101
+-                            || deviceArch == Base::DeviceInfo::GFX1102);
++                            || deviceArch == Base::DeviceInfo::GFX1102
++                            || deviceArch == Base::DeviceInfo::GFX1103);
+ 
+             bool dppWaveShiftCheck
+                 = !(isGfx11 && (CrossLaneOp::opImpl() == CrossLaneOps::Properties::OP_IMPL_DPP)
+diff --git a/test/unit/fill_fragment_test/detail/fill_fragment.hpp b/test/unit/fill_fragment_test/detail/fill_fragment.hpp
+index 2beca9e..89af529 100644
+--- a/test/unit/fill_fragment_test/detail/fill_fragment.hpp
++++ b/test/unit/fill_fragment_test/detail/fill_fragment.hpp
+@@ -113,7 +113,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/layout_test/detail/col_layout.hpp b/test/unit/layout_test/detail/col_layout.hpp
+index 62ae2de..c6a1fb0 100644
+--- a/test/unit/layout_test/detail/col_layout.hpp
++++ b/test/unit/layout_test/detail/col_layout.hpp
+@@ -115,7 +115,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/layout_test/detail/colnt_layout.hpp b/test/unit/layout_test/detail/colnt_layout.hpp
+index 29575d0..99e086d 100644
+--- a/test/unit/layout_test/detail/colnt_layout.hpp
++++ b/test/unit/layout_test/detail/colnt_layout.hpp
+@@ -115,7 +115,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/layout_test/detail/row_layout.hpp b/test/unit/layout_test/detail/row_layout.hpp
+index 528b67b..8b38f3f 100644
+--- a/test/unit/layout_test/detail/row_layout.hpp
++++ b/test/unit/layout_test/detail/row_layout.hpp
+@@ -108,7 +108,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/layout_test/detail/rownt_layout.hpp b/test/unit/layout_test/detail/rownt_layout.hpp
+index 04a5baa..1f75dd8 100644
+--- a/test/unit/layout_test/detail/rownt_layout.hpp
++++ b/test/unit/layout_test/detail/rownt_layout.hpp
+@@ -115,7 +115,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp b/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
+index 63b5cc5..3048fc5 100644
+--- a/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
++++ b/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
+@@ -108,7 +108,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp b/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
+index 050c860..0804118 100644
+--- a/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
++++ b/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
+@@ -191,7 +191,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp b/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
+index 0714c3e..86e0443 100644
+--- a/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
++++ b/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
+@@ -192,7 +192,8 @@ namespace rocwmma
+                               HipDevice::GFX942,     \
+                               HipDevice::GFX1100,    \
+                               HipDevice::GFX1101,    \
+-                              HipDevice::GFX1102)
++                              HipDevice::GFX1102,    \
++                              HipDevice::GFX1103)
+ 
+                 DISPATCH_GUARD_BODY
+ 
+diff --git a/test/unit/unit_test_traits.hpp b/test/unit/unit_test_traits.hpp
+index 5728137..ef913a4 100644
+--- a/test/unit/unit_test_traits.hpp
++++ b/test/unit/unit_test_traits.hpp
+@@ -78,9 +78,10 @@ namespace rocwmma
+             IsGfx1100 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1100),
+             IsGfx1101 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1101),
+             IsGfx1102 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1102),
++            IsGfx1103 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1103),
+ 
+             IsGfx9  = IsGfx908 || IsGfx90A || IsGfx940 || IsGfx941 || IsGfx942,
+-            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102,
++            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102 || IsGfx1103,
+         };
+     };
+ 
+-- 
+2.43.0
+
