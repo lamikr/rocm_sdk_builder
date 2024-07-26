@@ -1,4 +1,4 @@
-From 63f717b9e4019902a4c1e705a3a907c3b455aca2 Mon Sep 17 00:00:00 2001
+From 08169075a9dc44924f66eeba67f839ea5bce19ce Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 19 Dec 2023 15:16:58 -0800
 Subject: [PATCH 1/4] by default no 3RD_DWORD support for not listed gpus
@@ -22,5 +22,5 @@ index 88efb0277..da5bb86c6 100644
  
  // FMA instruction
 -- 
-2.45.2
+2.43.0
 
