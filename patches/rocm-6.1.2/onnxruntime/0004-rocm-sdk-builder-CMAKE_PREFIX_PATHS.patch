@@ -1,4 +1,4 @@
-From 6cf6ca95d440d8ce633d287e13f795e8acaf2f82 Mon Sep 17 00:00:00 2001
+From 145c66b8742f965d052d2e554418320c8c81f5f5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 21:16:06 -0700
 Subject: [PATCH 4/7] rocm sdk builder CMAKE_PREFIX_PATHS
@@ -45,5 +45,5 @@ index b662682915..fbc2408e8d 100644
    file(GLOB_RECURSE onnxruntime_providers_rocm_cc_srcs CONFIGURE_DEPENDS
      "${ONNXRUNTIME_ROOT}/core/providers/rocm/*.h"
 -- 
-2.45.2
+2.43.0
 
