@@ -1,0 +1,36 @@
+From 860fc5b258b6948a70d695d90c422ea8621f25d3 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 27 Jul 2024 01:08:15 -0700
+Subject: [PATCH] offload arch gpu list update
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ config/m4/rocm.m4 | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/config/m4/rocm.m4 b/config/m4/rocm.m4
+index 8a2bdc2..2b2a077 100644
+--- a/config/m4/rocm.m4
++++ b/config/m4/rocm.m4
+@@ -10,10 +10,16 @@ ROCM_ARCH90A="--offload-arch=gfx90a"
+ ROCM_ARCH94="--offload-arch=gfx940 \
+ --offload-arch=gfx941 \
+ --offload-arch=gfx942"
+-ROCM_ARCH10="--offload-arch=gfx1030"
++ROCM_ARCH10="--offload-arch=gfx1010 \
++--offload-arch=gfx1030 \
++--offload-arch=gfx1031 \
++--offload-arch=gfx1032 \
++--offload-arch=gfx1035 \
++--offload-arch=gfx1036"
+ ROCM_ARCH11="--offload-arch=gfx1100 \
+ --offload-arch=gfx1101 \
+---offload-arch=gfx1102"
++--offload-arch=gfx1102 \
++--offload-arch=gfx1103"
+ 
+ # ROCM_PARSE_FLAGS(ARG, VAR_LIBS, VAR_LDFLAGS, VAR_CPPFLAGS)
+ # ----------------------------------------------------------
+-- 
+2.45.2
+
