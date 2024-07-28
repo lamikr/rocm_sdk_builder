@@ -1,4 +1,4 @@
-From 6a4c06443f611799ff0e6cf3e2750873da291a2a Mon Sep 17 00:00:00 2001
+From 78ecdb4d311b1cf5a6ffc7f73fda14ea40c4221a Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 30 Jun 2024 03:38:55 +0200
 Subject: [PATCH 4/4] add support for FFmpeg 7
@@ -73,7 +73,7 @@ index a5c9e74b..ddc06ce3 100644
    endif ()
  endif()
 diff --git a/src/libtorio/ffmpeg/ffmpeg.cpp b/src/libtorio/ffmpeg/ffmpeg.cpp
-index 1f4defc6..f6767064 100644
+index 256cd156..019f2c6b 100644
 --- a/src/libtorio/ffmpeg/ffmpeg.cpp
 +++ b/src/libtorio/ffmpeg/ffmpeg.cpp
 @@ -146,4 +146,143 @@ void AVCodecParametersDeleter::operator()(AVCodecParameters* codecpar) {
@@ -221,7 +221,7 @@ index 1f4defc6..f6767064 100644
 +
  } // namespace torio::io
 diff --git a/src/libtorio/ffmpeg/ffmpeg.h b/src/libtorio/ffmpeg/ffmpeg.h
-index 1d5ed152..43562bac 100644
+index 0a680a7d..b2aa7999 100644
 --- a/src/libtorio/ffmpeg/ffmpeg.h
 +++ b/src/libtorio/ffmpeg/ffmpeg.h
 @@ -38,6 +38,12 @@ using OptionDict = std::map<std::string, std::string>;
@@ -397,7 +397,7 @@ index 2495c2d2..5107bda7 100644
    void add_video_src(
        AVPixelFormat format,
 diff --git a/src/libtorio/ffmpeg/pybind/pybind.cpp b/src/libtorio/ffmpeg/pybind/pybind.cpp
-index 47738a4b..f5bf96c9 100644
+index 3f954a2a..f1d08d94 100644
 --- a/src/libtorio/ffmpeg/pybind/pybind.cpp
 +++ b/src/libtorio/ffmpeg/pybind/pybind.cpp
 @@ -135,7 +135,7 @@ static int read_func(void* opaque, uint8_t* buf, int buf_size) {
@@ -426,7 +426,7 @@ index c762bc3f..d047d10e 100644
    constexpr int bps = []() {
      switch (dtype) {
 diff --git a/src/libtorio/ffmpeg/stream_reader/post_process.cpp b/src/libtorio/ffmpeg/stream_reader/post_process.cpp
-index e92a6bbe..abfb1fa1 100644
+index f2cd31fa..f224b3a6 100644
 --- a/src/libtorio/ffmpeg/stream_reader/post_process.cpp
 +++ b/src/libtorio/ffmpeg/stream_reader/post_process.cpp
 @@ -2,6 +2,7 @@
@@ -453,7 +453,7 @@ index e92a6bbe..abfb1fa1 100644
      f.add_audio_src(fmt, time_base, rate, channel_layout);
      f.add_audio_sink();
 diff --git a/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp b/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
-index 49f87bf5..3d5d89dd 100644
+index d11da429..f738852f 100644
 --- a/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
 +++ b/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
 @@ -140,10 +140,15 @@ void open_codec(
@@ -485,7 +485,7 @@ index 49f87bf5..3d5d89dd 100644
          frame->pts = frame->best_effort_timestamp;
        }
 diff --git a/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp b/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
-index cb85df0c..298df8b6 100644
+index cdea4205..7118fb55 100644
 --- a/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
 +++ b/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
 @@ -35,7 +35,27 @@ AVFormatContext* get_input_format_context(
@@ -496,7 +496,7 @@ index cb85df0c..298df8b6 100644
 +  // In FFmpeg 7 the raw PCM codecs have retired the "channels" option in favor
 +  // of "ch_layout". Handle this transparently for our callers.
 +  AVDictionary* opt =
-+      get_option_dict([&option, pInputFormat]() -> c10::optional<OptionDict> {
++      get_option_dict([&option, pInputFormat]() -> std::optional<OptionDict> {
 +        if (option && pInputFormat && pInputFormat->priv_class &&
 +            pInputFormat->priv_class->class_name &&
 +            strcmp("pcm demuxer", pInputFormat->priv_class->class_name) == 0) {
@@ -529,7 +529,7 @@ index cb85df0c..298df8b6 100644
      }
      case AVMEDIA_TYPE_VIDEO: {
 diff --git a/src/libtorio/ffmpeg/stream_writer/encode_process.cpp b/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
-index eee23117..8882bcb1 100644
+index 9fce0ac9..f5e4e750 100644
 --- a/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
 +++ b/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
 @@ -311,33 +311,32 @@ int get_enc_sr(
@@ -554,11 +554,11 @@ index eee23117..8882bcb1 100644
  
 -uint64_t get_channel_layout(
 -    const uint64_t src_ch_layout,
--    const c10::optional<int> enc_num_channels,
+-    const std::optional<int> enc_num_channels,
 -    const AVCodec* codec) {
 +ChannelLayout get_channel_layout(
 +  const ChannelLayout src_ch_layout,
-+  const c10::optional<int> enc_num_channels,
++  const std::optional<int> enc_num_channels,
 +  const AVCodec* codec) {
    // If the override is presented, and if it is supported by codec, we use it.
    if (enc_num_channels) {
@@ -612,7 +612,7 @@ index eee23117..8882bcb1 100644
      int sample_rate,
 -    uint64_t channel_layout,
 +    ChannelLayout channel_layout,
-     const c10::optional<CodecConfig>& codec_config) {
+     const std::optional<CodecConfig>& codec_config) {
 +
    codec_ctx->sample_fmt = format;
    codec_ctx->sample_rate = sample_rate;
@@ -629,7 +629,7 @@ index eee23117..8882bcb1 100644
      int src_sample_rate,
 -    uint64_t src_ch_layout,
 +    ChannelLayout src_ch_layout,
-     const c10::optional<std::string>& filter_desc,
+     const std::optional<std::string>& filter_desc,
      AVSampleFormat enc_fmt,
      int enc_sample_rate,
 -    uint64_t enc_ch_layout,
@@ -702,7 +702,7 @@ index eee23117..8882bcb1 100644
      return get_channel_layout(src_ch_layout, encoder_num_channels, codec);
    }();
 diff --git a/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp b/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
-index 60a8a559..67f0897a 100644
+index 95eff147..5cf1f615 100644
 --- a/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
 +++ b/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
 @@ -355,7 +355,7 @@ namespace {
@@ -725,7 +725,7 @@ index 60a8a559..67f0897a 100644
  } // namespace detail
 @@ -381,7 +381,7 @@ StreamingMediaEncoderCustomIO::StreamingMediaEncoderCustomIO(
      void* opaque,
-     const c10::optional<std::string>& format,
+     const std::optional<std::string>& format,
      int buffer_size,
 -    int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
 +    int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
@@ -733,7 +733,7 @@ index 60a8a559..67f0897a 100644
      : CustomOutput(opaque, buffer_size, write_packet, seek),
        StreamingMediaEncoder(io_ctx, format) {}
 diff --git a/src/libtorio/ffmpeg/stream_writer/stream_writer.h b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
-index d2ae2f6c..476f9c8a 100644
+index fc8b3ae6..37bb5858 100644
 --- a/src/libtorio/ffmpeg/stream_writer/stream_writer.h
 +++ b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
 @@ -299,7 +299,7 @@ struct CustomOutput {
@@ -747,7 +747,7 @@ index d2ae2f6c..476f9c8a 100644
  } // namespace detail
 @@ -327,7 +327,7 @@ class StreamingMediaEncoderCustomIO : private detail::CustomOutput,
        void* opaque,
-       const c10::optional<std::string>& format,
+       const std::optional<std::string>& format,
        int buffer_size,
 -      int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
 +      int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
@@ -965,5 +965,5 @@ index 2415bbae..c1a76581 100644
              )
      return modules
 -- 
-2.41.1
+2.45.2
 
