@@ -1,0 +1,42 @@
+From 4bea55f45a47cab795b1398c55a2364746c53a51 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 2 Aug 2024 17:11:33 -0700
+Subject: [PATCH 8/8] pytorch 2.4.0 fails to build without USE_FLASH_ATTENTION
+
+- pytorch 2.4.0 rocm version will fail to aotriton
+  linking problem if USE_FLASH_ATTENTION is enabled
+- USE_FLASH_ATTENTION will also enable the
+  aotriton build
+- AOTRITON_INSTALLED_PREFIX allows using the
+  rocm sdk version of aotriton instead of
+  building it separately during the pytorch build
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ build_rocm.sh     | 2 +-
+ preconfig_rocm.sh | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 2cc3a7773b2..5dedc9b9f8c 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -20,4 +20,4 @@ unset LDFLAGS
+ unset CFLAGS
+ unset CPPFLAGS
+ unset PKG_CONFIG_PATH
+-USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+index 92aacb9f0c0..7ad2528e9fe 100755
+--- a/preconfig_rocm.sh
++++ b/preconfig_rocm.sh
+@@ -18,4 +18,4 @@ if [ -e ./preconfig_rocm.sh ]; then
+         python setup.py clean
+     fi
+ fi
+-USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
+-- 
+2.41.1
+
