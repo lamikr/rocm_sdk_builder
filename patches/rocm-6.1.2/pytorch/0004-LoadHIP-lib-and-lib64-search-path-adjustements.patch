@@ -1,6 +1,6 @@
-From f79c569e76365a07a950ed35a366307affb6e542 Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@pilppa.org>
-Date: Fri, 10 May 2024 11:11:47 -0700
+From e98105b95b304f4ed25bcb7ff2ef83ed8cb4b085 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 27 Jul 2024 19:31:03 -0700
 Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
 
 - search both lib and lib64 directories
@@ -9,17 +9,17 @@ Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
 - set MAGMA_HOME by default to rocm_sdk rootdir
   (rocm_sdk_builder builds magma to sdk root dir)
 
-Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  cmake/Dependencies.cmake   |  5 +++--
  cmake/public/LoadHIP.cmake | 44 +++++++++++++++++++-------------------
  2 files changed, 25 insertions(+), 24 deletions(-)
 
 diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
-index 8befd5b8294..e8c7a97b83e 100644
+index 6e7c87631f8..012cad79758 100644
 --- a/cmake/Dependencies.cmake
 +++ b/cmake/Dependencies.cmake
-@@ -1334,8 +1334,9 @@ if(USE_ROCM)
+@@ -1096,8 +1096,9 @@ if(USE_ROCM)
      else()
        message(STATUS "Disabling Kernel Assert for ROCm")
      endif()
@@ -32,7 +32,7 @@ index 8befd5b8294..e8c7a97b83e 100644
        caffe2_update_option(USE_MEM_EFF_ATTENTION OFF)
      endif()
 diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
-index 0f7a61cf141..dfa4bab4df2 100644
+index d1e8f534455..70fe47a9e64 100644
 --- a/cmake/public/LoadHIP.cmake
 +++ b/cmake/public/LoadHIP.cmake
 @@ -17,8 +17,8 @@ endif()
@@ -85,7 +85,7 @@ index 0f7a61cf141..dfa4bab4df2 100644
  
  
    find_package_and_print_version(hip REQUIRED)
-@@ -182,24 +182,24 @@ if(HIP_FOUND)
+@@ -176,24 +176,24 @@ if(HIP_FOUND)
    find_package_and_print_version(hipsolver REQUIRED)
  
  
@@ -113,8 +113,8 @@ index 0f7a61cf141..dfa4bab4df2 100644
 -  find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
 +  find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib ${ROCM_PATH}/lib64)
  
-   if(ROCM_VERSION_DEV VERSION_GREATER_EQUAL "5.7.0")
-     # check whether hipblaslt is using its own datatype
+   # check whether HIP declares new types
+   set(file "${PROJECT_BINARY_DIR}/hip_new_types.cc")
 -- 
 2.45.2
 

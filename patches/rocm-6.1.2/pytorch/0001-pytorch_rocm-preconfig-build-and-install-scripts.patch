@@ -1,4 +1,4 @@
-From 7622aa9b48c8f540a6665802391266657164afde Mon Sep 17 00:00:00 2001
+From 7aeed4851ea6a79e74da54d210bdd6af3868f9f6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
 Subject: [PATCH 1/7] pytorch_rocm preconfig, build and install scripts

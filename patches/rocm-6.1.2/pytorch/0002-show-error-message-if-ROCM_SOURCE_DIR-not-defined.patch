@@ -1,4 +1,4 @@
-From 6ebac7a6c6682b3b116e5d9107e39204cc53915b Mon Sep 17 00:00:00 2001
+From 3adc6f6bfa86503a2e6901957ca9a9b6668d377a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:16:19 -0700
 Subject: [PATCH 2/7] show error message if ROCM_SOURCE_DIR not defined
@@ -16,10 +16,10 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
-index a96075245ae..8befd5b8294 100644
+index c4661e39e18..6e7c87631f8 100644
 --- a/cmake/Dependencies.cmake
 +++ b/cmake/Dependencies.cmake
-@@ -1967,8 +1967,8 @@ if(USE_KINETO)
+@@ -1653,8 +1653,8 @@ if(USE_KINETO)
    endif()
  
    if(NOT LIBKINETO_NOROCTRACER)
