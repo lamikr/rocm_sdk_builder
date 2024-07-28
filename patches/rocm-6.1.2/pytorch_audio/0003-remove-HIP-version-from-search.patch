@@ -1,4 +1,4 @@
-From 14924c47ff5a35865c81d007b501c53febf4e2a5 Mon Sep 17 00:00:00 2001
+From ad30284a1fed84bd5bea50bb57423a45654f3d6c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 5 Jul 2024 12:32:20 -0400
 Subject: [PATCH 3/4] remove HIP version from search
@@ -25,5 +25,5 @@ index 09ae6385..4f695e01 100644
  if(HIP_FOUND)
    set(PYTORCH_FOUND_HIP TRUE)
 -- 
-2.41.1
+2.45.2
 
