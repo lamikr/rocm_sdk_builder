@@ -1,7 +1,7 @@
-From 7622aa9b48c8f540a6665802391266657164afde Mon Sep 17 00:00:00 2001
+From 84000a26fbe740c91889c421a9e612462c132a4a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/7] pytorch_rocm preconfig, build and install scripts
+Subject: [PATCH 1/8] pytorch_rocm preconfig, build and install scripts
 
 - clean previous build, build wheel and install wheel scripts
 "-Wno-error=maybe-uninitialized" is needed during
@@ -66,7 +66,7 @@ index 00000000000..38ed0fc21d0
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
-+    pip install "$latest_wheel_file"
++    pip install --force-reinstall "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
 +            mkdir -p "$backup_dir_python_wheel"
@@ -105,5 +105,5 @@ index 00000000000..92aacb9f0c0
 +fi
 +USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.45.2
+2.41.1
 
