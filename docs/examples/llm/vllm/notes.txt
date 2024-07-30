@@ -1,0 +1,11 @@
+This example requires the vllm that is not build by default
+by the rocm sdk builder. To get it included you need to do these steps.
+
+1) build the vllm with rocm_sdk_builder
+
+# ./babs.sh -b binfo/vllm.binfo
+
+2) Run the example
+
+# cd /opt/rocm_sdk_612/docs/examples/llm/vllm
+# ./test_questions_and_answers.sh

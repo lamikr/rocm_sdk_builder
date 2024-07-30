@@ -55,6 +55,10 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/opencl/hello_world/Makefile ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/opencl/hello_world/*.c* ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
+    "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.txt ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
+    "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
+    "install -Dm750 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
     "printf \"SDK_BUILDER_VERSION: %s.%s.%s-%s\nBABS_VERSION: %s\nSRC_COMMIT: %s\n\" ${ROCM_MAJOR_VERSION} ${ROCM_MINOR_VERSION} ${ROCM_PATCH_VERSION} ${ROCM_SDK_RELEASE_VERSION} ${BABS_VERSION} ${ROCM_SDK_BUILDER_SRC_REV} > ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/rocm_sdk_builder"
 )
 
