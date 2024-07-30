@@ -1,0 +1,39 @@
+From 4e3295adec6c79dc5f6c51972c01456df9126e71 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 30 Jul 2024 12:13:59 -0700
+Subject: [PATCH 4/4] cleanup cmake debug messages
+
+- rocm builds expected to find pytorch 2.5.0 version
+  which is not even released. Change to 2.3.1 version that
+  is used by the rocm sdk builder.
+- printout rocm base release used for build
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5bbae5c5..f4ad14a5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -33,7 +33,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
+ # versions are derived from Dockerfile.rocm
+ #
+ set(TORCH_SUPPORTED_VERSION_CUDA "2.3.1")
+-set(TORCH_SUPPORTED_VERSION_ROCM "2.5.0")
++set(TORCH_SUPPORTED_VERSION_ROCM "2.3.1")
+ 
+ #
+ # Try to find python package with an executable that exactly matches
+@@ -91,6 +91,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
+       "expected for CUDA build, saw ${Torch_VERSION} instead.")
+   endif()
+ elseif(HIP_FOUND)
++  message(INFO "Detected rocm version: ${ROCM_VERSION_DEV_MAJOR}.${ROCM_VERSION_DEV_MINOR}.${ROCM_VERSION_DEV_PATCH}")
+   set(VLLM_GPU_LANG "HIP")
+ 
+   # Importing torch recognizes and sets up some HIP/ROCm configuration but does
+-- 
+2.45.2
+

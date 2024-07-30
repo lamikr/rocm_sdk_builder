@@ -1,0 +1,86 @@
+From 502c5271201b1aac6180e90ad2dc5e66dffd2dc9 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 30 Jul 2024 11:32:09 -0700
+Subject: [PATCH 1/4] vllm rocm build and install scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh     | 20 ++++++++++++++++++++
+ install_rocm.sh   | 23 +++++++++++++++++++++++
+ preconfig_rocm.sh |  7 +++++++
+ 3 files changed, 50 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 00000000..9abf6f0e
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,20 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    amd_target_gpu=""
++    echo "No rocm gpu specified, deepspeed will use rocminfo to select gpus"
++else
++    amd_target_gpu=$2
++    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
++fi
++
++export PYTORCH_ROCM_ARCH="${amd_target_gpu}"
++export MAX_JOBS=8
++export LLVM_SYMBOLIZER_PATH=${install_dir_prefix_rocm}/bin/llvm-symbolizer
++export VLLM_TARGET_DEVICE="rocm"
++python setup.py bdist_wheel
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 00000000..ef220611
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,23 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying DeepSpeed python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find DeepSpeed python whl file to install"
++    exit 1
++fi
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 00000000..70a3f052
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,7 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d ./build ]; then
++        python3 setup.py clean --all
++        #rm -rf ./build
++    fi
++fi
+-- 
+2.45.2
+
