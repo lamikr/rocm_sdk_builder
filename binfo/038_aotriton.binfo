@@ -4,10 +4,17 @@ BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/rocmnavi/aotriton.git
 #use default git tag
-BINFO_APP_UPSTREAM_REPO_VERSION_TAG=3be920c0ec35f3adf2133b2ae7296429e1bc6b97
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=30122b28e2abe837eafad5982233b11f5fa3bdd7
 
 #CFG_TEMP1=-DTARGET_GPUS="gfx1035"
-CFG_TEMP1=-DTARGET_GPUS="MI300X"
+#CFG_TEMP1=-DTARGET_GPUS="MI300X"
+#CFG_TEMP1=-DTARGET_GPUS="MI300X"
+#CFG_TEMP1=-DTARGET_GPUS="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
+# hardcode the list of gpu's for aotriton build temporarily because
+# aotriton kernel build with triton compiler fails to build kernels
+# incluedd in aotriton when target is gfx101* or gfx103* gpu.
+# First build error is related to bf16 and fp16 conversion in dot method
+CFG_TEMP1=-DTARGET_GPUS="gfx942;gfx1100;gfx1101;gfx1102;gfx1103"
 
 BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "rm -rf ~/.triton/cache"
