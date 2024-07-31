@@ -59,6 +59,9 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.txt ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
     "install -Dm750 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/llama_cpp"
+    "install -Dm750 ${SDK_ROOT_DIR}/docs/examples/llm/llama_cpp/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/llama_cpp"
+    
     "printf \"SDK_BUILDER_VERSION: %s.%s.%s-%s\nBABS_VERSION: %s\nSRC_COMMIT: %s\n\" ${ROCM_MAJOR_VERSION} ${ROCM_MINOR_VERSION} ${ROCM_PATCH_VERSION} ${ROCM_SDK_RELEASE_VERSION} ${BABS_VERSION} ${ROCM_SDK_BUILDER_SRC_REV} > ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/rocm_sdk_builder"
 )
 
