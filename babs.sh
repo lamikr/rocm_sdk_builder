@@ -78,47 +78,48 @@ func_is_current_dir_a_git_submodule_dir() {
 #if success function sets ret_val=0, in error cases ret_val=1
 func_install_dir_init() {
     local ret_val
+    local CUR_INSTALL_DIR_PATH="$1"
 
     ret_val=0
-    if [ ! -z ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-        if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-            if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
+    if [ ! -z ${CUR_INSTALL_DIR_PATH} ]; then
+        if [ -d ${CUR_INSTALL_DIR_PATH} ]; then
+            if [ -w ${CUR_INSTALL_DIR_PATH} ]; then
                 ret_val=0
             else
-                echo "Warning, install direcory ${INSTALL_DIR_PREFIX_SDK_ROOT} is not writable for the user ${USER}"
-                sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                if [ -w ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                    echo "Install target directory owner changed with command 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                echo "Warning, install direcory ${CUR_INSTALL_DIR_PATH} is not writable for the user ${USER}"
+                sudo chown $USER:$USER ${CUR_INSTALL_DIR_PATH}
+                if [ -w ${CUR_INSTALL_DIR_PATH} ]; then
+                    echo "Install target directory owner changed with command 'sudo chown $USER:$USER ${CUR_INSTALL_DIR_PATH}'"
                     sleep 10
                     ret_val=0
                 else
-                    echo "Recommend using command 'sudo chown ${USER}:${USER} ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                    echo "Recommend using command 'sudo chown ${USER}:${USER} ${CUR_INSTALL_DIR_PATH}'"
                     ret_val=1
                 fi
             fi
         else
-            echo "Trying to create install target direcory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
-            mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT} 2> /dev/null
-            if [ ! -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                if [ -d ${INSTALL_DIR_PREFIX_SDK_ROOT} ]; then
-                    echo "Install target directory created: 'sudo mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
-                    sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}
-                    echo "Install target directory owner changed: 'sudo chown $USER:$USER ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+            echo "Trying to create install target direcory: ${CUR_INSTALL_DIR_PATH}"
+            mkdir -p ${CUR_INSTALL_DIR_PATH} 2> /dev/null
+            if [ ! -d ${CUR_INSTALL_DIR_PATH} ]; then
+                sudo mkdir -p ${CUR_INSTALL_DIR_PATH}
+                if [ -d ${CUR_INSTALL_DIR_PATH} ]; then
+                    echo "Install target directory created: 'sudo mkdir -p ${CUR_INSTALL_DIR_PATH}'"
+                    sudo chown $USER:$USER ${CUR_INSTALL_DIR_PATH}
+                    echo "Install target directory owner changed: 'sudo chown $USER:$USER ${CUR_INSTALL_DIR_PATH}'"
                     sleep 10
                     ret_val=0
                 else
-                    echo "Failed to create install target directory: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
+                    echo "Failed to create install target directory: ${CUR_INSTALL_DIR_PATH}"
                     ret_val=1
                 fi
             else
-                echo "Install target directory created: 'mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}'"
+                echo "Install target directory created: 'mkdir -p ${CUR_INSTALL_DIR_PATH}'"
                 sleep 10
                 ret_val=0
             fi
         fi
     else
-        echo "Error, environment variable not defined: INSTALL_DIR_PREFIX_SDK_ROOT"
+        echo "Error, install dir parameter not specified: CUR_INSTALL_DIR_PATH"
         ret_val=1
     fi
     return ${ret_val}
@@ -1253,7 +1254,8 @@ func_is_git_configured() {
 
 func_babs_handle_build() {
 	func_env_variables_print
-	func_install_dir_init
+	func_install_dir_init ${INSTALL_DIR_PREFIX_SDK_AI_MODELS}
+	func_install_dir_init ${INSTALL_DIR_PREFIX_SDK_ROOT}
 	local ret_val=$?
 	if [[ $ret_val -eq 0 ]]; then
         if [[ -n "$1" ]]; then
