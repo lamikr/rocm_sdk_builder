@@ -1,0 +1,26 @@
+From 46e47417aa4f18c08738afd4d9a3e838e97ca03f Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Tue, 23 Jul 2024 10:50:40 +0200
+Subject: [PATCH] Allow all RDNA2 archs to use sdot4 intrinsic (#8629)
+
+The check gating the use of `__builtin_amdgc_sdot4` specifically checks for gfx1030. This causes a severe perf regression for anything gfx103? that's not gfx1030 and not using `HSA_OVERRIDE_GFX_VERSION` (if you've built ROCm to support it). We already have a generic RDNA2 define, let's use it.
+---
+ ggml/src/ggml-cuda/common.cuh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ggml/src/ggml-cuda/common.cuh b/ggml/src/ggml-cuda/common.cuh
+index 26d9412a..1c2e00c1 100644
+--- a/ggml/src/ggml-cuda/common.cuh
++++ b/ggml/src/ggml-cuda/common.cuh
+@@ -459,7 +459,7 @@ static __device__ __forceinline__ uint32_t __hgt2_mask(const half2 a, const half
+ 
+ static __device__ __forceinline__ int ggml_cuda_dp4a(const int a, const int b, int c) {
+ #if defined(GGML_USE_HIPBLAS) && defined(__HIP_PLATFORM_AMD__)
+-#if defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__)
++#if defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(RDNA2)
+     c = __builtin_amdgcn_sdot4(a, b, c, false);
+ #elif defined(RDNA3)
+     c = __builtin_amdgcn_sudot4( true, a, true, b, c, false);
+-- 
+2.45.2
+
