@@ -14,7 +14,7 @@ BINFO_APP_UPSTREAM_REPO_VERSION_TAG=30122b28e2abe837eafad5982233b11f5fa3bdd7
 # aotriton kernel build with triton compiler fails to build kernels
 # incluedd in aotriton when target is gfx101* or gfx103* gpu.
 # First build error is related to bf16 and fp16 conversion in dot method
-CFG_TEMP1=-DTARGET_GPUS="gfx942;gfx1100;gfx1101;gfx1102;gfx1103"
+CFG_TEMP1=-DTARGET_GPUS="gfx90a;gfx942;gfx1100;gfx1101;gfx1102;gfx1103"
 
 BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "rm -rf ~/.triton/cache"
