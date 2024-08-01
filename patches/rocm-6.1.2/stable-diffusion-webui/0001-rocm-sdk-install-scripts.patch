@@ -125,7 +125,7 @@ index 00000000..73b503b9
 +
 +mkdir -p ${rocm_prefix_dir}/apps
 +tar -xvf ${app_build_dir}/stable_diffusion.tar -C ${rocm_prefix_dir}/apps
-+cd ${rocm_prefix_dir}/stable_diffusion_webui
++cd ${rocm_prefix_dir}/apps/stable_diffusion_webui
 +pip install git+https://github.com/openai/CLIP.git
 +pip install git+https://github.com/mlfoundations/open_clip
 +pip install -r requirements.txt
