@@ -1,0 +1,16 @@
+1) build and install llama_cpp
+    ./babs.sh -b binfo/llama_cpp.binfo
+2) download model from huggingface
+    Phi-3-mini-4k-instruct-q4.gguf
+3) Copy it to location
+    /opt/rocm_sdk_models/microsoft/Phi-3-mini-4k-instruct-q4.gguf
+4) load rocm sdk build environment
+    source /opt/rocm_sdk_612/bin/env_rocm.sh
+5) launch llama-server
+    llama-server -m /opt/rocm_sdk_models/microsoft/Phi-3-mini-4k-instruct-q4.gguf -c 2048
+   or alternatively by launching script
+   /opt/rocm_sdk_612/bin/llama-server_rocm.sh
+6) open ui to llama-server by opening the web-browser to address
+    http://localhost:8080
+7) type text on browser ui and press send button
+8) check the response message

@@ -1,7 +1,7 @@
-From 46e47417aa4f18c08738afd4d9a3e838e97ca03f Mon Sep 17 00:00:00 2001
+From 70a9e5f1516ba1f7c58a40f438ea3eeb33a2173f Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Tue, 23 Jul 2024 10:50:40 +0200
-Subject: [PATCH] Allow all RDNA2 archs to use sdot4 intrinsic (#8629)
+Subject: [PATCH 1/2] Allow all RDNA2 archs to use sdot4 intrinsic (#8629)
 
 The check gating the use of `__builtin_amdgc_sdot4` specifically checks for gfx1030. This causes a severe perf regression for anything gfx103? that's not gfx1030 and not using `HSA_OVERRIDE_GFX_VERSION` (if you've built ROCm to support it). We already have a generic RDNA2 define, let's use it.
 ---

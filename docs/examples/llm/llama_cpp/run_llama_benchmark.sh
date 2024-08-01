@@ -8,4 +8,4 @@ if [ -z $ROCM_HOME ]; then
     exit 1
 fi
 #CUDA_VISIBLE_DEVICES=2
-llama-cli -ngl 0 -m ~/models/Phi-3-mini-4k-instruct-q4.gguf -n 10 -f <(printf 'banana %0.s' {1..50}) -v 2>&1 | grep timings
+llama-cli -ngl 0 -m /opt/rocm_sdk_models/microsoft/Phi-3-mini-4k-instruct-q4.gguf -n 10 -f <(printf 'banana %0.s' {1..50}) -v 2>&1 | grep timings

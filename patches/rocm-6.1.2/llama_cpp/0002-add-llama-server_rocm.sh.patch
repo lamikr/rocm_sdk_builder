@@ -1,0 +1,42 @@
+From 267d126dec3da7fc6eafb58a686598e1936dad13 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 31 Jul 2024 20:50:48 -0700
+Subject: [PATCH 2/2] add llama-server_rocm.sh
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt       | 1 +
+ llama-server_rocm.sh | 9 +++++++++
+ 2 files changed, 10 insertions(+)
+ create mode 100644 llama-server_rocm.sh
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 67dcf86d..f8b7cecc 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -165,6 +165,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/llama-config.cmake
+ 
+ install(
+     FILES convert_hf_to_gguf.py
++          llama-server_rocm.sh
+     PERMISSIONS
+         OWNER_READ
+         OWNER_WRITE
+diff --git a/llama-server_rocm.sh b/llama-server_rocm.sh
+new file mode 100644
+index 00000000..e3eef781
+--- /dev/null
++++ b/llama-server_rocm.sh
+@@ -0,0 +1,9 @@
++# example showing how to launch the llama-server that can be
++# connected by the browser from address http://localhost:8080
++if [ -z $ROCM_HOME ]; then
++    echo "Error, make sure that you have executed"
++    echo "    source  /opt/rocm_sdk_612/bin/env_rocm.sh"
++    echo "before running this script"
++    exit 1
++fi
++llama-server -m /opt/rocm_sdk_models/microsoft/Phi-3-mini-4k-instruct-q4.gguf -c 2048
+-- 
+2.45.2
+

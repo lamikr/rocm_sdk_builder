@@ -1,0 +1,12 @@
+install 
+
+  ./babs.sh -b binfo/stable-diffusion-webui.binfo
+
+launch the stable-diffusion-webui
+
+  source /opt/rocm_sdk_612/bin/env_rocm.sh
+  cd /opt/rocm_sdk_612/apps/stable-diffusion-webui
+  ./webui.sh
+    
+address for the browser to connect to stable-diffusion-webui
+  http://localhost:7860/
