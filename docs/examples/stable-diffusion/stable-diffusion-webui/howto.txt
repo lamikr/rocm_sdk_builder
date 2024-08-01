@@ -1,6 +1,6 @@
 install 
 
-  ./babs.sh -b binfo/stable-diffusion-webui.binfo
+  ./babs.sh -b binfo/extra/stable-diffusion-webui.binfo
 
 launch the stable-diffusion-webui
 

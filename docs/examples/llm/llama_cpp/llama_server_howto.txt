@@ -1,5 +1,5 @@
 1) build and install llama_cpp
-    ./babs.sh -b binfo/llama_cpp.binfo
+    ./babs.sh -b binfo/extra/llama_cpp.binfo
 2) download model from huggingface
     Phi-3-mini-4k-instruct-q4.gguf
 3) Copy it to location
