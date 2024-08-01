@@ -1,0 +1,66 @@
+From 6ed767362d0bbbb08c50c513b7cc2c232f23395f Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 31 Jul 2024 13:53:15 -0700
+Subject: [PATCH 2/5] pytorch_lightning.utilities.distributed import rename fix
+
+newer pytorch lightning versions (2.3.3 at least) requires that the
+import line of
+    pytorch_lightning.utilities.distributed import rank_zero_only
+is renamed to
+    pytorch_lightning.utilities.rank_zero import rank_zero_only
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ extensions-builtin/LDSR/sd_hijack_ddpm_v1.py  |  2 +-
+ ...on-stability-ai-lightning-import-fix.patch | 26 +++++++++++++++++++
+ 2 files changed, 27 insertions(+), 1 deletion(-)
+ create mode 100644 stable-diffusion-stability-ai-lightning-import-fix.patch
+
+diff --git a/extensions-builtin/LDSR/sd_hijack_ddpm_v1.py b/extensions-builtin/LDSR/sd_hijack_ddpm_v1.py
+index 51ab1821..af37c0f7 100644
+--- a/extensions-builtin/LDSR/sd_hijack_ddpm_v1.py
++++ b/extensions-builtin/LDSR/sd_hijack_ddpm_v1.py
+@@ -14,7 +14,7 @@ from contextlib import contextmanager
+ from functools import partial
+ from tqdm import tqdm
+ from torchvision.utils import make_grid
+-from pytorch_lightning.utilities.distributed import rank_zero_only
++from pytorch_lightning.utilities.rank_zero import rank_zero_only
+ 
+ from ldm.util import log_txt_as_img, exists, default, ismap, isimage, mean_flat, count_params, instantiate_from_config
+ from ldm.modules.ema import LitEma
+diff --git a/stable-diffusion-stability-ai-lightning-import-fix.patch b/stable-diffusion-stability-ai-lightning-import-fix.patch
+new file mode 100644
+index 00000000..681d1364
+--- /dev/null
++++ b/stable-diffusion-stability-ai-lightning-import-fix.patch
+@@ -0,0 +1,26 @@
++From 58707cc6b7a30c7b2457f15e01a643dd86c03345 Mon Sep 17 00:00:00 2001
++From: Mika Laitio <lamikr@gmail.com>
++Date: Wed, 31 Jul 2024 15:34:45 -0700
++Subject: [PATCH] stable-diffusion-stability-ai lightning import fix
++
++Signed-off-by: Mika Laitio <lamikr@gmail.com>
++---
++ ldm/models/diffusion/ddpm.py | 2 +-
++ 1 file changed, 1 insertion(+), 1 deletion(-)
++
++diff --git a/ldm/models/diffusion/ddpm.py b/ldm/models/diffusion/ddpm.py
++index 3350c03..9ba2919 100644
++--- a/ldm/models/diffusion/ddpm.py
+++++ b/ldm/models/diffusion/ddpm.py
++@@ -17,7 +17,7 @@ from functools import partial
++ import itertools
++ from tqdm import tqdm
++ from torchvision.utils import make_grid
++-from pytorch_lightning.utilities.distributed import rank_zero_only
+++from pytorch_lightning.utilities.rank_zero import rank_zero_only
++ from omegaconf import ListConfig
++ 
++ from ldm.util import log_txt_as_img, exists, default, ismap, isimage, mean_flat, count_params, instantiate_from_config
++-- 
++2.45.2
++
+-- 
+2.45.2
+
