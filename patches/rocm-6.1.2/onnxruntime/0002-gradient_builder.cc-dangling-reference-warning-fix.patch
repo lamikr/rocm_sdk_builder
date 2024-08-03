@@ -1,7 +1,7 @@
-From a7d8bfe1eb9203988f02b4f58d7ec8f8103f90b7 Mon Sep 17 00:00:00 2001
+From b21d9a711428ed7bb348fa0e3fbb62f0d47f1c64 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:47:18 -0700
-Subject: [PATCH 3/7] gradient_builder.cc dangling reference warning fix
+Subject: [PATCH 2/7] gradient_builder.cc dangling reference warning fix
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -18,7 +18,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/orttraining/orttraining/core/graph/gradient_builder.cc b/orttraining/orttraining/core/graph/gradient_builder.cc
-index 22dcf4eb92..81c14a2282 100755
+index 76fe0ee91d..f72948a562 100755
 --- a/orttraining/orttraining/core/graph/gradient_builder.cc
 +++ b/orttraining/orttraining/core/graph/gradient_builder.cc
 @@ -657,7 +657,7 @@ IMPLEMENT_GRADIENT_BUILDER(GetTransposeGradient) {
@@ -31,5 +31,5 @@ index 22dcf4eb92..81c14a2282 100755
        size_t n = static_cast<size_t>(input_shape.dim_size()) - 1;
        bw_perm.resize(n + 1);
 -- 
-2.43.0
+2.45.2
 

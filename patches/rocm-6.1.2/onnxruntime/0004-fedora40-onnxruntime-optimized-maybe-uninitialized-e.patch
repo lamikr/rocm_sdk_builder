@@ -1,7 +1,7 @@
-From 63670498762a19bf3337b518a985321b6a6b415e Mon Sep 17 00:00:00 2001
+From 2ea21256e9edf5ca2618fa6073f7cdd8c040f47b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:13:28 -0700
-Subject: [PATCH 6/7] fedora40 onnxruntime optimized maybe-uninitialized error
+Subject: [PATCH 4/7] fedora40 onnxruntime optimized maybe-uninitialized error
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -24,10 +24,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 5 insertions(+)
 
 diff --git a/cmake/onnxruntime_optimizer.cmake b/cmake/onnxruntime_optimizer.cmake
-index f15d5b8dd6..fde6941769 100644
+index 3bae1b8a48..188874770f 100644
 --- a/cmake/onnxruntime_optimizer.cmake
 +++ b/cmake/onnxruntime_optimizer.cmake
-@@ -107,6 +107,11 @@ endif()
+@@ -109,6 +109,11 @@ endif()
  
  onnxruntime_add_static_library(onnxruntime_optimizer ${onnxruntime_optimizer_srcs})
  
@@ -40,5 +40,5 @@ index f15d5b8dd6..fde6941769 100644
  target_include_directories(onnxruntime_optimizer PRIVATE ${ONNXRUNTIME_ROOT})
  if (onnxruntime_ENABLE_TRAINING)
 -- 
-2.43.0
+2.45.2
 

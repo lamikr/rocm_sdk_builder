@@ -1,0 +1,27 @@
+From 3974b2be9588d001657536e18c9d152059b97081 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 7 Aug 2024 04:37:21 -0700
+Subject: [PATCH 7/7] force gfx942 as a target for composable_kernel
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 44d7022e2e..34639b60d8 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -9,7 +9,8 @@ if [ -z "$2" ]; then
+     amd_target_gpu=\"gfx90a\"
+     echo "No rocm gpu specified, using default: ${amd_target_gpu}"
+ else
+-    amd_target_gpu="$2"
++    amd_target_gpu=gfx942;"$2"
++    #amd_target_gpu=gfx942;
+     echo "Using specified amd rocm gpu: ${amd_target_gpu}"
+ fi
+ 
+-- 
+2.45.2
+
