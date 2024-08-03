@@ -1,7 +1,7 @@
-From 6e69c7af984b53a4302a7971aaeb113381e92aaf Mon Sep 17 00:00:00 2001
+From 55d7698942574231d6517b86e536773650b19ff9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 14:02:57 -0700
-Subject: [PATCH 1/7] onnxruntime training rocm sdk builder scripts
+Subject: [PATCH 1/6] onnxruntime training rocm sdk builder scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -93,5 +93,5 @@ index 0000000000..97ab2c15d5
 +    fi
 +fi
 -- 
-2.43.0
+2.41.1
 

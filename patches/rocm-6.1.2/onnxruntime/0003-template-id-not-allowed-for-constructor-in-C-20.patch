@@ -1,7 +1,7 @@
-From 50e005c5c99170f75ac46253ddf03e2fa80a2514 Mon Sep 17 00:00:00 2001
+From 6a9dcb0c3ae49e31c11dc35629b7fa0410b068ce Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 11:08:25 -0700
-Subject: [PATCH 5/7] template-id not allowed for constructor in C++20
+Subject: [PATCH 3/6] template-id not allowed for constructor in C++20
 
 following error in Fedora 40/gcc14
 
@@ -32,5 +32,5 @@ index b9f3050e59..896f2ad9af 100644
                                                            POST_EVAL_TRANSFORM post_transform,
                                                            const std::vector<ThresholdType>& base_values) : TreeAggregator<InputType, ThresholdType, OutputType>(n_trees, n_targets_or_classes,
 -- 
-2.43.0
+2.41.1
 
