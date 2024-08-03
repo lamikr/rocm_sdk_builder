@@ -160,10 +160,16 @@ func_repolist_upstream_remote_repo_add() {
     if [ ! -d src_projects ]; then
         echo ""
         echo "Download of source projects will start shortly"
-        echo "It will take up about 20 gb under 'src_projects' directory."
-        echo "Advice:"
-        echo "If you work with multible copies of this sdk,"
-        echo "you could tar 'src_projects' and extract it manually for other SDK copies."
+        echo "Total download size under 'src_projects' directory will be about 30 GB."
+        echo ""
+        echo "----------------------------------------------------------------"
+        echo "You could speedup future builds by using a backup of src_projects directory:"
+        echo "Backup:"
+        echo "    tar -cvf src_backup.tar 'src_projects'"
+        echo "Restore:"
+        echo "    cd rocm_sdk_builder_dir2"
+        echo "    tar -xvf src_backup.tar"
+        echo "----------------------------------------------------------------"
         echo ""
         sleep 3
     fi
@@ -171,7 +177,8 @@ func_repolist_upstream_remote_repo_add() {
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
         if [ ! -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
-            echo "[${jj}]: Creating source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            echo ""
+            echo "[${jj}]: Creating repository source code directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             sleep 0.1
             mkdir -p ${LIST_APP_SRC_CLONE_DIR[$jj]}
             # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
@@ -209,7 +216,7 @@ func_repolist_upstream_remote_repo_add() {
     # Fetch updates and initialize submodules
     while [ "x${LIST_APP_SRC_CLONE_DIR[jj]}" != "x" ]
     do
-        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
+        # echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git fetch needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
             echo ""
@@ -248,7 +255,7 @@ func_repolist_upstream_remote_repo_add() {
     # apply patches if patch directory exists
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]
     do
-        #echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
+        # echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git am needs to be done
         if [ ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]} -eq 1 ]; then
             TEMP_PATCH_DIR=${LIST_APP_PATCH_DIR[$jj]}
@@ -329,7 +336,8 @@ func_babs_init_and_fetch_single_repo_by_binfo() {
             # Initialize git repositories and add upstream remote
             if [ "x${BINFO_APP_SRC_DIR}" != "x" ]; then
                 if [ ! -d ${BINFO_APP_SRC_DIR} ]; then
-                    echo "Creating source code directory: ${BINFO_APP_SRC_DIR}"
+                    echo ""
+                    echo "Creating repository source code directory: ${BINFO_APP_SRC_DIR}"
                     sleep 0.1
                     mkdir -p ${BINFO_APP_SRC_DIR}
                     # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
@@ -366,7 +374,7 @@ func_babs_init_and_fetch_single_repo_by_binfo() {
                 #echo "CUR_APP_UPSTREAM_REPO_ADDED: ${CUR_APP_UPSTREAM_REPO_ADDED}"
                 # check if directory was just created and git fetch needs to be done
                 echo ""
-                echo "[${jj}]: Source Fetch"
+                echo "[${jj}]: Repository Source Code Fetch"
                 echo "Repository name: ${BINFO_APP_NAME}"
                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                 echo "Source directory: ${BINFO_APP_SRC_DIR}"
@@ -1129,15 +1137,6 @@ func_repolist_checkout_by_version_param() {
         echo "    Error, git version parameter missing"
         exit
     fi
-}
-
-#this method not used at the moment and needs refactoring if needed in future
-func_repolist_download() {
-    func_build_version_init
-    func_envsetup_init
-    func_repolist_binfo_list_print
-    func_repolist_upstream_remote_repo_add
-    func_repolist_is_changes_committed
 }
 
 func_env_variables_print() {

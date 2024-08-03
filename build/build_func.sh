@@ -10,16 +10,24 @@
 func_upstream_remote_repo_add() {
     local CUR_APP_UPSTREAM_REPO_DEFINED=0
     local CUR_APP_UPSTREAM_REPO_ADDED=0
+    local ii
+
+    if [[ -n "$1" ]]; then
+        ii=$1
+    else
+        ii=1
+    fi
 
     if [[ -n "${BINFO_APP_UPSTREAM_REPO_URL-}" ]]; then
         CUR_APP_UPSTREAM_REPO_DEFINED=1
     fi
     # Initialize git repositories and add upstream remote
-    if [ "x${BINFO_APP_SRC_DIR}" != "x" ]; then
-        if [ ! -d ${BINFO_APP_SRC_DIR} ]; then
-            echo "Creating source code directory: ${BINFO_APP_SRC_DIR}"
+    if [ "x${BINFO_APP_SRC_CLONE_DIR}" != "x" ]; then
+        if [ ! -d ${BINFO_APP_SRC_CLONE_DIR} ]; then
+            echo ""
+            echo "[${ii}] Creating repository source code directory: ${BINFO_APP_SRC_CLONE_DIR}"
             sleep 0.1
-            mkdir -p ${BINFO_APP_SRC_DIR}
+            mkdir -p ${BINFO_APP_SRC_CLONE_DIR}
             # LIST_APP_ADDED_UPSTREAM_REPO parameter is used in
             # situations where same src_code directory is used for building multiple projects
             # with just different configure parameters (for example amd-fftw)
@@ -27,13 +35,13 @@ func_upstream_remote_repo_add() {
             CUR_APP_UPSTREAM_REPO_ADDED=1
         fi
         if [ "$CUR_APP_UPSTREAM_REPO_DEFINED" == "1" ]; then
-            if [ ! -d ${BINFO_APP_SRC_DIR}/.git ]; then
-                cd "${BINFO_APP_SRC_DIR}"
+            if [ ! -d ${BINFO_APP_SRC_CLONE_DIR}/.git ]; then
+                cd "${BINFO_APP_SRC_CLONE_DIR}"
                 echo ""
-                echo "Repository Init"
+                echo "[${ii}] Repository Init"
                 echo "Repository name: $BINFO_APP_NAME}"
                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                echo "Source directory: ${BINFO_APP_SRC_DIR}"
+                echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
                 echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                 sleep 0.5
                 git init
@@ -42,11 +50,11 @@ func_upstream_remote_repo_add() {
                 CUR_APP_UPSTREAM_REPO_ADDED=1
             else
                 CUR_APP_UPSTREAM_REPO_ADDED=0
-                echo "${BINFO_APP_SRC_DIR} ok"
+                echo "${BINFO_APP_SRC_CLONE_DIR} ok"
             fi
         else
             CUR_APP_UPSTREAM_REPO_ADDED=0
-            echo "${BINFO_APP_SRC_DIR} submodule ok"
+            echo "${BINFO_APP_SRC_CLONE_DIR} submodule ok"
         fi
         sleep 0.1
 
@@ -55,15 +63,15 @@ func_upstream_remote_repo_add() {
         # check if directory was just created and git fetch needs to be done
         if [ ${CUR_APP_UPSTREAM_REPO_ADDED} -eq 1 ]; then
             echo ""
-            echo "Source Fetch"
+            echo "[${ii}] Repository Source Code Fetch"
             echo "Repository name: ${BINFO_APP_NAME}"
             echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-            echo "Source directory: ${BINFO_APP_SRC_DIR}"
+            echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
             echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-            cd "${BINFO_APP_SRC_DIR}"
+            cd "${BINFO_APP_SRC_CLONE_DIR}"
             git fetch upstream
             if [ $? -ne 0 ]; then
-                echo "git fetch failed: ${BINFO_APP_SRC_DIR}"
+                echo "git fetch failed: ${BINFO_APP_SRC_CLONE_DIR}"
                 #exit 1
             fi
             git fetch upstream --force --tags
@@ -72,14 +80,14 @@ func_upstream_remote_repo_add() {
             ret_val=$?
             if [ ${ret_val} == "1" ]; then
                 echo ""
-                echo "Submodule Init"
+                echo "[${ii}] Submodule Init"
                 echo "Repository name: ${BINFO_APP_NAME}"
                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                echo "Source directory: ${BINFO_APP_SRC_DIR}"
+                echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
                 echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                 git submodule update --init --recursive
                 if [ $? -ne 0 ]; then
-                    echo "git submodule init and update failed: ${BINFO_APP_SRC_DIR}"
+                    echo "git submodule init and update failed: ${BINFO_APP_SRC_CLONE_DIR}"
                     exit 1
                 fi
             fi
@@ -90,14 +98,14 @@ func_upstream_remote_repo_add() {
         # check if directory was just created and git am needs to be done
         if [ ${CUR_APP_UPSTREAM_REPO_ADDED} -eq 1 ]; then
             local TEMP_PATCH_DIR=${CUR_APP_PATCH_DIR}
-            cd "${BINFO_APP_SRC_DIR}"
+            cd "${BINFO_APP_SRC_CLONE_DIR}"
             if [ -d "${TEMP_PATCH_DIR}" ]; then
                 if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
                     echo ""
-                    echo "Applying Patches"
+                    echo "[${ii}] Applying Patches"
                     echo "Repository name: ${BINFO_APP_NAME}"
                     echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                    echo "Source directory: ${BINFO_APP_SRC_DIR}"
+                    echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
                     echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                     echo "Patch dir: ${TEMP_PATCH_DIR}"
                     git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
@@ -107,13 +115,13 @@ func_upstream_remote_repo_add() {
                         echo "Error, failed to Apply Patches"
                         echo "Repository name: ${BINFO_APP_NAME}"
                         echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                        echo "Source directory: ${BINFO_APP_SRC_DIR}"
+                        echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
                         echo "Version tag: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                         echo "Patch dir: ${TEMP_PATCH_DIR}"
                         echo ""
                         exit 1
                     else
-                        echo "Patches Applied: ${BINFO_APP_SRC_DIR}"
+                        echo "Patches Applied: ${BINFO_APP_SRC_CLONE_DIR}"
                     fi
                 else
                    echo "Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
@@ -131,40 +139,57 @@ func_upstream_remote_repo_add() {
 }
 
 func_upstream_remote_repo_add_by_binfo() {
-	APP_INFO_FULL_NAME=$1
-    echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
-    
-	#set build and install array commands that can be used for overriding default behavior to empty
-	unset BINFO_APP_CMAKE_CFG
-	unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
-	unset BINFO_APP_CONFIG_CMD_ARRAY
-	unset BINFO_APP_POST_CONFIG_CMD_ARRAY
-	unset BINFO_APP_BUILD_CMD_ARRAY
-	unset BINFO_APP_INSTALL_CMD_ARRAY
-	unset BINFO_APP_POST_INSTALL_CMD_ARRAY
-	unset BINFO_APP_CMAKE_BUILD_TYPE
+    local ii
 
-	unset BINFO_APP_NO_PRECONFIG
-	unset BINFO_APP_NO_CONFIG
-	unset BINFO_APP_NO_POSTCONFIG
-	unset BINFO_APP_NO_BUILD
-	unset BINFO_APP_NO_INSTALL
-	unset BINFO_APP_NO_POSTINSTALL
-	unset BINFO_APP_NO_BUILD_CMD_RESULT_CHECK
-	unset BINFO_APP_NO_INSTALL_CMD_RESULT_CHECK
-	unset BINFO_APP_PRE_CONFIG_CMD_EXECUTE_ALWAYS
-	unset BINFO_APP_CONFIG_CMD_EXECUTE_ALWAYS
-	unset BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS
-	unset BINFO_APP_POST_INSTALL_CMD_EXECUTE_ALWAYS
+    APP_INFO_FULL_NAME=$1
+    if [[ -n "$2" ]]; then
+        ii=$2
+    else
+        ii=1
+    fi
+
+    echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
+    #set build and install array commands that can be used for overriding default behavior to empty
+    unset BINFO_APP_CMAKE_CFG
+	unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
+    unset BINFO_APP_CONFIG_CMD_ARRAY
+    unset BINFO_APP_POST_CONFIG_CMD_ARRAY
+    unset BINFO_APP_BUILD_CMD_ARRAY
+    unset BINFO_APP_INSTALL_CMD_ARRAY
+    unset BINFO_APP_POST_INSTALL_CMD_ARRAY
+    unset BINFO_APP_CMAKE_BUILD_TYPE
+
+    unset BINFO_APP_NO_PRECONFIG
+    unset BINFO_APP_NO_CONFIG
+    unset BINFO_APP_NO_POSTCONFIG
+    unset BINFO_APP_NO_BUILD
+    unset BINFO_APP_NO_INSTALL
+    unset BINFO_APP_NO_POSTINSTALL
+    unset BINFO_APP_NO_BUILD_CMD_RESULT_CHECK
+    unset BINFO_APP_NO_INSTALL_CMD_RESULT_CHECK
+    unset BINFO_APP_PRE_CONFIG_CMD_EXECUTE_ALWAYS
+    unset BINFO_APP_CONFIG_CMD_EXECUTE_ALWAYS
+    unset BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS
+    unset BINFO_APP_POST_INSTALL_CMD_EXECUTE_ALWAYS
     unset BINFO_APP_UPSTREAM_REPO_VERSION_TAG
 
-	#read config and build commands
-	source ${APP_INFO_FULL_NAME}
-	res=$?
-	if [ ! $res -eq 0 ]; then
-		echo "failed to execute build env script: ${APP_INFO_FULL_NAME}"
-		exit 1
-	fi
+    #read config and build commands
+    source ${APP_INFO_FULL_NAME}
+    res=$?
+    if [ ! $res -eq 0 ]; then
+        echo "failed to execute build env script: ${APP_INFO_FULL_NAME}"
+        exit 1
+    fi
+
+    # Initialize BINFO_APP_SRC_CLONE_DIR variable if it is not specified in the binfo file
+    if [[ ! -n "${BINFO_APP_SRC_CLONE_DIR}" ]]; then
+        if [[ -n "${BINFO_APP_SRC_DIR-}" ]]; then
+            BINFO_APP_SRC_CLONE_DIR="${BINFO_APP_SRC_DIR}"
+        else
+            echo "Error, you must define either the BINFO_APP_SRC_DIR or BINFO_APP_SRC_CLONE_DIR in ${APP_INFO_FULL_NAME}"
+            exit 1
+        fi
+    fi
 
     # Initialize upstream repository version tag
     if [[ -n "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG-}" ]]; then
@@ -172,8 +197,8 @@ func_upstream_remote_repo_add_by_binfo() {
     else
         BINFO_APP_UPSTREAM_REPO_VERSION_TAG="${UPSTREAM_REPO_VERSION_TAG_DEFAULT}"
     fi
-    if [ ! -d ${BINFO_APP_SRC_DIR} ]; then
-        func_upstream_remote_repo_add
+    if [ ! -d ${BINFO_APP_SRC_CLONE_DIR} ]; then
+        func_upstream_remote_repo_add ${ii}
     fi
 }
 
@@ -206,17 +231,20 @@ func_build_env_deinit() {
 }
 
 func_build_single_binfo() {
+	local ii;
 	APP_INFO_FULL_NAME=$1
-    echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
-    
+
     if [[ -n "$2" ]]; then
         ii=$2
     else
         ii=1
     fi
-    
+
+    echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
 	#set build and install array commands that can be used for overriding default behavior to empty
 	unset BINFO_APP_CMAKE_CFG
+	unset BINFO_APP_SRC_DIR
+	unset BINFO_APP_SRC_CLONE_DIR
 	unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
 	unset BINFO_APP_CONFIG_CMD_ARRAY
 	unset BINFO_APP_POST_CONFIG_CMD_ARRAY
@@ -265,6 +293,16 @@ func_build_single_binfo() {
 		exit 1
 	fi
 
+    # Initialize BINFO_APP_SRC_CLONE_DIR variable if it is not specified in the binfo file
+    if [[ ! -n "${BINFO_APP_SRC_CLONE_DIR}" ]]; then
+        if [[ -n "${BINFO_APP_SRC_DIR-}" ]]; then
+            BINFO_APP_SRC_CLONE_DIR="${BINFO_APP_SRC_DIR}"
+        else
+            echo "Error, you must define either the BINFO_APP_SRC_DIR or BINFO_APP_SRC_CLONE_DIR in ${APP_INFO_FULL_NAME}"
+            exit 1
+        fi
+    fi
+
     # Initialize upstream repository version tag
     if [[ -n "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG-}" ]]; then
         BINFO_APP_UPSTREAM_REPO_VERSION_TAG="${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
@@ -286,6 +324,7 @@ func_build_single_binfo() {
 	echo "BINFO_APP_SRC_SUBDIR_BASENAME: ${BINFO_APP_SRC_SUBDIR_BASENAME}"
 	echo "BINFO_APP_SRC_TOPDIR_BASENAME: ${BINFO_APP_SRC_TOPDIR_BASENAME}"
 	echo "BINFO_APP_SRC_DIR: ${BINFO_APP_SRC_DIR}"
+	echo "BINFO_APP_SRC_CLONE_DIR: ${BINFO_APP_SRC_CLONE_DIR}"
 	echo "BINFO_APP_BUILD_DIR: ${BINFO_APP_BUILD_DIR}"
 	echo "HIP_PATH: ${HIP_PATH}"
 	echo "INSTALL_DIR: ${INSTALL_DIR_PREFIX_SDK_ROOT}"
@@ -295,8 +334,8 @@ func_build_single_binfo() {
 	echo "---------------------------"
 	echo ""
 
-	if [ ! -d ${BINFO_APP_SRC_DIR} ]; then
-		func_upstream_remote_repo_add
+	if [ ! -d ${BINFO_APP_SRC_CLONE_DIR} ]; then
+		func_upstream_remote_repo_add ${ii}
 	fi
 
 	res=0
