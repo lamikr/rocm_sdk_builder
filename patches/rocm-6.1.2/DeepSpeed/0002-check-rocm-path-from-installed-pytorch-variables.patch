@@ -1,7 +1,7 @@
-From ff7f27c49a5ac7ac31f7ebc70e02c18f3aa0ac91 Mon Sep 17 00:00:00 2001
+From cf2a742358921ced56b6c1b3f9592fcba7df9cff Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
-Subject: [PATCH 2/4] check rocm path from installed pytorch variables
+Subject: [PATCH 2/5] check rocm path from installed pytorch variables
 
 - Use ROCM_HOME variable from the installed pytorch
   also for checking path where to call rocminfo
