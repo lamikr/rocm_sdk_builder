@@ -1,0 +1,617 @@
+From 82cae7f68e543c87aeae8f2dbf8824321f17627a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Sat, 3 Aug 2024 22:21:05 -0700
+Subject: [PATCH 4/4] gfx103x improved support
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt                                |   4 +
+ client_example/CMakeLists.txt                 |   4 +
+ d.txt                                         | 224 ++++++++++++++++++
+ example/CMakeLists.txt                        |  10 +-
+ ...emm_softmax_gemm_permute_wmma_cshuffle.hpp |   8 +-
+ ...e_grouped_query_attention_forward_wmma.hpp |   3 +-
+ ...ice_multi_query_attention_forward_wmma.hpp |   3 +-
+ .../gpu/grid/gridwise_fpAintB_gemm_wmma.hpp   |   2 +-
+ ...gridwise_gemm_multiple_d_wmma_cshuffle.hpp |   6 +-
+ .../gpu/grid/gridwise_gemm_wmma.hpp           |   2 +-
+ .../gpu/CMakeLists.txt                        |  16 +-
+ profiler/src/CMakeLists.txt                   |   4 +-
+ test/CMakeLists.txt                           |  14 +-
+ test/grouped_convnd_bwd_weight/CMakeLists.txt |   2 +-
+ test/grouped_convnd_fwd/CMakeLists.txt        |   4 +-
+ 15 files changed, 270 insertions(+), 36 deletions(-)
+ create mode 100644 d.txt
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c2b74641b..3c55eb9b1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -154,6 +154,10 @@ if (GPU_TARGETS)
+         add_definitions(-DCK_USE_XDL)
+         set(CK_USE_XDL "ON")
+     endif()
++    if (GPU_TARGETS MATCHES "gfx10")
++        add_definitions(-DCK_USE_WMMA)
++        set(CK_USE_WMMA "ON")
++    endif()
+     if (GPU_TARGETS MATCHES "gfx11")
+         add_definitions(-DCK_USE_WMMA)
+         set(CK_USE_WMMA "ON")
+diff --git a/client_example/CMakeLists.txt b/client_example/CMakeLists.txt
+index 8eb662d28..8528fd383 100644
+--- a/client_example/CMakeLists.txt
++++ b/client_example/CMakeLists.txt
+@@ -53,6 +53,10 @@ if (GPU_TARGETS)
+         add_definitions(-DCK_USE_XDL)
+         set(CK_USE_XDL "ON")
+     endif()
++    if (GPU_TARGETS MATCHES "gfx10")
++        add_definitions(-DCK_USE_WMMA)
++        set(CK_USE_WMMA "ON")
++    endif()
+     if (GPU_TARGETS MATCHES "gfx11")
+         add_definitions(-DCK_USE_WMMA)
+         set(CK_USE_WMMA "ON")
+diff --git a/d.txt b/d.txt
+new file mode 100644
+index 000000000..6cb15d279
+--- /dev/null
++++ b/d.txt
+@@ -0,0 +1,224 @@
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index c2b74641b..3c55eb9b1 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -154,6 +154,10 @@ if (GPU_TARGETS)
++         add_definitions(-DCK_USE_XDL)
++         set(CK_USE_XDL "ON")
++     endif()
+++    if (GPU_TARGETS MATCHES "gfx10")
+++        add_definitions(-DCK_USE_WMMA)
+++        set(CK_USE_WMMA "ON")
+++    endif()
++     if (GPU_TARGETS MATCHES "gfx11")
++         add_definitions(-DCK_USE_WMMA)
++         set(CK_USE_WMMA "ON")
++diff --git a/client_example/CMakeLists.txt b/client_example/CMakeLists.txt
++index 8eb662d28..8528fd383 100644
++--- a/client_example/CMakeLists.txt
+++++ b/client_example/CMakeLists.txt
++@@ -53,6 +53,10 @@ if (GPU_TARGETS)
++         add_definitions(-DCK_USE_XDL)
++         set(CK_USE_XDL "ON")
++     endif()
+++    if (GPU_TARGETS MATCHES "gfx10")
+++        add_definitions(-DCK_USE_WMMA)
+++        set(CK_USE_WMMA "ON")
+++    endif()
++     if (GPU_TARGETS MATCHES "gfx11")
++         add_definitions(-DCK_USE_WMMA)
++         set(CK_USE_WMMA "ON")
++diff --git a/example/CMakeLists.txt b/example/CMakeLists.txt
++index fd9f5cd89..ddf620f6e 100644
++--- a/example/CMakeLists.txt
+++++ b/example/CMakeLists.txt
++@@ -67,7 +67,8 @@ function(add_example_executable EXAMPLE_NAME FILE_NAME)
++     endforeach()
++     #Do not build any WMMA examples if gfx11 targets are not on the list
++     foreach(source IN LISTS FILE_NAME)
++-        if(NOT EX_TARGETS MATCHES "gfx11" AND source MATCHES "_wmma")
+++        if( (NOT ((EX_TARGETS MATCHES "gfx10") OR (EX_TARGETS MATCHES "gfx11"))) AND source MATCHES "_wmma")
+++            message(FATAL_ERROR "nooooooo, remove this message....")
++             message("removing wmma example ${source} ")
++             list(REMOVE_ITEM FILE_NAME "${source}")
++         endif()
++@@ -75,9 +76,9 @@ function(add_example_executable EXAMPLE_NAME FILE_NAME)
++     #only continue if there are some source files left on the list
++     if(FILE_NAME)
++         if(FILE_NAME MATCHES "_xdl")
++-            list(REMOVE_ITEM EX_TARGETS gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
+++            list(REMOVE_ITEM EX_TARGETS gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++         elseif(FILE_NAME MATCHES "_wmma")
++-            list(REMOVE_ITEM EX_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
+++            list(REMOVE_ITEM EX_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942)
++         endif()
++         set_source_files_properties(${FILE_NAME} PROPERTIES LANGUAGE HIP)
++         add_executable(${EXAMPLE_NAME} ${FILE_NAME})
++@@ -162,9 +163,9 @@ function(add_example_executable_no_testing EXAMPLE_NAME FILE_NAME)
++     #only continue if there are some source files left on the list
++     if(FILE_NAME)
++         if(FILE_NAME MATCHES "_xdl")
++-            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
+++            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++         elseif(FILE_NAME MATCHES "_wmma")
++-            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
+++            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
++         endif()
++         set_source_files_properties(${FILE_NAME} PROPERTIES LANGUAGE HIP)
++         add_executable(${EXAMPLE_NAME} ${FILE_NAME})
++diff --git a/library/src/tensor_operation_instance/gpu/CMakeLists.txt b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++index 05b8c035c..e5af583a2 100644
++--- a/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+++++ b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++@@ -59,7 +59,7 @@ function(add_instance_library INSTANCE_NAME)
++     endforeach()
++     # Do not build WMMA instances if gfx11 targets are not on the target list
++     foreach(source IN LISTS ARGN)
++-        if(NOT INST_TARGETS MATCHES "gfx11" AND source MATCHES "_wmma")
+++        if(NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") AND source MATCHES "_wmma")
++             message("removing wmma instance ${source} ")
++             list(REMOVE_ITEM ARGN "${source}")
++         endif()
++@@ -74,9 +74,9 @@ function(add_instance_library INSTANCE_NAME)
++                 set(INST_TARGETS ${GPU_TARGETS})
++             endif()
++             if(source MATCHES "_xdl")
++-                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
+++                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++             elseif(ARGN MATCHES "_wmma")
++-                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
+++                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
++             endif()
++             set(offload_targets)
++             foreach(target IN LISTS INST_TARGETS)
++@@ -177,19 +177,20 @@ FOREACH(subdir_path ${dir_list})
++             message("Found only xdl instances, but gfx9 is not on the targets list. Skipping.")
++             set(add_inst 0)
++         endif()
++-        if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11"))
++-            message("Found only wmma instances, but gfx11 is not on the targets list. Skipping.")
+++        if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") ))
+++            message("Found only wmma instances, but gfx10 or gfx11 is not on the targets list. Skipping.")
++             set(add_inst 0)
++         endif()
++         if(("${cmake_instance}" MATCHES "ONLY XDL_AND_DL_KERNELS") AND (NOT DEFINED DL_KERNELS) AND (NOT INST_TARGETS MATCHES "gfx9"))
++             message("Found only xdl and dl instances, but gfx9 is not on the targets listand DL_KERNELS is not set. Skipping.")
++             set(add_inst 0)
++         endif()
++-        if(("${cmake_instance}" MATCHES "ONLY XDL_AND_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9"))
++-            message("Found only xdl and wmma instances, but gfx11 and gfx9 are not on the targets list. Skipping.")
+++        if(("${cmake_instance}" MATCHES "ONLY XDL_AND_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx10") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9"))
+++            message(FATAL_ERROR "nooooooo, remove this message....")
+++            message("Found only xdl and wmma instances, but gfx9, gfx10 and gfx11 are not on the targets list. Skipping.")
++             set(add_inst 0)
++         endif()
++-        if(("${cmake_instance}" MATCHES "XDL_DL_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9") AND (NOT DEFINED DL_KERNELS))
+++        if(("${cmake_instance}" MATCHES "XDL_DL_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx10") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9") AND (NOT DEFINED DL_KERNELS))
++             message("Found xdl, dl, and wmma instances, but none of those meet the target list. Skipping.")
++             set(add_inst 0)
++         endif()
++diff --git a/profiler/src/CMakeLists.txt b/profiler/src/CMakeLists.txt
++index 1cfcbfff6..21273ad36 100644
++--- a/profiler/src/CMakeLists.txt
+++++ b/profiler/src/CMakeLists.txt
++@@ -58,7 +58,7 @@ if(GPU_TARGETS MATCHES "gfx9")
++ 
++ endif()
++ 
++-if(GPU_TARGETS MATCHES "gfx11" OR GPU_TARGETS MATCHES "gfx9")
+++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
++   if(DTYPES MATCHES "fp16" OR NOT DEFINED DTYPES)
++     list(APPEND PROFILER_SOURCES profile_gemm_bilinear.cpp)
++   endif()
++@@ -133,7 +133,7 @@ if(GPU_TARGETS MATCHES "gfx9")
++   target_link_libraries(${PROFILER_EXECUTABLE} PRIVATE device_grouped_conv2d_bwd_weight_instance)
++ endif()
++ 
++-if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx11")
+++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
++   if(DTYPES MATCHES "fp16" OR NOT DEFINED DTYPES)
++     target_link_libraries(${PROFILER_EXECUTABLE} PRIVATE device_gemm_bilinear_instance)
++   endif()
++diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
++index fd207f84a..b93a6d5b0 100644
++--- a/test/CMakeLists.txt
+++++ b/test/CMakeLists.txt
++@@ -60,7 +60,8 @@ function(add_test_executable TEST_NAME)
++         endif()
++     endforeach()
++     foreach(source IN LISTS ARGN)
++-        if(NOT TEST_TARGETS MATCHES "gfx11" AND source MATCHES "wmma")
+++        if(NOT (TEST_TARGETS MATCHES "gfx10" OR TEST_TARGETS MATCHES "gfx11") AND source MATCHES "wmma")
+++            message(FATAL_ERROR "nooooooo, remove this message....")
++             message("removing wmma test ${source} ")
++             list(REMOVE_ITEM ARGN "${source}")
++         endif()
++@@ -68,9 +69,9 @@ function(add_test_executable TEST_NAME)
++     #only continue if there are some source files left on the list
++     if(ARGN)
++         if(ARGN MATCHES "_xdl")
++-             list(REMOVE_ITEM TEST_TARGETS gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
+++             list(REMOVE_ITEM TEST_TARGETS gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++         elseif(ARGN MATCHES "_wmma")
++-             list(REMOVE_ITEM TEST_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
+++             list(REMOVE_ITEM TEST_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942)
++         endif()
++         set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
++         add_executable(${TEST_NAME} ${ARGN})
++@@ -139,7 +140,8 @@ function(add_gtest_executable TEST_NAME)
++         endif()
++     endforeach()
++     foreach(source IN LISTS ARGN)
++-        if(NOT TEST_TARGETS MATCHES "gfx11" AND source MATCHES "wmma")
+++        if( (NOT ((TEST_TARGETS MATCHES "gfx10") OR (TEST_TARGETS MATCHES "gfx11"))) AND source MATCHES "_wmma")
+++            message(FATAL_ERROR "nooooooo, remove this message....")
++             message("removing wmma test ${source} ")
++             list(REMOVE_ITEM ARGN "${source}")
++         endif()
++@@ -147,9 +149,9 @@ function(add_gtest_executable TEST_NAME)
++     #only continue if there are some source files left on the list
++     if(ARGN)
++         if(ARGN MATCHES "_xdl")
++-             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
+++             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
++         elseif(ARGN MATCHES "_wmma")
++-             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
+++             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
++         endif()
++         set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
++         add_executable(${TEST_NAME} ${ARGN})
++@@ -210,7 +212,7 @@ add_subdirectory(conv_tensor_rearrange)
++ add_subdirectory(transpose)
++ add_subdirectory(permute_scale)
++ add_subdirectory(wrapper)
++-if(GPU_TARGETS MATCHES "gfx11")
+++if((GPU_TARGETS MATCHES "gfx10") OR (GPU_TARGETS MATCHES "gfx11"))
++     add_subdirectory(wmma_op)
++ endif()
++ add_subdirectory(position_embedding)
++diff --git a/test/grouped_convnd_bwd_weight/CMakeLists.txt b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++index 54b514e7a..0fe50312b 100644
++--- a/test/grouped_convnd_bwd_weight/CMakeLists.txt
+++++ b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++@@ -1,7 +1,7 @@
++ if(GPU_TARGETS MATCHES "gfx9" OR DL_KERNELS)
++       add_gtest_executable(test_grouped_convnd_bwd_weight test_grouped_convnd_bwd_weight.cpp)
++       target_link_libraries(test_grouped_convnd_bwd_weight PRIVATE utility device_grouped_conv1d_bwd_weight_instance device_grouped_conv2d_bwd_weight_instance device_grouped_conv3d_bwd_weight_instance)
++-   elseif(GPU_TARGETS MATCHES "gfx11")
+++   elseif((GPU_TARGETS MATCHES "gfx10") OR (GPU_TARGETS MATCHES "gfx11"))
++       add_gtest_executable(test_grouped_convnd_bwd_weight test_grouped_convnd_bwd_weight.cpp)
++       target_link_libraries(test_grouped_convnd_bwd_weight PRIVATE utility device_grouped_conv3d_bwd_weight_instance)
++ endif()
++diff --git a/test/grouped_convnd_fwd/CMakeLists.txt b/test/grouped_convnd_fwd/CMakeLists.txt
++index 1eba91382..cb8a8ace4 100644
++--- a/test/grouped_convnd_fwd/CMakeLists.txt
+++++ b/test/grouped_convnd_fwd/CMakeLists.txt
++@@ -1,6 +1,6 @@
++-if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx11")
+++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
++     add_gtest_executable(test_grouped_convnd_fwd test_grouped_convnd_fwd.cpp)
++-    if(GPU_TARGETS MATCHES "gfx11")
+++    if(GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
++         target_link_libraries(test_grouped_convnd_fwd PRIVATE utility device_grouped_conv2d_fwd_instance device_grouped_conv3d_fwd_instance)
++     else()
++         target_link_libraries(test_grouped_convnd_fwd PRIVATE utility device_grouped_conv1d_fwd_instance device_grouped_conv2d_fwd_instance device_grouped_conv3d_fwd_instance)
+diff --git a/example/CMakeLists.txt b/example/CMakeLists.txt
+index fd9f5cd89..fd5ab2f9a 100644
+--- a/example/CMakeLists.txt
++++ b/example/CMakeLists.txt
+@@ -67,7 +67,7 @@ function(add_example_executable EXAMPLE_NAME FILE_NAME)
+     endforeach()
+     #Do not build any WMMA examples if gfx11 targets are not on the list
+     foreach(source IN LISTS FILE_NAME)
+-        if(NOT EX_TARGETS MATCHES "gfx11" AND source MATCHES "_wmma")
++        if( (NOT ((EX_TARGETS MATCHES "gfx10") OR (EX_TARGETS MATCHES "gfx11"))) AND source MATCHES "_wmma")
+             message("removing wmma example ${source} ")
+             list(REMOVE_ITEM FILE_NAME "${source}")
+         endif()
+@@ -75,9 +75,9 @@ function(add_example_executable EXAMPLE_NAME FILE_NAME)
+     #only continue if there are some source files left on the list
+     if(FILE_NAME)
+         if(FILE_NAME MATCHES "_xdl")
+-            list(REMOVE_ITEM EX_TARGETS gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
++            list(REMOVE_ITEM EX_TARGETS gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+         elseif(FILE_NAME MATCHES "_wmma")
+-            list(REMOVE_ITEM EX_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
++            list(REMOVE_ITEM EX_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942)
+         endif()
+         set_source_files_properties(${FILE_NAME} PROPERTIES LANGUAGE HIP)
+         add_executable(${EXAMPLE_NAME} ${FILE_NAME})
+@@ -162,9 +162,9 @@ function(add_example_executable_no_testing EXAMPLE_NAME FILE_NAME)
+     #only continue if there are some source files left on the list
+     if(FILE_NAME)
+         if(FILE_NAME MATCHES "_xdl")
+-            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
++            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+         elseif(FILE_NAME MATCHES "_wmma")
+-            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
++            list(REMOVE_ITEM EX_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
+         endif()
+         set_source_files_properties(${FILE_NAME} PROPERTIES LANGUAGE HIP)
+         add_executable(${EXAMPLE_NAME} ${FILE_NAME})
+diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_softmax_gemm_permute_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_softmax_gemm_permute_wmma_cshuffle.hpp
+index f6b701ab1..dfa86edde 100644
+--- a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_softmax_gemm_permute_wmma_cshuffle.hpp
++++ b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_softmax_gemm_permute_wmma_cshuffle.hpp
+@@ -56,8 +56,7 @@ __global__ void
+                                                        bool input_permute,
+                                                        bool output_permute)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
+-
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     // clang-format off
+ // ***************************************************
+ // Make Tensor Descriptors
+@@ -159,6 +158,7 @@ __global__ void
+     ignore = O;
+     ignore = G0;
+     ignore = G1;
++    ignore = alpha;
+     ignore = input_permute;
+     ignore = output_permute;
+ #endif // end of if (defined(__gfx11__))
+@@ -187,7 +187,7 @@ __global__ void
+                                            index_t head_size,
+                                            float alpha)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+ 
+     // clang-format off
+ // ***************************************************
+@@ -321,7 +321,7 @@ __global__ void
+                                             index_t head_size,
+                                             float alpha)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+ 
+     // clang-format off
+ // ***************************************************
+diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_query_attention_forward_wmma.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_query_attention_forward_wmma.hpp
+index 71f7ac04c..180fe8774 100644
+--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_query_attention_forward_wmma.hpp
++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_query_attention_forward_wmma.hpp
+@@ -61,7 +61,7 @@ __global__ void
+                                             bool input_permute,
+                                             bool output_permute)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+ 
+     // clang-format off
+ // ***************************************************
+@@ -166,6 +166,7 @@ __global__ void
+     ignore = O;
+     ignore = G0;
+     ignore = G1;
++    ignore = alpha;
+     ignore = input_permute;
+     ignore = output_permute;
+ #endif // end of if (defined(__gfx11__))
+diff --git a/include/ck/tensor_operation/gpu/device/impl/device_multi_query_attention_forward_wmma.hpp b/include/ck/tensor_operation/gpu/device/impl/device_multi_query_attention_forward_wmma.hpp
+index 4e14ed3a5..10773e92f 100644
+--- a/include/ck/tensor_operation/gpu/device/impl/device_multi_query_attention_forward_wmma.hpp
++++ b/include/ck/tensor_operation/gpu/device/impl/device_multi_query_attention_forward_wmma.hpp
+@@ -60,7 +60,7 @@ __global__ void
+                                           bool input_permute,
+                                           bool output_permute)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+ 
+     // clang-format off
+ // ***************************************************
+@@ -165,6 +165,7 @@ __global__ void
+     ignore = O;
+     ignore = G0;
+     ignore = G1;
++    ignore = alpha;
+     ignore = input_permute;
+     ignore = output_permute;
+ #endif // end of if (defined(__gfx11__))
+diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_fpAintB_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_fpAintB_gemm_wmma.hpp
+index 499eb7eb0..04d7e5d0e 100644
+--- a/include/ck/tensor_operation/gpu/grid/gridwise_fpAintB_gemm_wmma.hpp
++++ b/include/ck/tensor_operation/gpu/grid/gridwise_fpAintB_gemm_wmma.hpp
+@@ -50,7 +50,7 @@ __global__ void
+                                  const CElementwiseOperation c_element_op,
+                                  const Block2CTileMap block_2_ctile_map)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     __shared__ char p_shared[GridwiseGemm::SharedMemTrait::lds_size];
+ 
+     GridwiseGemm::template Run<HasMainKBlockLoop>(p_a_grid,
+diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+index 49a6dc3b0..254ec9acd 100644
+--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+@@ -54,7 +54,7 @@ __global__ void
+             const Block2CTileMap block_2_ctile_map,
+             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     // offset base pointer for each work-group
+     const index_t num_blocks_per_batch =
+         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
+@@ -147,7 +147,7 @@ __global__ void
+             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch,
+             const Block2CTileMap block_2_etile_map)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     // printf("entry kernel launch");
+     __shared__ char p_shared[GridwiseOp::SharedMemTrait::lds_size];
+ 
+@@ -237,7 +237,7 @@ __global__ void
+             const CDEElementwiseOperation cde_element_op,
+             const Block2CTileMap block_2_ctile_map)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     __shared__ char p_shared[GridwiseOp::SharedMemTrait::lds_size];
+ 
+     GridwiseOp::template Run<HasMainKBlockLoop>(p_a_grid,
+diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
+index 8e4117593..179badf08 100644
+--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
+@@ -45,7 +45,7 @@ __global__ void
+                          const CElementwiseOperation c_element_op,
+                          const Block2CTileMap block_2_ctile_map)
+ {
+-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx11__))
++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx10__) || defined(__gfx11__))
+     __shared__ char p_shared[GridwiseGemm::SharedMemTrait::lds_size];
+ 
+     GridwiseGemm::template Run<HasMainKBlockLoop>(p_a_grid,
+diff --git a/library/src/tensor_operation_instance/gpu/CMakeLists.txt b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+index 05b8c035c..429b499f2 100644
+--- a/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++++ b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+@@ -59,7 +59,7 @@ function(add_instance_library INSTANCE_NAME)
+     endforeach()
+     # Do not build WMMA instances if gfx11 targets are not on the target list
+     foreach(source IN LISTS ARGN)
+-        if(NOT INST_TARGETS MATCHES "gfx11" AND source MATCHES "_wmma")
++        if(NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") AND source MATCHES "_wmma")
+             message("removing wmma instance ${source} ")
+             list(REMOVE_ITEM ARGN "${source}")
+         endif()
+@@ -74,9 +74,9 @@ function(add_instance_library INSTANCE_NAME)
+                 set(INST_TARGETS ${GPU_TARGETS})
+             endif()
+             if(source MATCHES "_xdl")
+-                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
++                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+             elseif(ARGN MATCHES "_wmma")
+-                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
++                list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
+             endif()
+             set(offload_targets)
+             foreach(target IN LISTS INST_TARGETS)
+@@ -177,19 +177,19 @@ FOREACH(subdir_path ${dir_list})
+             message("Found only xdl instances, but gfx9 is not on the targets list. Skipping.")
+             set(add_inst 0)
+         endif()
+-        if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11"))
+-            message("Found only wmma instances, but gfx11 is not on the targets list. Skipping.")
++        if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") ))
++            message("Found only wmma instances, but gfx10 or gfx11 is not on the targets list. Skipping.")
+             set(add_inst 0)
+         endif()
+         if(("${cmake_instance}" MATCHES "ONLY XDL_AND_DL_KERNELS") AND (NOT DEFINED DL_KERNELS) AND (NOT INST_TARGETS MATCHES "gfx9"))
+             message("Found only xdl and dl instances, but gfx9 is not on the targets listand DL_KERNELS is not set. Skipping.")
+             set(add_inst 0)
+         endif()
+-        if(("${cmake_instance}" MATCHES "ONLY XDL_AND_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9"))
+-            message("Found only xdl and wmma instances, but gfx11 and gfx9 are not on the targets list. Skipping.")
++        if(("${cmake_instance}" MATCHES "ONLY XDL_AND_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx10") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9"))
++            message("Found only xdl and wmma instances, but gfx9, gfx10 and gfx11 are not on the targets list. Skipping.")
+             set(add_inst 0)
+         endif()
+-        if(("${cmake_instance}" MATCHES "XDL_DL_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9") AND (NOT DEFINED DL_KERNELS))
++        if(("${cmake_instance}" MATCHES "XDL_DL_WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx10") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx9") AND (NOT DEFINED DL_KERNELS))
+             message("Found xdl, dl, and wmma instances, but none of those meet the target list. Skipping.")
+             set(add_inst 0)
+         endif()
+diff --git a/profiler/src/CMakeLists.txt b/profiler/src/CMakeLists.txt
+index 1cfcbfff6..21273ad36 100644
+--- a/profiler/src/CMakeLists.txt
++++ b/profiler/src/CMakeLists.txt
+@@ -58,7 +58,7 @@ if(GPU_TARGETS MATCHES "gfx9")
+ 
+ endif()
+ 
+-if(GPU_TARGETS MATCHES "gfx11" OR GPU_TARGETS MATCHES "gfx9")
++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
+   if(DTYPES MATCHES "fp16" OR NOT DEFINED DTYPES)
+     list(APPEND PROFILER_SOURCES profile_gemm_bilinear.cpp)
+   endif()
+@@ -133,7 +133,7 @@ if(GPU_TARGETS MATCHES "gfx9")
+   target_link_libraries(${PROFILER_EXECUTABLE} PRIVATE device_grouped_conv2d_bwd_weight_instance)
+ endif()
+ 
+-if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx11")
++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
+   if(DTYPES MATCHES "fp16" OR NOT DEFINED DTYPES)
+     target_link_libraries(${PROFILER_EXECUTABLE} PRIVATE device_gemm_bilinear_instance)
+   endif()
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index fd207f84a..c39eca190 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -60,7 +60,7 @@ function(add_test_executable TEST_NAME)
+         endif()
+     endforeach()
+     foreach(source IN LISTS ARGN)
+-        if(NOT TEST_TARGETS MATCHES "gfx11" AND source MATCHES "wmma")
++        if(NOT (TEST_TARGETS MATCHES "gfx10" OR TEST_TARGETS MATCHES "gfx11") AND source MATCHES "wmma")
+             message("removing wmma test ${source} ")
+             list(REMOVE_ITEM ARGN "${source}")
+         endif()
+@@ -68,9 +68,9 @@ function(add_test_executable TEST_NAME)
+     #only continue if there are some source files left on the list
+     if(ARGN)
+         if(ARGN MATCHES "_xdl")
+-             list(REMOVE_ITEM TEST_TARGETS gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
++             list(REMOVE_ITEM TEST_TARGETS gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+         elseif(ARGN MATCHES "_wmma")
+-             list(REMOVE_ITEM TEST_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
++             list(REMOVE_ITEM TEST_TARGETS gfx908 gfx90a gfx940 gfx941 gfx942)
+         endif()
+         set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
+         add_executable(${TEST_NAME} ${ARGN})
+@@ -139,7 +139,7 @@ function(add_gtest_executable TEST_NAME)
+         endif()
+     endforeach()
+     foreach(source IN LISTS ARGN)
+-        if(NOT TEST_TARGETS MATCHES "gfx11" AND source MATCHES "wmma")
++        if( (NOT ((TEST_TARGETS MATCHES "gfx10") OR (TEST_TARGETS MATCHES "gfx11"))) AND source MATCHES "_wmma")
+             message("removing wmma test ${source} ")
+             list(REMOVE_ITEM ARGN "${source}")
+         endif()
+@@ -147,9 +147,9 @@ function(add_gtest_executable TEST_NAME)
+     #only continue if there are some source files left on the list
+     if(ARGN)
+         if(ARGN MATCHES "_xdl")
+-             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx1030 gfx1100 gfx1101 gfx1102 gfx1103)
++             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+         elseif(ARGN MATCHES "_wmma")
+-             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942 gfx1030)
++             list(REMOVE_ITEM TEST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
+         endif()
+         set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
+         add_executable(${TEST_NAME} ${ARGN})
+@@ -210,7 +210,7 @@ add_subdirectory(conv_tensor_rearrange)
+ add_subdirectory(transpose)
+ add_subdirectory(permute_scale)
+ add_subdirectory(wrapper)
+-if(GPU_TARGETS MATCHES "gfx11")
++if((GPU_TARGETS MATCHES "gfx10") OR (GPU_TARGETS MATCHES "gfx11"))
+     add_subdirectory(wmma_op)
+ endif()
+ add_subdirectory(position_embedding)
+diff --git a/test/grouped_convnd_bwd_weight/CMakeLists.txt b/test/grouped_convnd_bwd_weight/CMakeLists.txt
+index 54b514e7a..0fe50312b 100644
+--- a/test/grouped_convnd_bwd_weight/CMakeLists.txt
++++ b/test/grouped_convnd_bwd_weight/CMakeLists.txt
+@@ -1,7 +1,7 @@
+ if(GPU_TARGETS MATCHES "gfx9" OR DL_KERNELS)
+       add_gtest_executable(test_grouped_convnd_bwd_weight test_grouped_convnd_bwd_weight.cpp)
+       target_link_libraries(test_grouped_convnd_bwd_weight PRIVATE utility device_grouped_conv1d_bwd_weight_instance device_grouped_conv2d_bwd_weight_instance device_grouped_conv3d_bwd_weight_instance)
+-   elseif(GPU_TARGETS MATCHES "gfx11")
++   elseif((GPU_TARGETS MATCHES "gfx10") OR (GPU_TARGETS MATCHES "gfx11"))
+       add_gtest_executable(test_grouped_convnd_bwd_weight test_grouped_convnd_bwd_weight.cpp)
+       target_link_libraries(test_grouped_convnd_bwd_weight PRIVATE utility device_grouped_conv3d_bwd_weight_instance)
+ endif()
+diff --git a/test/grouped_convnd_fwd/CMakeLists.txt b/test/grouped_convnd_fwd/CMakeLists.txt
+index 1eba91382..cb8a8ace4 100644
+--- a/test/grouped_convnd_fwd/CMakeLists.txt
++++ b/test/grouped_convnd_fwd/CMakeLists.txt
+@@ -1,6 +1,6 @@
+-if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx11")
++if(GPU_TARGETS MATCHES "gfx9" OR GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
+     add_gtest_executable(test_grouped_convnd_fwd test_grouped_convnd_fwd.cpp)
+-    if(GPU_TARGETS MATCHES "gfx11")
++    if(GPU_TARGETS MATCHES "gfx10" OR GPU_TARGETS MATCHES "gfx11")
+         target_link_libraries(test_grouped_convnd_fwd PRIVATE utility device_grouped_conv2d_fwd_instance device_grouped_conv3d_fwd_instance)
+     else()
+         target_link_libraries(test_grouped_convnd_fwd PRIVATE utility device_grouped_conv1d_fwd_instance device_grouped_conv2d_fwd_instance device_grouped_conv3d_fwd_instance)
+-- 
+2.41.1
+

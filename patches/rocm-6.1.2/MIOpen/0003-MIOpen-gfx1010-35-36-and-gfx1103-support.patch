@@ -1,0 +1,328 @@
+From f446f02e452ba27c3d3a73a76389aca5ecb9ae21 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 19 Dec 2023 15:13:46 -0800
+Subject: [PATCH 3/3] MIOpen gfx1010/35/36 and gfx1103 support
+
+- todo: verify gfx1010
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt                                |  4 ++--
+ .../include/utility/config.hpp                | 21 +++++++++++++------
+ .../miopen/solver/ck_utility_common.hpp       | 14 ++++++++++++-
+ .../miopen/solver/implicitgemm_util.hpp       |  7 +++++--
+ src/kernels/MIOpenBatchNormBwdSpatial.cl      |  2 +-
+ src/kernels/MIOpenBatchNormFwdTrainSpatial.cl |  2 +-
+ src/kernels/batchnorm_functions.h             |  2 +-
+ .../batchnorm/backward_spatial_multiple.cpp   |  1 +
+ .../batchnorm/backward_spatial_single.cpp     |  1 +
+ .../batchnorm/forward_spatial_multiple.cpp    |  1 +
+ .../batchnorm/forward_spatial_single.cpp      |  1 +
+ src/target_properties.cpp                     | 12 +++++++++++
+ test/CMakeLists.txt                           |  6 ++++++
+ test/handle_test.cpp                          |  2 ++
+ 14 files changed, 62 insertions(+), 14 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 834b2619c..779db69ea 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -607,8 +607,8 @@ function(install_kdb FILE_NAME COMPONENT_NAME)
+ endfunction()
+ 
+ # Both the lists below should be in sync always
+-set(KDB_BZ2_FILES gfx90a.kdb.bz2 gfx1030.kdb.bz2 gfx908.kdb.bz2 gfx906.kdb.bz2 gfx900.kdb.bz2)
+-set(COMPONENT_LST gfx90akdb gfx1030kdb gfx908kdb gfx906kdb gfx900kdb)
++set(KDB_BZ2_FILES gfx942.kdb.bz2 gfx90a.kdb.bz2 gfx1010.kdb.bz2 gfx1030.kdb.bz2 gfx1035.kdb.bz2 gfx908.kdb.bz2 gfx906.kdb.bz2 gfx900.kdb.bz2)
++set(COMPONENT_LST gfx942kdb gfx90akdb gfx1010kdb gfx1030kdb gfx1035kdb gfx908kdb gfx906kdb gfx900kdb)
+ 
+ if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.17)
+     foreach(__file __component IN ZIP_LISTS KDB_BZ2_FILES COMPONENT_LST)
+diff --git a/src/composable_kernel/composable_kernel/include/utility/config.hpp b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+index 7869a075f..fbbd41411 100644
+--- a/src/composable_kernel/composable_kernel/include/utility/config.hpp
++++ b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+@@ -15,9 +15,9 @@
+ // should enable one and only one GPU target
+ #if !(defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX906) ||    \
+       defined(CK_AMD_GPU_GFX940) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A) ||    \
+-      defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX1030) ||   \
+-      defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || \
+-      defined(CK_AMD_GPU_GFX1102))
++      defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1030) ||   \
++      defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036) || defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || \
++      defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103))
+ #error Need to define (only) one GPU target
+ #endif
+ 
+@@ -29,28 +29,37 @@
+ #define CK_MIN_BLOCK_PER_CU 2
+ #endif
+ 
++// TODO: gfx1010 check CK_BUFFER_RESOURCE_3RD_DWORD
+ // buffer resourse
+ #if defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX906) || \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) || \
+     defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
+-#elif defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
+-    defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102)
++#elif defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || \
++    defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036) || \
++    defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
+ #endif
+ 
++// whether to use assembly or rely on compiler for these instructions
++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
++// TODO: check defined(__gfx1035__)
+ // FMA instruction
+ #if defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900)
+ #define CK_USE_AMD_V_MAC_F32
+ #elif defined(CK_AMD_GPU_GFX906) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90a) ||  \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) ||    \
+     defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
+-    defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102)
++    defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103)
+ #define CK_USE_AMD_V_FMAC_F32
+ #define CK_USE_AMD_V_DOT2_F32_F16
+ #define CK_USE_AMD_V_DOT4_I32_I8
+ #endif
+ 
++#ifdef CK_AMD_GPU_GFX1010
++    #define CK_USE_AMD_V_FMAC_F32
++#endif
++
+ // multi index
+ #define CK_USE_DYNAMICALLY_INDEXED_MULTI_INDEX 0
+ 
+diff --git a/src/include/miopen/solver/ck_utility_common.hpp b/src/include/miopen/solver/ck_utility_common.hpp
+index 515da1c2b..9a1a454c9 100644
+--- a/src/include/miopen/solver/ck_utility_common.hpp
++++ b/src/include/miopen/solver/ck_utility_common.hpp
+@@ -57,11 +57,15 @@ static inline bool is_ck_supported_hardware(const Handle& handle)
+            StartsWith(handle.GetDeviceName(), "gfx940") ||
+            StartsWith(handle.GetDeviceName(), "gfx941") ||
+            StartsWith(handle.GetDeviceName(), "gfx942") ||
++           StartsWith(handle.GetDeviceName(), "gfx1010") ||
+            StartsWith(handle.GetDeviceName(), "gfx1030") ||
+            StartsWith(handle.GetDeviceName(), "gfx1031") ||
++           StartsWith(handle.GetDeviceName(), "gfx1035") ||
++           StartsWith(handle.GetDeviceName(), "gfx1036") ||
+            StartsWith(handle.GetDeviceName(), "gfx1100") ||
+            StartsWith(handle.GetDeviceName(), "gfx1101") ||
+-           StartsWith(handle.GetDeviceName(), "gfx1102");
++           StartsWith(handle.GetDeviceName(), "gfx1102") ||
++           StartsWith(handle.GetDeviceName(), "gfx1103");
+ }
+ 
+ // MI100 : gfx908
+@@ -111,16 +115,24 @@ static inline auto get_ck_common_compiler_flag(const Handle& handle)
+         compiler_flag << " -DCK_AMD_GPU_GFX941";
+     else if(StartsWith(device_name, "gfx942"))
+         compiler_flag << " -DCK_AMD_GPU_GFX942";
++    else if(StartsWith(device_name, "gfx1010"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1010";
+     else if(StartsWith(device_name, "gfx1030"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1030";
+     else if(StartsWith(device_name, "gfx1031"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1031";
++    else if(StartsWith(device_name, "gfx1035"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1035";
++    else if(StartsWith(device_name, "gfx1036"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1036";
+     else if(StartsWith(device_name, "gfx1100"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1100";
+     else if(StartsWith(device_name, "gfx1101"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1101";
+     else if(StartsWith(device_name, "gfx1102"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1102";
++    else if(StartsWith(device_name, "gfx1103"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1103";
+     // NOLINTEND(*-braces-around-statements)
+ 
+     // buffer atomic-fadd
+diff --git a/src/include/miopen/solver/implicitgemm_util.hpp b/src/include/miopen/solver/implicitgemm_util.hpp
+index 24b6d15f9..650c5dc39 100644
+--- a/src/include/miopen/solver/implicitgemm_util.hpp
++++ b/src/include/miopen/solver/implicitgemm_util.hpp
+@@ -450,7 +450,9 @@ static inline bool is_use_amd_buffer_load_store(const ExecutionContext& ctx)
+ {
+ #if WORKAROUND_MIOPEN_ISSUE_557
+     const auto device_name = ctx.GetStream().GetDeviceName();
+-    return !StartsWith(device_name, "gfx103");
++    if (StartsWith(device_name, "gfx101") || StartsWith(device_name, "gfx103"))
++        return false;
++    return true;
+ #else
+     return true;
+ #endif
+@@ -459,7 +461,7 @@ static inline bool is_use_amd_buffer_load_store(const ExecutionContext& ctx)
+ static inline bool is_use_v_fmac_f32(const ExecutionContext& ctx)
+ {
+     const auto device_name = ctx.GetStream().GetDeviceName();
+-    return StartsWith(device_name, "gfx103");
++    return (StartsWith(device_name, "gfx101") || StartsWith(device_name, "gfx103"));
+ }
+ 
+ static inline bool support_amd_buffer_atomic_fadd(const std::string& device_name)
+@@ -580,6 +582,7 @@ static inline bool IsComposableKernelSupportedHardware(const ExecutionContext& c
+            StartsWith(c.GetStream().GetDeviceName(), "gfx908") ||
+            StartsWith(c.GetStream().GetDeviceName(), "gfx90a") ||
+            StartsWith(c.GetStream().GetDeviceName(), "gfx94") ||
++           StartsWith(c.GetStream().GetDeviceName(), "gfx101") ||
+            StartsWith(c.GetStream().GetDeviceName(), "gfx103");
+ }
+ 
+diff --git a/src/kernels/MIOpenBatchNormBwdSpatial.cl b/src/kernels/MIOpenBatchNormBwdSpatial.cl
+index 23103198a..c4682a3b0 100644
+--- a/src/kernels/MIOpenBatchNormBwdSpatial.cl
++++ b/src/kernels/MIOpenBatchNormBwdSpatial.cl
+@@ -33,7 +33,7 @@
+ #endif
+ 
+ #define MIOPEN_USE_AMDGCN 0
+-#if defined(__AMDGCN__) && !(MIO_BN_GFX103X || MIO_BN_GFX110X)
++#if defined(__AMDGCN__) && !(MIO_BN_GFX101X || MIO_BN_GFX103X || MIO_BN_GFX110X)
+ #undef MIOPEN_USE_AMDGCN
+ #define MIOPEN_USE_AMDGCN 1
+ #endif
+diff --git a/src/kernels/MIOpenBatchNormFwdTrainSpatial.cl b/src/kernels/MIOpenBatchNormFwdTrainSpatial.cl
+index 9eecb6990..1d9f84c94 100644
+--- a/src/kernels/MIOpenBatchNormFwdTrainSpatial.cl
++++ b/src/kernels/MIOpenBatchNormFwdTrainSpatial.cl
+@@ -33,7 +33,7 @@
+ #endif
+ 
+ #define MIOPEN_USE_AMDGCN 0
+-#if defined(__AMDGCN__) && !(MIO_BN_GFX103X || MIO_BN_GFX110X)
++#if defined(__AMDGCN__) && !(MIO_BN_GFX101X || MIO_BN_GFX103X || MIO_BN_GFX110X)
+ #undef MIOPEN_USE_AMDGCN
+ #define MIOPEN_USE_AMDGCN 1
+ #endif
+diff --git a/src/kernels/batchnorm_functions.h b/src/kernels/batchnorm_functions.h
+index 4764324db..87fef51cd 100644
+--- a/src/kernels/batchnorm_functions.h
++++ b/src/kernels/batchnorm_functions.h
+@@ -133,7 +133,7 @@
+ // MIOPEN_USE_AMDGCN may be defined before this header.
+ #ifndef MIOPEN_USE_AMDGCN
+ #if defined(__AMDGCN__) && \
+-    !((defined(MIO_BN_GFX103X) && MIO_BN_GFX103X) || (defined(MIO_BN_GFX110X) && MIO_BN_GFX110X))
++    !((defined(MIO_BN_GFX101X) && MIO_BN_GFX101X) || (defined(MIO_BN_GFX103X) && MIO_BN_GFX103X) || (defined(MIO_BN_GFX110X) && MIO_BN_GFX110X))
+ #define MIOPEN_USE_AMDGCN 1
+ #else
+ #define MIOPEN_USE_AMDGCN 0
+diff --git a/src/solver/batchnorm/backward_spatial_multiple.cpp b/src/solver/batchnorm/backward_spatial_multiple.cpp
+index 5daed1982..6b23b52e5 100644
+--- a/src/solver/batchnorm/backward_spatial_multiple.cpp
++++ b/src/solver/batchnorm/backward_spatial_multiple.cpp
+@@ -220,6 +220,7 @@ ConvSolution BnBwdTrainingSpatialMultiple::GetSolution(
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
++	    {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+             {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+diff --git a/src/solver/batchnorm/backward_spatial_single.cpp b/src/solver/batchnorm/backward_spatial_single.cpp
+index 253abd426..4746e7559 100644
+--- a/src/solver/batchnorm/backward_spatial_single.cpp
++++ b/src/solver/batchnorm/backward_spatial_single.cpp
+@@ -259,6 +259,7 @@ BnBwdTrainingSpatialSingle::GetSolution(const ExecutionContext& context,
+             build_params << KernelBuildParameters{
+                 {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
+                 {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
++		{"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             };
+ 
+             kernel.comp_options = build_params.GenerateFor(kbp::OpenCL{});
+diff --git a/src/solver/batchnorm/forward_spatial_multiple.cpp b/src/solver/batchnorm/forward_spatial_multiple.cpp
+index 00ddf4fcc..a50fdd3e6 100644
+--- a/src/solver/batchnorm/forward_spatial_multiple.cpp
++++ b/src/solver/batchnorm/forward_spatial_multiple.cpp
+@@ -176,6 +176,7 @@ ConvSolution BnFwdTrainingSpatialMultiple::GetSolution(
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
++            {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+             {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+diff --git a/src/solver/batchnorm/forward_spatial_single.cpp b/src/solver/batchnorm/forward_spatial_single.cpp
+index 9a5b6b2c0..feaae6870 100644
+--- a/src/solver/batchnorm/forward_spatial_single.cpp
++++ b/src/solver/batchnorm/forward_spatial_single.cpp
+@@ -210,6 +210,7 @@ BnFwdTrainingSpatialSingle::GetSolution(const ExecutionContext& context,
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
++            {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+             {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+diff --git a/src/target_properties.cpp b/src/target_properties.cpp
+index 6fb960b38..d741312b3 100644
+--- a/src/target_properties.cpp
++++ b/src/target_properties.cpp
+@@ -52,7 +52,19 @@ static std::string GetDeviceNameFromMap(const std::string& in)
+         {"gfx804", "gfx803"},
+         {"Vega10", "gfx900"},
+         {"gfx901", "gfx900"},
++        {"navi10", "gfx1010"},
++        {"navi12", "gfx1011"},
++        {"navi14", "gfx1012"},
+         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
++        {"navi22", "gfx1031"},
++        {"navi23", "gfx1032"},
++        {"navi24", "gfx1034"},
++        {"rembrandt", "gfx1035"},
++        {"raphael", "gfx1036"},
++        {"navi31", "gfx1100"},
++        {"navi32", "gfx1101"},
++        {"navi33", "gfx1102"},
++        {"phoenix", "gfx1103"},
+     };
+ 
+     const auto& dev_str = env::value(MIOPEN_DEBUG_ENFORCE_DEVICE);
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index 1d77722f4..860c355bd 100755
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -122,12 +122,18 @@ if(NOT (MIOPEN_TEST_GFX900 OR MIOPEN_TEST_GFX906 OR MIOPEN_TEST_GFX908 OR MIOPEN
+             set(MIOPEN_TEST_GFX103X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1031")
+             set(MIOPEN_TEST_GFX103X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1035")
++            set(MIOPEN_TEST_GFX103X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1036")
++            set(MIOPEN_TEST_GFX103X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1100")
+             set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1101")
+             set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1102")
+             set(MIOPEN_TEST_GFX110X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1103")
++            set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx900")
+             set(MIOPEN_TEST_GFX900 ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx906")
+diff --git a/test/handle_test.cpp b/test/handle_test.cpp
+index 16ce78f04..2ec3eaf09 100644
+--- a/test/handle_test.cpp
++++ b/test/handle_test.cpp
+@@ -306,8 +306,10 @@ void test_arch_name()
+                        "gfx941",
+                        "gfx942",
+                        "gfx803",
++                       "gfx1010",
+                        "gfx1030",
+                        "gfx1031",
++                       "gfx1035",
+                        "gfx1100",
+                        "gfx1101",
+                        "gfx1102"};
+-- 
+2.41.1
+

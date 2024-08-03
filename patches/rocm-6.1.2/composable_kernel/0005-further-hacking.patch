@@ -1,0 +1,117 @@
+From 61facfc62a4d972db8b85a4a63f872abe048030c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Sun, 4 Aug 2024 20:16:41 -0700
+Subject: [PATCH 5/5] further hacking
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ example/CMakeLists.txt                        | 24 ++++++++--------
+ .../gpu/CMakeLists.txt                        | 28 +++++++++++--------
+ 2 files changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/example/CMakeLists.txt b/example/CMakeLists.txt
+index fd5ab2f9a..c2d4d69d5 100644
+--- a/example/CMakeLists.txt
++++ b/example/CMakeLists.txt
+@@ -59,12 +59,12 @@ function(add_example_executable EXAMPLE_NAME FILE_NAME)
+         endif()
+     endforeach()
+     #Do not build any XDL examples if gfx9 targets are not on the list
+-    foreach(source IN LISTS FILE_NAME)
+-        if(NOT EX_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
+-            message("removing xdl example ${source} ")
+-            list(REMOVE_ITEM FILE_NAME "${source}")
+-        endif()
+-    endforeach()
++    #foreach(source IN LISTS FILE_NAME)
++    #    if(NOT EX_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
++    #        message("removing xdl example ${source} ")
++    #        list(REMOVE_ITEM FILE_NAME "${source}")
++    #    endif()
++    #endforeach()
+     #Do not build any WMMA examples if gfx11 targets are not on the list
+     foreach(source IN LISTS FILE_NAME)
+         if( (NOT ((EX_TARGETS MATCHES "gfx10") OR (EX_TARGETS MATCHES "gfx11"))) AND source MATCHES "_wmma")
+@@ -146,12 +146,12 @@ function(add_example_executable_no_testing EXAMPLE_NAME FILE_NAME)
+         endif()
+     endforeach()
+     #Do not build any XDL examples if gfx9 targets are not on the list
+-    foreach(source IN LISTS FILE_NAME)
+-        if(NOT EX_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
+-            message("removing xdl example ${source} ")
+-            list(REMOVE_ITEM FILE_NAME "${source}")
+-        endif()
+-    endforeach()
++    #foreach(source IN LISTS FILE_NAME)
++    #    if(NOT EX_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
++    #        message("removing xdl example ${source} ")
++    #        list(REMOVE_ITEM FILE_NAME "${source}")
++    #    endif()
++    #endforeach()
+     #Do not build any WMMA examples if gfx11 targets are not on the list
+     foreach(source IN LISTS FILE_NAME)
+         if(NOT EX_TARGETS MATCHES "gfx11" AND source MATCHES "_wmma")
+diff --git a/library/src/tensor_operation_instance/gpu/CMakeLists.txt b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+index 429b499f2..1f563fe77 100644
+--- a/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++++ b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+@@ -50,13 +50,16 @@ function(add_instance_library INSTANCE_NAME)
+             list(REMOVE_ITEM ARGN "${source}")
+         endif()
+     endforeach()
++    # leave these even if building only for the gfx1030 because otherwise the 
++    # MIOpen fails complains about the missing device_contraction_operations (which are xdl only)
++    # and fails to build
+     # Do not build XDL instances if gfx9 targets are not on the target list
+-    foreach(source IN LISTS ARGN)
+-        if(NOT INST_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
+-            message("removing xdl instance ${source} ")
+-            list(REMOVE_ITEM ARGN "${source}")
+-        endif()
+-    endforeach()
++    #    foreach(source IN LISTS ARGN)
++    #    if(NOT INST_TARGETS MATCHES "gfx9" AND source MATCHES "_xdl")
++    #        message("removing xdl instance ${source} ")
++    #        list(REMOVE_ITEM ARGN "${source}")
++    #    endif()
++    #endforeach()
+     # Do not build WMMA instances if gfx11 targets are not on the target list
+     foreach(source IN LISTS ARGN)
+         if(NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") AND source MATCHES "_wmma")
+@@ -73,7 +76,7 @@ function(add_instance_library INSTANCE_NAME)
+             else()
+                 set(INST_TARGETS ${GPU_TARGETS})
+             endif()
+-            if(source MATCHES "_xdl")
++            if(source MATCHES "_xdl2")
+                 list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+             elseif(ARGN MATCHES "_wmma")
+                 list(REMOVE_ITEM INST_TARGETS gfx900 gfx906 gfx908 gfx90a gfx940 gfx941 gfx942)
+@@ -106,6 +109,7 @@ set(CK_DEVICE_MHA_INSTANCES)
+ set(CK_DEVICE_CONTRACTION_INSTANCES)
+ set(CK_DEVICE_REDUCTION_INSTANCES)
+ FOREACH(subdir_path ${dir_list})
++    #message("subdir_path: ${subdir_path}")
+     set(target_dir)
+     IF(IS_DIRECTORY "${subdir_path}")
+         set(cmake_instance)
+@@ -173,10 +177,12 @@ FOREACH(subdir_path ${dir_list})
+             message("Found only dl instances, but DL_KERNELS is not set. Skipping.")
+             set(add_inst 0)
+         endif()
+-        if(("${cmake_instance}" MATCHES "ONLY XDL_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx9"))
+-            message("Found only xdl instances, but gfx9 is not on the targets list. Skipping.")
+-            set(add_inst 0)
+-        endif()
++	# do not filter these away because otherwise device_contraction_instances which
++	# are needed by the MIOpen does not get build if gfx1030 is the only target
++	#if(("${cmake_instance}" MATCHES "ONLY XDL_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx9"))
++	#    message("Found only xdl instances, but gfx9 is not on the targets list. Skipping.")
++	#    set(add_inst 0)
++	#endif()
+         if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT (INST_TARGETS MATCHES "gfx10" OR INST_TARGETS MATCHES "gfx11") ))
+             message("Found only wmma instances, but gfx10 or gfx11 is not on the targets list. Skipping.")
+             set(add_inst 0)
+-- 
+2.41.1
+
