@@ -1,0 +1,25 @@
+From b615bc0a4b12c441cfdcfd7e5ec63b4ac771aa71 Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Sun, 4 Aug 2024 00:38:45 +0200
+Subject: [PATCH 5/5] build DeepSpeed in parallel
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ build_rocm.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index b48a0ad9..da7586b9 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -18,6 +18,6 @@ mkdir -p deepspeed/ops/spatial
+ # needed by real accelerator.py to detect the cuda when build on virtual linux without access to real hardware
+ export DS_ACCELERATOR=cuda
+ # install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
+-AMDGPU_TARGETS="${amd_target_gpu}" DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
++AMDGPU_TARGETS="${amd_target_gpu}" DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py build_ext -j"${BUILD_CPU_COUNT_MODERATE}" bdist_wheel
+ 
+ #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
+-- 
+2.45.2
+

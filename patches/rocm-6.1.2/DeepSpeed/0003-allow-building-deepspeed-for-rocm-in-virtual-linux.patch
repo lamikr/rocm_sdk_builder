@@ -1,7 +1,7 @@
-From e423db20d2eb75934214c4487fb4193f3df389a9 Mon Sep 17 00:00:00 2001
+From 7f8437355bec830020f6d72e8e56e99a4f8675d6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 26 Jun 2024 14:44:04 -0700
-Subject: [PATCH 3/4] allow building deepspeed for rocm in virtual linux
+Subject: [PATCH 3/5] allow building deepspeed for rocm in virtual linux
 
 enable the deepspeed rocm build on virtual linux env
 without access to real GPU. (gpu list is also passed as a parameter)
