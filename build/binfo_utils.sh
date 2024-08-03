@@ -30,6 +30,9 @@ func_binfo_utils__init_binfo_app_list() {
         source "${LIST_BINFO_FILE_FULLNAME[jj]}"
 
         # Initialize source clone directory
+        # There are applications like llvm-project where the
+        # BINFO_APP_SRC_CLONE_DIR points to root and
+        # BINFO_APP_SRC_DIR points to llvm subfolder under it
         if [[ -n "${BINFO_APP_SRC_CLONE_DIR}" ]]; then
             LIST_APP_SRC_CLONE_DIR[jj]="${BINFO_APP_SRC_CLONE_DIR}"
         elif [[ -n "${BINFO_APP_SRC_DIR-}" ]]; then

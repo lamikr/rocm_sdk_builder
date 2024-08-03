@@ -1,6 +1,8 @@
 BINFO_APP_NAME=llvm-project
 BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_SUBDIR_BASENAME=llvm
+# special case where the BINFO_APP_SRC_CLONE_DIR needs to be defined
+# because it's different than the default location on BINFO_APP_SRC_DIR that is subfolder under it
 BINFO_APP_SRC_CLONE_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}/${BINFO_APP_SRC_SUBDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/llvm-project
