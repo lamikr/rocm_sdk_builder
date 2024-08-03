@@ -1,0 +1,475 @@
+From 643e36574846be31d5eee18e89c06c83055ab490 Mon Sep 17 00:00:00 2001
+From: "Bill(Shuzhou) Liu" <shuzhou.liu@amd.com>
+Date: Tue, 25 Jun 2024 10:03:33 -0500
+Subject: [PATCH 2/3] Make the the devInfoTypesStrings.at(type) exception safe
+
+Wrap it in a function to make it exception safe.
+
+Change-Id: I29835993ae4fe2b7aa1a7027fab88c05ba89e6e3
+---
+ rocm_smi/include/rocm_smi/rocm_smi_device.h |  1 +
+ rocm_smi/src/rocm_smi.cc                    | 53 ++++++++++-----------
+ rocm_smi/src/rocm_smi_device.cc             | 47 ++++++++++--------
+ rocm_smi/src/rocm_smi_main.cc               |  2 +-
+ 4 files changed, 56 insertions(+), 47 deletions(-)
+
+diff --git a/rocm_smi/include/rocm_smi/rocm_smi_device.h b/rocm_smi/include/rocm_smi/rocm_smi_device.h
+index 768c736..b8b601f 100755
+--- a/rocm_smi/include/rocm_smi/rocm_smi_device.h
++++ b/rocm_smi/include/rocm_smi/rocm_smi_device.h
+@@ -260,6 +260,7 @@ class Device {
+     AMGpuMetricsPublicLatestTupl_t dev_copy_internal_to_external_metrics();
+ 
+     static const std::map<DevInfoTypes, const char*> devInfoTypesStrings;
++    static const char* get_type_string(DevInfoTypes type);
+ 
+  private:
+     std::shared_ptr<Monitor> monitor_;
+diff --git a/rocm_smi/src/rocm_smi.cc b/rocm_smi/src/rocm_smi.cc
+index dd8e903..11be39f 100755
+--- a/rocm_smi/src/rocm_smi.cc
++++ b/rocm_smi/src/rocm_smi.cc
+@@ -83,7 +83,6 @@ using amd::smi::monitorTypesToString;
+ using amd::smi::getRSMIStatusString;
+ using amd::smi::AMDGpuMetricsUnitType_t;
+ using amd::smi::AMDGpuMetricTypeId_t;
+-auto &devInfoTypesStrings = amd::smi::Device::devInfoTypesStrings;
+ 
+ static const uint32_t kMaxOverdriveLevel = 20;
+ static const float kEnergyCounterResolution = 15.3F;
+@@ -3842,7 +3841,7 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
+       ss << __PRETTY_FUNCTION__
+          << " | inside success fallback... "
+          << " | Device #: " << std::to_string(dv_ind)
+-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
++         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
+          << " | Data: total = " << std::to_string(*total)
+          << " | ret = " << getRSMIStatusString(RSMI_STATUS_SUCCESS);
+       LOG_DEBUG(ss);
+@@ -3853,7 +3852,7 @@ rsmi_dev_memory_total_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
+   ss << __PRETTY_FUNCTION__
+      << " | after fallback... "
+      << " | Device #: " << std::to_string(dv_ind)
+-     << " | Type = " << devInfoTypesStrings.at(mem_type_file)
++     << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
+      << " | Data: total = " << std::to_string(*total)
+      << " | ret = " << getRSMIStatusString(ret);
+   LOG_DEBUG(ss);
+@@ -3922,7 +3921,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
+       ss << __PRETTY_FUNCTION__
+          << " no fallback needed! - "
+          << " | Device #: " << std::to_string(dv_ind)
+-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
++         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
+          << " | Data: Used = " << std::to_string(*used)
+          << " | Data: total = " << std::to_string(total)
+          << " | ret = " << getRSMIStatusString(ret);
+@@ -3933,7 +3932,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
+       ss << __PRETTY_FUNCTION__
+          << " | in fallback == success ..."
+          << " | Device #: " << std::to_string(dv_ind)
+-         << " | Type = " << devInfoTypesStrings.at(mem_type_file)
++         << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
+          << " | Data: Used = " << std::to_string(*used)
+          << " | Data: total = " << std::to_string(total)
+          << " | ret = " << getRSMIStatusString(RSMI_STATUS_SUCCESS);
+@@ -3944,7 +3943,7 @@ rsmi_dev_memory_usage_get(uint32_t dv_ind, rsmi_memory_type_t mem_type,
+   ss << __PRETTY_FUNCTION__
+      << " | at end!!!! after fallback ..."
+      << " | Device #: " << std::to_string(dv_ind)
+-     << " | Type = " << devInfoTypesStrings.at(mem_type_file)
++     << " | Type = " << amd::smi::Device::get_type_string(mem_type_file)
+      << " | Data: Used = " << std::to_string(*used)
+      << " | ret = " << getRSMIStatusString(ret);
+   LOG_DEBUG(ss);
+@@ -5227,7 +5226,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Cause: len was 0 or compute_partition variable was null"
+        << " | Returning = "
+        << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS) << " |";
+@@ -5246,7 +5245,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Cause: could not retrieve current compute partition"
+        << " | Returning = "
+        << getRSMIStatusString(ret) << " |";
+@@ -5263,7 +5262,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Cause: requested size was insufficient"
+        << " | Returning = "
+        << getRSMIStatusString(RSMI_STATUS_INSUFFICIENT_SIZE) << " |";
+@@ -5275,7 +5274,7 @@ rsmi_dev_compute_partition_get(uint32_t dv_ind, char *compute_partition,
+      << " | Success "
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+      << " | Data: " << compute_partition
+      << " | Returning = "
+      << getRSMIStatusString(ret) << " |";
+@@ -5335,7 +5334,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
+          << " | Fail "
+          << " | Device #: " << dv_ind
+          << " | Type: "
+-         << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++         << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+          << " | Data: " << newComputePartitionStr
+          << " | Cause: requested setting was invalid"
+          << " | Returning = "
+@@ -5354,7 +5353,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Data: " << newComputePartitionStr
+        << " | Cause: not an available compute partition setting"
+        << " | Returning = "
+@@ -5374,7 +5373,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Cause: could retrieve current compute partition or retrieved"
+        << " unexpected data"
+        << " | Returning = "
+@@ -5390,7 +5389,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
+        << " | Success - compute partition was already set at requested value"
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+        << " | Data: " << newComputePartitionStr
+        << " | Returning = "
+        << getRSMIStatusString(RSMI_STATUS_SUCCESS) << " |";
+@@ -5416,7 +5415,7 @@ rsmi_dev_compute_partition_set(uint32_t dv_ind,
+      << " | Success "
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+      << " | Data: " << newComputePartitionStr
+      << " | Returning = "
+      << getRSMIStatusString(returnResponse) << " |";
+@@ -5488,7 +5487,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+          << " | Fail "
+          << " | Device #: " << dv_ind
+          << " | Type: "
+-         << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++         << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+          << " | Cause: device board name does not support this action"
+          << " | Returning = "
+          << getRSMIStatusString(RSMI_STATUS_NOT_SUPPORTED) << " |";
+@@ -5509,7 +5508,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+          << " | Fail "
+          << " | Device #: " << dv_ind
+          << " | Type: "
+-         << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++         << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+          << " | Cause: requested setting was invalid"
+          << " | Returning = "
+          << getRSMIStatusString(RSMI_STATUS_INVALID_ARGS) << " |";
+@@ -5530,7 +5529,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+        << " | Cause: could retrieve current memory partition or retrieved"
+        << " unexpected data"
+        << " | Returning = "
+@@ -5547,7 +5546,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+      << " setting"
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+      << " | Data: " << newMemoryPartition
+      << " | Returning = "
+      << getRSMIStatusString(RSMI_STATUS_SUCCESS) << " |";
+@@ -5569,7 +5568,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+        << " | Cause: issue writing reqested setting of " + newMemoryPartition
+        << " | Returning = "
+        << getRSMIStatusString(err) << " |";
+@@ -5583,7 +5582,7 @@ rsmi_dev_memory_partition_set(uint32_t dv_ind,
+      << " | Success - if restart completed successfully"
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+      << " | Data: " << newMemoryPartition
+      << " | Returning = "
+      << getRSMIStatusString(restartRet) << " |";
+@@ -5605,7 +5604,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+        << " | Cause: user sent invalid arguments, len = 0 or memory partition"
+        << " was a null ptr"
+        << " | Returning = "
+@@ -5625,7 +5624,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+        << " | Cause: could not successfully retrieve current memory partition "
+        << " | Returning = "
+        << getRSMIStatusString(ret) << " |";
+@@ -5643,7 +5642,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
+        << " | Fail "
+        << " | Device #: " << dv_ind
+        << " | Type: "
+-       << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++       << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+        << " | Cause: could not successfully retrieve current memory partition "
+        << " | Returning = "
+        << getRSMIStatusString(ret) << " |";
+@@ -5655,7 +5654,7 @@ rsmi_dev_memory_partition_get(uint32_t dv_ind, char *memory_partition,
+      << " | Success "
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+      << " | Data: " << memory_partition
+      << " | Returning = "
+      << getRSMIStatusString(ret) << " |";
+@@ -5694,7 +5693,7 @@ rsmi_status_t rsmi_dev_compute_partition_reset(uint32_t dv_ind) {
+      << " | Success - if original boot state was not unknown or valid setting"
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevComputePartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevComputePartition)
+      << " | Data: " << bootState
+      << " | Returning = "
+      << getRSMIStatusString(ret) << " |";
+@@ -5733,7 +5732,7 @@ rsmi_status_t rsmi_dev_memory_partition_reset(uint32_t dv_ind) {
+      << " | Success - if original boot state was not unknown or valid setting"
+      << " | Device #: " << dv_ind
+      << " | Type: "
+-     << devInfoTypesStrings.at(amd::smi::kDevMemoryPartition)
++     << amd::smi::Device::get_type_string(amd::smi::kDevMemoryPartition)
+      << " | Data: " << bootState
+      << " | Returning = "
+      << getRSMIStatusString(ret) << " |";
+diff --git a/rocm_smi/src/rocm_smi_device.cc b/rocm_smi/src/rocm_smi_device.cc
+index e9ae71b..d9547eb 100755
+--- a/rocm_smi/src/rocm_smi_device.cc
++++ b/rocm_smi/src/rocm_smi_device.cc
+@@ -743,7 +743,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
+   if (ret != 0) {
+     ss << __PRETTY_FUNCTION__ << " | Issue: File did not exist - SYSFS file ("
+        << sysfs_path
+-       << ") for DevInfoInfoType (" << devInfoTypesStrings.at(type)
++       << ") for DevInfoInfoType (" << get_type_string(type)
+        << "), returning " << std::to_string(ret);
+     LOG_ERROR(ss);
+     return ret;
+@@ -752,7 +752,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
+     ss << __PRETTY_FUNCTION__
+        << " | Issue: File is not a regular file - SYSFS file ("
+        << sysfs_path << ") for "
+-       << "DevInfoInfoType (" << devInfoTypesStrings.at(type) << "),"
++       << "DevInfoInfoType (" << get_type_string(type) << "),"
+        << " returning ENOENT (" << std::strerror(ENOENT) << ")";
+     LOG_ERROR(ss);
+     return ENOENT;
+@@ -763,7 +763,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
+   if (!fs->is_open()) {
+     ss << __PRETTY_FUNCTION__
+        << " | Issue: Could not open - SYSFS file (" << sysfs_path << ") for "
+-       << "DevInfoInfoType (" << devInfoTypesStrings.at(type) << "), "
++       << "DevInfoInfoType (" << get_type_string(type) << "), "
+        << ", returning " << std::to_string(errno) << " ("
+        << std::strerror(errno) << ")";
+     LOG_ERROR(ss);
+@@ -772,7 +772,7 @@ int Device::openSysfsFileStream(DevInfoTypes type, T *fs, const char *str) {
+ 
+   ss << __PRETTY_FUNCTION__ << " | Successfully opened SYSFS file ("
+      << sysfs_path
+-     << ") for DevInfoInfoType (" << devInfoTypesStrings.at(type)
++     << ") for DevInfoInfoType (" << get_type_string(type)
+      << ")";
+   LOG_INFO(ss);
+   return 0;
+@@ -789,7 +789,7 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
+   ret = openDebugFileStream(type, &fs);
+   if (ret != 0) {
+     ss << "Could not read debugInfoStr for DevInfoType ("
+-     << devInfoTypesStrings.at(type)<< "), returning "
++     << get_type_string(type)<< "), returning "
+      << std::to_string(ret);
+     LOG_ERROR(ss);
+     return ret;
+@@ -803,7 +803,7 @@ int Device::readDebugInfoStr(DevInfoTypes type, std::string *retStr) {
+   fs.close();
+ 
+   ss << "Successfully read debugInfoStr for DevInfoType ("
+-     << devInfoTypesStrings.at(type)<< "), retString= " << *retStr;
++     << get_type_string(type)<< "), retString= " << *retStr;
+   LOG_INFO(ss);
+ 
+   return 0;
+@@ -819,7 +819,7 @@ int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
+   ret = openSysfsFileStream(type, &fs);
+   if (ret != 0) {
+     ss << "Could not read device info string for DevInfoType ("
+-     << devInfoTypesStrings.at(type) << "), returning "
++     << get_type_string(type) << "), returning "
+      << std::to_string(ret);
+     LOG_ERROR(ss);
+     return ret;
+@@ -829,7 +829,7 @@ int Device::readDevInfoStr(DevInfoTypes type, std::string *retStr) {
+   fs.close();
+   ss << __PRETTY_FUNCTION__
+      << "Successfully read device info string for DevInfoType (" <<
+-            devInfoTypesStrings.at(type) << "): " + *retStr
++            get_type_string(type) << "): " + *retStr
+      << " | "
+      << (fs.is_open() ? " File stream is opened" : " File stream is closed")
+      << " | " << (fs.bad() ? "[ERROR] Bad read operation" :
+@@ -864,7 +864,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
+     fs.close();
+     ss << __PRETTY_FUNCTION__ << " | Issue: Could not open fileStream; "
+        << "Could not write device info string (" << valStr
+-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
++       << ") for DevInfoType (" << get_type_string(type)
+        << "), returning " << std::to_string(ret);
+     LOG_ERROR(ss);
+     return ret;
+@@ -875,7 +875,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
+     fs.flush();
+     fs.close();
+     ss << "Successfully wrote device info string (" << valStr
+-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
++       << ") for DevInfoType (" << get_type_string(type)
+        << "), returning RSMI_STATUS_SUCCESS";
+     LOG_INFO(ss);
+     ret = RSMI_STATUS_SUCCESS;
+@@ -889,7 +889,7 @@ int Device::writeDevInfoStr(DevInfoTypes type, std::string valStr,
+     fs.close();
+     ss << __PRETTY_FUNCTION__ << " | Issue: Could not write to file; "
+        << "Could not write device info string (" << valStr
+-       << ") for DevInfoType (" << devInfoTypesStrings.at(type)
++       << ") for DevInfoType (" << get_type_string(type)
+        << "), returning " << getRSMIStatusString(ErrnoToRsmiStatus(ret));
+     ss << " | "
+        << (fs.is_open() ? "[ERROR] File stream open" :
+@@ -979,20 +979,29 @@ int Device::readDevInfoLine(DevInfoTypes type, std::string *line) {
+   ret = openSysfsFileStream(type, &fs);
+   if (ret != 0) {
+     ss << "Could not read DevInfoLine for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ")";
++       << get_type_string(type) << ")";
+     LOG_ERROR(ss);
+     return ret;
+   }
+ 
+   std::getline(fs, *line);
+   ss << "Successfully read DevInfoLine for DevInfoType ("
+-     << devInfoTypesStrings.at(type) << "), returning *line = "
++     << get_type_string(type) << "), returning *line = "
+      << *line;
+   LOG_INFO(ss);
+ 
+   return 0;
+ }
+ 
++const char* Device::get_type_string(DevInfoTypes type) {
++  auto ite = devInfoTypesStrings.find(type);
++  if (ite != devInfoTypesStrings.end()) {
++    return ite->second;
++  }
++
++  return "Unknown";
++
++}
+ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
+                                 void *p_binary_data) {
+   auto sysfs_path = path_;
+@@ -1005,7 +1014,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
+   ptr = fopen(sysfs_path.c_str(), "rb");
+   if (!ptr) {
+     ss << "Could not read DevInfoBinary for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ")"
++       << get_type_string(type) << ")"
+        << " - SYSFS (" << sysfs_path << ")"
+        << ", returning " << std::to_string(errno) << " ("
+        << std::strerror(errno) << ")";
+@@ -1017,7 +1026,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
+   fclose(ptr);
+   if ((num*b_size) != b_size) {
+     ss << "Could not read DevInfoBinary for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ") - SYSFS ("
++       << get_type_string(type) << ") - SYSFS ("
+        << sysfs_path << "), binary size error; "
+        << "[buff: "
+        << p_binary_data
+@@ -1031,7 +1040,7 @@ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
+     return ENOENT;
+   }
+   ss << "Successfully read DevInfoBinary for DevInfoType ("
+-     << devInfoTypesStrings.at(type) << ") - SYSFS ("
++     << get_type_string(type) << ") - SYSFS ("
+      << sysfs_path << "), returning binaryData = " << p_binary_data
+      << "; byte_size = " << std::dec << static_cast<int>(b_size);
+ 
+@@ -1063,7 +1072,7 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
+ 
+   if (retVec->empty()) {
+     ss << "Read devInfoMultiLineStr for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ")"
++       << get_type_string(type) << ")"
+        << ", but contained no string lines";
+     LOG_ERROR(ss);
+     return ENXIO;
+@@ -1081,12 +1090,12 @@ int Device::readDevInfoMultiLineStr(DevInfoTypes type,
+ 
+   if (!allLines.empty()) {
+     ss << "Successfully read devInfoMultiLineStr for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ") "
++       << get_type_string(type) << ") "
+        << ", returning lines read = " << allLines;
+     LOG_INFO(ss);
+   } else {
+     ss << "Read devInfoMultiLineStr for DevInfoType ("
+-       << devInfoTypesStrings.at(type) << ")"
++       << get_type_string(type) << ")"
+        << ", but lines were empty";
+     LOG_INFO(ss);
+     return ENXIO;
+diff --git a/rocm_smi/src/rocm_smi_main.cc b/rocm_smi/src/rocm_smi_main.cc
+index c078712..5625fb5 100755
+--- a/rocm_smi/src/rocm_smi_main.cc
++++ b/rocm_smi/src/rocm_smi_main.cc
+@@ -560,7 +560,7 @@ std::string RocmSMI::getRSMIEnvVarInfo(void) {
+   for (auto it=env_vars_.enum_overrides.begin();
+        it != env_vars_.enum_overrides.end(); ++it) {
+     DevInfoTypes type = static_cast<DevInfoTypes>(*it);
+-    ss << (std::to_string(*it) + " (" + Device::devInfoTypesStrings.at(type) + ")");
++    ss << (std::to_string(*it) + " (" + Device::get_type_string(type) + ")");
+     auto temp_it = it;
+     if(++temp_it != env_vars_.enum_overrides.end()) {
+       ss << ", ";
+-- 
+2.41.1
+
