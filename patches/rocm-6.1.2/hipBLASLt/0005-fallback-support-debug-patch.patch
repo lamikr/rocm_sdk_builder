@@ -1,7 +1,7 @@
-From 6b32bb226ef045db90c86f955fb3836d3f01ca98 Mon Sep 17 00:00:00 2001
+From ff692eca2e973a0bf6c7e0b88ad3ff2913a98127 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:39:43 -0700
-Subject: [PATCH 5/7] fallback support debug patch
+Subject: [PATCH 5/8] fallback support debug patch
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -23,5 +23,5 @@ index d2ac2166..ce6c0d5f 100644
    if globalParameters["LazyLibraryLoading"] and not (globalParameters["MergeFiles"] and globalParameters["SeparateArchitectures"]):
      printExit("--lazy-library-loading requires --merge-files and --separate-architectures enabled")
 -- 
-2.45.2
+2.46.0
 

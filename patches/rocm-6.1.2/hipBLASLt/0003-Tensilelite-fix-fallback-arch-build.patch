@@ -1,7 +1,7 @@
-From 61b76b1bbdaeac7f08ef13200ffcd4b3fce8f5a6 Mon Sep 17 00:00:00 2001
+From ad469395b8c4423a153dd10d3ff283f7612f8f12 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 19:30:31 -0700
-Subject: [PATCH 3/7] Tensilelite fix fallback arch build
+Subject: [PATCH 3/8] Tensilelite fix fallback arch build
 
 fixes build error which happens for example
 if the only gpu selected is gfx1010 / AMD RX 5700 XT.
@@ -62,5 +62,5 @@ index 8a37403d..d2ac2166 100644
    for arch in archs:
      if arch in architectureMap:
 -- 
-2.45.2
+2.46.0
 

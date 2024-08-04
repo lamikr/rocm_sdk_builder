@@ -1,7 +1,7 @@
-From a687a8343961e0a3c732101b44e0071150f38d51 Mon Sep 17 00:00:00 2001
+From 2ede1afa4de3e563f921e808e6e13084df376716 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 20:56:51 -0700
-Subject: [PATCH 4/7] Tensilelite add gfx1035, 1036 and 1103 to supported isa
+Subject: [PATCH 4/8] Tensilelite add gfx1035, 1036 and 1103 to supported isa
  list
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
@@ -10,7 +10,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
-index c47a8752..3630ee41 100644
+index c47a8752..860a16c4 100644
 --- a/tensilelite/Tensile/Common.py
 +++ b/tensilelite/Tensile/Common.py
 @@ -209,7 +209,7 @@ globalParameters["MergeFiles"] = True             # F=store every solution and k
@@ -34,5 +34,5 @@ index c47a8752..3630ee41 100644
  
  def getArchitectureName(gfxName):
 -- 
-2.45.2
+2.46.0
 

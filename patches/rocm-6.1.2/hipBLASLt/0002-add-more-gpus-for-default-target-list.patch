@@ -1,7 +1,7 @@
-From 490d18000263e3e4849ed78ab4ac7975529a86a7 Mon Sep 17 00:00:00 2001
+From 6d58158733869a2cff8cf685325492c61d468db0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 19:20:44 -0700
-Subject: [PATCH 2/7] add more gpus for default target list
+Subject: [PATCH 2/8] add more gpus for default target list
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -26,5 +26,5 @@ index fec03c1b..c6a16e01 100644
  
      if (AMDGPU_TARGETS)
 -- 
-2.45.2
+2.46.0
 
