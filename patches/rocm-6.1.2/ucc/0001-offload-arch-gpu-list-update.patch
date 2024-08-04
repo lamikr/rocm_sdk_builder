@@ -1,7 +1,7 @@
-From 860fc5b258b6948a70d695d90c422ea8621f25d3 Mon Sep 17 00:00:00 2001
+From 20dc1d46b4b7d7b3d5b9681f0d6edac361746df2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 27 Jul 2024 01:08:15 -0700
-Subject: [PATCH] offload arch gpu list update
+Subject: [PATCH 1/2] offload arch gpu list update
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -32,5 +32,5 @@ index 8a2bdc2..2b2a077 100644
  # ROCM_PARSE_FLAGS(ARG, VAR_LIBS, VAR_LDFLAGS, VAR_CPPFLAGS)
  # ----------------------------------------------------------
 -- 
-2.45.2
+2.46.0
 

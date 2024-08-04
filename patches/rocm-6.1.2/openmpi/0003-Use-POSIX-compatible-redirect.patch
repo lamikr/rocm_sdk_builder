@@ -1,0 +1,40 @@
+From 65c8e2978024fee5c5d24c9575111abd0a391775 Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Sun, 4 Aug 2024 14:47:58 +0000
+Subject: [PATCH 3/3] Use POSIX compatible redirect
+
+Fixes build on systems where /bin/sh is not bash
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ config/oac/oac_check_package.m4 | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/config/oac/oac_check_package.m4 b/config/oac/oac_check_package.m4
+index 6ab607b..4c50bad 100644
+--- a/config/oac/oac_check_package.m4
++++ b/config/oac/oac_check_package.m4
+@@ -595,7 +595,7 @@ AC_DEFUN([_OAC_CHECK_PACKAGE_GENERIC_PREFIX], [
+           [check_package_generic_prefix_happy=0
+            AS_IF([test -n "${check_package_libdir}"],
+                  [AC_MSG_CHECKING([for $1 library (${check_package_generic_search_lib}) in ${check_package_libdir}])
+-                  ls ${check_package_libdir}/lib${check_package_generic_search_lib}.*  1>&/dev/null 2>&1
++                  ls ${check_package_libdir}/lib${check_package_generic_search_lib}.*  >/dev/null 2>&1
+                   AS_IF([test $? -eq 0],
+                         [check_package_generic_prefix_happy=1
+                          $2_LDFLAGS="-L${check_package_libdir}"
+@@ -604,9 +604,9 @@ AC_DEFUN([_OAC_CHECK_PACKAGE_GENERIC_PREFIX], [
+                  [check_package_generic_prefix_lib=0
+                   check_package_generic_prefix_lib64=0
+ 
+-                  ls ${check_package_prefix}/lib/lib${check_package_generic_search_lib}.*  1>&/dev/null 2>&1
++                  ls ${check_package_prefix}/lib/lib${check_package_generic_search_lib}.*  >/dev/null 2>&1
+                   AS_IF([test $? -eq 0], [check_package_generic_prefix_lib=1])
+-                  ls ${check_package_prefix}/lib64/lib${check_package_generic_search_lib}.*  1>&/dev/null 2>&1
++                  ls ${check_package_prefix}/lib64/lib${check_package_generic_search_lib}.*  >/dev/null 2>&1
+                   AS_IF([test $? -eq 0], [check_package_generic_prefix_lib64=1])
+ 
+                   AC_MSG_CHECKING([for $1 library (${check_package_generic_search_lib}) in ${check_package_prefix}])
+-- 
+2.46.0
+
