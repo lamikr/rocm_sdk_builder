@@ -6,15 +6,41 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/rocmnavi/aotriton.git
 #use default git tag
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=30122b28e2abe837eafad5982233b11f5fa3bdd7
 
-#CFG_TEMP1=-DTARGET_GPUS="gfx1035"
-#CFG_TEMP1=-DTARGET_GPUS="MI300X"
-#CFG_TEMP1=-DTARGET_GPUS="MI300X"
-#CFG_TEMP1=-DTARGET_GPUS="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
-# hardcode the list of gpu's for aotriton build temporarily because
-# aotriton kernel build with triton compiler fails to build kernels
-# incluedd in aotriton when target is gfx101* or gfx103* gpu.
-# First build error is related to bf16 and fp16 conversion in dot method
-CFG_TEMP1=-DTARGET_GPUS="gfx90a;gfx942;gfx1100;gfx1101;gfx1102;gfx1103"
+func_filter_gfx_array() {
+	#local gpu_list_str=$1
+	#local -n gpu_accepted_arr="$2"
+	local gpu_list_str=$1
+	shift
+    local default_val=$1
+    shift
+    local gpu_accepted_arr=("$@")
+	local ret
+
+	ret=""
+	#echo "gpu_list_str: ${gpu_list_str}"
+	for gpu_name in "${gpu_accepted_arr[@]}"; do
+        #echo "gpu_name: $gpu_name"
+        if [[ ${gpu_list_str} =~ ${gpu_name} ]]; then
+            #echo "${gpu_accepted_arr[$ii]}"
+            if [ -z ${ret} ]; then
+                ret=${gpu_name};
+            else
+                ret=${ret}\;${gpu_name};
+            fi
+        fi
+    done
+    if [ -z ${ret} ]; then
+        ret=${default_val};
+    fi
+    echo "${ret}"
+}
+
+# hardcoded list of GPU's where aotriton build works
+ACCEPTED_GPU_LIST=(gfx90a gfx942 gfx1100 gfx1101 gfx1102 gfx1103)
+# take only those GPU's from the array that are in the SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT
+# and if none of the GPU's match, return gfx1100 as a default
+FILTERED_GPU_LIST=$(func_filter_gfx_array ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx90a "${ACCEPTED_GPU_LIST[@]}")
+CFG_TEMP1=-DTARGET_GPUS="${FILTERED_GPU_LIST}"
 
 BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "rm -rf ~/.triton/cache"
