@@ -1,0 +1,38 @@
+From efd33956604e3df0fede0fe876cf5024acc586df Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 6 Aug 2024 17:15:39 -0700
+Subject: [PATCH 4/4] printout aotriton tuning db gpu info
+
+printout information if tuning data was available
+in database for kernel when build for certain gpu
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ v2python/tuning_database.py | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/v2python/tuning_database.py b/v2python/tuning_database.py
+index 14ef241..fd1dc59 100644
+--- a/v2python/tuning_database.py
++++ b/v2python/tuning_database.py
+@@ -9,6 +9,8 @@ from .common_tuning_database import CommonKernelTuningDatabaseForArch
+ from .sqlite_tuning_database import SQLiteKernelTuningDatabaseForArch
+ from .downgrader import TuningDowngrader
+ from .tuning_lut import KernelTuningEntryForFunctionalOnGPU
++import sys
++import time
+ 
+ class EmptyKernelTuningDatabaseForArch(CommonKernelTuningDatabaseForArch):
+     def __init__(self, k, arch):
+@@ -109,6 +111,8 @@ class KernelTuningDatabase(object):
+                 self.arch_dict[arch] = EmptyKernelTuningDatabaseForArch(self._kdesc, arch)
+             else:
+                 self.arch_dict[arch] = BootstrapTuningDatabaseForArch(self._kdesc, arch)
++        else:
++            print(f'For kernel {self._kdesc.KERNEL_FAMILY}.{self._kdesc.name}, Architecture {arch} was found in tuning database')
+         return self.arch_dict[arch].set_gpu(gpu, index)
+ 
+     @property
+-- 
+2.45.2
+
