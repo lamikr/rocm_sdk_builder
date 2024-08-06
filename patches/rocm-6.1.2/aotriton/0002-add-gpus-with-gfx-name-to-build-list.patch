@@ -1,7 +1,7 @@
-From 1945003078824f6e885b667101dbcff61e56e3d0 Mon Sep 17 00:00:00 2001
+From 983d995c98d5d5767205c09c5adf123567de0614 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jul 2024 12:48:47 -0700
-Subject: [PATCH 2/3] add gpus with gfx-name to build list
+Subject: [PATCH 2/4] add gpus with gfx-name to build list
 
 add all rocm sdk gpu's to build list
 and use the gfx* name for them instead
@@ -12,11 +12,13 @@ other rocm libraries and apps.
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- include/aotriton/util.h | 10 ++++++++++
- v2python/compile.py     | 14 ++++++++++++++
- v2python/gpu_targets.py | 42 +++++++++++++++++++++++++++++++++++++++++
- v2src/util.cc           | 10 ++++++++++
- 4 files changed, 76 insertions(+)
+ include/aotriton/util.h  |  10 +++
+ v2python/compile.py      |  14 +++
+ v2python/compile.py.orig | 186 +++++++++++++++++++++++++++++++++++++++
+ v2python/gpu_targets.py  |  42 +++++++++
+ v2src/util.cc            |  10 +++
+ 5 files changed, 262 insertions(+)
+ create mode 100644 v2python/compile.py.orig
 
 diff --git a/include/aotriton/util.h b/include/aotriton/util.h
 index efb9395..74033e3 100644
@@ -42,10 +44,10 @@ index efb9395..74033e3 100644
  
  template<int Rank>
 diff --git a/v2python/compile.py b/v2python/compile.py
-index 8730530..8a0ac2d 100644
+index 78dd4de..81d928b 100644
 --- a/v2python/compile.py
 +++ b/v2python/compile.py
-@@ -26,6 +26,20 @@ KNOWN_TARGETS = {
+@@ -20,6 +20,20 @@ KNOWN_TARGETS = {
          'MI300X' : GPUTarget('hip', 'gfx942', 64),
          'Navi31' : GPUTarget('hip', 'gfx1100', 32),
          'Navi32' : GPUTarget('hip', 'gfx1101', 32),
@@ -65,29 +67,221 @@ index 8730530..8a0ac2d 100644
 +        'gfx1103' : GPUTarget('hip', 'gfx1103', 32),
  }
  
- def main():
+ desc = """
+diff --git a/v2python/compile.py.orig b/v2python/compile.py.orig
+new file mode 100644
+index 0000000..78dd4de
+--- /dev/null
++++ b/v2python/compile.py.orig
+@@ -0,0 +1,186 @@
++import binascii
++import hashlib
++import importlib.util
++import sys
++from argparse import ArgumentParser
++from pathlib import Path
++from typing import List
++
++import shutil
++import subprocess
++from multiprocessing import Process, Queue
++import queue
++import json
++
++from triton.backends.compiler import GPUTarget
++
++KNOWN_TARGETS = {
++        None     : None,
++        'MI200'  : GPUTarget('hip', 'gfx90a', 64),
++        'MI300X' : GPUTarget('hip', 'gfx942', 64),
++        'Navi31' : GPUTarget('hip', 'gfx1100', 32),
++        'Navi32' : GPUTarget('hip', 'gfx1101', 32),
++}
++
++desc = """
++Triton ahead-of-time compiler:
++"""
++
++def parse():
++    parser = ArgumentParser(description=desc)
++    parser.add_argument("path",
++                        help="Path to Python source containing desired kernel in its scope. File will be executed.")
++    parser.add_argument("--target", type=str, default=None,
++                        choices=list(KNOWN_TARGETS.keys()),
++                        help="Ahead of Time (AOT) Compile Architecture. PyTorch is required for autodetection if --target is missing.")
++    parser.add_argument("--kernel_name", "-n", type=str, default="", help="Name of the kernel to compile",
++                        required=True)
++    parser.add_argument("--num_warps", "-w", type=int, default=1, help="Number of warps to launch the kernel")
++    parser.add_argument("--num_stages", "-ns", type=int, default=3,
++                        help="Number of stages (meta-parameter of the kernel)")
++    parser.add_argument("--waves_per_eu", type=int, default=0)
++    parser.add_argument("--out_path", "-o", type=Path, required=True, help="Out filename")
++    parser.add_argument("--signature", "-s", type=str, help="Signature of the kernel", required=True)
++    parser.add_argument("--grid", "-g", type=str, help="Launch grid of the kernel", required=True)
++    parser.add_argument("--verbose", "-v", help="Enable vebose output", action='store_true')
++    parser.add_argument("--nostrip", help="Keep debugging symbols", action='store_true')
++    parser.add_argument("--timeout", type=float, default=0.0, help='Maximal time the compiler can run. Passing 0 for indefinite.')
++    parser.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")
++    args = parser.parse_args()
++    return args
++
++def do_compile(args):
++    import triton
++    from triton.compiler.code_generator import kernel_suffix
++    from triton.backends.amd.driver import ty_to_cpp
++
++    out_path = args.out_path
++    llvm_prefix_path = args.llvm_prefix_path if args.llvm_prefix_path else "/opt/rocm/llvm"
++
++    # execute python sources and extract functions wrapped in JITFunction
++    arg_path = Path(args.path)
++    sys.path.insert(0, str(arg_path.parent))
++    '''
++    spec = importlib.util.spec_from_file_location(arg_path.stem, arg_path)
++    mod = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(mod)
++    kernel = getattr(mod, args.kernel_name)
++    '''
++    if True:
++        exec_string = f'import {arg_path.stem}'
++        # print(exec_string)
++        exec(exec_string, globals()) # importlib code path miss things
++        # print(globals())
++        # kernel = globals()[f"{arg_path.stem}.{args.kernel_name}"]
++        mod = globals()[arg_path.stem]
++        kernel = getattr(mod, args.kernel_name)
++
++    grid = args.grid.split(",")
++    assert len(grid) == 3
++
++    # validate and parse signature
++    signature = list(map(lambda s: s.strip(" "), args.signature.split(",")))
++
++    def hash_signature(signature: List[str]):
++        m = hashlib.sha256()
++        m.update(" ".join(signature).encode())
++        return m.hexdigest()[:8]
++
++    meta_sig = f"warps{args.num_warps}xstages{args.num_stages}"
++    sig_hash = hash_signature(signature + [meta_sig])
++
++    def constexpr(s):
++        try:
++            ret = int(s)
++            return ret
++        except ValueError:
++            pass
++        try:
++            ret = float(s)
++            return ret
++        except ValueError:
++            pass
++        if s == 'True':
++            return True
++        if s == 'False':
++            return False
++        return None
++
++    hints = {i: constexpr(s.split(":")[1]) for i, s in enumerate(signature) if ":" in s}
++    hints = {k: v for k, v in hints.items() if v is not None}
++    constants = {i: constexpr(s) for i, s in enumerate(signature)}
++    constants = {k: v for k, v in constants.items() if v is not None}
++    # print(f"{constexprs=}")
++    signature = {i: s.split(":")[0] for i, s in enumerate(signature) if i not in constants}
++    const_sig = 'x'.join([str(v) for v in constants.values()])
++    doc_string = [f"{kernel.arg_names[i]}={constants[i]}" for i in constants.keys()]
++    doc_string += [f"num_warps={args.num_warps}", f"num_stages={args.num_stages}"]
++
++    # compile ast into cubin
++    for h in hints.values():
++        assert h in [1, 16], f"Only 1 and 16 are valid hints, got {h}"
++    divisible_by_16 = [i for i, h in hints.items() if h == 16]
++    equal_to_1 = [i for i, h in hints.items() if h == 1]
++    attrs = triton.compiler.AttrsDescriptor(divisible_by_16=divisible_by_16, equal_to_1=equal_to_1)
++    for i in equal_to_1:
++        constants.update({i: 1})
++    src = triton.compiler.ASTSource(fn=kernel, constants=constants, signature=signature, attrs=attrs)
++    opts = {"num_warps": args.num_warps, "num_stages": args.num_stages}
++    ccinfo = triton.compile(src, target=KNOWN_TARGETS[args.target], options=opts)
++    # import pdb; pdb.set_trace()
++    with open(out_path.with_suffix('.hsaco'), 'bw') as f:
++        f.write(ccinfo.kernel)
++    with open(out_path.with_suffix('.json'), 'w') as f:
++        di = ccinfo.metadata._asdict()
++        del di['target']  # Cannot be serialized to Json
++        di['compile_status'] = 'Complete'
++        json.dump(di, f, indent=2)
++    return out_path
++
++def ipc_compile(ipc_in, ipc_out):
++    args = ipc_in.get()
++    try:
++        out_path = do_compile(args)
++        ipc_out.put('Complete')
++    except Exception as e:
++        if args.verbose:
++            print(e)
++        ipc_out.put('Exception')
++
++def main():
++    # command-line arguments
++    args = parse()
++    if args.timeout <= 0:
++        do_compile(args)
++        return
++    ipc_to_worker = Queue()
++    ipc_worker_out = Queue()
++    ipc_to_worker.cancel_join_thread()
++    ipc_worker_out.cancel_join_thread()
++    worker = Process(target=ipc_compile, args=(ipc_to_worker, ipc_worker_out))
++    worker.start()
++    ipc_to_worker.put(args)
++    try:
++        status = ipc_worker_out.get(timeout=args.timeout * 60.0)
++    except queue.Empty:
++        status = 'Timeout'
++        worker.kill()
++        print(f'Compiling {args.path=} {args.kernel_name} to {args.out_path=} timed out with {args.timeout} minutes',
++              file=sys.stderr)
++    ipc_to_worker.close()
++    ipc_worker_out.close()
++    worker.join()
++    if status != 'Timeout' and worker.exitcode != 0:
++        status = 'ExitWithError'
++    if args.verbose:
++        print(f'Compiling {args.path=} {args.kernel_name} to {args.out_path=} result with status {status} exitcode {worker.exitcode}')
++    # Write an empty file to avoid errors
++    if status != 'Complete':
++        with open(args.out_path.with_suffix('.hsaco'), 'bw') as f:
++            pass
++        with open(args.out_path.with_suffix('.json'), 'w') as f:
++            d = {'compile_status': status}
++            json.dump(d, f, indent=2)
++
++if __name__ == "__main__":
++    main()
 diff --git a/v2python/gpu_targets.py b/v2python/gpu_targets.py
-index fb51fef..b3ef7c3 100644
+index fb51fef..32ccfff 100644
 --- a/v2python/gpu_targets.py
 +++ b/v2python/gpu_targets.py
 @@ -6,6 +6,20 @@ AOTRITON_SUPPORTED_GPUS = {
      'MI300X'    : 'GPU_ARCH_AMD_GFX942',
      'Navi31'    : 'GPU_ARCH_AMD_GFX1100',
      'Navi32'    : 'GPU_ARCH_AMD_GFX1101',
-+	'gfx90a'    : 'GPU_ARCH_AMD_GFX90A',
-+	'gfx942'    : 'GPU_ARCH_AMD_GFX942',
-+	'gfx1010'   : 'GPU_ARCH_AMD_GFX1010',
-+	'gfx1011'   : 'GPU_ARCH_AMD_GFX1011',
-+	'gfx1012'   : 'GPU_ARCH_AMD_GFX1012',
-+	'gfx1030'   : 'GPU_ARCH_AMD_GFX1030',
-+	'gfx1031'   : 'GPU_ARCH_AMD_GFX1031',
-+	'gfx1032'   : 'GPU_ARCH_AMD_GFX1032',
-+	'gfx1035'   : 'GPU_ARCH_AMD_GFX1035',
-+	'gfx1036'   : 'GPU_ARCH_AMD_GFX1036',
-+	'gfx1100'   : 'GPU_ARCH_AMD_GFX1100',
-+	'gfx1101'   : 'GPU_ARCH_AMD_GFX1101',
-+	'gfx1102'   : 'GPU_ARCH_AMD_GFX1102',
-+	'gfx1103'   : 'GPU_ARCH_AMD_GFX1103',
++    'gfx90a'    : 'GPU_ARCH_AMD_GFX90A',
++    'gfx942'    : 'GPU_ARCH_AMD_GFX942',
++    'gfx1010'   : 'GPU_ARCH_AMD_GFX1010',
++    'gfx1011'   : 'GPU_ARCH_AMD_GFX1011',
++    'gfx1012'   : 'GPU_ARCH_AMD_GFX1012',
++    'gfx1030'   : 'GPU_ARCH_AMD_GFX1030',
++    'gfx1031'   : 'GPU_ARCH_AMD_GFX1031',
++    'gfx1032'   : 'GPU_ARCH_AMD_GFX1032',
++    'gfx1035'   : 'GPU_ARCH_AMD_GFX1035',
++    'gfx1036'   : 'GPU_ARCH_AMD_GFX1036',
++    'gfx1100'   : 'GPU_ARCH_AMD_GFX1100',
++    'gfx1101'   : 'GPU_ARCH_AMD_GFX1101',
++    'gfx1102'   : 'GPU_ARCH_AMD_GFX1102',
++    'gfx1103'   : 'GPU_ARCH_AMD_GFX1103',
  }
  
  AOTRITON_GPU_ARCH_TUNING_STRING = {
@@ -95,20 +289,20 @@ index fb51fef..b3ef7c3 100644
      'MI300X'    : 'gfx942',
      'Navi31'    : 'gfx1100',
      'Navi32'    : 'gfx1101',
-+	'gfx90a'    : 'gfx90a',
-+	'gfx942'    : 'gfx942',
-+	'gfx1010'   : 'gfx1010',
-+	'gfx1011'   : 'gfx1011',
-+	'gfx1012'   : 'gfx1012',
-+	'gfx1030'   : 'gfx1030',
-+	'gfx1031'   : 'gfx1031',
-+	'gfx1032'   : 'gfx1032',
-+	'gfx1035'   : 'gfx1035',
-+	'gfx1036'   : 'gfx1036',
-+	'gfx1100'   : 'gfx1100',
-+	'gfx1101'   : 'gfx1101',
-+	'gfx1102'   : 'gfx1102',
-+	'gfx1103'   : 'gfx1103',
++    'gfx90a'    : 'gfx90a',
++    'gfx942'    : 'gfx942',
++    'gfx1010'   : 'gfx1010',
++    'gfx1011'   : 'gfx1011',
++    'gfx1012'   : 'gfx1012',
++    'gfx1030'   : 'gfx1030',
++    'gfx1031'   : 'gfx1031',
++    'gfx1032'   : 'gfx1032',
++    'gfx1035'   : 'gfx1035',
++    'gfx1036'   : 'gfx1036',
++    'gfx1100'   : 'gfx1100',
++    'gfx1101'   : 'gfx1101',
++    'gfx1102'   : 'gfx1102',
++    'gfx1103'   : 'gfx1103',
  }
  
  AOTRITON_GPU_WARPSIZE = {
@@ -116,20 +310,20 @@ index fb51fef..b3ef7c3 100644
      'MI300X'    : 64,
      'Navi31'    : 32,
      'Navi32'    : 32,
-+	'gfx90a'    : 64,
-+	'gfx942'    : 64,
-+	'gfx1010'   : 32,
-+	'gfx1011'   : 32,
-+	'gfx1012'   : 32,
-+	'gfx1030'   : 32,
-+	'gfx1031'   : 32,
-+	'gfx1032'   : 32,
-+	'gfx1035'   : 32,
-+	'gfx1036'   : 32,
-+	'gfx1100'   : 32,
-+	'gfx1101'   : 32,
-+	'gfx1102'   : 32,
-+	'gfx1103'   : 32,
++    'gfx90a'    : 64,
++    'gfx942'    : 64,
++    'gfx1010'   : 32,
++    'gfx1011'   : 32,
++    'gfx1012'   : 32,
++    'gfx1030'   : 32,
++    'gfx1031'   : 32,
++    'gfx1032'   : 32,
++    'gfx1035'   : 32,
++    'gfx1036'   : 32,
++    'gfx1100'   : 32,
++    'gfx1101'   : 32,
++    'gfx1102'   : 32,
++    'gfx1103'   : 32,
  }
 diff --git a/v2src/util.cc b/v2src/util.cc
 index 2c47e1d..2a6128b 100644
