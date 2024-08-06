@@ -1,7 +1,7 @@
-From 5b47bd59cf54c9f3c259f6f870aac03c7add1a1d Mon Sep 17 00:00:00 2001
+From 6e4bd48fc774cc116fcc86507e6398de5216f2c1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jul 2024 00:01:32 -0700
-Subject: [PATCH 1/3] pass extra build options
+Subject: [PATCH 1/4] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -9,19 +9,19 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  python/generate.py                 |  4 +++-
  third_party/triton/CMakeLists.txt  | 12 ++++++++++++
  third_party/triton/python/setup.py | 21 +++++++++++++++++++++
- v2python/compile.py                |  3 +++
+ v2python/compile.py                |  2 ++
  v2python/generate_compile.py       |  7 ++++++-
  v2src/CMakeLists.txt               |  3 ++-
- 7 files changed, 70 insertions(+), 6 deletions(-)
+ 7 files changed, 69 insertions(+), 6 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 4f22778..ad16f2f 100644
+index 5f167bd..08b27a8 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -17,7 +17,27 @@ option(AOTRITON_NO_PYTHON "Disable python binding build" OFF)
- option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
+@@ -18,7 +18,27 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
  option(AOTRITON_BUILD_FOR_TUNING "Build all GPU kernels and set -DAOTRITON_BUILD_FOR_TUNING=1 (=0 otherwise)" OFF)
- set(TARGET_GPUS "MI200;MI300X" CACHE STRING "Target Architecture (Note here uses Trade names)")
+ set(AOTRITON_GPU_BUILD_TIMEOUT "8.0" CACHE STRING "GPU kernel compiler times out after X minutes. 0 for indefinite. Highly recommended if AOTRITON_BUILD_FOR_TUNING=On.")
+ set(TARGET_GPUS "MI200;MI300X;Navi31" CACHE STRING "Target Architecture (Note here uses Trade names)")
 -set(AMDHSA_LD_PRELOAD "/opt/rocm/lib/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
 +if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so")
 +    set(AMDHSA_LD_PRELOAD "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
@@ -47,7 +47,7 @@ index 4f22778..ad16f2f 100644
  
  # GPU kernel compression related options
  option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
-@@ -50,7 +70,7 @@ if(AOTRITON_COMPRESS_KERNEL)
+@@ -59,7 +79,7 @@ if(AOTRITON_COMPRESS_KERNEL)
      endif()
  endif()
  
@@ -56,7 +56,7 @@ index 4f22778..ad16f2f 100644
  if(AOTRITON_ENABLE_ASAN)
      set(AOTRITON_EXTRA_COMPILER_OPTIONS "${AOTRITON_EXTRA_COMPILER_OPTIONS} -g -fsanitize=address -fno-omit-frame-pointer")
      set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AOTRITON_EXTRA_COMPILER_OPTIONS}")
-@@ -88,7 +108,7 @@ set(AOTRITON_TRITON_EGGLINK "${VENV_SITE}/triton.egg-link")
+@@ -97,7 +117,7 @@ set(AOTRITON_TRITON_EGGLINK "${VENV_SITE}/triton.egg-link")
  message("AOTRITON_TRITON_EGGLINK ${AOTRITON_TRITON_EGGLINK}")
  
  add_custom_command(OUTPUT "${AOTRITON_TRITON_EGGLINK}"
@@ -144,25 +144,27 @@ index 7dafce2..390ee8b 100644
              cmake_args.append("-DLLVM_EXTERNAL_LIT=" + lit_dir)
          cmake_args.extend(thirdparty_cmake_args)
 diff --git a/v2python/compile.py b/v2python/compile.py
-index adccbb1..8730530 100644
+index 0a0ec8c..78dd4de 100644
 --- a/v2python/compile.py
 +++ b/v2python/compile.py
-@@ -48,10 +48,13 @@ def main():
-     parser.add_argument("--grid", "-g", type=str, help="Launch grid of the kernel", required=True)
+@@ -45,6 +45,7 @@ def parse():
      parser.add_argument("--verbose", "-v", help="Enable vebose output", action='store_true')
      parser.add_argument("--nostrip", help="Keep debugging symbols", action='store_true')
+     parser.add_argument("--timeout", type=float, default=0.0, help='Maximal time the compiler can run. Passing 0 for indefinite.')
 +    parser.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")
      args = parser.parse_args()
+     return args
  
-     out_name = args.out_name if args.out_name else args.kernel_name
-     out_path = args.out_path if args.out_path else Path(out_name)
-+    
+@@ -54,6 +55,7 @@ def do_compile(args):
+     from triton.backends.amd.driver import ty_to_cpp
+ 
+     out_path = args.out_path
 +    llvm_prefix_path = args.llvm_prefix_path if args.llvm_prefix_path else "/opt/rocm/llvm"
  
      # execute python sources and extract functions wrapped in JITFunction
      arg_path = Path(args.path)
 diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
-index a20ec3b..feb9610 100644
+index 1101382..91473ed 100644
 --- a/v2python/generate_compile.py
 +++ b/v2python/generate_compile.py
 @@ -19,6 +19,8 @@ def parse():
@@ -173,8 +175,8 @@ index a20ec3b..feb9610 100644
 +    p.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")    
      p.add_argument("--bare_mode", action='store_true', help="Instead of generating a proper Makefile, only generate compiler options and leave the remaining tasks to cmake.")
      p.add_argument("--build_for_tuning", action='store_true', help="Build all possible GPU kernels for performance tuning.")
-     # p.add_argument("--autotune_data", type=str, default=None, help="Autotune results generated by tune_flash.py")
-@@ -27,6 +29,7 @@ def parse():
+     p.add_argument("--timeout", type=float, default=8.0, help='Maximal time the compiler can run. Passing < 0 for indefinite. No effect in bare mode (handled separately)')
+@@ -28,6 +30,7 @@ def parse():
      return args
  
  def gen_from_object(args, o : 'ObjectFileDescription', makefile):
@@ -182,7 +184,7 @@ index a20ec3b..feb9610 100644
      target_fn = f'{o.KERNEL_FAMILY}/gpu_kernel_image.{o.SHIM_KERNEL_NAME}/{o._hsaco_kernel_path.name}'
      if args.bare_mode:
          print(o.obj.absolute(), o.src.absolute(), o.entrance, o.num_warps, o.num_stages, o.waves_per_eu, o.target_gpu, o.signature, sep=';', file=makefile)
-@@ -35,6 +38,7 @@ def gen_from_object(args, o : 'ObjectFileDescription', makefile):
+@@ -36,6 +39,7 @@ def gen_from_object(args, o : 'ObjectFileDescription', makefile):
      print(target_fn, ':', o.src.absolute(), COMPILER.absolute(), file=makefile)
      cmd  = f'LD_PRELOAD=$(LIBHSA_RUNTIME64) {COMPILER} {o.src.absolute()} --kernel_name {o.entrance} -o {o.obj.absolute()}'
      cmd += f' -g 1,1,1 --num_warps {o.num_warps} --num_stages {o.num_stages} --waves_per_eu {o.waves_per_eu}'
@@ -190,7 +192,7 @@ index a20ec3b..feb9610 100644
      if o.target_gpu is not None:
          cmd += f" --target '{o.target_gpu}'"
          target_gpu = o.target_gpu
-@@ -74,10 +78,11 @@ def gen_from_kernel(args, k, build_dir, makefile):
+@@ -76,10 +80,11 @@ def gen_from_kernel(args, k, build_dir, makefile):
  def main():
      args = parse()
      build_dir = Path(args.build_dir)
@@ -204,7 +206,7 @@ index a20ec3b..feb9610 100644
          per_kernel_targets = []
          for k in triton_kernels:
 diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
-index f7399fd..d4ba52b 100644
+index ca7a4b5..5c7d2a2 100644
 --- a/v2src/CMakeLists.txt
 +++ b/v2src/CMakeLists.txt
 @@ -1,6 +1,7 @@
