@@ -1,7 +1,7 @@
-From cf2a742358921ced56b6c1b3f9592fcba7df9cff Mon Sep 17 00:00:00 2001
+From 6e203e4d0c12e01a1bb91522ec25326cdfda56f0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
-Subject: [PATCH 2/5] check rocm path from installed pytorch variables
+Subject: [PATCH 2/6] check rocm path from installed pytorch variables
 
 - Use ROCM_HOME variable from the installed pytorch
   also for checking path where to call rocminfo
@@ -14,18 +14,21 @@ Subject: [PATCH 2/5] check rocm path from installed pytorch variables
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- op_builder/builder.py | 36 +++++++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 11 deletions(-)
+ op_builder/builder.py | 52 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 35 insertions(+), 17 deletions(-)
 
 diff --git a/op_builder/builder.py b/op_builder/builder.py
-index df54415c..a27b134c 100644
+index 8998fc0e..4d0da95f 100644
 --- a/op_builder/builder.py
 +++ b/op_builder/builder.py
-@@ -235,12 +235,22 @@ class OpBuilder(ABC):
+@@ -248,15 +248,27 @@ class OpBuilder(ABC):
      def get_rocm_gpu_arch():
          if OpBuilder._rocm_gpu_arch:
              return OpBuilder._rocm_gpu_arch
--        rocm_gpu_arch_cmd = "/opt/rocm/bin/rocminfo | grep -o -m 1 'gfx.*'"
+-        rocm_info = Path("/opt/rocm/bin/rocminfo")
+-        if (not rocm_info.is_file()):
+-            rocm_info = Path("rocminfo")
+-        rocm_gpu_arch_cmd = str(rocm_info) + " | grep -o -m 1 'gfx.*'"
 -        try:
 -            result = subprocess.check_output(rocm_gpu_arch_cmd, shell=True)
 -            rocm_gpu_arch = result.decode('utf-8').strip()
@@ -35,33 +38,48 @@ index df54415c..a27b134c 100644
 +        AMDGPU_TARGETS = environ.get('AMDGPU_TARGETS')
 +        if (AMDGPU_TARGETS is not None) and (str(AMDGPU_TARGETS).strip()!=""):
 +            rocm_gpu_arch = AMDGPU_TARGETS
-+            print("not empty")
++            print("AMDGPU_TARGETS rocm_gpu_arch: " + rocm_gpu_arch)
 +        else:
++            rocm_info=""
 +            if torch.utils.cpp_extension.ROCM_HOME is not None:
-+                rocminfo_cmd = os.path.join(torch.utils.cpp_extension.ROCM_HOME, "bin/rocminfo")
-+                rocm_gpu_arch_cmd = rocminfo_cmd + " | grep -o -m 1 'gfx.*'"
-+                try:
-+                    result = subprocess.check_output(rocm_gpu_arch_cmd, shell=True)
-+                    rocm_gpu_arch = result.decode('utf-8').strip()
-+                except subprocess.CalledProcessError:
-+                    rocm_gpu_arch = ""
++                rocm_info = Path(os.path.join(torch.utils.cpp_extension.ROCM_HOME, "bin/rocminfo"))
++            if (not rocm_info.is_file()):
++                rocm_info = Path("/opt/rocm/bin/rocminfo")
++            if (not rocm_info.is_file()):
++                rocm_info = Path("rocminfo")
++            rocm_gpu_arch_cmd = str(rocm_info) + " | grep -o -m 1 'gfx.*'"
++            try:
++                result = subprocess.check_output(rocm_gpu_arch_cmd, shell=True)
++                rocm_gpu_arch = result.decode('utf-8').strip()
++            except subprocess.CalledProcessError:
++                rocm_gpu_arch = ""
 +            else:
 +                rocm_gpu_arch = ""
          OpBuilder._rocm_gpu_arch = rocm_gpu_arch
          return OpBuilder._rocm_gpu_arch
  
-@@ -248,11 +258,15 @@ class OpBuilder(ABC):
+@@ -264,16 +276,22 @@ class OpBuilder(ABC):
      def get_rocm_wavefront_size():
          if OpBuilder._rocm_wavefront_size:
              return OpBuilder._rocm_wavefront_size
--        rocm_wavefront_size_cmd = "/opt/rocm/bin/rocminfo | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
+-
+-        rocm_info = Path("/opt/rocm/bin/rocminfo")
++        rocm_info=""
++        if torch.utils.cpp_extension.ROCM_HOME is not None:
++            rocm_info = Path(os.path.join(torch.utils.cpp_extension.ROCM_HOME, "bin/rocminfo"))
++        if (not rocm_info.is_file()):
++            rocm_info = Path("/opt/rocm/bin/rocminfo")
+         if (not rocm_info.is_file()):
+             rocm_info = Path("rocminfo")
+-        rocm_wavefront_size_cmd = str(
+-            rocm_info) + " | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
 -        try:
 -            result = subprocess.check_output(rocm_wavefront_size_cmd, shell=True)
 -            rocm_wavefront_size = result.decode('utf-8').strip()
 -        except subprocess.CalledProcessError:
-+        if torch.utils.cpp_extension.ROCM_HOME is not None:
-+            rocminfo_cmd = os.path.join(torch.utils.cpp_extension.ROCM_HOME, "bin/rocminfo")
-+            rocm_wavefront_size_cmd = rocminfo_cmd + " | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
++        if (rocm_info.is_file()):
++            rocm_wavefront_size_cmd = str(
++                rocm_info) + " | grep -Eo -m1 'Wavefront Size:[[:space:]]+[0-9]+' | grep -Eo '[0-9]+'"
 +            try:
 +                result = subprocess.check_output(rocm_wavefront_size_cmd, shell=True)
 +                rocm_wavefront_size = result.decode('utf-8').strip()
