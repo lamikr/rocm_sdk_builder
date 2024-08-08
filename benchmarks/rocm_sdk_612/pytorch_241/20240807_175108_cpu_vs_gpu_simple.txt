@@ -1,0 +1,11 @@
+Benchmarking CPU and GPUs
+Pytorch version: 2.4.1-rc1
+ROCM HIP version: 6.1.40093-8099c494c
+       Device: cpu-16
+    'CPU time: 23.486 sec
+       Device: AMD Radeon RX 7700S
+    'GPU time: 0.199 sec
+       Device: AMD Radeon 780M
+    'GPU time: 0.191 sec
+Benchmark ready
+

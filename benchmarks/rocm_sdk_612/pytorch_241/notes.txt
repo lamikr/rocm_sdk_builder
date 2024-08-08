@@ -1,0 +1,6 @@
+20240807_175108_pytorch_dot_products.txt
+- pytorch 2.4.1-rc1
+- amdsmi-fix
+- aotriton gfx110* series tuning data
+- latest deepspeed
+- bitsandbytes, triton and torch_migraphx update
