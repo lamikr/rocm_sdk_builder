@@ -1,0 +1,2 @@
+gfx1030 results with hacked pytorch from 20240805
+- older aotriton version than the one which has gfx110x tuning fix

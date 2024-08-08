@@ -1,0 +1,51 @@
+Pytorch version: 2.4.1-rc1
+dot product calculation test
+tensor([[[ 0.0377, -0.4681, -0.5734,  1.1364, -0.2186, -0.7082,  0.5863,
+          -0.2069],
+         [-0.3001, -0.7798, -0.3014,  1.4297, -0.1664, -1.0023,  0.7803,
+          -0.3309],
+         [ 0.7447, -0.7807,  0.2690,  1.2052,  0.2125, -0.5166,  0.4624,
+           0.2819]],
+
+        [[ 0.7447, -0.0688,  0.0293, -0.5658, -0.2677,  0.1797, -0.5611,
+           0.6280],
+         [ 1.9031, -0.0560, -0.3467,  0.3541,  0.0653, -1.1427,  0.3638,
+           1.4265],
+         [ 2.2887, -0.1055, -0.4986,  0.6864,  0.1769, -1.6577,  0.6076,
+           1.8052]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 6800
+    Default cuda:0 benchmark:
+        25666.238 microseconds, 0.02566623799066292 sec
+    Math cuda:0 benchmark:
+        26148.054 microseconds, 0.026148054201621564 sec
+    Flash Attention cuda:0 benchmark:
+    Flash Attention cuda:0 is not supported. See warnings for reasons.
+    Memory Efficient cuda:0 benchmark:
+    Memory Efficient cuda:0 is not supported. See warnings for reasons.
+Device: cpu-16
+    Default cpu benchmark:
+        29144372.636 microseconds, 29.144372635986656 sec
+    Math cpu benchmark:
+        32452335.613 microseconds, 32.452335612964816 sec
+    Flash Attention cpu benchmark:
+        28638718.318 microseconds, 28.638718318019528 sec
+    Memory Efficient cpu benchmark:
+    Memory Efficient cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.4.1-rc1
+ROCM HIP version: 6.1.40093-2b15d6049
+Device: AMD Radeon RX 6800
+               Default cuda:0:            25666.238 ms
+                  Math cuda:0:            26148.054 ms
+       Flash Attention cuda:0:               -1.000 ms
+      Memory Efficient cuda:0:               -1.000 ms
+
+Device: cpu-16
+                  Default cpu:         29144372.636 ms
+                     Math cpu:         32452335.613 ms
+          Flash Attention cpu:         28638718.318 ms
+         Memory Efficient cpu:               -1.000 ms
+

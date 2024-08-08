@@ -1,0 +1,51 @@
+Pytorch version: 2.3.1
+dot product calculation test
+tensor([[[ 0.9455, -0.6972,  0.6711, -0.6345,  0.4092, -0.7703,  0.0519,
+           0.0941],
+         [ 0.9826, -0.8131,  0.9687,  0.2898,  0.4251, -0.4728, -0.3721,
+           0.3235],
+         [ 0.9581, -0.4088,  0.8697,  1.8528,  0.7221,  0.2384, -0.9122,
+           0.6484]],
+
+        [[-0.3769,  1.5725, -0.1406,  1.0675,  0.4376, -0.1497,  0.1996,
+          -0.6237],
+         [ 0.0979,  1.1114,  0.4869,  0.9094,  0.1796, -0.7216, -0.2395,
+           0.1582],
+         [ 0.1717,  1.1014,  0.3889,  1.0819,  0.0485, -0.6566,  0.5223,
+          -0.4733]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 6800
+    Default cuda:0 benchmark:
+        25619.943 microseconds, 0.025619942622142844 sec
+    Math cuda:0 benchmark:
+        26119.020 microseconds, 0.026119020103942604 sec
+    Flash Attention cuda:0 benchmark:
+    Flash Attention cuda:0 is not supported. See warnings for reasons.
+    Memory Efficient cuda:0 benchmark:
+    Memory Efficient cuda:0 is not supported. See warnings for reasons.
+Device: cpu-16
+    Default cpu benchmark:
+        29142019.198 microseconds, 29.142019197985064 sec
+    Math cpu benchmark:
+        32081706.194 microseconds, 32.08170619397424 sec
+    Flash Attention cpu benchmark:
+        28997640.633 microseconds, 28.997640632966068 sec
+    Memory Efficient cpu benchmark:
+    Memory Efficient cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.3.1
+ROCM HIP version: 6.1.40093-6a0232ced
+Device: AMD Radeon RX 6800
+               Default cuda:0:            25619.943 ms
+                  Math cuda:0:            26119.020 ms
+       Flash Attention cuda:0:               -1.000 ms
+      Memory Efficient cuda:0:               -1.000 ms
+
+Device: cpu-16
+                  Default cpu:         29142019.198 ms
+                     Math cpu:         32081706.194 ms
+          Flash Attention cpu:         28997640.633 ms
+         Memory Efficient cpu:               -1.000 ms
+
