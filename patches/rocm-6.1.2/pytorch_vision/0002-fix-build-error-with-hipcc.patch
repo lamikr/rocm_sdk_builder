@@ -1,4 +1,4 @@
-From 33867c9f98e500df2539f5d2faece1f4532503d8 Mon Sep 17 00:00:00 2001
+From fa3aa7ae9afacc11099b4006047cc452cb36fcb7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 15:19:56 -0800
 Subject: [PATCH 2/4] fix build error with hipcc
