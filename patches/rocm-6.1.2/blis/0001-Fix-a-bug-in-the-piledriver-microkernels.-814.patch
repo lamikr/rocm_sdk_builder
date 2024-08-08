@@ -1,0 +1,99 @@
+From 131cfa5412b6e11a0ce11551a2a813edb409ec31 Mon Sep 17 00:00:00 2001
+From: Devin Matthews <damatthews@smu.edu>
+Date: Thu, 20 Jun 2024 18:23:23 -0500
+Subject: [PATCH] Fix a bug in the piledriver microkernels. (#814)
+
+Details:
+- At some point, the piledriver (and bulldozer and excavator)
+  microkernel tests via SDE had been removed from Travis CI testing.
+  This PR re-enables them.
+- A bug in the piledriver complex gemm microkernels has also been
+  fixed. The `beta*C` product was not being correctly added to the `A*B`
+  product before writing back out to memory.
+- Fixes #811.
+---
+ .../piledriver/3/bli_gemm_piledriver_asm_d8x3.c  | 16 ++++++++--------
+ travis/do_sde.sh                                 |  3 +--
+ 2 files changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/kernels/piledriver/3/bli_gemm_piledriver_asm_d8x3.c b/kernels/piledriver/3/bli_gemm_piledriver_asm_d8x3.c
+index cd577a86..62baae07 100644
+--- a/kernels/piledriver/3/bli_gemm_piledriver_asm_d8x3.c
++++ b/kernels/piledriver/3/bli_gemm_piledriver_asm_d8x3.c
+@@ -1325,12 +1325,12 @@ void bli_cgemm_piledriver_asm_4x2
+ 		vmulps(xmm6, xmm0, xmm0)
+ 		vmulps(xmm7, xmm1, xmm1)
+ 		vaddsubps(xmm1, xmm0, xmm0)
+-		vaddps(xmm8, xmm0, xmm0)
++		vaddps(xmm8, xmm0, xmm8)
+ 
+ 		vmulps(xmm6, xmm2, xmm2)
+ 		vmulps(xmm7, xmm3, xmm3)
+ 		vaddsubps(xmm3, xmm2, xmm2)
+-		vaddps(xmm12, xmm2, xmm2)
++		vaddps(xmm12, xmm2, xmm12)
+ 
+ 		vmovups(mem(r10), xmm0) // load c01:c11
+ 		vmovups(mem(r10, 16), xmm2) // load c21:c31
+@@ -1340,12 +1340,12 @@ void bli_cgemm_piledriver_asm_4x2
+ 		vmulps(xmm6, xmm0, xmm0)
+ 		vmulps(xmm7, xmm1, xmm1)
+ 		vaddsubps(xmm1, xmm0, xmm0)
+-		vaddps(xmm10, xmm0, xmm0)
++		vaddps(xmm10, xmm0, xmm10)
+ 
+ 		vmulps(xmm6, xmm2, xmm2)
+ 		vmulps(xmm7, xmm3, xmm3)
+ 		vaddsubps(xmm3, xmm2, xmm2)
+-		vaddps(xmm14, xmm2, xmm2)
++		vaddps(xmm14, xmm2, xmm14)
+ 
+ 		 // fall through
+ 
+@@ -1737,12 +1737,12 @@ void bli_zgemm_piledriver_asm_2x2
+ 		vmulpd(xmm6, xmm0, xmm0)
+ 		vmulpd(xmm7, xmm1, xmm1)
+ 		vaddsubpd(xmm1, xmm0, xmm0)
+-		vaddpd(xmm8, xmm0, xmm0)
++		vaddpd(xmm8, xmm0, xmm8)
+ 
+ 		vmulpd(xmm6, xmm2, xmm2)
+ 		vmulpd(xmm7, xmm3, xmm3)
+ 		vaddsubpd(xmm3, xmm2, xmm2)
+-		vaddpd(xmm12, xmm2, xmm2)
++		vaddpd(xmm12, xmm2, xmm12)
+ 
+ 		vmovups(mem(r10), xmm0) // load c01
+ 		vmovups(mem(r10, 16), xmm2) // load c11
+@@ -1752,12 +1752,12 @@ void bli_zgemm_piledriver_asm_2x2
+ 		vmulpd(xmm6, xmm0, xmm0)
+ 		vmulpd(xmm7, xmm1, xmm1)
+ 		vaddsubpd(xmm1, xmm0, xmm0)
+-		vaddpd(xmm10, xmm0, xmm0)
++		vaddpd(xmm10, xmm0, xmm10)
+ 
+ 		vmulpd(xmm6, xmm2, xmm2)
+ 		vmulpd(xmm7, xmm3, xmm3)
+ 		vaddsubpd(xmm3, xmm2, xmm2)
+-		vaddpd(xmm14, xmm2, xmm2)
++		vaddpd(xmm14, xmm2, xmm14)
+ 
+ 		 // fall through
+ 
+diff --git a/travis/do_sde.sh b/travis/do_sde.sh
+index de154588..3c299e9b 100755
+--- a/travis/do_sde.sh
++++ b/travis/do_sde.sh
+@@ -45,8 +45,7 @@ for LIB in $LD_SO $LIBC_SO $LIBM_SO; do
+     sudo mv .tmp $LIB
+ done
+ 
+-#for ARCH in penryn sandybridge haswell skx knl piledriver steamroller excavator zen; do
+-for ARCH in penryn sandybridge haswell skx knl zen zen2 zen3; do
++for ARCH in penryn sandybridge haswell skx knl piledriver steamroller excavator zen; do
+     if [ "$ARCH" = "knl" ]; then
+         $SDE -knl -- ./test_libblis.x > output.testsuite
+     else
+-- 
+2.45.2
+
