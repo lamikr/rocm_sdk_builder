@@ -1,7 +1,7 @@
-From cec8ab382d97b6d038df20542907a6dbdc66a3c3 Mon Sep 17 00:00:00 2001
+From d2f01e9fa1e76c6c5946ff26a96563d0c5584460 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 11:41:20 -0700
-Subject: [PATCH 4/5] remove linear_kernel which fails on rocm
+Subject: [PATCH 4/6] remove linear_kernel which fails on rocm
 
 - build fails on rocm 6.1.1
 
