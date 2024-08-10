@@ -36,7 +36,7 @@ func_filter_gfx_array() {
 }
 
 # hardcoded list of GPU's where aotriton build works
-ACCEPTED_GPU_LIST=(gfx90a gfx942 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
+ACCEPTED_GPU_LIST=(gfx90a gfx942 gfx1010 gfx1011 gfx1012 gfx1030 gfx1031 gfx1032 gfx1035 gfx1036 gfx1100 gfx1101 gfx1102 gfx1103)
 # take only those GPU's from the array that are in the SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT
 # and if none of the GPU's match, return gfx1100 as a default
 FILTERED_GPU_LIST=$(func_filter_gfx_array ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT} gfx1100 "${ACCEPTED_GPU_LIST[@]}")
