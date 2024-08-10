@@ -64,7 +64,7 @@ func_install_packages()
             ;;
         void)
             sudo xbps-install -S git-lfs base-devel gcc-fortran cmake doxygen babeltrace-devel bzip2-devel elfutils-devel expat-devel ffmpeg ffmpeg-devel gdb gdbm-devel gmp-devel icu icu-devel json-c++ lcov libaio-devel libdrm-devel libffi-devel libglvnd-devel libgomp-devel libjpeg-turbo-devel liblzma liblzma-devel libnuma-devel libpng-devel libuuid-devel mpfr-devel msgpack-cxx ncurses-devel ninja openssl-devel protobuf protobuf-devel python3-pip python3-pybind11 readline readline-devel sox sqlite sqlite-devel xxd zlib-devel
-            python3 -m pip install --break-syste-packages CppHeaderParser
+            python3 -m pip install --break-system-packages CppHeaderParser
             git-lfs install
 	    ;;
         *)
