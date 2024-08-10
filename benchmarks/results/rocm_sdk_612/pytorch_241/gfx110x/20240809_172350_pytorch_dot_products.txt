@@ -1,0 +1,73 @@
+Pytorch version: 2.4.1-rc1
+dot product calculation test
+tensor([[[ 0.5290,  0.2168, -0.8468,  0.3056, -0.1636, -1.1619,  0.8986,
+           1.0539],
+         [ 0.4916,  0.1816, -0.7790,  0.1377, -0.2181, -1.1855,  0.9527,
+           1.1286],
+         [-0.1815,  0.3644,  0.6651, -0.6670, -0.6313, -1.1067,  0.7078,
+           0.7487]],
+
+        [[ 0.2966, -0.0234, -1.9855, -2.1343, -0.0087, -1.1814, -0.6119,
+           0.2005],
+         [ 0.5305, -0.1014, -0.5298, -0.3008, -0.1125, -1.1565, -0.3054,
+          -0.0312],
+         [ 0.3495,  0.0204, -1.5031, -1.3698, -0.0764, -1.0392, -0.2488,
+           0.2108]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 7700S / cuda:0
+    Default benchmark:
+        1598.738 microseconds, 0.0015987383699939527 sec
+    SDPBackend.MATH benchmark:
+        5831.475 microseconds, 0.005831474914469124 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        1613.101 microseconds, 0.0016131008450247465 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+        1619.024 microseconds, 0.00161902382500557 sec
+Device: AMD Radeon 780M / cuda:1
+    Default benchmark:
+        3576.344 microseconds, 0.003576344201400207 sec
+    SDPBackend.MATH benchmark:
+        33842.418 microseconds, 0.033842417577998274 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        6773.058 microseconds, 0.0067730578449918515 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+        6697.960 microseconds, 0.006697960010998941 sec
+Device:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics / cpu
+    Default benchmark:
+        2097639.349 microseconds, 2.0976393489982 sec
+    SDPBackend.MATH benchmark:
+        1830539.886 microseconds, 1.8305398859993147 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        1805812.874 microseconds, 1.8058128740012762 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.4.1-rc1
+ROCM HIP version: 6.1.40093-25aee5846
+CPU:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon RX 7700S / cuda:0
+                           Default:        1598.738 ms
+                   SDPBackend.MATH:        5831.475 ms
+        SDPBackend.FLASH_ATTENTION:        1613.101 ms
+    SDPBackend.EFFICIENT_ATTENTION:        1619.024 ms
+
+Device: AMD Radeon 780M / cuda:1
+                           Default:        3576.344 ms
+                   SDPBackend.MATH:       33842.418 ms
+        SDPBackend.FLASH_ATTENTION:        6773.058 ms
+    SDPBackend.EFFICIENT_ATTENTION:        6697.960 ms
+
+Device:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics / cpu
+                           Default:     2097639.349 ms
+                   SDPBackend.MATH:     1830539.886 ms
+        SDPBackend.FLASH_ATTENTION:     1805812.874 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+

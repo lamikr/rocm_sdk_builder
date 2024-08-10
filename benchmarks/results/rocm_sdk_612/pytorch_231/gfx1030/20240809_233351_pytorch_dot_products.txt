@@ -1,0 +1,58 @@
+Pytorch version: 2.3.1
+dot product calculation test
+tensor([[[-1.2078,  0.4708, -0.4728, -0.5405,  0.9847, -0.2924,  0.0713,
+          -0.6481],
+         [-0.7098, -0.8253,  0.1296,  0.0953,  0.5632, -0.6687,  0.1341,
+          -0.1037],
+         [-1.3648,  0.8971, -0.3298,  0.0264,  1.1681, -0.3718,  0.1505,
+          -0.6770]],
+
+        [[-0.4123, -1.3713,  0.2681,  0.3473,  0.8928, -1.2906, -0.0624,
+          -0.8520],
+         [-0.1031, -0.8450,  1.1603, -1.0643, -0.1236, -0.7814, -0.6832,
+          -1.5688],
+         [-0.7119, -1.5183, -0.1068,  0.8378,  1.1471, -1.3089,  0.1116,
+          -0.6954]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 6800 / cuda:0
+    Default benchmark:
+        3054.056 microseconds, 0.003054055576009859 sec
+    SDPBackend.MATH benchmark:
+        3086.582 microseconds, 0.0030865820100007112 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:0 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:0 is not supported. See warnings for reasons.
+Device:  AMD Ryzen 7 5700X 8-Core Processor / cpu
+    Default benchmark:
+        1990035.350 microseconds, 1.9900353499979246 sec
+    SDPBackend.MATH benchmark:
+        2032443.442 microseconds, 2.0324434420035686 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        1994607.761 microseconds, 1.9946077610075008 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.3.1
+ROCM HIP version: 6.1.40093-efb8aab87
+CPU:  AMD Ryzen 7 5700X 8-Core Processor
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon RX 6800 / cuda:0
+                           Default:        3054.056 ms
+                   SDPBackend.MATH:        3086.582 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device:  AMD Ryzen 7 5700X 8-Core Processor / cpu
+                           Default:     1990035.350 ms
+                   SDPBackend.MATH:     2032443.442 ms
+        SDPBackend.FLASH_ATTENTION:     1994607.761 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+

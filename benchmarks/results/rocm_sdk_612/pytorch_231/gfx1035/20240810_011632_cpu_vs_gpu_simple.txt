@@ -1,9 +1,9 @@
 Benchmarking CPU and GPUs
 Pytorch version: 2.3.1
 ROCM HIP version: 6.1.40093-e0d934acc
-       Device: cpu-16
-    'CPU time: 30.518 sec
+       Device:  AMD Ryzen 9 6900HS Creator Edition
+    'CPU time: 47.958 sec
        Device: AMD Radeon Graphics
-    'GPU time: 0.433 sec
+    'GPU time: 0.353 sec
 Benchmark ready
 

@@ -1,9 +1,0 @@
-Benchmarking CPU and GPUs
-Pytorch version: 2.3.1
-ROCM HIP version: 6.1.40093-6a0232ced
-       Device: cpu-16
-    'CPU time: 31.879 sec
-       Device: AMD Radeon RX 6800
-    'GPU time: 0.336 sec
-Benchmark ready
-

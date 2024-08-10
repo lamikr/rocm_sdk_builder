@@ -1,0 +1,9 @@
+Benchmarking CPU and GPUs
+Pytorch version: 2.3.1
+ROCM HIP version: 6.1.40093-efb8aab87
+       Device:  AMD Ryzen 7 5700X 8-Core Processor
+    'CPU time: 49.232 sec
+       Device: AMD Radeon RX 6800
+    'GPU time: 0.322 sec
+Benchmark ready
+

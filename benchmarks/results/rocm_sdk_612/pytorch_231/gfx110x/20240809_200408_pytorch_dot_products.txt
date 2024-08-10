@@ -1,0 +1,73 @@
+Pytorch version: 2.3.1
+dot product calculation test
+tensor([[[ 0.2447,  0.5510,  0.5099, -0.5744,  0.1467,  0.1136,  1.4237,
+          -0.5979],
+         [ 0.3989, -0.5373, -0.0588,  0.1995, -0.9465, -0.7352,  1.9431,
+          -0.0357],
+         [ 0.3218,  0.0035,  0.2857, -0.2122, -0.2982, -0.2496,  1.6309,
+          -0.3921]],
+
+        [[-0.4933, -0.2196, -0.9157,  0.4842,  0.2178,  0.0479, -1.2147,
+          -0.3368],
+         [-0.8443, -0.7004, -0.6659,  0.1275, -0.0496,  0.0997, -0.6206,
+          -0.8311],
+         [-0.4752, -0.2983, -0.8442,  0.4806,  0.2396,  0.0916, -1.3622,
+          -0.3355]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 7700S / cuda:0
+    Default benchmark:
+        5807.181 microseconds, 0.005807181371242872 sec
+    SDPBackend.MATH benchmark:
+        5862.810 microseconds, 0.005862809874997765 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:0 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:0 is not supported. See warnings for reasons.
+Device: AMD Radeon 780M / cuda:1
+    Default benchmark:
+        9022.952 microseconds, 0.009022951662218219 sec
+    SDPBackend.MATH benchmark:
+        40528.011 microseconds, 0.040528011489004714 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:1 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:1 is not supported. See warnings for reasons.
+Device:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics / cpu
+    Default benchmark:
+        2543465.713 microseconds, 2.5434657130026608 sec
+    SDPBackend.MATH benchmark:
+        1797907.524 microseconds, 1.7979075240000384 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        1805520.082 microseconds, 1.805520081994473 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.3.1
+ROCM HIP version: 6.1.40093-a83458478
+CPU:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon RX 7700S / cuda:0
+                           Default:        5807.181 ms
+                   SDPBackend.MATH:        5862.810 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device: AMD Radeon 780M / cuda:1
+                           Default:        9022.952 ms
+                   SDPBackend.MATH:       40528.011 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device:  AMD Ryzen 7 7840HS w/ Radeon 780M Graphics / cpu
+                           Default:     2543465.713 ms
+                   SDPBackend.MATH:     1797907.524 ms
+        SDPBackend.FLASH_ATTENTION:     1805520.082 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+

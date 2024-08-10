@@ -1,0 +1,9 @@
+Benchmarking CPU and GPUs
+Pytorch version: 2.4.1-rc1
+ROCM HIP version: 6.1.40093-804966f83
+       Device:  AMD Ryzen 9 6900HS Creator Edition
+    'CPU time: 26.092 sec
+       Device: AMD Radeon Graphics
+    'GPU time: 0.721 sec
+Benchmark ready
+

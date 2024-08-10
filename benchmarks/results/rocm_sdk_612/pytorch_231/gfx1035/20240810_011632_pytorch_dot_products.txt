@@ -1,0 +1,58 @@
+Pytorch version: 2.3.1
+dot product calculation test
+tensor([[[ 0.9712, -0.2137,  1.1881,  0.5205, -0.7592,  0.0500, -0.5639,
+          -0.7321],
+         [ 1.1328, -0.3676,  1.3925,  0.3266, -0.7670,  0.1269, -0.6809,
+          -0.8754],
+         [ 0.1168,  0.3808,  0.4507,  1.4620, -1.3910, -0.2551,  0.5890,
+          -0.3233]],
+
+        [[-0.1887,  0.3828,  0.8451,  0.4085,  0.0651, -0.3182,  0.4039,
+           0.4581],
+         [ 0.5625,  0.4376,  0.3398,  0.5211,  0.0241, -0.0212,  0.4996,
+          -0.2109],
+         [ 1.0337,  0.4797,  0.0125,  0.5697, -0.0402,  0.1654,  0.5476,
+          -0.6058]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon Graphics / cuda:0
+    Default benchmark:
+        24016.107 microseconds, 0.02401610744443082 sec
+    SDPBackend.MATH benchmark:
+        18341.338 microseconds, 0.018341338499999436 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:0 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:0 is not supported. See warnings for reasons.
+Device:  AMD Ryzen 9 6900HS Creator Edition / cpu
+    Default benchmark:
+        1938349.854 microseconds, 1.93834985400008 sec
+    SDPBackend.MATH benchmark:
+        2005498.171 microseconds, 2.0054981709999993 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        1963151.784 microseconds, 1.9631517839999333 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.3.1
+ROCM HIP version: 6.1.40093-e0d934acc
+CPU:  AMD Ryzen 9 6900HS Creator Edition
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon Graphics / cuda:0
+                           Default:       24016.107 ms
+                   SDPBackend.MATH:       18341.338 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device:  AMD Ryzen 9 6900HS Creator Edition / cpu
+                           Default:     1938349.854 ms
+                   SDPBackend.MATH:     2005498.171 ms
+        SDPBackend.FLASH_ATTENTION:     1963151.784 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
