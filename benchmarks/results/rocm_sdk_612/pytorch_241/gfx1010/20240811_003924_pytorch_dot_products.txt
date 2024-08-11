@@ -1,0 +1,58 @@
+Pytorch version: 2.4.1-rc1
+dot product calculation test
+tensor([[[ 7.7522e-01, -7.6935e-01, -3.4063e-01,  1.1828e+00,  1.1078e+00,
+          -4.4291e-01, -2.4326e-02, -1.1157e+00],
+         [ 2.8267e-01, -8.1130e-01, -6.2265e-01,  8.1634e-01,  2.5628e-01,
+          -7.6732e-01, -2.2984e-01, -1.0382e+00],
+         [ 7.3872e-01, -7.6005e-01, -8.3986e-01,  1.1712e+00,  2.0405e+00,
+          -5.3755e-01,  5.5028e-02, -5.9567e-01]],
+
+        [[ 1.0772e-01, -5.7353e-01, -1.7392e+00, -1.7714e-01, -1.2354e+00,
+           7.7235e-01,  4.5506e-01,  1.0918e+00],
+         [-1.8824e-03, -3.7691e-01, -1.8274e+00, -2.5622e-01, -1.3283e+00,
+           8.6999e-01,  6.6643e-01,  1.2344e+00],
+         [ 6.4550e-02, -4.4082e-01, -1.7422e+00, -1.0819e-01, -1.2026e+00,
+           7.0515e-01,  4.2339e-01,  1.0323e+00]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon RX 5700 / cuda:0
+    Default benchmark:
+        15981.816 microseconds, 0.015981816150019767 sec
+    SDPBackend.MATH benchmark:
+        15979.718 microseconds, 0.015979718000016872 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:0 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:0 is not supported. See warnings for reasons.
+Device:  AMD Ryzen 7 3700X 8-Core Processor / cpu
+    Default benchmark:
+        2906149.257 microseconds, 2.9061492570003793 sec
+    SDPBackend.MATH benchmark:
+        2895591.610 microseconds, 2.895591610000338 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        2890504.179 microseconds, 2.890504179000345 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.4.1-rc1
+ROCM HIP version: 6.1.40093-d72217205
+CPU:  AMD Ryzen 7 3700X 8-Core Processor
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon RX 5700 / cuda:0
+                           Default:       15981.816 ms
+                   SDPBackend.MATH:       15979.718 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device:  AMD Ryzen 7 3700X 8-Core Processor / cpu
+                           Default:     2906149.257 ms
+                   SDPBackend.MATH:     2895591.610 ms
+        SDPBackend.FLASH_ATTENTION:     2890504.179 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
