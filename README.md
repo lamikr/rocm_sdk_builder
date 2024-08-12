@@ -2,22 +2,33 @@
 
 ## Purpose
 
-ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs.  
+ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs.
+Current version is based on to ROCM release 6.1.2 but contains lot of patches and optimizations on top of it.
 
-In addition of the ROCm basic applications and libraries, the system will also install locally a version of tools and frameworks like python, pytorch, jupyter-notebook, onnxruntime, deepspeed that has been tested to work with rest of the system. SDK will be installed under /opt/rocm_sdk_<version> directory.
+In addition Rocm sdk builder will also by default build and install additional tools and frameworks like python, pytorch, jupyter-notebook, onnxruntime, deepspeed that has been build specifically for the AMD gpu's as a target. SDK will be installed under /opt/rocm_sdk_<version> directory.
 
-Latest ROCM release supported is the ROCM 6.1.1 which also builds rocBLASLt, hibBLASLt and AMDMIGrapX as a newest components for pytorch. The usage of AMDMIGraphX has however not been tested yet.
+As a new feature rocm sdk builder 6.1.2 has now support for building also extra applications which are not build by default.
+
+- stable diffusion webui
+- llama.cpp
+- vllm
+
+These can be build with commands like: ./babs.sh -b binfo/extra/llama.cpp after the base build has been done.
+
+![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_40pct.png "Pytorch GPU benchmark")
 
 This project has been so far tested at least with the following AMD GPUs:
 
 - AMD RX 7900 XTX (gfx1100)
 - AMD RX 7800 XT (gfx1101)
+- AMD RX 7700S/Framework Laptop 16 (gfx1102)
+- AMD Radeon 780M Laptop iGPU (gfx1103)
 - AMD RX 6800 XT (gfx1030)
 - AMD RX 6800 (gfx1030)
 - AMD RX 6600 (gfx1032)
 - AMD RX 5700 (gfx1010)
 - AMD RX 5500 (gfx1012)
-- AMD Mobile m680i (gfx1035)
+- AMD Radeon 780M Laptop iGPU (gfx1035)
 - gfx1036
 
 AMD RX 5500 and AMD RX 6600 supoort is at the moment only partial. 
@@ -32,7 +43,7 @@ All kind of feedback is more than welcome and can be discussed for example by op
 
 ## Installation Requirements
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Fedora 40, Ubuntu 22.04, Ubuntu 23.10, Ubuntu 24.04, Linux Mint 21, Arch and Manjaro Linux distributions.
+ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Fedora 40, Ubuntu 22.04, Ubuntu 23.10, Ubuntu 24.04, Linux Mint 21, Arch, Manjaro and Void Linux distributions.
 
 Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will have their own build time dependencies that can be
 installed by executing script:
@@ -50,7 +61,7 @@ You need to also to use git configure command to set git username and email addr
 # git config --global user.email johndoe@example.com
 ```
 
-ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.1.1 version. This is mostly divided in a following way:
+ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.1.2 version. This is mostly divided in a following way:
 
 ```
 - src_projects directory, for source code, about 30 GB
@@ -72,12 +83,12 @@ Note that this command needs to be executed only once for each bash terminal ses
 
 ## How to Build and Install ROCm SDK
 
-Following commands will download rocm sdk 6.1.1 project sources and then build and install the rocm_sdk version 6.1.1 to /opt/rocm_sdk_611 folder.
+Following commands will download rocm sdk 6.1.2 project sources and then build and install the rocm_sdk version 6.1.2 to /opt/rocm_sdk_612 folder.
 
 ```
 # git clone https://github.com/lamikr/rocm_sdk_builder.git
 # cd rocm_sdk_builder
-# git checkout releases/rocm_sdk_builder_611
+# git checkout releases/rocm_sdk_builder_612
 # ./babs.sh -i
 # ./babs.sh -b
 ```
@@ -100,14 +111,14 @@ ROCm SDK builder environment needs to be first set to environment variables
 like path with following command:
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
 ```
 Note that this command needs to be executed only once for each bash terminal session evenghouth we set it up on exery example below.
 
 ## Verify your GPU with ROCM SDK
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
 # rocminfo
 ```
 This command should list both your CPU and AMD GPU as an agent and
@@ -117,8 +128,8 @@ give information related to their capabilities.
 ## Test Pytorch install
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/pytorch
 # ./run_pytorch_gpu_simple_test.sh
 ```
 
@@ -129,32 +140,32 @@ show information about installed pytorch version and your GPU.
 (Note that AMD gpus are also handled as a cuda GPU on pytorch language)
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/pytorch
 # jupyter-notebook pytorch_amd_gpu_intro.ipynb
 ```
 
 ## Test Pytorch MIGraphX integration
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/pytorch
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/pytorch
 # python test_torch_migraphx_resnet50.py
 ```
 
 ## Test MIGraphX
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/migraphx
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/migraphx
 # ./test_migraphx_install.sh
 ```
 
 ## Test ONNXRuntime
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/onnxruntime
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/onnxruntime
 # test_onnxruntime_providers.py*
 ```
 
@@ -166,8 +177,8 @@ Following code shows how to transfer data to GPU and back
 by using hipcc.
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/hipcc/hello_world
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/hipcc/hello_world
 # ./build.sh
 ```
 
@@ -176,8 +187,8 @@ by using hipcc.
 Following code printouts some information about OpenCL platform and devices found
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/opencl/check_opencl_caps
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/opencl/check_opencl_caps
 # make
 # ./check_opencl_caps
 ```
@@ -185,8 +196,8 @@ Following code printouts some information about OpenCL platform and devices foun
 Following code sends 200 numbers for GPU kernels which modifies and sends them back to userspace.
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# cd /opt/rocm_sdk_611/docs/examples/opencl/hello_world
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/opencl/hello_world
 # make
 # ./hello_world
 ```
@@ -202,7 +213,7 @@ Results for different AMD and Nvidia GPUs are available in results folder.
 ```
 # git clone https://github.com/lamikr/pytorch-gpu-benchmark/
 # cd pytorch-gpu-benchmark
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
 # ./test.sh
 ```
 
@@ -300,8 +311,8 @@ For example:
 - Very simple benchmark is available on by executing command:
 
 ```
-# source /opt/rocm_sdk_611/bin/env_rocm.sh
-# jupyter-notebook /opt/rocm_sdk_611/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# jupyter-notebook /opt/rocm_sdk_612/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
