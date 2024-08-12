@@ -15,7 +15,7 @@ As a new feature rocm sdk builder 6.1.2 has now support for building also extra 
 
 These can be build with commands like: ./babs.sh -b binfo/extra/llama.cpp after the base build has been done.
 
-![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_40pct.png "Pytorch GPU benchmark")
+![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_60pct.png "Pytorch GPU benchmark")
 
 This project has been so far tested at least with the following AMD GPUs:
 
