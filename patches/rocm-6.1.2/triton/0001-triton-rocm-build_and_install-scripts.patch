@@ -22,7 +22,7 @@ index 000000000..216108218
 +export TRITON_BUILD_WITH_CLANG_LLD=true
 +# can not call python python/setup.py because then some relative paths are not found
 +cd python
-+python setup.py bdist_wheel -vvv
++MAX_JOBS="${BUILD_CPU_COUNT_MODERATE}" python setup.py bdist_wheel -vvv
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
 index 000000000..85ddb977b
