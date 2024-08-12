@@ -1,0 +1,45 @@
+.table
+
+FLASH$attn_fwd
+FLASH$bwd_kernel_dq
+FLASH$bwd_kernel_dk_dv
+
+.schema FLASH$bwd_kernel_dk_dv
+
+INSERT INTO 	(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1101', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$attn_fwd WHERE arch='gfx1100';
+
+INSERT INTO FLASH$attn_fwd(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1102', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$attn_fwd WHERE arch='gfx1100';
+
+INSERT INTO FLASH$attn_fwd(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1103', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, inputs$max_seqlen_q, inputs$max_seqlen_k, inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, tuned_kernel$pre_load_v, compiler_options$waves_per_eu, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$attn_fwd WHERE arch='gfx1100';
+
+
+INSERT INTO FLASH$bwd_kernel_dq(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1101', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dq WHERE arch='gfx1100';
+
+INSERT INTO FLASH$bwd_kernel_dq(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1102', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dq WHERE arch='gfx1100';
+
+INSERT INTO FLASH$bwd_kernel_dq(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1103', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dq WHERE arch='gfx1100';
+
+
+INSERT INTO FLASH$bwd_kernel_dk_dv(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1101', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dk_dv WHERE arch='gfx1100';
+
+INSERT INTO FLASH$bwd_kernel_dk_dv(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1102', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dk_dv WHERE arch='gfx1100';
+
+INSERT INTO FLASH$bwd_kernel_dk_dv(arch, inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2)
+SELECT 'gfx1103', inputs$Q_dtype, inputs$N_HEADS, inputs$D_HEAD, "inputs$max_seqlen_q", "inputs$max_seqlen_k", inputs$CAUSAL, inputs$RETURN_ENCODED_SOFTMAX, inputs$BLOCK_DMODEL, inputs$ENABLE_DROPOUT, inputs$PADDED_HEAD, inputs$BIAS_TYPE, compiler_options$waves_per_eu, tuned_kernel$BLOCK_M, tuned_kernel$BLOCK_N, compiler_options$num_warps, compiler_options$num_stages, raw$time_0, raw$time_0, raw$time_1, raw$time_2
+FROM FLASH$bwd_kernel_dk_dv WHERE arch='gfx1100';
