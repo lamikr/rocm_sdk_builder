@@ -6,7 +6,19 @@ BINFO_APP_UPSTREAM_REPO_URL=https://gitlab.com/corectrl/corectrl.git
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=306bc61428e7187e5bc15a8bd3929c2d73370839
 
 #fedora 40 dependencies
-# sudo dnf install qt5-qtbase-devel qt5-qtquickcontrols2-devel qt5-qtcharts-devel qt5-qtsvg-devel qt5-linguist quazip-qt5-devel spdlog-devel pugixml-devel botan-devel botan2-devel dbus-devel polkit-devel catch-devel
+# sudo dnf install qt5-qtbase-devel \
+                   qt5-qtquickcontrols2-devel \
+                   qt5-qtcharts-devel \
+                   qt5-qtsvg-devel \
+                   qt5-linguist \
+                   quazip-qt5-devel \
+                   spdlog-devel \
+                   pugixml-devel \
+                   botan-devel \
+                   botan2-devel \
+                   dbus-devel \
+                   polkit-devel \
+                   catch-devel
 # and
 #./babs.sh -b trompeloeil.binfo
 

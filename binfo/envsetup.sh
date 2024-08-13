@@ -9,8 +9,10 @@ SDK_ROOT_DIR="$PWD"
 source binfo/user_config.sh
 
 # allow enable doing some user specific extra actions before the build start
-# like setting the INSTALL_DIR_PREFIX_SDK_ROOT
-source ../envsetup_pre.sh
+# like overriding the default INSTALL_DIR_PREFIX_SDK_ROOT directory location
+if [[ -e "../envsetup_pre.sh" ]]; then
+    source ../envsetup_pre.sh
+fi
 
 # check the linux distribution for the target triplet
 export ROCM_TARGET_TRIPLED=x86_64-rocm-linux-gnu

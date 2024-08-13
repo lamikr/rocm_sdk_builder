@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source build/system_utils.sh
 
 func_is_supported_distro()
 {
@@ -99,33 +100,6 @@ func_is_git_configured() {
     return 0
 }
 
-func_is_user_in_dev_kfd_render_group() {
-    if [ -e /dev/kfd ]; then
-        test -w /dev/kfd || {
-            echo ""
-            echo "You need to set write permissions to /dev/kfd device driver for the user."
-            echo "This /dev/kfd is used by the ROCM applications to communicate with the AMD GPUs"
-            local group_owner_name=$(stat -c "%G" /dev/kfd)
-            if [ ${group_owner_name} = "render" ]; then
-                echo "Add your username to group render with command: "
-                echo "    sudo adduser $USERNAME render"
-		echo "Usually you need then reboot to get change to in permissions to take effect"
-                return 2
-            else
-                echo "Unusual /dev/kfd group owner instead of 'render': ${group_owner_name}"
-                echo "Add your username to group ${group_owner_name} with command: "
-                echo "    sudo adduser $USERNAME ${group_owner_name}"
-		echo "Usually you need then reboot to get change to in permissions to take effect"
-                return 3
-            fi
-        }
-    else
-        echo "Warning, /dev/kfd AMD GPU device driver does not exist"
-        return 4
-    fi
-    return 0
-}
-
 # /etc/*-release files describe the system
 if [[ -e "/etc/os-release" ]]; then
     source /etc/os-release
@@ -142,7 +116,7 @@ func_is_supported_distro
 func_install_packages
 func_is_git_configured
 res=$?
-func_is_user_in_dev_kfd_render_group
+func_is_user_in_dev_kfd_render_group #From system_utils.sh
 res2=$?
 if [[ ${res} == 0 && ${res2} == 0 ]]; then
     echo ""
