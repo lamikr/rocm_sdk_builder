@@ -10,7 +10,7 @@ source binfo/user_config.sh
 
 # allow enable doing some user specific extra actions before the build start
 # like setting the INSTALL_DIR_PREFIX_SDK_ROOT
-source ../envsetup_pre.sh
+# source ../envsetup_pre.sh
 
 # check the linux distribution for the target triplet
 export ROCM_TARGET_TRIPLED=x86_64-rocm-linux-gnu
