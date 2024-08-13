@@ -6,6 +6,7 @@
 # License: GNU Lesser General Public License (LGPL), version 2.1 or later.
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
+source ../build/git_utils.sh
 
 func_upstream_remote_repo_add() {
     local CUR_APP_UPSTREAM_REPO_DEFINED=0
@@ -76,7 +77,7 @@ func_upstream_remote_repo_add() {
             fi
             git fetch upstream --force --tags
             git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-            func_is_current_dir_a_git_submodule_dir
+            func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
             ret_val=$?
             if [ ${ret_val} == "1" ]; then
                 echo ""
