@@ -1,4 +1,4 @@
-From b2404f7fa667895fb9f5149e601a97efcb8f37dd Mon Sep 17 00:00:00 2001
+From 92c466e9179ec89e9376d6e0aeee690841735667 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:12:33 -0700
 Subject: [PATCH 2/4] add rocm sdk supported gpus
@@ -9,10 +9,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index bf00a36e..5bbae5c5 100644
+index d47f1bb3..05b345b5 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -20,7 +20,7 @@ set(PYTHON_SUPPORTED_VERSIONS "3.8" "3.9" "3.10" "3.11")
+@@ -20,7 +20,7 @@ set(PYTHON_SUPPORTED_VERSIONS "3.8" "3.9" "3.10" "3.11" "3.12")
  set(CUDA_SUPPORTED_ARCHS "7.0;7.5;8.0;8.6;8.9;9.0")
  
  # Supported AMD GPU architectures.

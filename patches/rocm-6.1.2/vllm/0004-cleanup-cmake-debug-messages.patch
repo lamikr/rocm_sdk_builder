@@ -1,4 +1,4 @@
-From 99edf512d75d7372c5e35803209e48945db863e3 Mon Sep 17 00:00:00 2001
+From 15550220a264abca4aea050cf92ed6c009dd1149 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:13:59 -0700
 Subject: [PATCH 4/4] cleanup cmake debug messages
@@ -14,19 +14,19 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5bbae5c5..f4ad14a5 100644
+index 05b345b5..23913b80 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -33,7 +33,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
  # versions are derived from Dockerfile.rocm
  #
- set(TORCH_SUPPORTED_VERSION_CUDA "2.3.1")
+ set(TORCH_SUPPORTED_VERSION_CUDA "2.4.0")
 -set(TORCH_SUPPORTED_VERSION_ROCM "2.5.0")
-+set(TORCH_SUPPORTED_VERSION_ROCM "2.3.1")
++set(TORCH_SUPPORTED_VERSION_ROCM "2.4.1")
  
  #
  # Try to find python package with an executable that exactly matches
-@@ -91,6 +91,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
+@@ -124,6 +124,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
        "expected for CUDA build, saw ${Torch_VERSION} instead.")
    endif()
  elseif(HIP_FOUND)
