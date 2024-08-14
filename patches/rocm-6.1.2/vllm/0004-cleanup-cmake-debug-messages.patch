@@ -1,4 +1,4 @@
-From 4e3295adec6c79dc5f6c51972c01456df9126e71 Mon Sep 17 00:00:00 2001
+From 99edf512d75d7372c5e35803209e48945db863e3 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:13:59 -0700
 Subject: [PATCH 4/4] cleanup cmake debug messages
@@ -35,5 +35,5 @@ index 5bbae5c5..f4ad14a5 100644
  
    # Importing torch recognizes and sets up some HIP/ROCm configuration but does
 -- 
-2.45.2
+2.46.0
 

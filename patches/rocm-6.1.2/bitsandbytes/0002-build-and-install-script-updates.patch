@@ -1,20 +1,20 @@
-From 557bd5f58a0d36e5f96e428e1c961b34b7ff2f41 Mon Sep 17 00:00:00 2001
+From c92cbf04147e13dfb979b458c25a14acf3467a7c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 4 Jul 2024 23:52:04 -0400
 Subject: [PATCH 2/2] build and install script updates
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- install_rocm.sh | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ install_rocm.sh | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
  create mode 100755 install_rocm.sh
 
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 0000000..d12a3a6
+index 0000000..aa91a98
 --- /dev/null
 +++ b/install_rocm.sh
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
 +unset backup_dir_python_wheel
 +if [ ! -z "$1" ]; then
 +    backup_dir_python_wheel=${1}
@@ -27,6 +27,9 @@ index 0000000..d12a3a6
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes "$latest_wheel_file"
 +    pip install "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
@@ -39,5 +42,5 @@ index 0000000..d12a3a6
 +    exit 1
 +fi
 -- 
-2.45.2
+2.46.0
 

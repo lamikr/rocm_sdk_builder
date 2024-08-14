@@ -1,4 +1,4 @@
-From 78ecdb4d311b1cf5a6ffc7f73fda14ea40c4221a Mon Sep 17 00:00:00 2001
+From fce4d214309f131ac2c6520415abcf318e9ffe3a Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 30 Jun 2024 03:38:55 +0200
 Subject: [PATCH 4/4] add support for FFmpeg 7
@@ -32,15 +32,15 @@ Reviewed-by: Mika Laitio <lamikr@gmail.com>
  18 files changed, 415 insertions(+), 51 deletions(-)
 
 diff --git a/build_rocm.sh b/build_rocm.sh
-index 69933e2c..0897a56b 100755
+index 6ec84d24..091d0cbc 100755
 --- a/build_rocm.sh
 +++ b/build_rocm.sh
 @@ -11,4 +11,4 @@ unset CPPFLAGS
  unset PKG_CONFIG_PATH
  export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
  export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
--ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
-+ROCM_PATH=${install_dir_prefix_rocm} FFMPEG7_SRC="${install_dir_prefix_rocm}/ffmpeg7_devel" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
+-ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_CUDA=0 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
++ROCM_PATH=${install_dir_prefix_rocm} FFMPEG7_SRC="${install_dir_prefix_rocm}/ffmpeg7_devel" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_CUDA=0 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
 diff --git a/src/libtorio/ffmpeg/CMakeLists.txt b/src/libtorio/ffmpeg/CMakeLists.txt
 index a5c9e74b..ddc06ce3 100644
 --- a/src/libtorio/ffmpeg/CMakeLists.txt
@@ -965,5 +965,5 @@ index 2415bbae..c1a76581 100644
              )
      return modules
 -- 
-2.45.2
+2.46.0
 

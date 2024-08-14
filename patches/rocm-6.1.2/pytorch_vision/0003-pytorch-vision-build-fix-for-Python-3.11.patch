@@ -1,4 +1,4 @@
-From cdcda8ce0e6e638eea2dd88abb26ed385eb9532a Mon Sep 17 00:00:00 2001
+From a3b40f1c32f6703fa532182ea7f444d757234f0d Mon Sep 17 00:00:00 2001
 From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
 Date: Mon, 1 Jul 2024 02:12:12 +0200
 Subject: [PATCH 3/4] pytorch-vision build fix for Python 3.11
@@ -32,5 +32,5 @@ index 4dd74a1eaf..dd032c942f 100644
              ffmpeg_library_dir = [ffmpeg_library_dir, os.path.join(ffmpeg_library_dir, platform_tag)]
          else:
 -- 
-2.45.2
+2.46.0
 

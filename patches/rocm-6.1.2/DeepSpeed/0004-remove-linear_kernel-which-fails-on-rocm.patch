@@ -1,4 +1,4 @@
-From d2f01e9fa1e76c6c5946ff26a96563d0c5584460 Mon Sep 17 00:00:00 2001
+From 74ee42632a30234ac920c969fccc582393402ecd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 11:41:20 -0700
 Subject: [PATCH 4/6] remove linear_kernel which fails on rocm
@@ -57,5 +57,5 @@ index d1957f39..f5538c34 100755
          ]
  
 -- 
-2.45.2
+2.46.0
 

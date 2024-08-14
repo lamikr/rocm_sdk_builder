@@ -1,4 +1,4 @@
-From 936ed7aa90eeb52a7d94e386cf798432142fad1d Mon Sep 17 00:00:00 2001
+From 6f0e7495e72cdfd2c90bd88434ca9c6b620f8bb0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 7 Aug 2024 01:58:06 -0700
 Subject: [PATCH 5/6] remove deprecated warnings from linear.py
@@ -47,5 +47,5 @@ index e9dd7886..8c8db607 100644
      autocast_custom_fwd = noop_decorator
      autocast_custom_bwd = noop_decorator
 -- 
-2.45.2
+2.46.0
 
