@@ -1,7 +1,7 @@
-From ac148c4dcc2128bf2f6b93b18a6f696e26f9a13a Mon Sep 17 00:00:00 2001
+From 8e62025a5bf2c2a022f3ec51e63531b46bc7f544 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Thu, 9 May 2024 13:12:33 -0700
-Subject: [PATCH 2/5] add gfx1010 and gfx1035
+Subject: [PATCH 2/5] add gfx1010, gfx1035 and gfx1036
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -22,5 +22,5 @@ index 1d701ad89..ebb892650 100644
  }
  
 -- 
-2.43.0
+2.46.0
 
