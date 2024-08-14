@@ -1,4 +1,4 @@
-From 9e7c946cc87c37a983e7a43b3102bdeb30f09f92 Mon Sep 17 00:00:00 2001
+From baac6e24ec984bac7f8e6ff0187d34253d04ef9e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 11:32:09 -0700
 Subject: [PATCH 1/4] vllm rocm build and install scripts
@@ -41,7 +41,7 @@ index 00000000..9abf6f0e
 +python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000..f24b6f43
+index 00000000..67c061f6
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -57,7 +57,7 @@ index 00000000..f24b6f43
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
-+    # do not use "pip install --force-reinstall because it can uninstall 
++    # do not use "pip install --force-reinstall because it can uninstall
 +    # own build other packages and then re-install incorrect onew from internet
 +    pip uninstall --yes "$latest_wheel_file"
 +    pip install "$latest_wheel_file"
