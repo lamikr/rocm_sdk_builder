@@ -1,7 +1,7 @@
-From 97289b56bdf09be9f2e49c196c666bd41185c2ca Mon Sep 17 00:00:00 2001
+From 695af690e67fcb7b7ed604066bb491e3e6059d4f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 5 Jul 2024 12:32:20 -0400
-Subject: [PATCH 3/4] remove HIP version from search
+Subject: [PATCH 3/5] remove HIP version from search
 
 HIP 1.0 could never be found now when
 rocm/HIP version is already 6.1
