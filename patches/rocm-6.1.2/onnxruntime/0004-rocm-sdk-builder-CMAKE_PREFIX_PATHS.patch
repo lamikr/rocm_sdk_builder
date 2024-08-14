@@ -1,4 +1,4 @@
-From 145c66b8742f965d052d2e554418320c8c81f5f5 Mon Sep 17 00:00:00 2001
+From 927b55847869a002cb8d01d59a5d943d60451c47 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 21:16:06 -0700
 Subject: [PATCH 4/7] rocm sdk builder CMAKE_PREFIX_PATHS
@@ -10,7 +10,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  2 files changed, 8 insertions(+), 5 deletions(-)
 
 diff --git a/cmake/CMakeLists.txt b/cmake/CMakeLists.txt
-index 8edbb6ad6f..1320c81eef 100644
+index 550238b192..0b3cae245d 100644
 --- a/cmake/CMakeLists.txt
 +++ b/cmake/CMakeLists.txt
 @@ -293,8 +293,9 @@ if (onnxruntime_USE_ROCM)
@@ -45,5 +45,5 @@ index b662682915..fbc2408e8d 100644
    file(GLOB_RECURSE onnxruntime_providers_rocm_cc_srcs CONFIGURE_DEPENDS
      "${ONNXRUNTIME_ROOT}/core/providers/rocm/*.h"
 -- 
-2.43.0
+2.46.0
 

@@ -1,4 +1,4 @@
-From 502c5271201b1aac6180e90ad2dc5e66dffd2dc9 Mon Sep 17 00:00:00 2001
+From 9e7c946cc87c37a983e7a43b3102bdeb30f09f92 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 11:32:09 -0700
 Subject: [PATCH 1/4] vllm rocm build and install scripts
@@ -6,9 +6,9 @@ Subject: [PATCH 1/4] vllm rocm build and install scripts
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_rocm.sh     | 20 ++++++++++++++++++++
- install_rocm.sh   | 23 +++++++++++++++++++++++
+ install_rocm.sh   | 26 ++++++++++++++++++++++++++
  preconfig_rocm.sh |  7 +++++++
- 3 files changed, 50 insertions(+)
+ 3 files changed, 53 insertions(+)
  create mode 100755 build_rocm.sh
  create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
@@ -41,10 +41,10 @@ index 00000000..9abf6f0e
 +python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000..ef220611
+index 00000000..f24b6f43
 --- /dev/null
 +++ b/install_rocm.sh
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
 +unset backup_dir_python_wheel
 +if [ ! -z "$1" ]; then
 +    backup_dir_python_wheel=${1}
@@ -57,6 +57,9 @@ index 00000000..ef220611
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
++    # do not use "pip install --force-reinstall because it can uninstall 
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes "$latest_wheel_file"
 +    pip install "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
@@ -82,5 +85,5 @@ index 00000000..70a3f052
 +    fi
 +fi
 -- 
-2.45.2
+2.46.0
 

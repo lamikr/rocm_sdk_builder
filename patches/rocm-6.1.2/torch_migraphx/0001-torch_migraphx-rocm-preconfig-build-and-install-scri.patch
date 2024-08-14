@@ -1,4 +1,4 @@
-From c593e8f174dbdd0b98cce9f459c089c77df0a4a5 Mon Sep 17 00:00:00 2001
+From dea543eeb3d8abfe910c086da58e58ef837e2149 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 12:07:42 -0700
 Subject: [PATCH 1/2] torch_migraphx rocm preconfig, build and install scripts
@@ -6,9 +6,9 @@ Subject: [PATCH 1/2] torch_migraphx rocm preconfig, build and install scripts
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_rocm.sh     |  5 +++++
- install_rocm.sh   | 23 +++++++++++++++++++++++
+ install_rocm.sh   | 24 ++++++++++++++++++++++++
  preconfig_rocm.sh |  9 +++++++++
- 3 files changed, 37 insertions(+)
+ 3 files changed, 38 insertions(+)
  create mode 100755 build_rocm.sh
  create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
@@ -26,10 +26,10 @@ index 0000000..202c3ac
 +python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 0000000..5902457
+index 0000000..4140662
 --- /dev/null
 +++ b/install_rocm.sh
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,24 @@
 +unset backup_dir_python_wheel
 +if [ ! -z "$1" ]; then
 +    backup_dir_python_wheel=${1}
@@ -42,6 +42,7 @@ index 0000000..5902457
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
++    pip uninstall --yes "$latest_wheel_file"
 +    pip install "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
@@ -69,5 +70,5 @@ index 0000000..ef0b320
 +    fi
 +fi
 -- 
-2.45.2
+2.46.0
 

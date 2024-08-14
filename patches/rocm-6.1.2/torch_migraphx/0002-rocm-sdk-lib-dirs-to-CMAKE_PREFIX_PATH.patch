@@ -1,4 +1,4 @@
-From 017f2d266667edeef919656fc40ea1ce8787c879 Mon Sep 17 00:00:00 2001
+From 83a22e4ce9c6cef08caf6bfb5e945bfac1e6b8d2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 23 May 2024 20:49:47 -0700
 Subject: [PATCH 2/2] rocm sdk lib dirs to CMAKE_PREFIX_PATH
@@ -40,5 +40,5 @@ index 6f74d3c..6437648 100644
  
          cfg = 'Debug' if self.debug else 'Release'
 -- 
-2.45.2
+2.46.0
 

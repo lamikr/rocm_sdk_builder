@@ -1,4 +1,4 @@
-From c00d139c634be64ddcbc724cd7aef9d70cb51233 Mon Sep 17 00:00:00 2001
+From 4ebdd0fcff7ad95eb4ee64e566786214193473d6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:10:43 -0700
 Subject: [PATCH 3/4] do not use std::clamp on rocm
@@ -32,5 +32,5 @@ index aa9511da..abc60faf 100644
  #else
    // CUDA path
 -- 
-2.45.2
+2.46.0
 

@@ -1,4 +1,4 @@
-From a25e72d6437f302c76d15034a88ebf6bdffe9452 Mon Sep 17 00:00:00 2001
+From 0c6879afd4863f4c512992c4dbbec0e7d0d5664f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 24 May 2024 16:03:37 -0700
 Subject: [PATCH 2/7] composable kernel patches to support additional gpus
@@ -1626,5 +1626,5 @@ index 0000000000..13a860f174
 +         {
 +             // on navi3x only support for 3d is implemented
 -- 
-2.43.0
+2.46.0
 

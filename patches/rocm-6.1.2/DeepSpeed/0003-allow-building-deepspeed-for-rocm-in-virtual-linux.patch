@@ -1,4 +1,4 @@
-From ef5649b1f1e8584ccac1ce10b1fa952470627279 Mon Sep 17 00:00:00 2001
+From 99a7e011ef843dbde9cd8f98bb8c55e51debd93e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 26 Jun 2024 14:44:04 -0700
 Subject: [PATCH 3/6] allow building deepspeed for rocm in virtual linux
@@ -57,5 +57,5 @@ index 2b755536..f0014d5e 100755
      print("[WARNING] Torch did not find cuda available, if cross-compiling or running with cpu only "
            "you can ignore this message. Adding compute capability for Pascal, Volta, and Turing "
 -- 
-2.45.2
+2.46.0
 
