@@ -1,0 +1,87 @@
+From b554538d46534263fe48db975e41558659a0c4db Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 13 Aug 2024 18:30:57 -0700
+Subject: [PATCH 3/3] fix double free corruption (!prev) error on pytorch 2.4.0
+ exit
+
+Even simple pytorch hello world type application
+querying first the cuda devices on pytorch 2.4.0 could
+trigger following error on exit:
+    double free or corruption (!prev)
+
+This happens because const chars on map are tried to
+be released during map release.
+
+Fix is to change const chars to std::string
+in map structure which holds message strings.
+------------------------------------------------------------
+
+Hello World, test executed succesfully
+double free or corruption (!prev)
+
+Thread 1 "pt_main_thread" received signal SIGABRT, Aborted.
+__pthread_kill_implementation (threadid=<optimized out>, signo=signo@entry=6, no_tid=no_tid@entry=0) at pthread_kill.c:44
+Downloading source file /usr/src/debug/glibc-2.39-22.fc40.x86_64/nptl/pthread_kill.c
+44            return INTERNAL_SYSCALL_ERROR_P (ret) ? INTERNAL_SYSCALL_ERRNO (ret) : 0;
+(gdb) bt
+    at malloc.c:4646
+    run_dtors=run_dtors@entry=true) at exit.c:108
+    at ../sysdeps/nptl/libc_start_call_main.h:74
+    fini=<optimized out>, rtld_fini=<optimized out>, stack_end=0x7fffffffdd08) at ../csu/libc-start.c:360
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ rocm_smi/include/rocm_smi/rocm_smi_device.h |  2 +-
+ rocm_smi/src/rocm_smi_device.cc             | 12 +++++++-----
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/rocm_smi/include/rocm_smi/rocm_smi_device.h b/rocm_smi/include/rocm_smi/rocm_smi_device.h
+index b8b601f..ad9ea8a 100755
+--- a/rocm_smi/include/rocm_smi/rocm_smi_device.h
++++ b/rocm_smi/include/rocm_smi/rocm_smi_device.h
+@@ -259,7 +259,7 @@ class Device {
+     rsmi_status_t dev_log_gpu_metrics(std::ostringstream& outstream_metrics);
+     AMGpuMetricsPublicLatestTupl_t dev_copy_internal_to_external_metrics();
+ 
+-    static const std::map<DevInfoTypes, const char*> devInfoTypesStrings;
++    static const std::map<DevInfoTypes, std::string> devInfoTypesStrings;
+     static const char* get_type_string(DevInfoTypes type);
+ 
+  private:
+diff --git a/rocm_smi/src/rocm_smi_device.cc b/rocm_smi/src/rocm_smi_device.cc
+index d9547eb..8f4e171 100755
+--- a/rocm_smi/src/rocm_smi_device.cc
++++ b/rocm_smi/src/rocm_smi_device.cc
+@@ -397,7 +397,7 @@ static const std::map<DevInfoTypes, uint8_t> kDevInfoVarTypeToRSMIVariant = {
+     {kDevDFCountersAvailable, RSMI_EVNT_GRP_XGMI}
+ };
+ 
+-const std::map<DevInfoTypes, const char*>
++const std::map<DevInfoTypes, std::string>
+ Device::devInfoTypesStrings = {
+   {kDevPerfLevel, "kDevPerfLevel"},
+   {kDevOverDriveLevel, "kDevOverDriveLevel"},
+@@ -994,14 +994,16 @@ int Device::readDevInfoLine(DevInfoTypes type, std::string *line) {
+ }
+ 
+ const char* Device::get_type_string(DevInfoTypes type) {
++  const char *ret;
++
++  ret = "Unknown";
+   auto ite = devInfoTypesStrings.find(type);
+   if (ite != devInfoTypesStrings.end()) {
+-    return ite->second;
++    ret = ite->second.c_str();
+   }
+-
+-  return "Unknown";
+-
++  return ret;
+ }
++
+ int Device::readDevInfoBinary(DevInfoTypes type, std::size_t b_size,
+                                 void *p_binary_data) {
+   auto sysfs_path = path_;
+-- 
+2.46.0
+
