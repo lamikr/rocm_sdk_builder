@@ -1,0 +1,43 @@
+From 7b962b371ea971c82838145e35215336e0ef02e8 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 16 Aug 2024 14:24:17 -0700
+Subject: [PATCH 6/7] add default playback device for linux
+
+- try to use the pulse-audio as a default audio device
+  on linux instead of just directly drowing exception
+  if target device is not specified.
+- code will still check whether the pulse-audio is available
+  so the code will still work like earlier if pulse is not available
+  as a target device.
+- Tested on fedora 40 which actually uses the pipewire while still
+  providing the pulse as a target device
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/torchaudio/io/_playback.py | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/src/torchaudio/io/_playback.py b/src/torchaudio/io/_playback.py
+index 7183ee3b..1963cec7 100644
+--- a/src/torchaudio/io/_playback.py
++++ b/src/torchaudio/io/_playback.py
+@@ -35,12 +35,14 @@ def play_audio(
+         sample_rate: Sample rate of the audio to play.
+         device: Output device to use. If None, the default device is used.
+     """
+-
+     if platform == "darwin":
+         device = device or "audiotoolbox"
+         path = "-"
++    elif platform == "linux":
++        device = device or "pulse"
++        path = "-"
+     else:
+-        raise ValueError(f"This function only supports MacOS, but current OS is {platform}")
++        raise ValueError(f"This function only supports Linux and MacOS, but current OS is {platform}")
+ 
+     available_devices = list(torchaudio.utils.ffmpeg_utils.get_output_devices().keys())
+     if device not in available_devices:
+-- 
+2.46.0
+

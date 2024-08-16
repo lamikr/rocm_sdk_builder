@@ -1,7 +1,7 @@
 From 0ca564b01099d884c98d8ba2264dba9320318fd0 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 30 Jun 2024 03:38:55 +0200
-Subject: [PATCH 4/5] add support for FFmpeg 7
+Subject: [PATCH 4/7] add support for FFmpeg 7
 
 Add support by including an abstraction layer over the biggest change (the
 channel layout type changed from an uint64_t to a struct), and including

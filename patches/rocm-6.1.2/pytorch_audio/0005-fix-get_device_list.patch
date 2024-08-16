@@ -1,7 +1,7 @@
 From 16c30757a66380305eaf4d7b152f1b6b18a6699e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 14 Aug 2024 15:11:49 -0700
-Subject: [PATCH 5/5] fix get_device_list
+Subject: [PATCH 5/7] fix get_device_list
 
 - fix runtime error which happen because
   long_name containing the description
