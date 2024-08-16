@@ -1,4 +1,4 @@
-From 743ef168b8dbf3c860bc58192fd0fc51afe7bfbe Mon Sep 17 00:00:00 2001
+From e14babe7326431b1298669c89e07345c020db942 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 6 Aug 2024 15:34:06 -0700
 Subject: [PATCH 4/4] giflib files does not build with c-extension
@@ -52,5 +52,5 @@ similarity index 100%
 rename from torchvision/csrc/io/image/cpu/giflib/openbsd-reallocarray.c
 rename to torchvision/csrc/io/image/cpu/giflib/openbsd-reallocarray.cpp
 -- 
-2.45.2
+2.46.0
 

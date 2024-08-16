@@ -1,4 +1,4 @@
-From 439e63779c307c71989bc2ca40eb5504826e552d Mon Sep 17 00:00:00 2001
+From 43e07422e5c72027c5107fab7596b5927f42dbb4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 1 Jul 2024 02:23:00 +0200
 Subject: [PATCH 5/5] Add-python-3.11-support
@@ -7,7 +7,6 @@ Fix provided by @lamikr here:
 https://github.com/lamikr/rocm_sdk_builder/issues/66#issuecomment-2198566018.
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
-
 ---
  cmake/PythonModules.cmake | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -26,5 +25,5 @@ index 661621a2a..a25437677 100755
  foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
      list(REMOVE_ITEM PYTHON_SEARCH_VERSIONS ${PYTHON_DISABLE_VERSION})
 -- 
-2.45.2
+2.46.0
 

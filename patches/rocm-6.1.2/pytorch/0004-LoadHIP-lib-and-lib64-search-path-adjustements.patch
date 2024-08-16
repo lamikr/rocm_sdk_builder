@@ -1,4 +1,4 @@
-From 57005c3a879d0e0c3a19b0f17653b5d2bf7b0571 Mon Sep 17 00:00:00 2001
+From 2ce667205cd6e86834ac352258ed15ad5f95968f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 27 Jul 2024 19:31:03 -0700
 Subject: [PATCH 4/8] LoadHIP lib and lib64 search path adjustements
@@ -116,5 +116,5 @@ index d1e8f534455..70fe47a9e64 100644
    # check whether HIP declares new types
    set(file "${PROJECT_BINARY_DIR}/hip_new_types.cc")
 -- 
-2.41.1
+2.46.0
 

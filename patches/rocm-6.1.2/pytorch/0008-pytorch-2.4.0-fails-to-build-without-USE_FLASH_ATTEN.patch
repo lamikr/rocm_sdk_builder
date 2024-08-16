@@ -1,4 +1,4 @@
-From 4bea55f45a47cab795b1398c55a2364746c53a51 Mon Sep 17 00:00:00 2001
+From f93641193f9a85d8120ae5d9145d2c15fe068fa5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 2 Aug 2024 17:11:33 -0700
 Subject: [PATCH 8/8] pytorch 2.4.0 fails to build without USE_FLASH_ATTENTION
@@ -38,5 +38,5 @@ index 92aacb9f0c0..7ad2528e9fe 100755
 -USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.41.1
+2.46.0
 

@@ -1,4 +1,4 @@
-From 080b788b22ecbb49b751303bf8e5e7cd45fbb58e Mon Sep 17 00:00:00 2001
+From b3b2c9f166bbfb6a59ec5c5e5923e3675d64d3e2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 30 May 2024 09:51:05 -0700
 Subject: [PATCH 3/5] define detail namespace only if used
@@ -46,5 +46,5 @@ index 270d0f07b..46b27f516 100644
  OutputIt par_transform(InputIt first1, InputIt last1, OutputIt d_first, UnaryOperation unary_op)
  {
 -- 
-2.43.0
+2.46.0
 

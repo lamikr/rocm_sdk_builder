@@ -1,4 +1,4 @@
-From 15df9852155cc1090678bb83fed2b142895a01ad Mon Sep 17 00:00:00 2001
+From 36515432905b0196b73f5ae0aae8c8466ee16ff0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 28 Jun 2024 02:58:51 -0700
 Subject: [PATCH] triton rocm build_and_install scripts
@@ -6,9 +6,9 @@ Subject: [PATCH] triton rocm build_and_install scripts
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  build_rocm.sh     |  4 ++++
- install_rocm.sh   | 23 +++++++++++++++++++++++
+ install_rocm.sh   | 26 ++++++++++++++++++++++++++
  preconfig_rocm.sh |  7 +++++++
- 3 files changed, 34 insertions(+)
+ 3 files changed, 37 insertions(+)
  create mode 100755 build_rocm.sh
  create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
@@ -25,10 +25,10 @@ index 000000000..216108218
 +python setup.py bdist_wheel -vvv
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 000000000..85ddb977b
+index 000000000..6c66ba53b
 --- /dev/null
 +++ b/install_rocm.sh
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,26 @@
 +unset backup_dir_python_wheel
 +if [ ! -z "$1" ]; then
 +    backup_dir_python_wheel=${1}
@@ -41,6 +41,9 @@ index 000000000..85ddb977b
 +done
 +if [ ! -z "$latest_wheel_file" ]; then
 +    echo "installing $latest_wheel_file"
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes "$latest_wheel_file"
 +    pip install "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
@@ -66,5 +69,5 @@ index 000000000..70048ac26
 +    fi
 +fi
 -- 
-2.45.2
+2.46.0
 

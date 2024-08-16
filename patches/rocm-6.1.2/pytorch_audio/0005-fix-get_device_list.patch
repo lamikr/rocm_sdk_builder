@@ -1,0 +1,61 @@
+From 16c30757a66380305eaf4d7b152f1b6b18a6699e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 14 Aug 2024 15:11:49 -0700
+Subject: [PATCH 5/5] fix get_device_list
+
+- fix runtime error which happen because
+  long_name containing the description
+  can be null
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/libtorio/ffmpeg/pybind/pybind.cpp | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/src/libtorio/ffmpeg/pybind/pybind.cpp b/src/libtorio/ffmpeg/pybind/pybind.cpp
+index f1d08d94..4f271437 100644
+--- a/src/libtorio/ffmpeg/pybind/pybind.cpp
++++ b/src/libtorio/ffmpeg/pybind/pybind.cpp
+@@ -41,7 +41,18 @@ std::map<std::string, std::string> get_demuxers(bool req_device) {
+       return avclass && AV_IS_INPUT_DEVICE(avclass->category);
+     }();
+     if (req_device == is_device) {
+-      ret.emplace(fmt->name, fmt->long_name);
++      if (fmt->name) {
++        if (fmt->long_name) {
++          ret.emplace(fmt->name, fmt->long_name);
++        }
++        else {
++          // device does not have any description in long_name
++          ret.emplace(fmt->name, fmt->name);
++        }
++      }
++      else {
++        std::cout << "Warning device without name returned." << std::endl;
++      }
+     }
+   }
+   return ret;
+@@ -58,7 +69,18 @@ std::map<std::string, std::string> get_muxers(bool req_device) {
+       return avclass && AV_IS_OUTPUT_DEVICE(avclass->category);
+     }();
+     if (req_device == is_device) {
+-      ret.emplace(fmt->name, fmt->long_name);
++      if (fmt->name) {
++        if (fmt->long_name) {
++          ret.emplace(fmt->name, fmt->long_name);
++        }
++        else {
++          // device does not have any description in long_name
++          ret.emplace(fmt->name, fmt->name);
++        }
++      }
++      else {
++        std::cout << "Warning device without name returned." << std::endl;
++      }
+     }
+   }
+   return ret;
+-- 
+2.46.0
+
