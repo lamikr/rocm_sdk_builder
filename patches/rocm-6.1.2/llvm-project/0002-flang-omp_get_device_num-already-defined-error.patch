@@ -1,7 +1,7 @@
-From 2b1c00eb1220064604e44fce81e88735e14e7ec1 Mon Sep 17 00:00:00 2001
+From 71153dc4cf9ef72abb3a691c7f5bc822e42172c9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Mon, 4 Dec 2023 17:22:53 -0800
-Subject: [PATCH 2/4] flang omp_get_device_num already defined error
+Subject: [PATCH 2/5] flang omp_get_device_num already defined error
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -25,5 +25,5 @@ index 599ce9bf9a01..ce2f7b998443 100644
              use omp_lib_kinds
              integer (kind=omp_integer_kind) omp_get_num_teams
 -- 
-2.41.0
+2.46.0
 

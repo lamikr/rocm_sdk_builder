@@ -1,7 +1,7 @@
-From fd63b94800f66ec6912b9e8bf9ff60db0a0940c7 Mon Sep 17 00:00:00 2001
+From a27cdefc097c4fbbe91fe84633ac12702c387af9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jan 2024 20:51:12 -0800
-Subject: [PATCH 3/4] add lib64 to libhwloc search path
+Subject: [PATCH 3/5] add lib64 to libhwloc search path
 
 cmake on ubuntu23.10 finds library only from
 lib, not from lib64w
@@ -26,5 +26,5 @@ index c7c9139d8f8a..ddedefdd4ba3 100644
      # In case libhwloc is static, check_library_exists does not work on static libs
      get_filename_component(LIBOMP_HWLOC_LIBRARY_EXT ${LIBOMP_HWLOC_LIBRARY} EXT)
 -- 
-2.41.0
+2.46.0
 
