@@ -1,4 +1,4 @@
-From afadfb0a16dfb655cce286a66e56ab461d7e4306 Mon Sep 17 00:00:00 2001
+From 02ff03076dd2484e7f0d7ec5e68a430555828bc1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sat, 11 May 2024 13:51:59 -0700
 Subject: [PATCH 4/5] fix llvm omptarget libhsakmt linking
@@ -88,5 +88,5 @@ index 1ad4316a9c04..7636cac11119 100644
  
  # libomptarget.so needs to be aware of where the plugins live as they
 -- 
-2.46.0
+2.41.1
 

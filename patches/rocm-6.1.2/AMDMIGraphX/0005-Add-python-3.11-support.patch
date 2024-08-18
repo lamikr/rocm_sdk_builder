@@ -1,4 +1,4 @@
-From 43e07422e5c72027c5107fab7596b5927f42dbb4 Mon Sep 17 00:00:00 2001
+From c84a70b0789c59ad0c3e85c03bcad1c47bbbaad0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 1 Jul 2024 02:23:00 +0200
 Subject: [PATCH 5/5] Add-python-3.11-support
@@ -25,5 +25,5 @@ index 661621a2a..a25437677 100755
  foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
      list(REMOVE_ITEM PYTHON_SEARCH_VERSIONS ${PYTHON_DISABLE_VERSION})
 -- 
-2.46.0
+2.41.1
 
