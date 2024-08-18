@@ -1,7 +1,9 @@
-From da1ba6d25805f5479c7583058dc9ff845b9c0205 Mon Sep 17 00:00:00 2001
+From 52e94d087d842df14680b84be93ddabc1fbddf33 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 16 Aug 2024 15:10:33 -0700
 Subject: [PATCH 5/5] add gfx1011 and gfx1012 as a build targets
+
+- add gfx1011 and gfx1012
 
 Thanks for the GHM-0 for suggestion
 
@@ -9,9 +11,23 @@ Thanks for the GHM-0 for suggestion
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- openmp/libomptarget/DeviceRTL/CMakeLists.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ libc/cmake/modules/prepare_libc_gpu_build.cmake | 2 +-
+ openmp/libomptarget/DeviceRTL/CMakeLists.txt    | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
+diff --git a/libc/cmake/modules/prepare_libc_gpu_build.cmake b/libc/cmake/modules/prepare_libc_gpu_build.cmake
+index ea79a42faeef..852998e0f0c1 100644
+--- a/libc/cmake/modules/prepare_libc_gpu_build.cmake
++++ b/libc/cmake/modules/prepare_libc_gpu_build.cmake
+@@ -5,7 +5,7 @@ endif()
+ 
+ # Set up the target architectures to build the GPU libc for.
+ set(all_amdgpu_architectures "gfx700;gfx701;gfx801;gfx803;gfx900;gfx902;gfx906"
+-                             "gfx908;gfx90a;gfx90c;gfx940;gfx1010;gfx1030"
++                             "gfx908;gfx90a;gfx90c;gfx940;gfx1010;gfx1011;gfx1012;gfx1030"
+                              "gfx1031;gfx1032;gfx1033;gfx1034;gfx1035;gfx1036"
+                              "gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
+ set(all_nvptx_architectures "sm_35;sm_37;sm_50;sm_52;sm_53;sm_60;sm_61;sm_62"
 diff --git a/openmp/libomptarget/DeviceRTL/CMakeLists.txt b/openmp/libomptarget/DeviceRTL/CMakeLists.txt
 index 66ccb4374322..02fc0f1f0674 100644
 --- a/openmp/libomptarget/DeviceRTL/CMakeLists.txt
@@ -28,5 +44,5 @@ index 66ccb4374322..02fc0f1f0674 100644
  set(all_nvptx_architectures "sm_35;sm_37;sm_50;sm_52;sm_53;sm_60;sm_61;sm_62"
                              "sm_70;sm_72;sm_75;sm_80;sm_86;sm_87;sm_89;sm_90")
 -- 
-2.46.0
+2.41.1
 

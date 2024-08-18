@@ -1,0 +1,40 @@
+From 11912cc0e5f6a3bcc17ff51de001457e54b93a23 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:30:45 -0700
+Subject: [PATCH] gfx1010/11/12/30/31/32/35/36 to default targets
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8dc6181..185944f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -162,15 +162,22 @@ if(NOT DEFINED AMDGPU_TARGETS)
+       gfx940
+       gfx941
+       gfx942
++      gfx1011
++      gfx1012
++      gfx1031
++      gfx1032
++      gfx1036
+       gfx1100
+       gfx1101
+       gfx1102
++      gfx1103
+   )
+   set(AMDGPU_TARGETS_INIT
+     gfx906:xnack-
+     gfx908:xnack-
+     gfx1010
+     gfx1030
++    gfx1035
+     ${OPTIONAL_AMDGPU_TARGETS}
+   )
+ endif()
+-- 
+2.41.1
+

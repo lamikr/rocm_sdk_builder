@@ -1,0 +1,35 @@
+From 243c6ae174cbc1cd7b6b485914e9960a47e27b8e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 15 May 2024 21:09:56 -0700
+Subject: [PATCH 2/3] llvm path changes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Tensile/Common.py | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Tensile/Common.py b/Tensile/Common.py
+index 6ececf1c..0212aec5 100644
+--- a/Tensile/Common.py
++++ b/Tensile/Common.py
+@@ -2264,7 +2264,7 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+-      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang++")
++      globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang++")
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+ 
+@@ -2276,7 +2276,7 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["ClangOffloadBundlerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang-offload-bundler.exe")
+     else:
+-      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang-offload-bundler")
++      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang-offload-bundler")
+ 
+   if "ROCmAgentEnumeratorPath" in config:
+     globalParameters["ROCmAgentEnumeratorPath"] = config["ROCmAgentEnumeratorPath"]
+-- 
+2.41.1
+

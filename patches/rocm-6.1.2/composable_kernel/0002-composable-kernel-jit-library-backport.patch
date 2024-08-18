@@ -1,7 +1,7 @@
-From 1144ceded161dc04116fa8a52f71474bd22a6383 Mon Sep 17 00:00:00 2001
+From 570d16d69074f6b0f2c8210e406c8ff0cc0e6660 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 13:49:47 -0700
-Subject: [PATCH 2/4] composable kernel jit library backport
+Subject: [PATCH 2/3] composable kernel jit library backport
 
 - backported from the composable_kernel
   migraphx branch revision 57cdd70b7cb14e5e3b60cd9a5f96ba8dc343763e
@@ -2287,5 +2287,5 @@ index 000000000..a5057da10
 +    }
 +}
 -- 
-2.43.0
+2.41.1
 

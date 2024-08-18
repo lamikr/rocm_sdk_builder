@@ -1,4 +1,4 @@
-From f12459ba39a6e85503263096d4ebb8b4804a08c4 Mon Sep 17 00:00:00 2001
+From 48b4054eda13d8b47c9b69256decc9e0fd2de6c1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 1 Jun 2024 19:06:33 -0700
 Subject: [PATCH 4/5] AMDMIGraphX msgpack-cxx ubuntu 24.04 search fix
@@ -53,5 +53,5 @@ index 55ede3227..99d6453d9 100644
  add_library(migraphx_all_targets INTERFACE)
  
 -- 
-2.46.0
+2.41.1
 
