@@ -442,6 +442,7 @@ func_babs_init_and_fetch_single_repo_by_binfo() {
                         echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                         echo "Source directory: ${BINFO_APP_SRC_DIR}"
                         echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                        git submodule foreach git reset --hard
                         git submodule update --init --recursive
                         if [ $? -ne 0 ]; then
                             echo "git submodule init and update failed: ${BINFO_APP_SRC_DIR}"
@@ -666,6 +667,21 @@ func_babs_checkout_by_binfo() {
                         echo "Source directory: ${BINFO_APP_SRC_DIR}"
                         echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                         echo ""
+						func_is_current_dir_a_git_submodule_dir
+						ret_val=$?
+						if [ ${ret_val} == "1" ]; then
+							echo ""
+							echo "[${jj}]: Submodule Init"
+							echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+							echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+							echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+							echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+							git submodule update --init --recursive
+							if [ $? -ne 0 ]; then
+								echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+								exit 1
+							fi
+						fi
                     fi
                 else
                     echo "Error, source directory where fetch repository does not exist. ${BINFO_APP_SRC_DIR}"
@@ -708,6 +724,23 @@ func_repolist_checkout_default_versions() {
                 echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 echo ""
                 exit 1
+            else
+                func_is_current_dir_a_git_submodule_dir
+                ret_val=$?
+                if [ ${ret_val} == "1" ]; then
+                    echo ""
+                    echo "[${jj}]: Submodule Init"
+                    echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                    echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                    echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                    echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                    git submodule foreach git reset --hard
+                    git submodule update --init --recursive
+                    if [ $? -ne 0 ]; then
+                        echo "git submodule init and update failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                        exit 1
+                    fi
+                fi
             fi            
         fi
         ((jj++))
