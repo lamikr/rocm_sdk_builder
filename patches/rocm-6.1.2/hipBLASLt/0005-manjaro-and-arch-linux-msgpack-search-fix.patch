@@ -1,7 +1,7 @@
-From e8866ad0e8a3000ceebb382aa427f704e2a8b89d Mon Sep 17 00:00:00 2001
+From 358d28dafb76558d8d37999105b8b82adbb6e51a Mon Sep 17 00:00:00 2001
 From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
 Date: Tue, 18 Jun 2024 21:46:30 -0700
-Subject: [PATCH 7/8] manjaro and arch linux msgpack search fix
+Subject: [PATCH 5/6] manjaro and arch linux msgpack search fix
 
 Fix provided by @daniandtheweb and
 @jeroen-mostert
@@ -28,5 +28,5 @@ index 43206527..e9476b3d 100644
  
      if(TARGET msgpackc-cxx)
 -- 
-2.46.0
+2.41.1
 

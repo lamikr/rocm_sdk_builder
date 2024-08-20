@@ -1,7 +1,7 @@
-From 76361246f1330cc1fb1b7fd0af4e3834d7563618 Mon Sep 17 00:00:00 2001
+From 3266658c5b90ccf5a765478ce37d917392220dff Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 17:07:19 +0000
-Subject: [PATCH 8/8] Set standard to C++17
+Subject: [PATCH 6/6] Set standard to C++17
 
 The combination of Clang 17 with the STL of GCC 13 doesn't work with
 -std=c++20 (at the very least not on Void Linux). Nothing actually
@@ -14,7 +14,7 @@ Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index c6a16e01..31547bf7 100644
+index fec03c1b..1b9d2fdb 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -25,7 +25,7 @@
@@ -40,5 +40,5 @@ index e9476b3d..72425d07 100644
                        CXX_EXTENSIONS OFF)
  
 -- 
-2.46.0
+2.41.1
 
