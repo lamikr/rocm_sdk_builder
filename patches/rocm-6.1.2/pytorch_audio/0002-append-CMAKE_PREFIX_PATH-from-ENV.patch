@@ -1,7 +1,7 @@
 From 48eebf0706c3e61883f9124cf464fc8b58f30418 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 11:18:24 -0800
-Subject: [PATCH 2/5] append CMAKE_PREFIX_PATH from ENV
+Subject: [PATCH 2/7] append CMAKE_PREFIX_PATH from ENV
 
 Fix error not finding hsa-runtime library
 when building on ubuntu

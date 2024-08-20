@@ -24,6 +24,7 @@ func_repolist_binfo_list_print #From repo_management.sh
 
 func_repolist_find_app_index_by_app_name #From repo_management.sh
 
+
 func_user_help_print() {
     func_build_system_name_and_version_print #Fron config.sh
     echo "babs (babs ain't patch build system)"

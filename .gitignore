@@ -10,3 +10,6 @@ docs/examples/opencl/hello_world/hello_world
 packages
 envsetup_pre.sh
 .vscode
+docs/examples/pytorch/audio/microphone_rec.wav
+docs/examples/pytorch/audio/speech_resave.wav
+
