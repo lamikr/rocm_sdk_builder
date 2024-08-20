@@ -13,12 +13,12 @@ source binfo/user_config.sh
 # allow enable doing some user specific extra actions before the build start
 # source ./envsetup_pre.sh
 
-source helpers/system_utils.sh
-source helpers/build_handler.sh
-source helpers/config.sh
-source helpers/git_utils.sh
-source helpers/repo_management.sh
-source helpers/binfo_operations.sh
+source build/system_utils.sh
+source build/build_handler.sh
+source build/config.sh
+source build/git_utils.sh
+source build/repo_management.sh
+source build/binfo_operations.sh
 
 func_repolist_binfo_list_print #From repo_management.sh
 
@@ -131,9 +131,9 @@ func_handle_user_command_args() {
             -ap | --apply_patches)
                 func_is_git_configured
                 if [[ -n "${ARG__USER_CMD_PARAM1}" ]]; then
-                    func_babs_apply_patches_by_binfo ${ARG__USER_CMD_PARAM1} #From helpers/repo_management.sh
+                    func_babs_apply_patches_by_binfo ${ARG__USER_CMD_PARAM1} #From build/binfo_operations.sh
                 else
-                    func_repolist_apply_patches helpers/binfo_operations.sh
+                    func_repolist_apply_patches build/binfo_operations.sh
                 fi
                 exit 0
                 ;;
@@ -151,6 +151,18 @@ func_handle_user_command_args() {
                     func_babs_checkout_by_binfo ${ARG__USER_CMD_PARAM1} #From binfo_operations.sh
                 else
                     func_repolist_checkout_default_versions #From repo_management.sh
+                fi
+                exit 0
+                ;;
+            -ca | --checkout_and_apply)
+                # Combined checkout and apply patches
+                func_is_git_configured
+                if [[ -n "${ARG__USER_CMD_PARAM1}" ]]; then
+                    func_babs_checkout_by_binfo ${ARG__USER_CMD_PARAM1}
+                    func_babs_apply_patches_by_binfo ${ARG__USER_CMD_PARAM1}
+                else
+                    func_repolist_checkout_default_versions
+                    func_repolist_apply_patches build/binfo_operations.sh
                 fi
                 exit 0
                 ;;
@@ -180,7 +192,7 @@ func_handle_user_command_args() {
                     source ./build/build_func.sh
                     func_upstream_remote_repo_add_by_binfo ${ARG__USER_CMD_PARAM1}
                 else
-                    func_repolist_upstream_remote_repo_add #From helpers/repo_management.sh
+                    func_repolist_upstream_remote_repo_add #From build/repo_management.sh
                 fi
                 exit 0
                 ;;

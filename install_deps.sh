@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source helpers/system_utils.sh
+source build/system_utils.sh
 
 func_is_supported_distro()
 {
