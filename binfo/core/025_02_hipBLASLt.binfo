@@ -6,9 +6,52 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/hipBLASLt.git
 #use default git tag
 #BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-6.0.0
 
-#CFG_TEMP1=-DAMDGPU_TARGETS="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
-#CFG_TEMP1=-DAMDGPU_TARGETS="all"
-CFG_TEMP1=-DAMDGPU_TARGETS="gfx90a"
+func_filter_gfx_array() {
+    #local gpu_list_str=$1
+    #local -n gpu_accepted_arr="$2"
+    local gpu_list_str=$1
+    shift
+    local default_val=$1
+    shift
+    local gpu_accepted_arr=("$@")
+    local ret
+
+    ret=""
+    #echo "gpu_list_str: ${gpu_list_str}"
+    for gpu_name in "${gpu_accepted_arr[@]}"; do
+        #echo "gpu_name: $gpu_name"
+        if [[ ${gpu_list_str} =~ ${gpu_name} ]]; then
+            #echo "${gpu_accepted_arr[$ii]}"
+            if [ -z ${ret} ]; then
+                ret=${gpu_name};
+            else
+                ret=${ret}\;${gpu_name};
+            fi
+        fi
+    done
+    if [ -z ${ret} ]; then
+        ret=${default_val};
+    fi
+    echo "${ret}"
+}
+
+#CFG_TEMP1=-DAMDGPU_TARGETS="gfx90a"
+# hardcoded list of GPU's where aotriton build works
+ACCEPTED_GPU_LIST=(gfx90a:xnack+ gfx90a:xnack- gfx940 gfx941 gfx942)
+# take only those GPU's from the array that are in the ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT} environment variable
+# and if none of the GPU's match, return gfx1100 as a default
+FILTERED_GPU_LIST=$(func_filter_gfx_array ${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT} "" "${ACCEPTED_GPU_LIST[@]}")
+
+# build tests only if there are user selected GPUs on hipBLASLt build target list.
+GPU_TARGET_FOUND=ON
+if [[ -z ${FILTERED_GPU_LIST} ]]; then
+    # if support for none of the gpu's is build
+    # then does not make sense to build benchmarks or other examples
+    GPU_TARGET_FOUND=OFF
+    # we need to build the support for at least one gpu. Othetwise the build would fail.
+    FILTERED_GPU_LIST="gfx90a"
+fi
+CFG_TEMP1=-DAMDGPU_TARGETS=${FILTERED_GPU_LIST}
 
 BINFO_APP_CMAKE_CFG="-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_PREFIX_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake;${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake"
@@ -28,11 +71,9 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_LIBRARY_FORMAT=msgpack"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_CPU_THREADS=${BUILD_CPU_COUNT_SAFE}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_TEST_LOCAL_PATH=${BINFO_APP_SRC_DIR}/tensilelite"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTENSILE_VERSION=4.33.0"
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_TEST_LOCAL_PATH=${SDK_SRC_ROOT_DIR}/Tensile"
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTENSILE_VERSION=4.40.0"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DRUN_HEADER_TESTING=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_BUILD_TYPE=Release"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_BENCHMARKS=ON"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_SAMPLES=ON"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_BENCHMARKS=${GPU_TARGET_FOUND}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_SAMPLES=${GPU_TARGET_FOUND}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_TESTS=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
