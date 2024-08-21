@@ -1,4 +1,4 @@
-+func_repolist_checkout_by_version_tag_file#!/bin/bash
+#!/bin/bash
 source build/git_utils.sh
 func_repolist_binfo_list_print() {
     local jj=0
@@ -96,8 +96,8 @@ func_repolist_upstream_remote_repo_add() {
             git fetch upstream --force --tags
             git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
             func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
-            ret_val=$?
-            if [ ${ret_val} == "1" ]; then
+            cur_res=$?
+            if [ ${cur_res} == "1" ]; then
                 echo ""
                 echo "[${jj}]: Submodule Init"
                 echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
@@ -114,7 +114,7 @@ func_repolist_upstream_remote_repo_add() {
         ((jj++))
     done
     jj=0
-    # apply patches if patch directory exists
+    # apply patches if patch directory exist
     while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
         # echo "LIST_APP_ADDED_UPSTREAM_REPO[$jj]: ${LIST_APP_ADDED_UPSTREAM_REPO[$jj]}"
         # check if directory was just created and git am needs to be done
@@ -146,7 +146,7 @@ func_repolist_upstream_remote_repo_add() {
                         echo "[${jj}]: Patches Applied: ${LIST_APP_SRC_CLONE_DIR}"
                     fi
                 else
-                    echo "[${jj}]: Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
+                    echo "[${jj}]: Warning, patch directory exist but is empty: ${TEMP_PATCH_DIR}"
                     sleep 2
                 fi
             else
@@ -161,38 +161,21 @@ func_repolist_upstream_remote_repo_add() {
     echo "All new source code repositories added and initialized ok"
 }
 
-func_repolist_fetch_top_repo() {
+func_repolist_fetch_core_repositories() {
     local jj
 
     jj=0
-    echo "func_repolist_fetch_top_repo started"
-    while [ "x${LIST_APP_PATCH_DIR[jj]}" != "x" ]; do
+    echo "func_repolist_fetch_core_repositories started"
+    while [ "x${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" != "x" ]; do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
-            if [ -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
-                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo ""
-                echo "[${jj}]: Repository Fetch"
-                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
-                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
-                git fetch upstream
-                if [ $? -ne 0 ]; then
-                    echo "git fetch failed: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                    exit 1
-                fi
-                git fetch upstream --force --tags
-            else
-                echo ""
-                echo "[${jj}]: Failed to fetch source code for repository ${LIST_BINFO_APP_NAME[${jj}]}"
-                echo "Source directory[$jj] not initialized with '-i' command:"
-                echo "    ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo ""
-                exit 1
-            fi
+            echo "LIST_BINFO_FILE_FULLNAME: ${LIST_BINFO_FILE_FULLNAME[$jj]}"
+            pwd
+            func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_FULLNAME[$jj]} ${jj}
         else
-            echo "No repository defined for project in directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+            if [ ! -z ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
+                echo "Repository not defined, skipping checkout:"
+                echo "LIST_BINFO_FILE_FULLNAME: ${LIST_BINFO_FILE_FULLNAME[$jj]}"
+            fi
         fi
         ((jj++))
     done
@@ -257,18 +240,41 @@ func_repolist_checkout_default_versions() {
             echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
             echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
             sleep 0.1
-            cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
-            git reset --hard
-            git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
-            if [ $? -ne 0 ]; then
-                echo ""
-                echo "[${jj}]: Error, failed to checkout repository base version"
-                echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
-                echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
-                echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
-                echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
-                echo ""
-                exit 1
+            if [ -d ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
+                cd "${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                git reset --hard
+                git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                if [ $? -ne 0 ]; then
+                    # try to fetch source code and then try again one time
+                    git fetch
+                    git fetch --tags
+                    git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                    if [ $? -ne 0 ]; then
+                        echo ""
+                        echo "[${jj}]: Error, failed to checkout repository base version"
+                        echo "Repository name: ${LIST_BINFO_APP_NAME[${jj}]}"
+                        echo "Repository URL: ${LIST_APP_UPSTREAM_REPO_URL[$jj]}"
+                        echo "Source directory: ${LIST_APP_SRC_CLONE_DIR[$jj]}"
+                        echo "VERSION_TAG: ${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
+                        echo ""
+                        exit 1
+                    fi
+                fi
+                func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
+                cur_res=$?
+                if [ ${cur_res} == "1" ]; then
+                    git submodule foreach git reset --hard
+                    git submodule foreach git clean -fdx
+                    git submodule deinit --all
+                    git submodule update --init --recursive
+                fi
+            else
+                # source directory does not exist, maybe a new one...
+                # download it from the repository and checkout the correct version
+                cd ${SDK_ROOT_DIR}
+                source ./build/binfo_operations.sh
+                cd binfo
+                func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_BASENAME[jj]} ${jj}
             fi
         fi
         ((jj++))
