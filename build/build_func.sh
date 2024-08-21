@@ -6,7 +6,7 @@
 # License: GNU Lesser General Public License (LGPL), version 2.1 or later.
 # See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
 #
-source ../build/git_utils.sh
+source build/git_utils.sh
 
 func_upstream_remote_repo_add() {
     local CUR_APP_UPSTREAM_REPO_DEFINED=0
@@ -40,7 +40,7 @@ func_upstream_remote_repo_add() {
                 cd "${BINFO_APP_SRC_CLONE_DIR}"
                 echo ""
                 echo "[${ii}] Repository Init"
-                echo "Repository name: $BINFO_APP_NAME}"
+                echo "Repository name: ${BINFO_APP_NAME}"
                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                 echo "Source directory: ${BINFO_APP_SRC_CLONE_DIR}"
                 echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
@@ -78,8 +78,8 @@ func_upstream_remote_repo_add() {
             git fetch upstream --force --tags
             git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
             func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
-            ret_val=$?
-            if [ ${ret_val} == "1" ]; then
+            cur_res=$?
+            if [ ${cur_res} == "1" ]; then
                 echo ""
                 echo "[${ii}] Submodule Init"
                 echo "Repository name: ${BINFO_APP_NAME}"
@@ -95,7 +95,7 @@ func_upstream_remote_repo_add() {
         fi
 
         local CUR_APP_PATCH_DIR="${PATCH_FILE_ROOT_DIR}/${BINFO_APP_NAME}"
-        # Apply patches if patch directory exists
+        # Apply patches if patch directory exist
         # check if directory was just created and git am needs to be done
         if [ ${CUR_APP_UPSTREAM_REPO_ADDED} -eq 1 ]; then
             local TEMP_PATCH_DIR=${CUR_APP_PATCH_DIR}
@@ -125,7 +125,7 @@ func_upstream_remote_repo_add() {
                         echo "Patches Applied: ${BINFO_APP_SRC_CLONE_DIR}"
                     fi
                 else
-                   echo "Warning, patch directory exists but is empty: ${TEMP_PATCH_DIR}"
+                   echo "Warning, patch directory exist but is empty: ${TEMP_PATCH_DIR}"
                    sleep 2
                 fi
             else
@@ -200,6 +200,33 @@ func_upstream_remote_repo_add_by_binfo() {
     fi
     if [ ! -d ${BINFO_APP_SRC_CLONE_DIR} ]; then
         func_upstream_remote_repo_add ${ii}
+    fi
+}
+
+func_upstream_remote_repo_add_by_blist() {
+    local ii
+    local BINFO_ARRAY
+
+    ii=0
+    readarray -t BINFO_ARRAY < $1
+    if [[ ${BINFO_ARRAY[@]} ]]; then
+        local FNAME
+        for FNAME in "${BINFO_ARRAY[@]}"; do
+            if [ ! -z ${FNAME} ]; then
+               if  [ -z ${FNAME##*.binfo} ]; then
+                   ii=$(( ${ii} + 1 ))
+                   cd ${SDK_ROOT_DIR}
+                   func_upstream_remote_repo_add_by_binfo ${FNAME} ${ii}
+               fi
+            fi
+        done
+    else
+        echo ""
+        echo "Failed to add repositories by using the blist file."
+        echo "Could not find binfo files listed in:"
+        echo "    $1"
+        echo ""
+        exit 1
     fi
 }
 
@@ -629,6 +656,36 @@ func_init_and_build_single_binfo() {
     BINFO_APP_INSTALL_CMD_EXECUTE_ALWAYS=1
     func_build_single_binfo $1 1
     func_build_env_deinit
+    return 0
+}
+
+func_init_and_build_blist() {
+    local ii
+    local BINFO_ARRAY
+
+    ii=0
+    readarray -t BINFO_ARRAY < $1
+    if [[ ${BINFO_ARRAY[@]} ]]; then
+        func_build_env_init
+
+        local FNAME
+        for FNAME in "${BINFO_ARRAY[@]}"; do
+            if [ ! -z ${FNAME} ]; then
+               if  [ -z ${FNAME##*.binfo} ]; then
+                   ii=$(( ${ii} + 1 ))
+                   cd ${SDK_ROOT_DIR}
+                   func_build_single_binfo ${FNAME} ${ii}
+               fi
+            fi
+        done
+    else
+        echo ""
+        echo "Failed to build by using the blist file."
+        echo "Could not find binfo files listed in:"
+        echo "    $1"
+        echo ""
+        exit 1
+    fi
     return 0
 }
 
