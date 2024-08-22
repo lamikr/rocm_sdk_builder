@@ -1,7 +1,7 @@
-From 7aa96930ad47286f9ee778219671fb5e76781817 Mon Sep 17 00:00:00 2001
+From 590f1114ba7335aaeba47c470e9ab5fe61aced48 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 16 Aug 2024 14:22:42 -0700
-Subject: [PATCH 7/7] add strace about files downloaded
+Subject: [PATCH 7/9] add strace about files downloaded
 
 - helps seeing from where where the pytorch downloads the
   audio files and where it saves them when running example
@@ -33,5 +33,5 @@ index 2081877d..3326aac5 100644
      else:
          _LG.info("Downloading %s to %s", key, path)
 -- 
-2.46.0
+2.43.0
 

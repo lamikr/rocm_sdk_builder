@@ -1,0 +1,25 @@
+From 22f66223c78d13a58b9f35df3eb63100ffdfe226 Mon Sep 17 00:00:00 2001
+From: Chin-Yun Yu <chin-yun.yu@qmul.ac.uk>
+Date: Mon, 24 Jun 2024 13:35:59 +0100
+Subject: [PATCH 8/9] fix: use reshape for noncontiguous dy (#3794)
+
+---
+ src/libtorchaudio/lfilter.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libtorchaudio/lfilter.cpp b/src/libtorchaudio/lfilter.cpp
+index 0d0abf6c..e9b8d4ee 100644
+--- a/src/libtorchaudio/lfilter.cpp
++++ b/src/libtorchaudio/lfilter.cpp
+@@ -168,7 +168,7 @@ class DifferentiableIIR : public torch::autograd::Function<DifferentiableIIR> {
+ 
+       da = F::conv1d(
+                dyda.view({1, n_batch * n_channel, -1}),
+-               dy.view({n_batch * n_channel, 1, -1}),
++               dy.reshape({n_batch * n_channel, 1, -1}),
+                F::Conv1dFuncOptions().groups(n_batch * n_channel))
+                .view({n_batch, n_channel, -1})
+                .sum(0)
+-- 
+2.43.0
+
