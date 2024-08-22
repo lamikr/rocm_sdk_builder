@@ -1,12 +1,13 @@
-From 2772930b557ccfac33f7d2103257aec0ad24e93d Mon Sep 17 00:00:00 2001
+From ccb7ae9b3e76614c533c644b2c9614a7f7474bf6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/8] pytorch_rocm preconfig, build and install scripts
+Subject: [PATCH 1/7] pytorch_rocm preconfig, build and install scripts
 
 - clean previous build, build wheel and install wheel scripts
 "-Wno-error=maybe-uninitialized" is needed during
 build time for gcc14/fedora 40.
-- explicitly pass version number for release build.
+- explicitly pass version number for release build
+- enable flash attention
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
@@ -21,7 +22,7 @@ Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000000..2cc3a7773b2
+index 00000000000..5dedc9b9f8c
 --- /dev/null
 +++ b/build_rocm.sh
 @@ -0,0 +1,23 @@
@@ -47,10 +48,10 @@ index 00000000000..2cc3a7773b2
 +unset CFLAGS
 +unset CPPFLAGS
 +unset PKG_CONFIG_PATH
-+USE_FLASH_ATTENTION=OFF ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000000..782f2719884
+index 00000000000..ec1f7d39b9f
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -82,7 +83,7 @@ index 00000000000..782f2719884
 +fi
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
-index 00000000000..92aacb9f0c0
+index 00000000000..7ad2528e9fe
 --- /dev/null
 +++ b/preconfig_rocm.sh
 @@ -0,0 +1,21 @@
@@ -106,7 +107,7 @@ index 00000000000..92aacb9f0c0
 +        python setup.py clean
 +    fi
 +fi
-+USE_FLASH_ATTENTION=OFF CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.46.0
+2.41.1
 
