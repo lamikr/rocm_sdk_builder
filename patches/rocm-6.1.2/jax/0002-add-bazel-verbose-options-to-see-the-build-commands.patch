@@ -1,0 +1,46 @@
+From a14031d786c024636443fbe964739956ba30cf8e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 24 Aug 2024 17:09:07 -0700
+Subject: [PATCH 2/3] add bazel verbose options to see the build commands
+
+- its helps to detect errors when the gcc options are
+  visible
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build/build.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/build/build.py b/build/build.py
+index 6bea5fdd1..cc8e86f0e 100755
+--- a/build/build.py
++++ b/build/build.py
+@@ -279,7 +279,7 @@ def write_bazelrc(*, python_bin_path, remote_build,
+       f.write(f'build --action_env CLANG_COMPILER_PATH="{clang_path}"\n')
+       f.write(f'build --repo_env CC="{clang_path}"\n')
+       f.write(f'build --repo_env BAZEL_COMPILER="{clang_path}"\n')
+-      f.write('build --copt=-Wno-error=unused-command-line-argument\n')
++      #f.write('build --copt=-Wno-error=unused-command-line-argument\n')
+       if clang_major_version in (16, 17, 18):
+         # Necessary due to XLA's old version of upb. See:
+         # https://github.com/openxla/xla/blob/c4277a076e249f5b97c8e45c8cb9d1f554089d76/.bazelrc#L505
+@@ -395,7 +395,7 @@ def main():
+   add_boolean_argument(
+       parser,
+       "verbose",
+-      default=False,
++      default=True,
+       help_str="Should we produce verbose debugging output?")
+   parser.add_argument(
+       "--bazel_path",
+@@ -668,6 +668,7 @@ def main():
+     bazel_path,
+     *args.bazel_startup_options,
+     "run",
++    "--subcommands",
+     "--verbose_failures=true",
+     *args.bazel_options,
+   )
+-- 
+2.41.1
+
