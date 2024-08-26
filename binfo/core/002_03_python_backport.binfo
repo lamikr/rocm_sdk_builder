@@ -18,7 +18,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3 ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python; fi"
     "if [[ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config &&  ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config ]]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python3-config ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/python-config; fi"
     "python -m pip install --upgrade pip"
-    "pip install lxml pyaml joblib jsonschema CppHeaderParser argcomplete"
+    "pip install lxml pyaml joblib jsonschema CppHeaderParser argcomplete build"
     "echo 'Cython<3' > constraint.txt"
     "PIP_CONSTRAINT=constraint.txt pip install barectf"
 )
