@@ -1,0 +1,45 @@
+From ec942d44d79a5e157d95ffbcd639177664820684 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 26 Aug 2024 07:50:58 -0700
+Subject: [PATCH] hip eigen include fix when any eigen version not yet
+ installed
+
+- use relative include path to fix a following error during build
+  time when older eigen versions is not yet installed
+
+[ 25%] Building C object blas/CMakeFiles/eigen_blas_static.dir/f2c/zhbmv.c.o
+cd /sdk/rocm_sdk_builder_612/builddir/032_02_eigen/blas &&
+/usr/bin/cc -I/opt/rocm_sdk_612/include -I/opt/rocm_sdk_612/hsa/include -I/opt/rocm_sdk_612/rocm_smi/include
+-I/opt/rocm_sdk_612/rocblas/include -O3 -DNDEBUG -MD -MT blas/CMakeFiles/eigen_blas_static.dir/f2c/zhbmv.c.o
+-MF CMakeFiles/eigen_blas_static.dir/f2c/zhbmv.c.o.d -o CMakeFiles/eigen_blas_static.dir/f2c/zhbmv.c.o
+-c /sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/f2c/zhbmv.c
+
+In file included from /sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/double.cpp:16:
+In file included from /sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/level1_impl.h:10:
+In file included from /sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/common.h:21:
+In file included from /sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/../Eigen/Core:172:
+/sdk/rocm_sdk_builder_612/src_projects/libeigen/blas/../Eigen/src/Core/util/Meta.h:26:10: fatal error:
+'Eigen/src/Core/arch/HIP/hcc/math_constants.h' file not found
+   26 | #include "Eigen/src/Core/arch/HIP/hcc/math_constants.h"
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Eigen/src/Core/util/Meta.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Eigen/src/Core/util/Meta.h b/Eigen/src/Core/util/Meta.h
+index 80c893dc4..fe60ba6d3 100644
+--- a/Eigen/src/Core/util/Meta.h
++++ b/Eigen/src/Core/util/Meta.h
+@@ -23,7 +23,7 @@
+ #endif
+ 
+ #if defined(EIGEN_HIP_DEVICE_COMPILE)
+-#include "Eigen/src/Core/arch/HIP/hcc/math_constants.h"
++#include "../arch/HIP/hcc/math_constants.h"
+ #endif
+ 
+ #endif
+-- 
+2.41.1
+
