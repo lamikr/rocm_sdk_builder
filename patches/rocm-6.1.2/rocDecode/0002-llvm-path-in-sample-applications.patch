@@ -1,0 +1,123 @@
+From 75ca06fad9e5d6c2bfcdda3ece9440ae88ef5a84 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 10:47:39 -0700
+Subject: [PATCH 2/3] llvm path in sample applications
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ samples/videoDecode/CMakeLists.txt           | 2 +-
+ samples/videoDecodeBatch/CMakeLists.txt      | 4 ++--
+ samples/videoDecodeMem/CMakeLists.txt        | 4 ++--
+ samples/videoDecodeMultiFiles/CMakeLists.txt | 4 ++--
+ samples/videoDecodePerf/CMakeLists.txt       | 4 ++--
+ samples/videoDecodeRGB/CMakeLists.txt        | 2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/samples/videoDecode/CMakeLists.txt b/samples/videoDecode/CMakeLists.txt
+index bc697e2..7c8355f 100644
+--- a/samples/videoDecode/CMakeLists.txt
++++ b/samples/videoDecode/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+diff --git a/samples/videoDecodeBatch/CMakeLists.txt b/samples/videoDecodeBatch/CMakeLists.txt
+index 5faaa5f..4a1f171 100644
+--- a/samples/videoDecodeBatch/CMakeLists.txt
++++ b/samples/videoDecodeBatch/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+@@ -104,4 +104,4 @@ else()
+     if (NOT Threads_FOUND)
+         message(FATAL_ERROR "-- ERROR!: Threads Not Found! - please insatll Threads!")
+     endif()
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/samples/videoDecodeMem/CMakeLists.txt b/samples/videoDecodeMem/CMakeLists.txt
+index 84062d0..35afce3 100644
+--- a/samples/videoDecodeMem/CMakeLists.txt
++++ b/samples/videoDecodeMem/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+@@ -98,4 +98,4 @@ else()
+     if (NOT ROCDECODE_FOUND)
+         message(FATAL_ERROR "-- ERROR!: rocDecode Not Found! - please install rocDecode!")
+     endif()
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/samples/videoDecodeMultiFiles/CMakeLists.txt b/samples/videoDecodeMultiFiles/CMakeLists.txt
+index a72165f..b5525db 100644
+--- a/samples/videoDecodeMultiFiles/CMakeLists.txt
++++ b/samples/videoDecodeMultiFiles/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+@@ -98,4 +98,4 @@ else()
+     if (NOT ROCDECODE_FOUND)
+         message(FATAL_ERROR "-- ERROR!: rocDecode Not Found! - please install rocDecode!")
+     endif()
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/samples/videoDecodePerf/CMakeLists.txt b/samples/videoDecodePerf/CMakeLists.txt
+index b85656f..025d7c6 100644
+--- a/samples/videoDecodePerf/CMakeLists.txt
++++ b/samples/videoDecodePerf/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+@@ -105,4 +105,4 @@ else()
+     if (NOT Threads_FOUND)
+         message(FATAL_ERROR "-- ERROR!: Threads Not Found! - please insatll Threads!")
+     endif()
+-endif()
+\ No newline at end of file
++endif()
+diff --git a/samples/videoDecodeRGB/CMakeLists.txt b/samples/videoDecodeRGB/CMakeLists.txt
+index bccff5d..29332f4 100644
+--- a/samples/videoDecodeRGB/CMakeLists.txt
++++ b/samples/videoDecodeRGB/CMakeLists.txt
+@@ -36,7 +36,7 @@ endif()
+
+ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+ list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+-set(CMAKE_CXX_COMPILER ${ROCM_PATH}/llvm/bin/clang++)
++set(CMAKE_CXX_COMPILER ${ROCM_PATH}/bin/clang++)
+
+ # rocDecode sample build type
+ set(DEFAULT_BUILD_TYPE "Release")
+--
+2.41.1

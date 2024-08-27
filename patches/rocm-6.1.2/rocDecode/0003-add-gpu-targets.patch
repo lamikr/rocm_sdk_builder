@@ -1,0 +1,48 @@
+From 15921f5f646ccd49bc4626168c4f5ce454a0a4df Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 10:44:07 -0700
+Subject: [PATCH 3/3] add gpu targets
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ samples/videoDecodeRGB/CMakeLists.txt | 2 +-
+ src/rocdecode/roc_decoder_caps.h      | 7 +++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/samples/videoDecodeRGB/CMakeLists.txt b/samples/videoDecodeRGB/CMakeLists.txt
+index 29332f4..fc28b05 100644
+--- a/samples/videoDecodeRGB/CMakeLists.txt
++++ b/samples/videoDecodeRGB/CMakeLists.txt
+@@ -57,7 +57,7 @@ else()
+ endif()
+
+ # set amdgpu targets with vcn support
+-set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+ set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+
+ find_package(HIP QUIET)
+diff --git a/src/rocdecode/roc_decoder_caps.h b/src/rocdecode/roc_decoder_caps.h
+index cce6c5a..09ea5fa 100644
+--- a/src/rocdecode/roc_decoder_caps.h
++++ b/src/rocdecode/roc_decoder_caps.h
+@@ -128,11 +128,14 @@ private:
+             {"gfx1030",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},
+             {"gfx1031",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},
+             {"gfx1032",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},
++            {"gfx1035",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 1}},
+             {"gfx1100",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},
+             {"gfx1101",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 1}},
+-            {"gfx1102",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},};
++            {"gfx1102",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 2}},
++            {"gfx1103",{{{rocDecVideoCodec_HEVC, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 7680, 4320, 64, 64}}, {rocDecVideoCodec_AVC, {{rocDecVideoChromaFormat_420}, {0}, 1, 4096, 2176, 64, 64}}, {rocDecVideoCodec_AV1, {{rocDecVideoChromaFormat_420}, {0, 2}, 3, 8192, 4352, 64, 64}}}, 1}},
++        };
+     }
+     RocDecVcnCodecSpec(const RocDecVcnCodecSpec&) = delete;
+     RocDecVcnCodecSpec& operator = (const RocDecVcnCodecSpec) = delete;
+     ~RocDecVcnCodecSpec() = default;
+-};
+\ No newline at end of file
++};
+--
+2.41.1
