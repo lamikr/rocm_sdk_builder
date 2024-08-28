@@ -1,0 +1,26 @@
+From d1fc8152b094ed6079733ad0de5aa80730ec9b88 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 21:32:11 -0700
+Subject: [PATCH 2/2] update gfx list
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0ba6624..ac7e3ea 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -207,7 +207,7 @@ if("${BACKEND}" STREQUAL "HIP")
+     endif()
+ 
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+     if(HIP_FOUND)
+-- 
+2.41.1
+

@@ -1,0 +1,30 @@
+From e44337e5fef932b632f8c5b18d4f3115e304e646 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 21:30:46 -0700
+Subject: [PATCH 1/2] llvm path rocm sdk builder support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7963ff8..0ba6624 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -218,7 +218,11 @@ if("${BACKEND}" STREQUAL "HIP")
+         set(RPP_BACKEND_HIP 1)
+         # To use RPP_BACKEND_HIP
+         add_definitions(-DRPP_BACKEND_HIP=${RPP_BACKEND_HIP})
+-        set(COMPILER_FOR_HIP ${ROCM_PATH}/llvm/bin/clang++)
++        if(EXISTS ${ROCM_PATH}/bin/clang++)
++          set(COMPILER_FOR_HIP ${ROCM_PATH}/bin/clang++)
++        else()
++          set(COMPILER_FOR_HIP ${ROCM_PATH}/llvm/bin/clang++)
++        endif()        
+         include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR})
+         link_directories(${HIP_PATH}/${CMAKE_INSTALL_LIBDIR})
+         # link To HIP Host library -- [hip::host] to use host API
+-- 
+2.41.1
+
