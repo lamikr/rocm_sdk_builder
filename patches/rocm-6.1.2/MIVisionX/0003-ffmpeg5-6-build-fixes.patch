@@ -1,0 +1,57 @@
+From c43208bdd36a4b7cda658d7ad8f9d174425f44cf Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 22:23:09 -0700
+Subject: [PATCH 3/3] ffmpeg5/6 build fixes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ amd_openvx_extensions/amd_media/decoder.cpp | 10 +++++++++-
+ amd_openvx_extensions/amd_media/kernels.cpp |  2 ++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/amd_openvx_extensions/amd_media/decoder.cpp b/amd_openvx_extensions/amd_media/decoder.cpp
+index 45e8b211..68c14c60 100644
+--- a/amd_openvx_extensions/amd_media/decoder.cpp
++++ b/amd_openvx_extensions/amd_media/decoder.cpp
+@@ -490,7 +490,11 @@ vx_status CLoomIoMediaDecoder::Initialize()
+             return status;
+         }        
+         // find the video stream information
++#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+         err = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, &decoder, 0);
++#else
++        err = av_find_best_stream(formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, (const AVCodec **)(&decoder), 0);
++#endif
+         if (err < 0) {
+             vxAddLogEntry((vx_reference)node, VX_ERROR_INVALID_VALUE, "ERROR: no video found in %s", mediaFileName);
+             return VX_ERROR_INVALID_VALUE;
+@@ -500,7 +504,11 @@ vx_status CLoomIoMediaDecoder::Initialize()
+         if (!useVaapi[mediaIndex]) {
+             unsigned int streamIndex = -1;
+             for (unsigned int si = 0; si < formatContext->nb_streams; si++) {
+-                AVCodecContext * vcc = formatContext->streams[si]->codec;
++#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
++                AVCodecContext *vcc = formatContext->streams[si]->codec;
++#else
++                AVCodecContext *vcc = avcodec_alloc_context3(decoder);
++#endif
+                 if (vcc->codec_type == AVMEDIA_TYPE_VIDEO) {
+                     // pick video stream index with larger dimensions
+                     if (!codecContext) {
+diff --git a/amd_openvx_extensions/amd_media/kernels.cpp b/amd_openvx_extensions/amd_media/kernels.cpp
+index 67269db5..2cf2e1b0 100644
+--- a/amd_openvx_extensions/amd_media/kernels.cpp
++++ b/amd_openvx_extensions/amd_media/kernels.cpp
+@@ -95,7 +95,9 @@ vx_status initialize_ffmpeg()
+     initialized = true;
+     av_log_set_callback(av_log_callback);
+     av_log_set_level(AV_LOG_ERROR);
++#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+     av_register_all();
++#endif
+   }
+   return VX_SUCCESS;
+ }
+-- 
+2.41.1
+

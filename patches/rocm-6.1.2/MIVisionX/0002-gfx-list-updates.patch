@@ -1,0 +1,166 @@
+From a902feacbeceb82aaf05f5013175b52518e116b5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 27 Aug 2024 20:50:51 -0700
+Subject: [PATCH 2/3] gfx list updates
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ amd_openvx/CMakeLists.txt                                  | 2 +-
+ amd_openvx_extensions/CMakeLists.txt                       | 2 +-
+ amd_openvx_extensions/amd_custom/CMakeLists.txt            | 2 +-
+ amd_openvx_extensions/amd_custom/custom_lib/CMakeLists.txt | 2 +-
+ amd_openvx_extensions/amd_media/CMakeLists.txt             | 2 +-
+ amd_openvx_extensions/amd_migraphx/CMakeLists.txt          | 2 +-
+ amd_openvx_extensions/amd_nn/CMakeLists.txt                | 2 +-
+ amd_openvx_extensions/amd_rpp/CMakeLists.txt               | 2 +-
+ apps/cloud_inference/server_app/CMakeLists.txt             | 2 +-
+ utilities/CMakeLists.txt                                   | 2 +-
+ utilities/runvx/CMakeLists.txt                             | 2 +-
+ 11 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/amd_openvx/CMakeLists.txt b/amd_openvx/CMakeLists.txt
+index 12a0c303..717ce193 100644
+--- a/amd_openvx/CMakeLists.txt
++++ b/amd_openvx/CMakeLists.txt
+@@ -30,7 +30,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+         endif()
+     endif()
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+     if(HIP_FOUND)
+diff --git a/amd_openvx_extensions/CMakeLists.txt b/amd_openvx_extensions/CMakeLists.txt
+index a1a07b46..f0b2dfea 100644
+--- a/amd_openvx_extensions/CMakeLists.txt
++++ b/amd_openvx_extensions/CMakeLists.txt
+@@ -46,7 +46,7 @@ if(GPU_SUPPORT)
+             endif()
+         endif()
+         list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-        set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++        set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+         set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+         find_package(HIP QUIET)
+         if(HIP_FOUND)
+diff --git a/amd_openvx_extensions/amd_custom/CMakeLists.txt b/amd_openvx_extensions/amd_custom/CMakeLists.txt
+index 3c6f7b63..713a9811 100644
+--- a/amd_openvx_extensions/amd_custom/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_custom/CMakeLists.txt
+@@ -38,7 +38,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP" AND OpenMP_FOUND)
+         endif()
+     endif()
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+diff --git a/amd_openvx_extensions/amd_custom/custom_lib/CMakeLists.txt b/amd_openvx_extensions/amd_custom/custom_lib/CMakeLists.txt
+index 8469e651..4be42838 100644
+--- a/amd_openvx_extensions/amd_custom/custom_lib/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_custom/custom_lib/CMakeLists.txt
+@@ -46,7 +46,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP" AND OpenMP_FOUND)
+     set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to which HIP has been installed")
+   endif()
+   list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-  set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++  set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+   set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+   find_package(HIP QUIET)
+   list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
+diff --git a/amd_openvx_extensions/amd_media/CMakeLists.txt b/amd_openvx_extensions/amd_media/CMakeLists.txt
+index 09762a87..6a6698e5 100644
+--- a/amd_openvx_extensions/amd_media/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_media/CMakeLists.txt
+@@ -39,7 +39,7 @@ elseif (GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+     set(OpenCL_FOUND FALSE)
+     set(ENABLE_HIP 1)
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP REQUIRED)
+     list(APPEND PACKAGE_DEPENDS PACKAGE HIP)
+diff --git a/amd_openvx_extensions/amd_migraphx/CMakeLists.txt b/amd_openvx_extensions/amd_migraphx/CMakeLists.txt
+index b5615c92..a8a63b82 100644
+--- a/amd_openvx_extensions/amd_migraphx/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_migraphx/CMakeLists.txt
+@@ -36,7 +36,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+         endif()
+     endif()
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+ 
+diff --git a/amd_openvx_extensions/amd_nn/CMakeLists.txt b/amd_openvx_extensions/amd_nn/CMakeLists.txt
+index 366dc3dc..7c20b3b0 100644
+--- a/amd_openvx_extensions/amd_nn/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_nn/CMakeLists.txt
+@@ -34,7 +34,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
+ elseif(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+     set(OpenCL_FOUND FALSE)
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP REQUIRED)
+     find_package(rocblas PATHS ${ROCM_PATH} REQUIRED)
+diff --git a/amd_openvx_extensions/amd_rpp/CMakeLists.txt b/amd_openvx_extensions/amd_rpp/CMakeLists.txt
+index d968c4b9..e2bc0347 100644
+--- a/amd_openvx_extensions/amd_rpp/CMakeLists.txt
++++ b/amd_openvx_extensions/amd_rpp/CMakeLists.txt
+@@ -33,7 +33,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
+ elseif(GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+     SET(OpenCL_FOUND FALSE)
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP REQUIRED)
+ endif()
+diff --git a/apps/cloud_inference/server_app/CMakeLists.txt b/apps/cloud_inference/server_app/CMakeLists.txt
+index fa5d013e..ffe4da8f 100644
+--- a/apps/cloud_inference/server_app/CMakeLists.txt
++++ b/apps/cloud_inference/server_app/CMakeLists.txt
+@@ -94,7 +94,7 @@ elseif(MIVISIONX_BACKEND_HIP_FOUND)
+ 		endif()
+ 	endif()
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+ 	if(HIP_FOUND)
+diff --git a/utilities/CMakeLists.txt b/utilities/CMakeLists.txt
+index ed203e75..31c8ff5d 100644
+--- a/utilities/CMakeLists.txt
++++ b/utilities/CMakeLists.txt
+@@ -43,7 +43,7 @@ if(GPU_SUPPORT)
+             endif()
+         endif()
+         list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-        set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++        set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+         set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+         find_package(HIP QUIET)
+         SET(BUILD_OPENCL false)
+diff --git a/utilities/runvx/CMakeLists.txt b/utilities/runvx/CMakeLists.txt
+index fc1e2ab1..d672a180 100644
+--- a/utilities/runvx/CMakeLists.txt
++++ b/utilities/runvx/CMakeLists.txt
+@@ -63,7 +63,7 @@ if(GPU_SUPPORT AND "${BACKEND}" STREQUAL "OPENCL")
+     endif()
+ elseif (GPU_SUPPORT AND "${BACKEND}" STREQUAL "HIP")
+     list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} ${ROCM_PATH}/hip)
+-    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102")
++    set(DEFAULT_AMDGPU_TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1031;gfx1032;gfx1032;gfx1035;gfx1100;gfx1101;gfx1102;gfx1103")
+     set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
+     find_package(HIP QUIET)
+     if(HIP_FOUND)
+-- 
+2.41.1
+
