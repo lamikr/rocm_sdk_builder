@@ -99,14 +99,17 @@ func_babs_handle_repository_fetch() {
         echo "func_babs_handle_fetch param: $1"
         if [[ "$1" = *.binfo ]] ; then
             func_envsetup_init
-            func_babs_init_and_fetch_by_binfo ${ARG__USER_CMD_PARAM1}
+            # if new repo is created, apply also patches
+            func_babs_init_and_fetch_by_binfo ${ARG__USER_CMD_PARAM1} 0
         fi
         if [[ "$1" = *.blist ]] ; then
             func_envsetup_init
-            func_babs_init_and_fetch_by_blist ${ARG__USER_CMD_PARAM1}
+            # if new repo is created, apply also patches
+            func_babs_init_and_fetch_by_blist ${ARG__USER_CMD_PARAM1} 0
         fi
     else
-        func_repolist_fetch_core_repositories
+        # if new repo is created, apply also patches
+        func_repolist_init_and_fetch_core_repositories 0
     fi
 }
 

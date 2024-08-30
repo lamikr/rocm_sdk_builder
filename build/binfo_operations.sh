@@ -11,11 +11,17 @@ source build/config.sh
 source build/git_utils.sh
 
 func_babs_init_and_fetch_by_binfo() {
+	local skip_patches
+
+    skip_patches=0
     if [[ -n "$1" ]]; then
         if [[ -n "$2" ]]; then
             jj=$2
         else
             jj=1
+        fi
+        if [[ -n "$3" ]]; then
+            skip_patches=$3
         fi
         echo "func_babs_handle_fetch param: $1"
         local APP_INFO_FULL_NAME=$1
@@ -115,43 +121,48 @@ func_babs_init_and_fetch_by_binfo() {
                     # checkout
                     git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
 
-                    # Apply patches if patch directory exist
-                    # check if directory was just created and git am needs to be done
-                    local CUR_APP_PATCH_DIR="${PATCH_FILE_ROOT_DIR}/${BINFO_APP_NAME}"
-                    local TEMP_PATCH_DIR=${CUR_APP_PATCH_DIR}
-                    cd "${CUR_APP_SRC_CLONE_DIR}"
-                    if [ -d "${TEMP_PATCH_DIR}" ]; then
-                        if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
-                            echo ""
-                            echo "[${jj}]: Applying Patches"
-                            echo "Repository name: ${BINFO_APP_NAME}"
-                            echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                            echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
-                            echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-                            echo "Patch dir: ${TEMP_PATCH_DIR}"
-                            git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
-                            if [ $? -ne 0 ]; then
-                                git am --abort
+                    if [ ${skip_patches} -eq 0 ]; then
+                        # Apply patches if patch directory exist
+                        # check if directory was just created and git am needs to be done
+                        local CUR_APP_PATCH_DIR="${PATCH_FILE_ROOT_DIR}/${BINFO_APP_NAME}"
+                        local TEMP_PATCH_DIR=${CUR_APP_PATCH_DIR}
+                        cd "${CUR_APP_SRC_CLONE_DIR}"
+                        if [ -d "${TEMP_PATCH_DIR}" ]; then
+                            if [ ! -z "$(ls -A $TEMP_PATCH_DIR)" ]; then
                                 echo ""
-                                echo "[${jj}]: Error, failed to Apply Patches"
+                                echo "[${jj}]: Applying Patches"
                                 echo "Repository name: ${BINFO_APP_NAME}"
                                 echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                                 echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
-                                echo "Version tag: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                                echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                                 echo "Patch dir: ${TEMP_PATCH_DIR}"
-                                echo ""
-                                exit 1
+                                git am --keep-cr "${TEMP_PATCH_DIR}"/*.patch
+                                if [ $? -ne 0 ]; then
+                                    git am --abort
+                                    echo ""
+                                    echo "[${jj}]: Error, failed to Apply Patches"
+                                    echo "Repository name: ${BINFO_APP_NAME}"
+                                    echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
+                                    echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
+                                    echo "Version tag: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                                    echo "Patch dir: ${TEMP_PATCH_DIR}"
+                                    echo ""
+                                    exit 1
+                                else
+                                    echo "Patches Applied: ${CUR_APP_SRC_CLONE_DIR}"
+                                fi
                             else
-                                echo "Patches Applied: ${CUR_APP_SRC_CLONE_DIR}"
+                                echo "Warning, patch directory exist but is empty: ${TEMP_PATCH_DIR}"
+                                sleep 2
                             fi
                         else
-                            echo "Warning, patch directory exist but is empty: ${TEMP_PATCH_DIR}"
-                            sleep 2
+                            true
+                            #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
+                            #sleep 2
                         fi
                     else
+                        # skip patches because this is -co or -ca command and we will apply them later
                         true
-                        #echo "patch directory does not exist: ${TEMP_PATCH_DIR}"
-                        #sleep 2
                     fi
                     # fetch git submodules
                     func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
@@ -351,8 +362,8 @@ func_babs_checkout_by_binfo_once() {
                         fi
                     fi
                 else
-                    func_babs_init_and_fetch_by_binfo $1 ${jj}
-                    git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                    # if this is a new repository do only the checkout without applying patches
+                    func_babs_init_and_fetch_by_binfo $1 ${jj} 1
                 fi
             else
                 echo "Error, source directory for fetching the repository is not specified"
@@ -381,7 +392,7 @@ func_babs_checkout_by_binfo() {
         if [ ${cur_res} != "0" ]; then
             # if the checkout fails, try to fetch newer source code
             # and then try to checkout again one time
-            func_babs_init_and_fetch_by_binfo "$1" $jj
+            func_babs_init_and_fetch_by_binfo "$1" $jj 1
             func_babs_checkout_by_binfo_once "$1" $jj
             cur_res=$?
             if [ ${cur_res} != "0" ]; then
@@ -534,8 +545,13 @@ func_babs_apply_patches_by_blist() {
 func_babs_init_and_fetch_by_blist() {
     local ii
     local BINFO_ARRAY
+    local skip_patches
 
     ii=0
+    skip_patches=0
+    if [[ -n "$1" ]]; then
+        skip_patches=$1
+    fi
     readarray -t BINFO_ARRAY < $1
     if [[ ${BINFO_ARRAY[@]} ]]; then
         local FNAME
@@ -544,7 +560,7 @@ func_babs_init_and_fetch_by_blist() {
                if  [ -z ${FNAME##*.binfo} ]; then
                    ii=$(( ${ii} + 1 ))
                    cd ${SDK_ROOT_DIR}
-                   func_babs_init_and_fetch_by_binfo ${FNAME} ${ii}
+                   func_babs_init_and_fetch_by_binfo ${FNAME} ${ii} ${skip_patches}
                fi
             fi
         done

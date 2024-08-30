@@ -161,16 +161,20 @@ func_repolist_upstream_remote_repo_add() {
     echo "All new source code repositories added and initialized ok"
 }
 
-func_repolist_fetch_core_repositories() {
+func_repolist_init_and_fetch_core_repositories() {
     local jj
+    local skip_patches
 
     jj=0
-    echo "func_repolist_fetch_core_repositories started"
+    if [[ -n "$1" ]]; then
+        skip_patches=$1
+    fi
+    echo "func_repolist_init_and_fetch_core_repositories started"
     while [ "x${LIST_APP_UPSTREAM_REPO_DEFINED[jj]}" != "x" ]; do
         if [ "${LIST_APP_UPSTREAM_REPO_DEFINED[$jj]}" == "1" ]; then
             echo "LIST_BINFO_FILE_FULLNAME: ${LIST_BINFO_FILE_FULLNAME[$jj]}"
             pwd
-            func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_FULLNAME[$jj]} ${jj}
+            func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_FULLNAME[$jj]} ${jj} ${skip_patches}
         else
             if [ ! -z ${LIST_APP_SRC_CLONE_DIR[$jj]} ]; then
                 echo "Repository not defined, skipping checkout:"
@@ -274,7 +278,8 @@ func_repolist_checkout_default_versions() {
                 cd ${SDK_ROOT_DIR}
                 source ./build/binfo_operations.sh
                 cd binfo
-                func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_BASENAME[jj]} ${jj}
+                # init repository and checkout default version but do not apply patches
+                func_babs_init_and_fetch_by_binfo ${LIST_BINFO_FILE_BASENAME[jj]} ${jj} 1
             fi
         fi
         ((jj++))
