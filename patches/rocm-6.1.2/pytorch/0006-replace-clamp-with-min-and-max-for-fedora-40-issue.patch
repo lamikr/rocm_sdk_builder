@@ -1,7 +1,7 @@
-From e9673f160c80dd5e58ab294d12eb0b82ccadbf8d Mon Sep 17 00:00:00 2001
+From d98ba2fd5895990172e8b47b6f0401fdc2fafbe7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 18:35:12 -0700
-Subject: [PATCH 6/7] replace clamp with min and max for fedora 40 issue
+Subject: [PATCH 6/8] replace clamp with min and max for fedora 40 issue
 
 Fedora 40/gcc 14 throws following error during build time
 for clamp function usage during pytorch build time.
@@ -25,7 +25,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/aten/src/ATen/native/cuda/IndexKernel.cu b/aten/src/ATen/native/cuda/IndexKernel.cu
-index 5682ba27573..862bcb9614d 100644
+index 5682ba2757..862bcb9614 100644
 --- a/aten/src/ATen/native/cuda/IndexKernel.cu
 +++ b/aten/src/ATen/native/cuda/IndexKernel.cu
 @@ -249,7 +249,9 @@ void index_put_kernel_quantized_cuda(TensorIterator& iter, const IntArrayRef ind
@@ -40,5 +40,5 @@ index 5682ba27573..862bcb9614d 100644
      });
    });
 -- 
-2.41.1
+2.34.1
 

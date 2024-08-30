@@ -1,7 +1,7 @@
-From ccb7ae9b3e76614c533c644b2c9614a7f7474bf6 Mon Sep 17 00:00:00 2001
+From b2dd83a9f4b0604c6872b9c359b0415f2b7f9373 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/7] pytorch_rocm preconfig, build and install scripts
+Subject: [PATCH 1/8] pytorch_rocm preconfig, build and install scripts
 
 - clean previous build, build wheel and install wheel scripts
 "-Wno-error=maybe-uninitialized" is needed during
@@ -22,7 +22,7 @@ Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000000..5dedc9b9f8c
+index 0000000000..5dedc9b9f8
 --- /dev/null
 +++ b/build_rocm.sh
 @@ -0,0 +1,23 @@
@@ -51,7 +51,7 @@ index 00000000000..5dedc9b9f8c
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000000..ec1f7d39b9f
+index 0000000000..ec1f7d39b9
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -83,7 +83,7 @@ index 00000000000..ec1f7d39b9f
 +fi
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
 new file mode 100755
-index 00000000000..7ad2528e9fe
+index 0000000000..7ad2528e9f
 --- /dev/null
 +++ b/preconfig_rocm.sh
 @@ -0,0 +1,21 @@
@@ -109,5 +109,5 @@ index 00000000000..7ad2528e9fe
 +fi
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.41.1
+2.34.1
 

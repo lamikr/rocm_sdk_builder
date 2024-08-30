@@ -1,7 +1,7 @@
-From c8118de362f4123705584d36c698812a0a0bfbc4 Mon Sep 17 00:00:00 2001
+From 7cdb6b42927eabae0073674491ca6fa334aefa26 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 27 Jul 2024 19:31:03 -0700
-Subject: [PATCH 4/7] LoadHIP lib and lib64 search path adjustements
+Subject: [PATCH 4/8] LoadHIP lib and lib64 search path adjustements
 
 - search both lib and lib64 directories
   (note some libs still installed to lib-dir
@@ -16,7 +16,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  2 files changed, 25 insertions(+), 24 deletions(-)
 
 diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
-index 6e7c87631f8..012cad79758 100644
+index 6e7c87631f..012cad7975 100644
 --- a/cmake/Dependencies.cmake
 +++ b/cmake/Dependencies.cmake
 @@ -1096,8 +1096,9 @@ if(USE_ROCM)
@@ -32,7 +32,7 @@ index 6e7c87631f8..012cad79758 100644
        caffe2_update_option(USE_MEM_EFF_ATTENTION OFF)
      endif()
 diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
-index d1e8f534455..70fe47a9e64 100644
+index d1e8f53445..70fe47a9e6 100644
 --- a/cmake/public/LoadHIP.cmake
 +++ b/cmake/public/LoadHIP.cmake
 @@ -17,8 +17,8 @@ endif()
@@ -116,5 +116,5 @@ index d1e8f534455..70fe47a9e64 100644
    # check whether HIP declares new types
    set(file "${PROJECT_BINARY_DIR}/hip_new_types.cc")
 -- 
-2.41.1
+2.34.1
 
