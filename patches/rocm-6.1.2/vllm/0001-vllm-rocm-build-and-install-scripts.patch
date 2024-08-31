@@ -1,24 +1,24 @@
-From baac6e24ec984bac7f8e6ff0187d34253d04ef9e Mon Sep 17 00:00:00 2001
+From 2ea0f6fb808b8fae8911d5082ec36ab2bc304635 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 11:32:09 -0700
 Subject: [PATCH 1/4] vllm rocm build and install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_rocm.sh     | 20 ++++++++++++++++++++
+ build_rocm.sh     | 22 ++++++++++++++++++++++
  install_rocm.sh   | 26 ++++++++++++++++++++++++++
  preconfig_rocm.sh |  7 +++++++
- 3 files changed, 53 insertions(+)
+ 3 files changed, 55 insertions(+)
  create mode 100755 build_rocm.sh
  create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000..9abf6f0e
+index 00000000..b75c8097
 --- /dev/null
 +++ b/build_rocm.sh
-@@ -0,0 +1,20 @@
+@@ -0,0 +1,22 @@
 +if [ -z "$1" ]; then
 +    install_dir_prefix_rocm=/opt/rocm
 +    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
@@ -38,6 +38,8 @@ index 00000000..9abf6f0e
 +export MAX_JOBS=8
 +export LLVM_SYMBOLIZER_PATH=${install_dir_prefix_rocm}/bin/llvm-symbolizer
 +export VLLM_TARGET_DEVICE="rocm"
++# cmake in ubuntu 22.4 is tool old for vllm
++export PATH=${install_dir_prefix_rocm}/cmake/bin:$PATH
 +python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
@@ -85,5 +87,5 @@ index 00000000..70a3f052
 +    fi
 +fi
 -- 
-2.46.0
+2.34.1
 
