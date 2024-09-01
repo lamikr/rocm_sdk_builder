@@ -1,7 +1,7 @@
-From 8564daad2db8b7aa0b2d2dccd6f05039c2a5b71e Mon Sep 17 00:00:00 2001
+From b0b0fe112e5e90efb48f6c0e16cd8fb418e410ab Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 15 Jul 2024 00:57:55 -0400
-Subject: [PATCH 7/8] handle hipcc verbose output on dumpversion command
+Subject: [PATCH 7/9] handle hipcc verbose output on dumpversion command
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -31,5 +31,5 @@ index bc1a9d8e6c..665f83f8a9 100644
              minimum_required_version = MINIMUM_MSVC_VERSION
              compiler_info = subprocess.check_output(compiler, stderr=subprocess.STDOUT)
 -- 
-2.34.1
+2.43.0
 
