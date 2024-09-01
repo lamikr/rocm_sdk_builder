@@ -1,7 +1,7 @@
-From e9f880467f96dd3125a880db8a1a2ef026d8001f Mon Sep 17 00:00:00 2001
+From 0e70059b60bea1f8e619ba9765e792c8c9a7e4d3 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:32:33 -0700
-Subject: [PATCH 3/8] LoadHIP force ROCM detection and patches
+Subject: [PATCH 3/9] LoadHIP force ROCM detection and patches
 
 - set HIP_ROOT_DIR to ROCM_PATH which is set
   by the build scripts
@@ -72,5 +72,5 @@ index fa39156031..d1e8f53445 100644
    message("\n***** Library versions from dpkg *****\n")
    execute_process(COMMAND dpkg -l COMMAND grep rocm-dev COMMAND awk "{print $2 \" VERSION: \" $3}")
 -- 
-2.34.1
+2.43.0
 
