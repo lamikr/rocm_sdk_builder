@@ -1,4 +1,4 @@
-From 5654e128df00971d12057d9628513174c9ba789b Mon Sep 17 00:00:00 2001
+From e16d77281eb16739848f61e2e7796296fffe6873 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 20 May 2024 22:36:23 -0700
 Subject: [PATCH 1/6] deepspeed rocm preconfig and build_install scripts
@@ -45,7 +45,7 @@ index 00000000..f4a75855
 +#DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000..f24b6f43
+index 00000000..67c061f6
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -89,5 +89,5 @@ index 00000000..1730e027
 +    fi
 +fi
 -- 
-2.46.0
+2.43.0
 

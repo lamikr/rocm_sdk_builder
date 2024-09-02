@@ -1,7 +1,7 @@
-From bc1096ece11938cb95732eaee9d19952a324e685 Mon Sep 17 00:00:00 2001
+From 4ebdcb1502534bc6a3427acc579fcf1b44ad4da9 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 00:38:45 +0200
-Subject: [PATCH 6/6] build DeepSpeed in parallel option
+Subject: [PATCH 5/6] build DeepSpeed in parallel option
 
 - Using now -j1 option instead of
  -j${BUILD_CPU_COUNT_SAFE}
@@ -28,5 +28,5 @@ index b48a0ad9..6cbf9e0e 100755
  
  #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
 -- 
-2.46.0
+2.43.0
 

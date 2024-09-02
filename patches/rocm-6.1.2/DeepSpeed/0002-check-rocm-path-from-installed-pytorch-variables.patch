@@ -1,4 +1,4 @@
-From d4bae4c506dfe3032c81f708da36ab09ae2bd7bc Mon Sep 17 00:00:00 2001
+From 527c12222029076ae9ba2dc6fd6214809d237192 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
 Subject: [PATCH 2/6] check rocm path from installed pytorch variables
@@ -18,7 +18,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 35 insertions(+), 17 deletions(-)
 
 diff --git a/op_builder/builder.py b/op_builder/builder.py
-index 8998fc0e..4d0da95f 100644
+index ca4b339e..db4698e0 100644
 --- a/op_builder/builder.py
 +++ b/op_builder/builder.py
 @@ -248,15 +248,27 @@ class OpBuilder(ABC):
@@ -90,5 +90,5 @@ index 8998fc0e..4d0da95f 100644
          OpBuilder._rocm_wavefront_size = rocm_wavefront_size
          return OpBuilder._rocm_wavefront_size
 -- 
-2.46.0
+2.43.0
 
