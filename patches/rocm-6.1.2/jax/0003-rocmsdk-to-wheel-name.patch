@@ -1,4 +1,4 @@
-From 17aade4a3688777d6f2b3184141c251945c1618f Mon Sep 17 00:00:00 2001
+From dd450233f5c00949da49c1324d4f21c58f545cc4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 26 Aug 2024 16:23:18 -0700
 Subject: [PATCH 3/3] rocmsdk to wheel name

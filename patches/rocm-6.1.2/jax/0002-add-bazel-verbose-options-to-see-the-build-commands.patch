@@ -1,4 +1,4 @@
-From a14031d786c024636443fbe964739956ba30cf8e Mon Sep 17 00:00:00 2001
+From dd19621dd2ff7d5ced2b50e543fb97492fc7e05f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 24 Aug 2024 17:09:07 -0700
 Subject: [PATCH 2/3] add bazel verbose options to see the build commands
