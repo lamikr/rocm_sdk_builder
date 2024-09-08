@@ -1,4 +1,4 @@
-Error, source directory where fetch repository does not exist#!/bin/bash
+#!/bin/bash
 
 # reads binfo file and fetches latest sources from the upstream
 # for the repository specified. If the repo has not been initialized
