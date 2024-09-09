@@ -1,0 +1,172 @@
+From 567ee8c16186d4eb9f257432231cea94e606dbc0 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 4 Sep 2024 14:30:23 -0700
+Subject: [PATCH] fix wait node issues causing an error by default on gcc12-14
+ versions
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../tbb/detail/_concurrent_queue_base.h       | 30 +++++++++++++++++++
+ .../tbb/detail/_flow_graph_cache_impl.h       | 15 +++++++++-
+ src/tbb/concurrent_monitor.h                  | 24 +++++++++++++--
+ 3 files changed, 65 insertions(+), 4 deletions(-)
+
+diff --git a/include/oneapi/tbb/detail/_concurrent_queue_base.h b/include/oneapi/tbb/detail/_concurrent_queue_base.h
+index ee628e1e..cb661023 100644
+--- a/include/oneapi/tbb/detail/_concurrent_queue_base.h
++++ b/include/oneapi/tbb/detail/_concurrent_queue_base.h
+@@ -212,12 +212,26 @@ public:
+             size_type end_in_first_page = (index+n_items < items_per_page) ? (index + n_items) : items_per_page;
+ 
+             try_call( [&] {
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+                 head_page.store(make_copy(allocator, srcp, index, end_in_first_page, g_index, construct_item), std::memory_order_relaxed);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+             }).on_exception( [&] {
+                 head_counter.store(0, std::memory_order_relaxed);
+                 tail_counter.store(0, std::memory_order_relaxed);
+             });
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+             padded_page* cur_page = head_page.load(std::memory_order_relaxed);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+ 
+             try_call( [&] {
+                 if (srcp != src.tail_page.load(std::memory_order_relaxed)) {
+@@ -382,10 +396,26 @@ public:
+             padded_page* q = p->next;
+             my_queue.head_page.store(q, std::memory_order_relaxed);
+             if( !is_valid_page(q) ) {
++// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
++// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+                 my_queue.tail_page.store(nullptr, std::memory_order_relaxed);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+             }
+         }
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+         my_queue.head_counter.store(my_ticket_type, std::memory_order_release);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+         if ( is_valid_page(p) ) {
+             allocator_traits_type::destroy(allocator, static_cast<padded_page*>(p));
+             allocator_traits_type::deallocate(allocator, static_cast<padded_page*>(p), 1);
+diff --git a/include/oneapi/tbb/detail/_flow_graph_cache_impl.h b/include/oneapi/tbb/detail/_flow_graph_cache_impl.h
+index 647f3dc1..135a447e 100644
+--- a/include/oneapi/tbb/detail/_flow_graph_cache_impl.h
++++ b/include/oneapi/tbb/detail/_flow_graph_cache_impl.h
+@@ -185,11 +185,17 @@ private:
+             predecessor_type* pred = nullptr;
+             {
+                 typename mutex_type::scoped_lock lock(this->my_mutex);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+                 if ( reserved_src.load(std::memory_order_relaxed) || this->internal_empty() )
+                     return false;
+-
+                 pred = &this->internal_pop();
+                 reserved_src.store(pred, std::memory_order_relaxed);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+             }
+ 
+             // Try to get from this sender
+@@ -206,7 +212,14 @@ private:
+                 typename mutex_type::scoped_lock lock(this->my_mutex);
+                 // Relinquish ownership of the edge
+                 register_successor( *pred, *this->my_owner );
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+                 reserved_src.store(nullptr, std::memory_order_relaxed);
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif                
+             } else {
+                 // Retain ownership of the edge
+                 this->add( *pred);
+diff --git a/src/tbb/concurrent_monitor.h b/src/tbb/concurrent_monitor.h
+index 3e5c4beb..b8b8d516 100644
+--- a/src/tbb/concurrent_monitor.h
++++ b/src/tbb/concurrent_monitor.h
+@@ -291,14 +291,14 @@ public:
+             if (n != end) {
+                 my_waitset.remove(*n);
+ 
+-// GCC 12.x-13.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
++// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
+ // a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
+-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 140000 ) && !__clang__ && !__INTEL_COMPILER
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+ #pragma GCC diagnostic push
+ #pragma GCC diagnostic ignored "-Wstringop-overflow"
+ #endif
+                 to_wait_node(n)->my_is_in_list.store(false, std::memory_order_relaxed);
+-#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 140000 ) && !__clang__ && !__INTEL_COMPILER
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
+ #pragma GCC diagnostic pop
+ #endif
+             }
+@@ -329,9 +329,18 @@ public:
+             // TODO: Possible optimization, don't change node state under lock, just do flush
+             my_waitset.flush_to(temp);
+             end = temp.end();
++// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
++// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+             for (base_node* n = temp.front(); n != end; n = n->next) {
+                 to_wait_node(n)->my_is_in_list.store(false, std::memory_order_relaxed);
+             }
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+         }
+ 
+         base_node* nxt;
+@@ -436,9 +445,18 @@ public:
+             my_epoch.store(my_epoch.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+             my_waitset.flush_to(temp);
+             end = temp.end();
++// GCC 12.x-14.x issues a warning here that to_wait_node(n)->my_is_in_list might have size 0, since n is
++// a base_node pointer. (This cannot happen, because only wait_node pointers are added to my_waitset.)
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#endif
+             for (base_node* n = temp.front(); n != end; n = n->next) {
+                 to_wait_node(n)->my_is_in_list.store(false, std::memory_order_relaxed);
+             }
++#if (__TBB_GCC_VERSION >= 120100 && __TBB_GCC_VERSION < 150000 ) && !__clang__ && !__INTEL_COMPILER
++#pragma GCC diagnostic pop
++#endif
+         }
+ 
+         base_node* nxt;
+-- 
+2.43.0
+

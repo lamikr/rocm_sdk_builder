@@ -1,0 +1,33 @@
+From afb5de580c557849ea67cef991cce44d1089c154 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 10 Sep 2024 01:44:33 -0700
+Subject: [PATCH] library search path lib and lib64 updates
+
+- search hsa-runtime64 from lib64 instead of
+  lib (rocm sdk builder install dir)
+- add lib64 in addition of lib to library search
+  and -wl rlink search paths
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/Makefile.skel | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/Makefile.skel b/include/Makefile.skel
+index aa1d075c3..0720273c9 100644
+--- a/include/Makefile.skel
++++ b/include/Makefile.skel
+@@ -1483,8 +1483,8 @@ TAU_INTERNAL_FLAGS = $(TAU_INTERNAL_FLAG1) $(TAU_INTERNAL_FLAG2)
+ #BEACON#TAU_BEACON_LINKER_OPTS=-L$(BEACONDIR)/lib -lbeacon -lpthread -Wl,-rpath,$(BEACONDIR)/lib #ENDIF#
+ 
+ #PIN#TAU_PIN_LINKER_OPTS= -Wl,--hash-style=sysv $(PIN_ROOT)/intel64/runtime/pincrt/crtbeginS.o -Wl,-Bsymbolic -Wl,--version-script=$(PIN_ROOT)/source/include/pin/pintool.ver -fabi-version=2 -L$(PIN_ROOT)/intel64/runtime/pincrt -L$(PIN_ROOT)/intel64/lib -L$(PIN_ROOT)/intel64/lib-ext -L$(PIN_ROOT)/extras/xed-intel64/lib -lpin -lxed $(PIN_ROOT)/intel64/runtime/pincrt/crtendS.o -lpin3dwarf  -ldl-dynamic -nostdlib -lstlport-dynamic -lm-dynamic -lc-dynamic -lunwind-dynamic #ENDIF#
+-#ROCPROFILER#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib -lrocprofiler64 $(TAU_ROCM_DIR)/lib/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib #ENDIF#
+-#ROCPROFILERROCM6#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib -lrocprofiler64 $(TAU_ROCM_DIR)/lib/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib/rocprofiler #ENDIF#
++#ROCPROFILER#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib64 -L$(TAU_ROCPROFILER)/lib -lrocprofiler64 $(TAU_ROCM_DIR)/lib64/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib64 -Wl,-rpath,$(TAU_ROCPROFILER)/lib64 -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib #ENDIF#
++#ROCPROFILERROCM6#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib64 -L$(TAU_ROCPROFILER)/lib -lrocprofiler64 $(TAU_ROCM_DIR)/lib64/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib64 -Wl,-rpath,$(TAU_ROCPROFILER)/lib64/rocprofiler -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib/rocprofiler #ENDIF#
+ #ROCPROFILERV2#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib -lrocprofiler64v2 $(TAU_ROCM_DIR)/lib/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib/rocprofiler #ENDIF#
+ #ROCPROFILERV3#TAU_ROCPROFILER_LINKER_OPTS=-L$(TAU_ROCPROFILER)/lib $(TAU_ROCPROFILER)/lib/librocprofiler-sdk.so $(TAU_ROCM_DIR)/lib/libhsa-runtime64.so -Wl,-rpath,$(TAU_ROCM_DIR)/lib -Wl,-rpath,$(TAU_ROCPROFILER)/lib/rocprofiler-sdk #ENDIF#
+ #ROCTRACER#TAU_ROCTRACER_LINKER_OPTS=-L$(TAU_ROCTRACER_LIB_DIR) -lroctracer64 -Wl,-rpath,$(TAU_ROCTRACER_LIB_DIR) #ENDIF#
+-- 
+2.46.0
+

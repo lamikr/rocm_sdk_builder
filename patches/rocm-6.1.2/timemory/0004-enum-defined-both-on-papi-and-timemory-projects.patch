@@ -1,0 +1,37 @@
+From 6162a49212721405f0f5eedede10a8c2f7a0ea62 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 6 Sep 2024 19:17:16 -0700
+Subject: [PATCH 4/7] enum defined both on papi and timemory projects
+
+- same papi enum defined both in papi.hpp of timemory project
+  and on papiStdEventDefs.h on papi project
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/timemory/backends/types/papi.hpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/source/timemory/backends/types/papi.hpp b/source/timemory/backends/types/papi.hpp
+index 2bbcdca4..2d7db1a5 100644
+--- a/source/timemory/backends/types/papi.hpp
++++ b/source/timemory/backends/types/papi.hpp
+@@ -90,6 +90,8 @@
+ #    define USER_EVENT_OPERATION_LEN                                                     \
+         512 /*The maximum length of the operation string for user defined events */
+ 
++#ifndef _PAPI_ENUM
++#define _PAPI_ENUM
+ enum
+ {
+     PAPI_L1_DCM_idx = 0, /*Level 1 data cache misses */
+@@ -210,6 +212,7 @@ enum
+     PAPI_REF_CYC_idx, /* Reference clock cycles */
+     PAPI_END_idx      /*This should always be last! */
+ };
++#endif // _PAPI_ENUM
+ 
+ #    define PAPI_NULL -1 /**<A nonexistent hardware event used as a placeholder */
+ #    define PAPI_L1_DCM                                                                  \
+-- 
+2.41.1
+

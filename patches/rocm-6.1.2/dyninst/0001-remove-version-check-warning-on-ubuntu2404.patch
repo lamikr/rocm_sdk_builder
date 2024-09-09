@@ -1,0 +1,27 @@
+From 7336a51be021556193cb64058896c2043fa006a8 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 10 Sep 2024 16:12:09 -0700
+Subject: [PATCH] remove version check warning on ubuntu2404
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/Modules/FindElfutils.cmake | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/Modules/FindElfutils.cmake b/cmake/Modules/FindElfutils.cmake
+index cbec8d6a3..35ef4e47d 100644
+--- a/cmake/Modules/FindElfutils.cmake
++++ b/cmake/Modules/FindElfutils.cmake
+@@ -82,7 +82,8 @@ set(_versions ${LibDW_VERSION} ${LibELF_VERSION} ${LibDebuginfod_VERSION})
+ list(REMOVE_DUPLICATES _versions)
+ list(LENGTH _versions _len)
+ if(${_len} GREATER 1)
+-  message(FATAL_ERROR "Elfutils: conflicting versions found: (${_versions})")
++# this causes problem on ubuntu 24.04 about founding both the 0.190 and 0.191
++#  message(FATAL_ERROR "Elfutils: conflicting versions found: (${_versions})")
+ endif()
+ unset(_len)
+ 
+-- 
+2.43.0
+

@@ -1,0 +1,93 @@
+From 0d7482e95768e248252dcd87db1e19ef2b8b9ef2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 10 Sep 2024 10:06:26 -0700
+Subject: [PATCH 5/7] misc timemory build fixes
+
+- added std-namespace to couple of method calls
+  and variable definitions causing errors on
+  rocm sdk builder/clang
+- added cmake libary search HINTS to search
+  libTAU from the install target directory
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/Modules/FindTAU.cmake                    |  3 ++-
+ source/timemory/backends/papi.hpp              |  2 ++
+ source/tools/timemory-avail/timemory-avail.cpp | 10 +++++-----
+ 3 files changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/cmake/Modules/FindTAU.cmake b/cmake/Modules/FindTAU.cmake
+index 2bb7b932..faf42148 100644
+--- a/cmake/Modules/FindTAU.cmake
++++ b/cmake/Modules/FindTAU.cmake
+@@ -45,7 +45,8 @@
+ find_program(
+     TAU_CXX_COMPILER
+     NAMES tau_cxx.sh
+-    PATH_SUFFIXES bin)
++    PATH_SUFFIXES bin
++    HINTS ${CMAKE_INSTALL_PREFIX}/x86_64)
+ 
+ # ----------------------------------------------------------------------------------------#
+ 
+diff --git a/source/timemory/backends/papi.hpp b/source/timemory/backends/papi.hpp
+index 35b8471b..b5259bac 100644
+--- a/source/timemory/backends/papi.hpp
++++ b/source/timemory/backends/papi.hpp
+@@ -24,6 +24,8 @@
+ 
+ #pragma once
+ 
++#define TIMEMORY_EXTERNAL_PAPI_DEFINITIONS 1
++
+ // define TIMEMORY_EXTERNAL_PAPI_DEFINITIONS if these enumerations/defs in bits/papi.hpp
+ // cause problems
+ 
+diff --git a/source/tools/timemory-avail/timemory-avail.cpp b/source/tools/timemory-avail/timemory-avail.cpp
+index 1d601ed4..34bb8c0d 100644
+--- a/source/tools/timemory-avail/timemory-avail.cpp
++++ b/source/tools/timemory-avail/timemory-avail.cpp
+@@ -342,7 +342,7 @@ main(int argc, char** argv)
+         regex_keys.emplace_back(_pos_regex);
+ 
+     auto _parser_set_if_exists = [&parser](auto& _var, const std::string& _opt) {
+-        using Tp = decay_t<decltype(_var)>;
++        using Tp = std::decay_t<decltype(_var)>;
+         if(parser.exists(_opt))
+             _var = parser.get<Tp>(_opt);
+     };
+@@ -407,19 +407,19 @@ template <typename T, typename I>
+ struct enumerated_list;
+ 
+ template <template <typename...> class TupT, typename... T>
+-struct enumerated_list<TupT<T...>, index_sequence<>>
++struct enumerated_list<TupT<T...>, std::index_sequence<>>
+ {
+     using type = type_list<T...>;
+ };
+ 
+ template <template <typename...> class TupT, size_t I, typename... T, size_t... Idx>
+-struct enumerated_list<TupT<T...>, index_sequence<I, Idx...>>
++struct enumerated_list<TupT<T...>, std::index_sequence<I, Idx...>>
+ {
+     using Tp                         = component::enumerator_t<I>;
+     static constexpr bool is_nothing = concepts::is_placeholder<Tp>::value;
+     using type                       = typename enumerated_list<
+         tim::conditional_t<is_nothing, type_list<T...>, type_list<T..., Tp>>,
+-        index_sequence<Idx...>>::type;
++        std::index_sequence<Idx...>>::type;
+ };
+ 
+ //======================================================================================//
+@@ -436,7 +436,7 @@ write_component_info(std::ostream& os, const array_t<bool, N>& options,
+     static_assert(N >= num_component_options,
+                   "Error! Too few component options + fields");
+ 
+-    using index_seq_t = make_index_sequence<TIMEMORY_COMPONENTS_END>;
++    using index_seq_t = std::make_index_sequence<TIMEMORY_COMPONENTS_END>;
+     using enum_list_t = typename enumerated_list<tim::type_list<>, index_seq_t>::type;
+     auto _info        = get_availability<enum_list_t>::get_info();
+ 
+-- 
+2.41.1
+
