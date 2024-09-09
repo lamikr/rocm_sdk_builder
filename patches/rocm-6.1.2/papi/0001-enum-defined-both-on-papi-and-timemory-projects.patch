@@ -1,0 +1,37 @@
+From 823f9d86878d194af429e181f7e14779c34531bd Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 6 Sep 2024 19:09:14 -0700
+Subject: [PATCH] enum defined both on papi and timemory projects
+
+- same papi enum defined both in papi.hpp of timemory project
+  and on papiStdEventDefs.h on papi project
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/papiStdEventDefs.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/papiStdEventDefs.h b/src/papiStdEventDefs.h
+index c50ff9c0f..5ff4bdff9 100644
+--- a/src/papiStdEventDefs.h
++++ b/src/papiStdEventDefs.h
+@@ -48,6 +48,8 @@ platform's documentation carefully.
+    other event.
+ */
+ 
++#ifndef _PAPI_ENUM
++#define _PAPI_ENUM
+ enum
+ {
+ 	PAPI_L1_DCM_idx = 0,			   /*Level 1 data cache misses */
+@@ -166,6 +168,7 @@ enum
+ 	PAPI_REF_CYC_idx,		 /* Reference clock cycles */
+ 	PAPI_END_idx			 /*This should always be last! */
+ };
++#endif // _PAPI_ENUM
+ 
+ #define PAPI_L1_DCM  (PAPI_L1_DCM_idx  | PAPI_PRESET_MASK)	/*Level 1 data cache misses */
+ #define PAPI_L1_ICM  (PAPI_L1_ICM_idx  | PAPI_PRESET_MASK)	/*Level 1 instruction cache misses */
+-- 
+2.41.1
+

@@ -1,0 +1,55 @@
+From 503745935c4abacc374ddda64838d0019069a0b2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 6 Sep 2024 18:26:48 -0700
+Subject: [PATCH 2/7] fix preprocessor define comparison
+
+include/timemory/compat/macros.h:208:66: error: invalid token at start of a preprocessor expression
+  208 |     (defined(TIMEMORY_USE_VISIBILITY) && TIMEMORY_USE_VISIBILITY > 0)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/timemory/compat/macros.h       |  3 +--
+ source/timemory/macros/attributes.hpp | 13 +++++--------
+ 2 files changed, 6 insertions(+), 10 deletions(-)
+
+diff --git a/source/timemory/compat/macros.h b/source/timemory/compat/macros.h
+index 87504538..15dbce28 100644
+--- a/source/timemory/compat/macros.h
++++ b/source/timemory/compat/macros.h
+@@ -204,8 +204,7 @@
+ //
+ //======================================================================================//
+ 
+-#if !defined(TIMEMORY_USE_VISIBILITY) ||                                                 \
+-    (defined(TIMEMORY_USE_VISIBILITY) && TIMEMORY_USE_VISIBILITY > 0)
++#if !defined(TIMEMORY_USE_VISIBILITY)
+ #    if !defined(TIMEMORY_VISIBILITY)
+ #        if !defined(_MSC_VER)
+ #            define TIMEMORY_VISIBILITY(mode) TIMEMORY_ATTRIBUTE(visibility(mode))
+diff --git a/source/timemory/macros/attributes.hpp b/source/timemory/macros/attributes.hpp
+index 743fcc91..6814b91a 100644
+--- a/source/timemory/macros/attributes.hpp
++++ b/source/timemory/macros/attributes.hpp
+@@ -112,14 +112,11 @@
+ 
+ //======================================================================================//
+ 
+-#if !defined(TIMEMORY_USE_VISIBILITY) ||                                                 \
+-    (defined(TIMEMORY_USE_VISIBILITY) && TIMEMORY_USE_VISIBILITY > 0)
+-#    if !defined(TIMEMORY_VISIBILITY)
+-#        if !defined(TIMEMORY_MSVC_COMPILER)
+-#            define TIMEMORY_VISIBILITY(mode) TIMEMORY_ATTRIBUTE(visibility(mode))
+-#        else
+-#            define TIMEMORY_VISIBILITY(mode)
+-#        endif
++#if !defined(TIMEMORY_VISIBILITY)
++#    if !defined(TIMEMORY_MSVC_COMPILER)
++#        define TIMEMORY_VISIBILITY(mode) TIMEMORY_ATTRIBUTE(visibility(mode))
++#    else
++#         define TIMEMORY_VISIBILITY(mode)
+ #    endif
+ 
+ #    if !defined(TIMEMORY_VISIBLE)
+-- 
+2.41.1
+

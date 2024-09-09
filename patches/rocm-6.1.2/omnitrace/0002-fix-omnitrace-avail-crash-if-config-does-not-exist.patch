@@ -1,0 +1,97 @@
+From 369882dec7e1c18221bf9b3589896b0cfc5fc191 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 12 Sep 2024 15:34:22 -0700
+Subject: [PATCH 2/3] fix omnitrace-avail crash if config does not exist
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/lib/core/config.cpp | 39 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 36 insertions(+), 3 deletions(-)
+
+diff --git a/source/lib/core/config.cpp b/source/lib/core/config.cpp
+index d7bb5d9..7cc037c 100644
+--- a/source/lib/core/config.cpp
++++ b/source/lib/core/config.cpp
+@@ -253,6 +253,13 @@ configure_settings(bool _init)
+     OMNITRACE_CONFIG_SETTING(bool, "OMNITRACE_MONOCHROME", "Disable colorized logging",
+                              false, "debugging", "advanced");
+ 
++    OMNITRACE_CONFIG_SETTING(bool, "OMNITRACE_DEBUG", "Omnitrace debug enable/disable",
++                             false, "debugging", "advanced");
++
++    OMNITRACE_CONFIG_SETTING(int, "OMNITRACE_VERBOSE",
++                             "Verbosity of omnitrace", 0,
++                             "debugging", "advanced");
++
+     OMNITRACE_CONFIG_EXT_SETTING(int, "OMNITRACE_DL_VERBOSE",
+                                  "Verbosity within the omnitrace-dl library", 0,
+                                  "debugging", "libomnitrace-dl", "advanced");
+@@ -893,6 +900,11 @@ configure_settings(bool _init)
+         }
+     };
+ 
++    OMNITRACE_CONFIG_SETTING(
++        std::string, "OMNITRACE_PAPI_EVENTS",
++        "Set the default OMNITRACE_PAPI_EVENTS",
++        std::string{}, "causal", "analysis");
++
+     _add_advanced_category("OMNITRACE_CPU_AFFINITY");
+     _add_advanced_category("OMNITRACE_COUT_OUTPUT");
+     _add_advanced_category("OMNITRACE_FILE_OUTPUT");
+@@ -976,7 +988,13 @@ configure_settings(bool _init)
+         _papi_events->second->set_choices(_papi_choices);
+     }
+ #else
+-    _config->find("OMNITRACE_PAPI_EVENTS")->second->set_hidden(true);
++    auto _papi_events = _config->find("OMNITRACE_PAPI_EVENTS");
++    if (_papi_events != NULL) {
++       auto val = _papi_events->second;
++       if (val != NULL) {
++           val->set_hidden(true);
++           }
++        }
+     _config->get_papi_quiet() = true;
+ #endif
+ 
+@@ -1807,7 +1825,13 @@ bool
+ get_debug()
+ {
+     static auto _v = get_config()->find("OMNITRACE_DEBUG");
+-    return static_cast<tim::tsettings<bool>&>(*_v->second).get();
++    if (_v != NULL) {
++            return static_cast<tim::tsettings<bool>&>(*_v->second).get();
++    }
++    else {
++        std::cout << "Warning, configure option missing: OMNITRACE_DEBUG" << std::endl;
++    }
++    return false;
+ }
+ 
+ bool
+@@ -1830,13 +1854,22 @@ int
+ get_verbose()
+ {
+     static auto _v = get_config()->find("OMNITRACE_VERBOSE");
+-    return static_cast<tim::tsettings<int>&>(*_v->second).get();
++    if (_v != NULL) {
++        return static_cast<tim::tsettings<int>&>(*_v->second).get();
++    }
++    else {
++        std::cout << "Warning, configure option missing: OMNITRACE_VERBOSE" << std::endl;
++    }
++    return 0;
+ }
+ 
+ bool&
+ get_use_perfetto()
+ {
+     static auto _v = get_config()->find("OMNITRACE_TRACE");
++    if (_v == NULL) {
++        std::cout << "Warning, configure option missing: OMNITRACE_TRACE" << std::endl;
++    }
+     return static_cast<tim::tsettings<bool>&>(*_v->second).get();
+ }
+ 
+-- 
+2.41.1
+

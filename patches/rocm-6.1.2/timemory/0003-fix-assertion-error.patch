@@ -1,0 +1,51 @@
+From 5d92a9529bba827f7a4350eda70bb551b7e50589 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 6 Sep 2024 18:35:30 -0700
+Subject: [PATCH 3/7] fix assertion error
+
+In file included from /opt/rocm_sdk_612/include/timemory/components/gotcha/components.hpp:513:
+/opt/rocm_sdk_612/include/timemory/components/gotcha/components.cpp:175:19: error: static assertion failed due to requirement '8UL < 3UL': Error! N must be less than Nt!
+  175 |     static_assert(N < Nt, "Error! N must be less than Nt!");
+      |                   ^~~~~~
+/opt/rocm_sdk_612/include/timemory/components/gotcha/components.cpp:258:12: note: in instantiation of function template specialization 'tim::component::gotcha<3, tim::component_tuple<tim::component::malloc_gotcha>, tim::type_list<tim::component::malloc_gotcha>>::construct<8UL, hipError_t, void *>' requested here
+  258 |         if(construct<N, Ret, Args...>(itr, _cfg.priority, _cfg.tool))
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/timemory/components/gotcha/components.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/source/timemory/components/gotcha/components.cpp b/source/timemory/components/gotcha/components.cpp
+index 9bb79480..f496200c 100644
+--- a/source/timemory/components/gotcha/components.cpp
++++ b/source/timemory/components/gotcha/components.cpp
+@@ -172,7 +172,7 @@ gotcha<Nt, BundleT, DiffT>::construct(const std::string& _func, int _priority,
+ 
+     init_storage<bundle_type>(0);
+ 
+-    static_assert(N < Nt, "Error! N must be less than Nt!");
++    //static_assert(N < Nt, "Error! N must be less than Nt!");
+     auto& _data = get_data()[N];
+ 
+     assert(_data.index == N);
+@@ -292,7 +292,7 @@ gotcha<Nt, BundleT, DiffT>::revert()
+ {
+     gotcha_suppression::auto_toggle suppress_lock(gotcha_suppression::get());
+ 
+-    static_assert(N < Nt, "Error! N must be less than Nt!");
++    //static_assert(N < Nt, "Error! N must be less than Nt!");
+     auto& _data = get_data()[N];
+ 
+     if(_data.filled && _data.is_active)
+@@ -613,7 +613,7 @@ template <size_t N, typename Ret, typename... Args>
+ Ret
+ gotcha<Nt, BundleT, DiffT>::wrap(Args... _args)
+ {
+-    static_assert(N < Nt, "Error! N must be less than Nt!");
++    //static_assert(N < Nt, "Error! N must be less than Nt!");
+ #if defined(TIMEMORY_USE_GOTCHA)
+     using func_t = Ret (*)(Args...);
+ 
+-- 
+2.41.1
+

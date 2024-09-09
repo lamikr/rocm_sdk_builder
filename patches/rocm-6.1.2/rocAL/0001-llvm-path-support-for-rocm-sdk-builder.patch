@@ -1,0 +1,30 @@
+From a0fc2cfd6a438f6da17dd59bf83002fe54e07121 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 28 Aug 2024 00:42:54 -0700
+Subject: [PATCH 1/4] llvm path support for rocm sdk builder
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ rocAL/rocAL_hip/CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/rocAL/rocAL_hip/CMakeLists.txt b/rocAL/rocAL_hip/CMakeLists.txt
+index 5f89c2f..8cd85df 100644
+--- a/rocAL/rocAL_hip/CMakeLists.txt
++++ b/rocAL/rocAL_hip/CMakeLists.txt
+@@ -29,7 +29,11 @@ list(APPEND rocAL_HIP_SOURCES
+ set_source_files_properties(${rocAL_HIP_SOURCES} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+ 
+ set(HIP_CXX_FLAGS -std=gnu++17)
+-set(COMPILER_FOR_HIP ${ROCM_PATH}/llvm/bin/clang++)
++if(EXISTS ${ROCM_PATH}/bin/clang++)
++  set(COMPILER_FOR_HIP ${ROCM_PATH}/bin/clang++)
++else()
++  set(COMPILER_FOR_HIP ${ROCM_PATH}/llvm/bin/clang++)
++endif()
+ set(CMAKE_CXX_COMPILER ${COMPILER_FOR_HIP})
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${HIP_CXX_FLAGS}")
+ 
+-- 
+2.41.1
+
