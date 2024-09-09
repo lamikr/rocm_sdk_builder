@@ -3,8 +3,12 @@ export HIP_HOME=${ROCM_HOME}
 export LLVM_HOME=${ROCM_HOME}
 export MAGMA_HOME=${ROCM_HOME}
 
-export LD_LIBRARY_PATH=${ROCM_HOME}/lib64:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${ROCM_HOME}/x86_64/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${ROCM_HOME}/lib:${LD_LIBRARY_PATH}
+export LD_LIBRARY_PATH=${ROCM_HOME}/lib64:${LD_LIBRARY_PATH}
+
+#omnitrace-avail needs ROCP_METRICS
+export ROCP_METRICS=${ROCM_HOME}/lib64/rocprofiler/metrics.xml
 
 export DEVICE_LIB_PATH=${ROCM_HOME}/amdgcn/bitcode
 
