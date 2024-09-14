@@ -1,0 +1,26 @@
+From 3892cbf6bff1a92043480b0e4da85e8226fb0c9d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 14 Sep 2024 02:23:43 -0700
+Subject: [PATCH 3/3] disable abi compatibility check
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ third_party/tsl/third_party/gpus/rocm_configure.bzl | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/third_party/tsl/third_party/gpus/rocm_configure.bzl b/third_party/tsl/third_party/gpus/rocm_configure.bzl
+index 81f6327fab..4b9d035493 100644
+--- a/third_party/tsl/third_party/gpus/rocm_configure.bzl
++++ b/third_party/tsl/third_party/gpus/rocm_configure.bzl
+@@ -707,6 +707,8 @@ def _create_local_rocm_repository(repository_ctx):
+     rocm_defines["%{unfiltered_compile_flags}"] = to_list_of_strings([
+         "-DTENSORFLOW_USE_ROCM=1",
+         "-D__HIP_PLATFORM_AMD__",
++        "-DLLVM_ABI_BREAKING_CHECKS=FORCE_OFF",
++        "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING",
+         "-DEIGEN_USE_HIP",
+     ])
+ 
+-- 
+2.41.1
+

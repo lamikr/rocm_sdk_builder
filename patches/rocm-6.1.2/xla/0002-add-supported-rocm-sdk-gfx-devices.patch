@@ -1,7 +1,7 @@
-From 09180ad37064ce7926fd6782821566ffe686aa91 Mon Sep 17 00:00:00 2001
+From 91b581c05a6ec6ac4e7a77e9f8324f506a8c3709 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 24 Aug 2024 17:58:51 -0700
-Subject: [PATCH 2/2] add supported rocm sdk gfx-devices
+Subject: [PATCH 2/3] add supported rocm sdk gfx-devices
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
