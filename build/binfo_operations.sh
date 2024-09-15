@@ -516,6 +516,7 @@ func_babs_checkout_by_blist() {
 }
 
 func_babs_apply_patches_by_blist() {
+    declare -A DICTIONARY_PATCHED_PROJECTS
     local ii
     local BINFO_ARRAY
 
@@ -528,7 +529,13 @@ func_babs_apply_patches_by_blist() {
                if  [ -z ${FNAME##*.binfo} ]; then
                    ii=$(( ${ii} + 1 ))
                    cd ${SDK_ROOT_DIR}
-                   func_babs_apply_patches_by_binfo ${FNAME} ${ii}
+                   source ${FNAME}
+                   if [ -z "${DICTIONARY_PATCHED_PROJECTS[${BINFO_APP_NAME}]}" ]; then
+                       func_babs_apply_patches_by_binfo ${FNAME} ${ii}
+                       DICTIONARY_PATCHED_PROJECTS[${BINFO_APP_NAME}]=1
+                   else
+                       echo "Patches already applied for ${BINFO_APP_NAME}"
+                   fi
                fi
             fi
         done
