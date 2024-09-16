@@ -1,0 +1,27 @@
+From 2ab5e614a4d3bff19a5c503ba415b650aa98f429 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 14 Sep 2024 15:34:48 -0700
+Subject: [PATCH 4/4] load aqlprofile as a library
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp b/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
+index aec3a87..5cac0a1 100644
+--- a/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
++++ b/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
+@@ -47,6 +47,9 @@ THE SOFTWARE.
+ #include <unistd.h>
+ #include <vector>
+ 
++// LOAD AQLProfile lib
++#define ROCP_LD_AQLPROFILE
++
+ namespace rocprofiler
+ {
+ namespace util
+-- 
+2.41.1
+
