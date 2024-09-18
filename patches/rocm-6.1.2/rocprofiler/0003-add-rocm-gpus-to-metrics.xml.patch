@@ -1,0 +1,70 @@
+From 2789cead7d1d19091e38c06cfdb5cccc42e22f8b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 18 Sep 2024 02:11:04 -0700
+Subject: [PATCH 3/3] add rocm gpus to metrics.xml
+
+- add to metricx.xml works but values
+  can not be added to gfx_metrics.xml
+  because that causes error on Translate method
+  that calls the aql-library.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ test/tool/metrics.xml | 26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/test/tool/metrics.xml b/test/tool/metrics.xml
+index fab7522..086c4a5 100755
+--- a/test/tool/metrics.xml
++++ b/test/tool/metrics.xml
+@@ -414,14 +414,14 @@
+ <gfx1101_expr base="gfx11_expr"></gfx1101_expr>
+ <gfx1102_expr base="gfx11_expr"></gfx1102_expr>
+ 
+-<gfx1030_expr base="gfx10_expr">
+-</gfx1030_expr>
+-
+-<gfx1031_expr base="gfx10_expr">
+-</gfx1031_expr>
+-
+-<gfx1032_expr base="gfx10_expr">
+-</gfx1032_expr>
++<gfx1010_expr base="gfx10_expr"></gfx1010_expr>
++<gfx1011_expr base="gfx10_expr"></gfx1011_expr>
++<gfx1012_expr base="gfx10_expr"></gfx1012_expr>
++<gfx1030_expr base="gfx10_expr"></gfx1030_expr>
++<gfx1031_expr base="gfx10_expr"></gfx1031_expr>
++<gfx1032_expr base="gfx10_expr"></gfx1032_expr>
++<gfx1035_expr base="gfx10_expr"></gfx1035_expr>
++<gfx1036_expr base="gfx10_expr"></gfx1036_expr>
+ 
+ <gfx8 base="gfx8_expr"></gfx8>
+ <gfx9 base="gfx9_expr"></gfx9>
+@@ -436,16 +436,22 @@
+ <gfx940 base="gfx940_expr"></gfx940>
+ <gfx941 base="gfx940_expr"></gfx941>
+ <gfx942 base="gfx940_expr"></gfx942>
++
++<gfx1010 base="gfx1010_expr"></gfx1010>
++<gfx1011 base="gfx1011_expr"></gfx1011>
++<gfx1012 base="gfx1012_expr"></gfx1012>
++
+ #Navi21
+ <gfx1030 base="gfx1030_expr"></gfx1030>
+-
+ <gfx1031 base="gfx1031_expr"></gfx1031>
+-
+ <gfx1032 base="gfx1032_expr"></gfx1032>
++<gfx1035 base="gfx1035_expr"></gfx1035>
++<gfx1036 base="gfx1036_expr"></gfx1036>
+ 
+ <gfx1100 base="gfx1100_expr"></gfx1100>
+ <gfx1101 base="gfx1101_expr"></gfx1101>
+ <gfx1102 base="gfx1102_expr"></gfx1102>
++<gfx1103 base="gfx1103_expr"></gfx1103>
+ 
+ <global>
+   # GPUBusy         The percentage of time GPU was busy.
+-- 
+2.41.1
+
