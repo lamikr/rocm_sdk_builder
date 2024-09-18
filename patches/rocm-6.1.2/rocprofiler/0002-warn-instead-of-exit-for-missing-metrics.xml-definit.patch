@@ -1,4 +1,4 @@
-From 53697d6e75e21d5e83d6edb24ec3c1b2598c5242 Mon Sep 17 00:00:00 2001
+From 7e96ba387e58163b8afe715e4b5d474cb3936edf Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 18 Sep 2024 01:59:58 -0700
 Subject: [PATCH 2/3] warn instead of exit for missing metrics.xml definitions

@@ -1,7 +1,7 @@
-From 2789cead7d1d19091e38c06cfdb5cccc42e22f8b Mon Sep 17 00:00:00 2001
+From 120b908377b614bf09034ec339472daf6d763163 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 18 Sep 2024 02:11:04 -0700
-Subject: [PATCH 3/3] add rocm gpus to metrics.xml
+Subject: [PATCH 3/3] add rocm sdk builder supported gpus to metrics.xml
 
 - add to metricx.xml works but values
   can not be added to gfx_metrics.xml
@@ -10,16 +10,18 @@ Subject: [PATCH 3/3] add rocm gpus to metrics.xml
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- test/tool/metrics.xml | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ test/tool/metrics.xml | 27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
 diff --git a/test/tool/metrics.xml b/test/tool/metrics.xml
-index fab7522..086c4a5 100755
+index fab7522..3e98c25 100755
 --- a/test/tool/metrics.xml
 +++ b/test/tool/metrics.xml
-@@ -414,14 +414,14 @@
+@@ -413,15 +413,16 @@
+ <gfx1100_expr base="gfx11_expr"></gfx1100_expr>
  <gfx1101_expr base="gfx11_expr"></gfx1101_expr>
  <gfx1102_expr base="gfx11_expr"></gfx1102_expr>
++<gfx1103_expr base="gfx11_expr"></gfx1103_expr>
  
 -<gfx1030_expr base="gfx10_expr">
 -</gfx1030_expr>
@@ -40,7 +42,7 @@ index fab7522..086c4a5 100755
  
  <gfx8 base="gfx8_expr"></gfx8>
  <gfx9 base="gfx9_expr"></gfx9>
-@@ -436,16 +436,22 @@
+@@ -436,16 +437,22 @@
  <gfx940 base="gfx940_expr"></gfx940>
  <gfx941 base="gfx940_expr"></gfx941>
  <gfx942 base="gfx940_expr"></gfx942>
