@@ -1,4 +1,4 @@
-From ebbd14c163d717af6338b8fdcb366ab7711fce94 Mon Sep 17 00:00:00 2001
+From 76f93ad9b945dd973d1b9e97ef4802d7125f5c13 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 18 Sep 2024 02:11:04 -0700
 Subject: [PATCH 6/6] add rocm sdk builder supported gpus to metrics.xml
@@ -109,5 +109,5 @@ index fab7522..2d64c85 100755
  <global>
    # GPUBusy         The percentage of time GPU was busy.
 -- 
-2.43.0
+2.41.1
 

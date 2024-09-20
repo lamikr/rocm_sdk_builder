@@ -1,4 +1,4 @@
-From 1420491151265d44ede2caef5f43bbf556c7a5ac Mon Sep 17 00:00:00 2001
+From a004958871df96e0e9e80b6636bfa7fce31e1201 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 19 Sep 2024 20:38:34 -0700
 Subject: [PATCH 3/6] add more supported GPUs
@@ -25,5 +25,5 @@ index 26bdeef..35ff8e8 100644
        if (supported_agent_names.find(agent_name_) != supported_agent_names.end()) {
          ImportMetrics(agent_info, agent_name_);
 -- 
-2.43.0
+2.41.1
 

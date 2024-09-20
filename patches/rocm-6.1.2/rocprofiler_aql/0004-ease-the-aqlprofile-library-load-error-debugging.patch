@@ -1,16 +1,17 @@
-From 69d34ec46024569156c02b209ec90ebef8a4bc0d Mon Sep 17 00:00:00 2001
+From b079ff2a1a7a979394735c3388fe5bb0e672261e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 19 Sep 2024 18:48:37 -0700
-Subject: [PATCH 4/6] improve the hsa-amd-aqlprofile library load error debug
+Subject: [PATCH 4/6] ease the aqlprofile library load error debugging
 
-- rocprofiler has hard-coded dependency to propvietary binary only
-  /opt/rocm_sdk_612/lib/libhsa-amd-aqlprofile64.so. If that binary
-  does not exist, the rocprofiler and omnitrace binaries will
+- rocprofiler has hard-coded dependency to binary only
+  /opt/rocm_sdk_612/lib/libhsa-amd-aqlprofile64.so.
+  If this aqlprofiler binary do not exist,
+  the rocprofiler and omnitrace binaries will
   fail to function in their newerst versions. (old rocprofiler 5.3
-  can be still patched not to load the aqlprofile.so without losing
-  the funcionality.)
-- aqlprofile64.so library loading related code is at least in
-  in ROCR-runtime. rocprofiler, omnitrace and rocprofiler-sdk.
+  can be still patched not to load the aqlprofile.so)
+- aqlprofile64.so library loading related code is scattered to
+  ROCR-runtime. rocprofiler, omnitrace and rocprofiler-sdk
+  havign little different versions of hsa_rsrc_factory.cpp
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -72,14 +73,14 @@ index 35ff8e8..7ed97a3 100644
        AQL_EXC_RAISING(HSA_STATUS_ERROR, "ImportMetrics: bad block name '" << block_name << "'");
      return query;
 diff --git a/src/util/hsa_rsrc_factory.cpp b/src/util/hsa_rsrc_factory.cpp
-index a419f49..5d32386 100644
+index a419f49..349c66c 100644
 --- a/src/util/hsa_rsrc_factory.cpp
 +++ b/src/util/hsa_rsrc_factory.cpp
 @@ -151,6 +151,10 @@ HsaRsrcFactory::HsaRsrcFactory(bool initialize_hsa) : initialize_hsa_(initialize
                                                           sizeof(aqlprofile_api_), &aqlprofile_api_);
  #endif
    CHECK_STATUS("aqlprofile API table load failed", status);
-+  if (status != 0)
++  if (status != 0) {
 +    // print the proble out also to regular stdout...
 +    std::cout << "help, aqlprofile API table load failed, check the existence of /opt/rocm_sdk_612/lib/libhsa-amd-aqlprofile64.so. err: " << status << std::endl;
 +  }
@@ -87,5 +88,5 @@ index a419f49..5d32386 100644
    // Get Loader API table
    loader_api_ = {};
 -- 
-2.43.0
+2.41.1
 

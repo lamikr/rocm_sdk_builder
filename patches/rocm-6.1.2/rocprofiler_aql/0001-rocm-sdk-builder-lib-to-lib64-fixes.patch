@@ -1,4 +1,4 @@
-From 57ee353acfaa9e109dc413f7ff1fa1343bb3ab77 Mon Sep 17 00:00:00 2001
+From f9f598f4db89b239576efbfd297980d158c83133 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 19 Sep 2024 19:43:55 -0700
 Subject: [PATCH 1/6] rocm sdk builder lib to lib64 fixes
@@ -275,5 +275,5 @@ index e84d1a7..db1b258 100644
 \ No newline at end of file
 +endif()
 -- 
-2.43.0
+2.41.1
 

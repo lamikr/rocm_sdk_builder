@@ -1,7 +1,11 @@
-From 544c3dec8f4d5d7e3db413a758c4311a113244b0 Mon Sep 17 00:00:00 2001
+From 95798de61759011e37516ed4208dc0615860ad01 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 18 Sep 2024 01:59:58 -0700
-Subject: [PATCH 5/6] warn instead of exit for missing metrics.xml definitions
+Subject: [PATCH 5/6] avoid segfaults on missing metrics.xml definitions
+
+- lack of some definitions causes the segfaults,
+  printout warning message instead
+- maybe should printout warning and exit?
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -75,5 +79,5 @@ index 7ed97a3..0661428 100644
              AddMetric(name, counters_vec, expr_obj);
            }
 -- 
-2.43.0
+2.41.1
 

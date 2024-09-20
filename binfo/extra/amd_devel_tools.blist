@@ -2,7 +2,6 @@ binfo/extra/rapidjson.binfo
 binfo/extra/yaml-cpp.binfo
 binfo/extra/elfutils.binfo
 binfo/extra/binutils-gdb.binfo
-binfo/extra/rocprofiler-register.binfo
 binfo/extra/omniperf.binfo
 binfo/extra/oneTBB.binfo
 binfo/extra/papi.binfo
@@ -10,11 +9,13 @@ binfo/extra/dyninst.binfo
 binfo/extra/ELFIO.binfo
 binfo/extra/PTL.binfo
 binfo/extra/gotcha.binfo
-binfo/extra/caliper.binfo
+binfo/extra/tau2.binfo
 binfo/extra/libpfm4.binfo
 binfo/extra/libunwind.binfo
-binfo/extra/tau2.binfo
+binfo/extra/aqlprofile_installer.binfo
+binfo/extra/rocprofiler-register.binfo
 binfo/extra/rocprofiler_aql.binfo
+binfo/extra/caliper.binfo
 binfo/extra/timemory.binfo
 binfo/extra/omnitrace.binfo
 binfo/extra/aqlprofile_installer.binfo
