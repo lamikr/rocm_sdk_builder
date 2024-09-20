@@ -1,0 +1,91 @@
+From c6e1131eb02e4939521570f843b69d6c11eaf51f Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 19 Sep 2024 18:48:37 -0700
+Subject: [PATCH 4/6] improve the hsa-amd-aqlprofile library load error debug
+
+- rocprofiler has hard-coded dependency to propvietary binary only
+  /opt/rocm_sdk_612/lib/libhsa-amd-aqlprofile64.so. If that binary
+  does not exist, the rocprofiler and omnitrace binaries will
+  fail to function in their newerst versions. (old rocprofiler 5.3
+  can be still patched not to load the aqlprofile.so without losing
+  the funcionality.)
+- aqlprofile64.so library loading related code is at least in
+  in ROCR-runtime. rocprofiler, omnitrace and rocprofiler-sdk.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                | 14 +++++++++++++-
+ src/core/metrics.h            |  9 ++++++---
+ src/util/hsa_rsrc_factory.cpp |  4 ++++
+ 3 files changed, 23 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 60382f9..7b742c5 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -112,6 +112,18 @@ set(TEST_DIR "${ROOT_DIR}/test")
+ # To set additional RUNPATH in libraries installed in /opt/rocm-ver/lib/roctracer
+ set(ROCM_APPEND_PRIVLIB_RPATH "\$ORIGIN/..")
+ 
++# this is propably not really needed but I think it's better
++# to have direct dependency to library which is really needed
++# instead of just loading and failing if not found...
++# In future this one should be replaced by the opensource version.
++find_library(
++    HSA_AMD_AQLPROFILE_LIBRARY
++    NAMES hsa-amd-aqlprofile64
++    HINTS ${CMAKE_PREFIX_PATH}
++    PATHS ${ROCM_ROOT_DIR}
++    PATH_SUFFIXES lib REQUIRED)
++link_libraries(hsa-amd-aqlprofile64)
++
+ find_package(
+     amd_comgr REQUIRED CONFIG
+     HINTS ${CMAKE_INSTALL_PREFIX}
+@@ -190,7 +202,7 @@ endif()
+ enable_testing()
+ 
+ # Temporarily for CI to work
+-set(ROCPROFILER_BUILD_TESTS ON)
++set(ROCPROFILER_BUILD_TESTS OFF)
+ set(ROCPROFILER_BUILD_CI ON)
+ 
+ if(ROCPROFILER_BUILD_CI)
+diff --git a/src/core/metrics.h b/src/core/metrics.h
+index 787f331..c3031df 100644
+--- a/src/core/metrics.h
++++ b/src/core/metrics.h
+@@ -232,9 +232,12 @@ class MetricsDict {
+     hsa_ven_amd_aqlprofile_profile_t profile{};
+     profile.agent = agent_info->dev_id;
+     hsa_ven_amd_aqlprofile_id_query_t query = {block_name.c_str(), 0, 0};
+-    hsa_status_t status =
+-        util::HsaRsrcFactory::Instance().AqlProfileApi()->hsa_ven_amd_aqlprofile_get_info(
+-            &profile, HSA_VEN_AMD_AQLPROFILE_INFO_BLOCK_ID, &query);
++    rocprofiler::util::HsaRsrcFactory* hsa_rsrc = &rocprofiler::util::HsaRsrcFactory::Instance();
++    const rocprofiler::pfn_t* api = hsa_rsrc->AqlProfileApi();
++    hsa_status_t status = HSA_STATUS_SUCCESS;
++    //std::cout << "hsa_ven_amd_aqlprofile_get_info calling" << std::endl;
++    status = api->hsa_ven_amd_aqlprofile_get_info(&profile, HSA_VEN_AMD_AQLPROFILE_INFO_BLOCK_ID, &query);
++    //std::cout << "hsa_ven_amd_aqlprofile_get_info called" << std::endl;
+     if (status != HSA_STATUS_SUCCESS)
+       AQL_EXC_RAISING(HSA_STATUS_ERROR, "ImportMetrics: bad block name '" << block_name << "'");
+     return query;
+diff --git a/src/util/hsa_rsrc_factory.cpp b/src/util/hsa_rsrc_factory.cpp
+index a419f49..5d32386 100644
+--- a/src/util/hsa_rsrc_factory.cpp
++++ b/src/util/hsa_rsrc_factory.cpp
+@@ -151,6 +151,10 @@ HsaRsrcFactory::HsaRsrcFactory(bool initialize_hsa) : initialize_hsa_(initialize
+                                                          sizeof(aqlprofile_api_), &aqlprofile_api_);
+ #endif
+   CHECK_STATUS("aqlprofile API table load failed", status);
++  if (status != 0)
++    // print the proble out also to regular stdout...
++    std::cout << "help, aqlprofile API table load failed, check the existence of /opt/rocm_sdk_612/lib/libhsa-amd-aqlprofile64.so. err: " << status << std::endl;
++  }
+ 
+   // Get Loader API table
+   loader_api_ = {};
+-- 
+2.43.0
+

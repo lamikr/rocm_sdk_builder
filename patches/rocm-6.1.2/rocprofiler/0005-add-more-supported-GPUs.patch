@@ -1,0 +1,29 @@
+From 66f5cc7bb014e3262ea6e6f06863d0f6579ad4fc Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 19 Sep 2024 20:38:34 -0700
+Subject: [PATCH 5/6] add more supported GPUs
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/core/metrics.h | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/core/metrics.h b/src/core/metrics.h
+index c3031df..0661428 100644
+--- a/src/core/metrics.h
++++ b/src/core/metrics.h
+@@ -209,8 +209,9 @@ class MetricsDict {
+       std::unordered_set<std::string> supported_agent_names = {
+           "gfx906",  "gfx908",  "gfx90a",   // Vega
+           "gfx940",  "gfx941",  "gfx942",   // Mi300
+-          "gfx1030", "gfx1031", "gfx1032",  // Navi2x
+-          "gfx1100", "gfx1101", "gfx1102"   // Navi3x
++          "gfx1010",
++          "gfx1030", "gfx1031", "gfx1032", "gfx1035", "gfx1036",  // Navi2x
++          "gfx1100", "gfx1101", "gfx1102", "gfx1103"   // Navi3x
+       };
+       if (supported_agent_names.find(agent_name_) != supported_agent_names.end()) {
+         ImportMetrics(agent_info, agent_name_);
+-- 
+2.43.0
+
