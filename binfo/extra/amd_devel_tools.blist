@@ -14,6 +14,7 @@ binfo/extra/caliper.binfo
 binfo/extra/libpfm4.binfo
 binfo/extra/libunwind.binfo
 binfo/extra/tau2.binfo
+binfo/extra/rocprofiler_aql.binfo
 binfo/extra/timemory.binfo
 binfo/extra/omnitrace.binfo
 binfo/extra/aqlprofile_installer.binfo
