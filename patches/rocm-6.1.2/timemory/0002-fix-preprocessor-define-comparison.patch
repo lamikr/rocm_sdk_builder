@@ -1,4 +1,4 @@
-From 503745935c4abacc374ddda64838d0019069a0b2 Mon Sep 17 00:00:00 2001
+From f0ceead8e378c1f6d669a2e9d4e3a4f369a141ee Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 6 Sep 2024 18:26:48 -0700
 Subject: [PATCH 2/7] fix preprocessor define comparison

@@ -1,4 +1,4 @@
-From 5d92a9529bba827f7a4350eda70bb551b7e50589 Mon Sep 17 00:00:00 2001
+From 3874f3f77d0da77dd630a36ae79f9dbc75936294 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 6 Sep 2024 18:35:30 -0700
 Subject: [PATCH 3/7] fix assertion error

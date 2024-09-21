@@ -1,7 +1,7 @@
-From 86687495a34ca1e6825bf84f30db999d35fd6cd9 Mon Sep 17 00:00:00 2001
+From 53b5bb2deaa53f36f72ed890cdf80c0e7d82cf74 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 17 Sep 2024 23:48:32 -0700
-Subject: [PATCH 4/4] load aqlprofile as a library
+Subject: [PATCH 4/5] load aqlprofile as a library
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -15,7 +15,7 @@ index aec3a87..624b862 100644
 @@ -47,6 +47,11 @@ THE SOFTWARE.
  #include <unistd.h>
  #include <vector>
-
+ 
 +#define ROCP_LD_AQLPROFILE
 +
 +// LOAD AQLProfile lib
@@ -42,5 +42,6 @@ index aec3a87..624b862 100644
      if(idx >= size)
      {
          return false;
---
+-- 
 2.41.1
+

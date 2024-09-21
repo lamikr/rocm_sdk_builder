@@ -1,7 +1,7 @@
-From feb12c444101824203abfc25c1060f7b8d34affe Mon Sep 17 00:00:00 2001
+From 00a43c1f682177ce6dd7df465f93af78198e05dd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 17 Sep 2024 12:56:31 -0700
-Subject: [PATCH 1/4] omnitrace build on rocm sdk builder
+Subject: [PATCH 1/5] omnitrace build on rocm sdk builder
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

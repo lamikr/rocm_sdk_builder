@@ -1,0 +1,28 @@
+From 45d7913c3a2e89b1c9aa04b5c2961eb1e8007f48 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Sat, 21 Sep 2024 05:13:24 -0700
+Subject: [PATCH 5/5] use MPI_CXX_SKIP_MPICXX=true with new openmpis
+
+- new openmpi versions does not offer anymore
+  option to build the deprecated MPICXX interface
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/Packages.cmake | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/cmake/Packages.cmake b/cmake/Packages.cmake
+index f8bd984..bbc1309 100644
+--- a/cmake/Packages.cmake
++++ b/cmake/Packages.cmake
+@@ -243,6 +243,7 @@ endif()
+ set(_OMNITRACE_MPI_HEADERS_ALLOW_MPICH ${MPI_HEADERS_ALLOW_MPICH})
+ 
+ if(OMNITRACE_USE_MPI)
++    set(MPI_CXX_SKIP_MPICXX TRUE)
+     find_package(MPI ${omnitrace_FIND_QUIETLY} REQUIRED)
+     target_link_libraries(omnitrace-mpi INTERFACE MPI::MPI_C MPI::MPI_CXX)
+     omnitrace_target_compile_definitions(omnitrace-mpi INTERFACE TIMEMORY_USE_MPI=1
+-- 
+2.41.1
+

@@ -9,5 +9,5 @@ BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
     "./autogen.pl --force"
     "cd ${BINFO_APP_BUILD_DIR}"
-    "${BINFO_APP_SRC_DIR}/configure --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64 --with-pmix=internal --with-ucx=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-ucc=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-rocm=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-rocm-libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64 --without-cuda"
+    "${BINFO_APP_SRC_DIR}/configure --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64 --with-pmix=internal --with-ucx=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-ucc=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-rocm=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-rocm-libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64 --without-cuda --enable-shared --enable-mpi-fortran"
 )
