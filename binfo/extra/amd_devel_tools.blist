@@ -9,9 +9,9 @@ binfo/extra/dyninst.binfo
 binfo/extra/ELFIO.binfo
 binfo/extra/PTL.binfo
 binfo/extra/gotcha.binfo
+binfo/extra/libunwind.binfo
 binfo/extra/tau2.binfo
 binfo/extra/libpfm4.binfo
-binfo/extra/libunwind.binfo
 binfo/extra/aqlprofile_installer.binfo
 binfo/extra/rocprofiler-register.binfo
 binfo/extra/rocprofiler_aql.binfo
