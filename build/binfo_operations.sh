@@ -23,7 +23,7 @@ func_babs_init_and_fetch_by_binfo() {
         if [[ -n "$3" ]]; then
             skip_patches=$3
         fi
-        echo "func_babs_handle_fetch param: $1"
+        echo "func_babs_init_and_fetch_by_binfo param: $1"
         local APP_INFO_FULL_NAME=$1
 
         if [ -f ${APP_INFO_FULL_NAME} ]; then
@@ -199,7 +199,7 @@ func_babs_apply_patches_by_binfo() {
         else
             jj=1
         fi
-        echo "func_babs_handle_fetch param: $1"
+        echo "func_babs_apply_patches_by_binfo param: $1"
         local APP_INFO_FULL_NAME=$1
 
         if [ -f ${APP_INFO_FULL_NAME} ]; then
@@ -298,7 +298,7 @@ func_babs_checkout_by_binfo_once() {
         else
             jj=1
         fi
-        echo "func_babs_handle_fetch param: $1"
+        echo "func_babs_checkout_by_binfo_once param: $1"
         local APP_INFO_FULL_NAME=$1
 
         if [ -f ${APP_INFO_FULL_NAME} ]; then
@@ -337,7 +337,7 @@ func_babs_checkout_by_binfo_once() {
                     git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
                     if [ $? -ne 0 ]; then
                         echo ""
-                        echo "[${jj}]: Error, failed to checkout repository base version"
+                        echo "[${jj}]: Error, failed to checkout repository base version22"
                         echo "Repository name: ${BINFO_APP_NAME}"
                         echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                         echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
@@ -392,7 +392,9 @@ func_babs_checkout_by_binfo() {
         if [ ${cur_res} != "0" ]; then
             # if the checkout fails, try to fetch newer source code
             # and then try to checkout again one time
+            cd ${SDK_ROOT_DIR}
             func_babs_init_and_fetch_by_binfo "$1" $jj 1
+            cd ${SDK_ROOT_DIR}
             func_babs_checkout_by_binfo_once "$1" $jj
             cur_res=$?
             if [ ${cur_res} != "0" ]; then
