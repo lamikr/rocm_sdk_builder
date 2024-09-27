@@ -1,0 +1,17 @@
+1) launch controller
+/opt/rocm_sdk_612/bin/slurmctld -D
+
+2) launch worknodes
+
+# a) launch single worknode
+/opt/rocm_sdk_612/bin/slurmd -D
+
+# run 2 instances of app in single worknode
+srun -l -n2 -N1 ./mpi_hello_world
+
+# b) launch 2 worknodes
+/opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk1
+/opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk2
+
+# run 4 instances of app in two worknodes
+srun -l -n4 -N2 ./mpi_hello_world

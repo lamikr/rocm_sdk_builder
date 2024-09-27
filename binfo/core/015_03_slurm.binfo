@@ -1,0 +1,23 @@
+BINFO_APP_NAME=slurm
+BINFO_APP_SRC_SUBDIR_BASENAME=
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/SchedMD/slurm.git
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=52b512bd29f32dd36dd90f7246ff2aa776d1d67d
+
+BINFO_APP_CONFIG_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "${BINFO_APP_SRC_DIR}/configure --prefix=${INSTALL_DIR_PREFIX_SDK_ROOT} --sysconfdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm --sbindir=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin --libdir=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64 --localstatedir=${INSTALL_DIR_PREFIX_SDK_ROOT}/var --runstatedir=${INSTALL_DIR_PREFIX_SDK_ROOT}/var/run --with-rsmi=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-ucx=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-hwloc=${INSTALL_DIR_PREFIX_SDK_ROOT} --with-pmix --without-munge --enable-debug"
+)
+#--enable-front-end
+
+BINFO_APP_POST_INSTALL_CMD_ARRAY=(
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/var/log/slurm"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/var/run/slurm"
+    "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/var/spool"
+    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf ]; then install -Dm644 ${BINFO_APP_SRC_DIR}/rocm_etc/*.co* ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm; fi"
+    "if [ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template ]; then sed -i 's\ROCM_SDK_USERID\\${USER}\g' ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template; fi"
+    "if [ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template ]; then sed -i 's\ROCM_SDK_INSTALL_PREFIX\\${INSTALL_DIR_PREFIX_SDK_ROOT}\g' ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template; fi"
+    "if [ -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template ]; then mv ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf_template ${INSTALL_DIR_PREFIX_SDK_ROOT}/etc/slurm/slurm.conf; fi"
+)
