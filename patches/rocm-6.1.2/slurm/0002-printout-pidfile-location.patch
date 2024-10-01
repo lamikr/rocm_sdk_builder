@@ -1,7 +1,7 @@
-From 21bc9643a47de2215f295a8b33f04a5cd75ac787 Mon Sep 17 00:00:00 2001
+From 019a244607aed6d98960a37bf3348d9a532ac9c1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 29 Sep 2024 21:21:11 -0700
-Subject: [PATCH 2/3] printout pidfile location
+Subject: [PATCH 2/4] printout pidfile location
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -18,13 +18,13 @@ index 8714e544d0..e282ecf02d 100644
  	if (!s_p_get_string(&conf->slurmctld_pidfile,
 -			    "SlurmctldPidFile", hashtbl))
 +                            "SlurmctldPidFile", hashtbl)) {
-+                printf("using default pidfile");
++                //printf("using default pidfile");
  		conf->slurmctld_pidfile = xstrdup(DEFAULT_SLURMCTLD_PIDFILE);
 +        }
-+        printf("pidfile: %s\n", conf->slurmctld_pidfile);
++        //printf("pidfile: %s\n", conf->slurmctld_pidfile);
  
  	(void )s_p_get_string(&conf->slurmctld_logfile, "SlurmctldLogFile",
  			      hashtbl);
 -- 
-2.41.1
+2.34.1
 

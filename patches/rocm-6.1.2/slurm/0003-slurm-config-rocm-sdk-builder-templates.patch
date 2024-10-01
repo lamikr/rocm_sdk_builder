@@ -1,7 +1,7 @@
-From 143ae73ff0e9054cd534c517e9e4d7d7c67c0d17 Mon Sep 17 00:00:00 2001
+From f706fb3433a6f132ae7f62b834141b91cec6132b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 29 Sep 2024 22:13:13 -0700
-Subject: [PATCH 3/3] slurm config rocm sdk builder templates
+Subject: [PATCH 3/4] slurm config rocm sdk builder templates
 
 - following variables needs to be changed
   during install to reflect the real
@@ -238,5 +238,5 @@ index 0000000000..0e1db76edf
 +#StorageLoc=slurm_acct_db
 +
 -- 
-2.41.1
+2.34.1
 
