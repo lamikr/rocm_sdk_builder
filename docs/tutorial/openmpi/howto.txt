@@ -18,13 +18,28 @@ For example:
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
 # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk2
 
-5) build the mpi_msg_ping example application
+5) build and run the mpi_msg_ping example application
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/tutorial/openmpi/mpi_msg_ping
+# cd /opt/rocm_sdk_612/docs/examples/openmpi/mpi_msg_ping
 # make
 
-6) launch 4 slurm job instances of example application
-srun -l -n4 -N2 ./mpi_msg_ping
+6) expected output from application when Makefile uses "mpiexec -n 4 ./mpi_msg_ping"
+mpiexec -n 4 mpi_msg_ping
+rank 1 received value ping_0 from mpi node 0
+rank 0 received value ping_1 from mpi node 1
+rank 0 received value ping_2 from mpi node 2
+rank 0 received value ping_3 from mpi node 3
+rank 2 received value ping_0 from mpi node 0
+rank 2 received value ping_1 from mpi node 1
+rank 3 received value ping_0 from mpi node 0
+rank 1 received value ping_2 from mpi node 2
+rank 1 received value ping_3 from mpi node 3
+rank 2 received value ping_3 from mpi node 3
+rank 3 received value ping_1 from mpi node 1
+rank 3 received value ping_2 from mpi node 2
+
+6) launch same mpi_msg_ping application with slurm insteas
+# srun -l -n4 -N2 ./mpi_msg_ping
 
 7) Expected outcome is that all 4 job instances will send and receive ping
    messages. Example output below:
