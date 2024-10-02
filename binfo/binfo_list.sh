@@ -36,6 +36,7 @@ LIST_BINFO_FILE_BASENAME=(
     "core/015_02_ucc_openmpi.binfo"
     "core/015_03_slurm.binfo"
     "core/015_04_openmpi.binfo"
+    "core/015_05_mpi4py.binfo"
     "core/016_01_flang_libpgmath.binfo"
     "core/016_02_flang.binfo"
     "core/016_03_llvm_project_openmp.binfo"
