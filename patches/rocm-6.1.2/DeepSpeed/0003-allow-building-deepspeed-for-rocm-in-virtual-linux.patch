@@ -1,4 +1,4 @@
-From 43fdaeb1a70c848dc8540ccd9a37ce6399ce2788 Mon Sep 17 00:00:00 2001
+From 5171876c7cb42c110d89b1aebf8030aa7a4bb74a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 26 Jun 2024 14:44:04 -0700
 Subject: [PATCH 3/6] allow building deepspeed for rocm in virtual linux
@@ -31,10 +31,10 @@ index f4a75855..b48a0ad9 100755
  
  #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
 diff --git a/op_builder/builder.py b/op_builder/builder.py
-index db4698e0..b2b2b121 100644
+index 208ec454..7de197cc 100644
 --- a/op_builder/builder.py
 +++ b/op_builder/builder.py
-@@ -538,7 +538,7 @@ class OpBuilder(ABC):
+@@ -539,7 +539,7 @@ class OpBuilder(ABC):
              # Ensure the op we're about to load was compiled with the same
              # torch/cuda versions we are currently using at runtime.
              self.validate_torch_version(torch_info)
@@ -44,7 +44,7 @@ index db4698e0..b2b2b121 100644
  
              op_module = importlib.import_module(self.absolute_name())
 diff --git a/setup.py b/setup.py
-index 87072095..92c7f39b 100755
+index 5b8a917d..973f2610 100755
 --- a/setup.py
 +++ b/setup.py
 @@ -136,7 +136,7 @@ else:
@@ -57,5 +57,5 @@ index 87072095..92c7f39b 100755
      print("[WARNING] Torch did not find cuda available, if cross-compiling or running with cpu only "
            "you can ignore this message. Adding compute capability for Pascal, Volta, and Turing "
 -- 
-2.43.0
+2.34.1
 
