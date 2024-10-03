@@ -18,4 +18,3 @@ binfo/extra/rocprofiler_aql.binfo
 binfo/extra/caliper.binfo
 binfo/extra/timemory.binfo
 binfo/extra/omnitrace.binfo
-binfo/extra/aqlprofile_installer.binfo
