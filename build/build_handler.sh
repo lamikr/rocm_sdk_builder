@@ -1,4 +1,5 @@
 #!/bin/bash
+
 source build/system_utils.sh
 source build/config.sh
 source build/build_func.sh
@@ -36,6 +37,43 @@ func_babs_handle_build() {
             echo ""
         else
             echo -e "Failed to build ROCM_SDK_BUILDER"
+            echo ""
+        fi
+    fi
+}
+
+func_babs_handle_build_direcory_clean() {
+    func_env_variables_print #From config.sh
+    func_install_dir_init ${INSTALL_DIR_PREFIX_SDK_AI_MODELS}
+    func_install_dir_init ${INSTALL_DIR_PREFIX_SDK_ROOT}
+    local ret_val=$?
+    if [[ $ret_val -eq 0 ]]; then
+        if [[ -n "$1" ]]; then
+            source ./build/build_func.sh
+            if [[ "$1" = *.binfo ]] ; then
+                func_clean_build_directory_single_binfo $1
+            fi
+            if [[ "$1" = *.blist ]] ; then
+                func_clean_build_directories_blist $1
+            fi
+        else
+            read -p "Are you sure that you want to clean ROCM SDK Builder core build directories (y/n)? " -r
+            echo    # (optional) move to a new line
+            if [[ $REPLY =~ ^[Yy]$ ]]
+            then
+                func_clean_build_directories_core
+            else
+                echo "ROCM SDK Builder core build directory clean canceled."
+                echo ""
+                exit 1
+            fi
+        fi
+        res=$?
+        if [[ $res -eq 0 ]]; then
+            echo -e "\nROCM SDK Builder cleaned build directories succesfully."
+            echo ""
+        else
+            echo -e "Failed to clean ROCM SDK Builder build directories."
             echo ""
         fi
     fi

@@ -28,29 +28,36 @@ func_user_help_print() {
     func_build_system_name_and_version_print #Fron config.sh
     echo "babs (babs ain't patch build system)"
     echo "usage:"
-    echo "-h or --help:            Show this help"
-    echo "-c or --configure        Show list of GPU's for which the the build is optimized"
+    echo "-c or --configure        Select AMD GPU's for which the machine learning library support and optimization is builded."
+    echo "                         Note that each selected GPU will increase the build time."
+    echo "-b or --build:           Start or continue the building of rocm_sdk core applications."
+    echo "                         If source directory does not yet exist, it will first checkout source code and apply patches."
+    echo "                         Build files are located under 'builddir' directory and install is done to"
+    echo "                         '/opt/rocm_sdk_version' directory."
+    echo "                         Optional parameter can be given to build additional libraries and applications after core build:"
+    echo "                              binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
     echo "-i or --init:            Download git repositories listed in binfo directory to 'src_projects' directory"
     echo "                         and apply all patches from 'patches' directory."
     echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
+    echo "-ca or --checkout_apply: Checkout source code repositories to versions listed in binfo files for each git repository"
+    echo "                         in src_projects directory and apply patches on top of the checked out source code versions."
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
     echo "-ap or --apply_patches:  Scan 'patches/rocm-version' directory and apply each patch"
     echo "                         on top of the repositories in 'src_projects' directory."
-    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
-    echo "-co or --checkout:       Checkout version listed in binfo files for each git repository in src_projects directory."
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-co or --checkout:       Checkout source code repositories to versions listed in binfo files for each git repository."
     echo "                         Apply of patches of top of the checked out version needs to be performed separately"
     echo "                         with '-ap' command."
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "--clean:                 Clean directories which has been used to build core or extra repositories that are listed in binfo files."
+    echo "                         Cleaned directories are located under 'builddir' directory."
+    echo "                         This will cause these repositories to be rebuild on next build attempt."
     echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
-    echo "-ca or --checkout_apply: Checkout version listed in binfo files for each git repository in src_projects directory."
-    echo "                         and apply patches automatically on top of the checked out version."
-    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
-    echo "-f or --fetch:           Fetch latest source code for all repositories."
-    echo "                         Checkout of fetched sources needs to be performed separately with '-ca' or '-co' command."
-    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
-    echo "-b or --build:           Start or continue the building of rocm_sdk."
-    echo "                         Build files are located under 'builddir' directory and install is performed"
-    echo "                         on '/opt/rocm_sdk_version' directory."
-    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
-    echo "                         If source directory does not exist, it will first download and apply patches if them are available"
+    echo "-f or --fetch:           Fetch latest source code for each git repository listed in binfo files."
+    echo "                         Checkout of fetched source code to versioins specified in binfo files needs to be performed"
+    echo "                         separately with '-ca' or '-co' command."
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-h or --help:            Show this help"
     echo "-v or --version:         Show babs build system version information"
     #echo "-cp or --create_patches: generate patches by checking git diff for each repository"
     #echo "-g or --generate_repo_list: generates repo_list_new.txt file containing current repository revision hash for each project"
@@ -134,7 +141,12 @@ func_handle_user_command_args() {
                 func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0
                 ;;
+            --clean)
+                func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                exit 0
+                ;;
             -cp | --create_patches)
+                # deprected and not officially supported functionality at the moment.
                 func_repolist_appliad_patches_save #From repo_management.sh
                 exit 0
                 ;;
@@ -153,6 +165,7 @@ func_handle_user_command_args() {
                 exit 0
                 ;;
             -fs | --fetch_submod)
+                # deprected and not officially supported functionality at the moment. fetch, ca, co methods should now do these steps automatically in the end.
                 if [[ -n "${ARG__USER_CMD_PARAM1}" ]]; then
                     func_babs_fetch_submodules_by_binfo ${ARG__USER_CMD_PARAM1} #From binfo_operations.sh
                 else
@@ -161,6 +174,7 @@ func_handle_user_command_args() {
                 exit 0
                 ;;
             -g | --generate_repo_list)
+                # deprected and not officially supported functionality at the moment.
                 func_repolist_export_version_tags_to_file #From repo_management.sh
                 exit 0
                 ;;
@@ -170,6 +184,7 @@ func_handle_user_command_args() {
                 exit 0
                 ;;
             -s | --sync)
+                # deprected and not officially supported functionality at the moment.
                 func_repolist_checkout_by_version_tag_file
                 exit 0
                 ;;

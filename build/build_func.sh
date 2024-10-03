@@ -689,6 +689,76 @@ func_init_and_build_blist() {
     return 0
 }
 
+func_clean_build_directory_single_binfo() {
+    APP_INFO_FULL_NAME=$1
+    if [[ -n "$2" ]]; then
+        ii=$2
+    else
+        ii=1
+    fi
+    APP_INFO_BUILD_DIR_BASE=$( basename ${APP_INFO_FULL_NAME} .binfo)
+    APP_INFO_BUILD_DIR_FULL="${BUILD_ROOT_DIR}/${APP_INFO_BUILD_DIR_BASE}"
+    cd ${BUILD_ROOT_DIR}
+    if [ -d ${APP_INFO_BUILD_DIR_BASE} ]; then
+        if [[ ${APP_INFO_BUILD_DIR_BASE} == \/* ]] || [[ ${APP_INFO_BUILD_DIR_BASE} == \** ]] || [[ ${APP_INFO_BUILD_DIR_BASE} == \.* ]] ; then
+            # error, name starts with * or / or . character
+            # this check is done for extra safety to avoid cleaning incorrect directory
+            echo ""
+            echo "[${ii}] Build-directory clean skipped, invalid character: ${APP_INFO_BUILD_DIR_BASE}"
+        else
+            rm -rf ${APP_INFO_BUILD_DIR_BASE}
+            echo ""
+            echo "[${ii}] Build-directory cleaned: ${APP_INFO_BUILD_DIR_BASE}"
+        fi
+    else
+        echo "[${ii}] Build-directory clean skipped, already cleaned: ${APP_INFO_BUILD_DIR_BASE}"
+    fi
+    return 0
+}
+
+func_clean_build_directories_blist() {
+    local ii
+    local BINFO_ARRAY
+
+    ii=0
+    readarray -t BINFO_ARRAY < $1
+    if [[ ${BINFO_ARRAY[@]} ]]; then
+        func_build_env_init
+
+        local FNAME
+        for FNAME in "${BINFO_ARRAY[@]}"; do
+            if [ ! -z ${FNAME} ]; then
+               if  [ -z ${FNAME##*.binfo} ]; then
+                   ii=$(( ${ii} + 1 ))
+                   cd ${SDK_ROOT_DIR}
+                   func_clean_build_directory_single_binfo ${FNAME} ${ii}
+               fi
+            fi
+        done
+    else
+        echo ""
+        echo "Failed to clean build directories by using the blist file."
+        echo "Could not find binfo files listed in:"
+        echo "    $1"
+        echo ""
+        exit 1
+    fi
+    return 0
+}
+
+func_clean_build_directories_core() {
+    func_build_env_init
+    local ii=0
+    while [ "x${LIST_BINFO_FILE_FULLNAME[ii]}" != "x" ]
+    do
+        echo "LIST_BINFO_FILE_FULLNAME[${ii}]: ${LIST_BINFO_FILE_FULLNAME[${ii}]}"
+        func_clean_build_directory_single_binfo ${LIST_BINFO_FILE_FULLNAME[${ii}]} ${ii}
+        ii=$(( ${ii} + 1 ))
+    done
+    func_build_env_deinit
+    return 0
+}
+
 func_build_core() {
     local ii=0
     while [ "x${LIST_BINFO_FILE_FULLNAME[ii]}" != "x" ]
