@@ -50,7 +50,7 @@ func_install_dir_init() {
                 fi
             fi
         else
-            echo "Trying to create install target direcory: ${CUR_INSTALL_DIR_PATH}"
+            echo "Trying to create install target directory: ${CUR_INSTALL_DIR_PATH}"
             mkdir -p ${CUR_INSTALL_DIR_PATH} 2>/dev/null
             if [ ! -d ${CUR_INSTALL_DIR_PATH} ]; then
                 sudo mkdir -p ${CUR_INSTALL_DIR_PATH}
