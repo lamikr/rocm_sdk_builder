@@ -15,10 +15,10 @@ default: build_and_test
 build_and_test: mpi_rank_printout test
 
 mpi_rank_printout: mpi_rank_printout.c
-        $(CC) $(CFLAGS) $(LDFLAGS) -o $(EXECUTABLE) mpi_rank_printout.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $(EXECUTABLE) mpi_rank_printout.c
 
 test: $(EXECUTABLE)
-        mpiexec -n 4 $(EXECUTABLE)
+	mpiexec -n 4 $(EXECUTABLE)
 
 clean veryclean:
-        $(RM) mpi_rank_printout.o $(EXECUTABLE)
+	$(RM) mpi_rank_printout.o $(EXECUTABLE)

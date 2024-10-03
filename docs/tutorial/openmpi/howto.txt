@@ -1,3 +1,144 @@
+OpenMPI Introduction on ROCM SDK Builder
+========================================
+
+Openmpi is one implementation from the mpi
+protocol and its provided on rocm sdk builder.
+
+Openmpi can be used to spread the workload to
+multiple machines for example by launching the
+different instances from same application to
+different machines which will then communicate with
+each others to desire how to share the workload.
+
+The logic how to share the workload is application specific
+but mpi offers both the point to point and broadcast commands for
+the communication. (MPI_Send, MPI_receive, etc...)
+Each instance is idenfifier from others by it's rank number.
+
+Launch of instances can be done either direcrly with the openmpi
+commands like mpirun, mpiexec or using a separate slurm application.
+Both methods are supported by the rocm sdk builder.
+
+Slurm for OpenMPI control on ROCM SDK Builder
+=============================================
+
+ROCM sdk builder is building own slurm version in a way that
+it does not interference with the possible distro version of other
+slurm installation. It's config, log and instance files are located in
+/opt/rocm_sdk_xyz/etc/slurm and /opt/rocm_sdk_xyz/var directories.
+
+Slurm will require a running of separate slurmcontroller daemon
+and then worknodes that can be run either on same machine (demo purposes)
+or on different machines. These worknodes can then be used to do the
+real work for launching the OpenMPI application instances.
+
+ROCM SDK builder will not launch the the slurmcontrolelr or worknodes by default
+but they can be lanched on terminals with commands like:
+
+/opt/rocm_sdk_612/bin/slurmctld -D
+/opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk1
+
+Slurm configuration could also run the separate munge authentication services
+and database services, but to simplify things the default 
+/opt/rocm_sdk_builder/slurm.conf is configured only to run slurmctrl
+and single worknode on localhost without database or munge authentication.
+
+Slurm configuration examples
+============================
+
+ROCM SDK Builder provides 3 configuation examples
+for running Slurm
+
+1) SlurmCtrl and one worknode on localhost
+
+By default the rocm sdk builder slurm is installed with this
+configuration enabled on /opt/rocm_sdk_612/etc/slurm/slurm.conf.
+
+Slurm controller will listen tcp port 6817 and worknode names a
+rocmsdk1 will listen on port 6818.
+
+launch steps
+------------
+Controller and node can be launched on two terminals with commands:
+
+terminal 1 to launch the slurm controller
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmctld -D
+terminal 2 to launch the slurm work node
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk1
+terminal 3 to check the status of launched nodes
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # sinfo
+
+2) SlurmCtrl and two worknodes both running on same machine
+
+This is still executed on single machine but simulates
+better the real world situation where work is distributed
+for multiple nodes. This example will launch 2 work nodes.
+
+ROCM sdk builder has needed a small patch to slurm to make
+possible to run 2 instances on same machine without enabling the front-end demo mode.
+(Patch fixes the problem where both instanced tried to create same pid-file)
+
+configure steps
+---------------
+a) update slurm.conf
+# cp /opt/rocm_sdk_612/etc/slurm/slurm.conf_example_controller_and_two_nodes_on_localhost /opt/rocm_sdk_612/etc/slurm/slurm.conf
+b) add localhost_node2 to /etc/hosts on same line where localhost is configured for ip 127.0.0.1
+
+launch steps
+------------
+Controller and node can be launched on two terminals with commands:
+
+terminal 1 to launch the slurm controller
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmctld -D
+terminal 2 to launch the slurm work node
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk1
+terminal 3 to launch the slurm work node
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk2
+terminal 4 to check the status of launched nodes
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # sinfo
+
+3) SlurmCtrl and worknode1 running on rocmsdk1 and worknode2 running on rocmsdk2 machine
+
+This is still executed on single machine but simulates
+better the real world situation where work is distributed
+for multiple nodes. This example will launch 2 work nodes.
+
+ROCM sdk builder has needed a small patch to slurm to make
+possible to run 2 instances on same machine without enabling the front-end demo mode.
+(Patch fixes the problem where both instanced tried to create same pid-file)
+
+configure steps
+---------------
+a) build rocm sdk builder both on the rocmsdk1 and rocmsdk2 machines
+b) update slurm.conf
+# cp /opt/rocm_sdk_612/etc/slurm//opt/rocm_sdk_612/etc/slurm/slurm.conf_example_controller_and_two_nodes_on_different_machines /opt/rocm_sdk_612/etc/slurm/slurm.conf
+c) add rocmsdk1 and rocmsdk2 ips both to /etc/hosts file on both computers 
+  (or change rocmsdk1 and rocmsdk2 names on conf file to real host names)
+
+launch steps
+------------
+Controller and node can be launched on two terminals with commands:
+
+terminal 1 on rocmsdk1 computer to launch the slurm controller
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmctld -D
+terminal 2 on rocmsdk1 computer to launch the rocmsdk1 work node
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk1
+terminal 2 on rocmsdk2 computer to launch the rocmsdk2 work node
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # /opt/rocm_sdk_612/bin/slurmd -D -Nrocmsdk2
+terminal 4 to check the status of launched nodes
+  # source /opt/rocm_sdk_612/bin/env_rocm.sh
+  # sinfo
+
 mpi_msg_ping example application
 ================================
 
@@ -38,7 +179,7 @@ rank 2 received value ping_3 from mpi node 3
 rank 3 received value ping_1 from mpi node 1
 rank 3 received value ping_2 from mpi node 2
 
-6) launch same mpi_msg_ping application with slurm insteas
+6) launch same mpi_msg_ping application with slurm instead of using mpiexec
 # srun -l -n4 -N2 ./mpi_msg_ping
 
 7) Expected outcome is that all 4 job instances will send and receive ping

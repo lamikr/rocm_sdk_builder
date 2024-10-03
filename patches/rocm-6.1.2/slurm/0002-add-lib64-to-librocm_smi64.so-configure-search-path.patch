@@ -1,7 +1,7 @@
-From 8de22e511a7002743b20df50117429bdbee74f2f Mon Sep 17 00:00:00 2001
+From c9c34ebf5aa3130768fc01b3758c19db77f49116 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 1 Oct 2024 09:37:41 -0700
-Subject: [PATCH 4/4] add lib64 to librocm_smi64.so configure search path
+Subject: [PATCH 2/4] add lib64 to librocm_smi64.so configure search path
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -40,5 +40,5 @@ index b78e6acc85..4ee0a190a7 100755
        { ac_cv_lib_rocm_smi64_rsmi_init=; unset ac_cv_lib_rocm_smi64_rsmi_init;}
        { ac_cv_lib_rocm_smi64_dev_drm_render_minor_get=; unset ac_cv_lib_rocm_smi64_dev_drm_render_minor_get;}
 -- 
-2.34.1
+2.41.1
 

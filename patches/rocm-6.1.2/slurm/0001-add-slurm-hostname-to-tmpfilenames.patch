@@ -1,4 +1,4 @@
-From c3fc4084de853210e062411e747eb68608080788 Mon Sep 17 00:00:00 2001
+From ce8b35e4edf26ebc6bc493b94b10f1f0ec150dbb Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 29 Sep 2024 21:13:49 -0700
 Subject: [PATCH 1/4] add slurm hostname to tmpfilenames
@@ -29,5 +29,5 @@ index e9a4f7561f..7645025ea3 100644
  				       pmixp_info_jobid(),
  				       pmixp_info_stepid());
 -- 
-2.34.1
+2.41.1
 

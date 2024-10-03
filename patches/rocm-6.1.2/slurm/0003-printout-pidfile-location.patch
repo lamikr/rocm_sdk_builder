@@ -1,7 +1,7 @@
-From 019a244607aed6d98960a37bf3348d9a532ac9c1 Mon Sep 17 00:00:00 2001
+From c6da622912aac5e38d60d1ff3103bae1f882d934 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 29 Sep 2024 21:21:11 -0700
-Subject: [PATCH 2/4] printout pidfile location
+Subject: [PATCH 3/4] printout pidfile location
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/src/common/read_config.c b/src/common/read_config.c
-index 8714e544d0..e282ecf02d 100644
+index 8714e544d0..db340f53bd 100644
 --- a/src/common/read_config.c
 +++ b/src/common/read_config.c
 @@ -5182,8 +5182,11 @@ static int _validate_and_set_defaults(slurm_conf_t *conf,
@@ -26,5 +26,5 @@ index 8714e544d0..e282ecf02d 100644
  	(void )s_p_get_string(&conf->slurmctld_logfile, "SlurmctldLogFile",
  			      hashtbl);
 -- 
-2.34.1
+2.41.1
 
