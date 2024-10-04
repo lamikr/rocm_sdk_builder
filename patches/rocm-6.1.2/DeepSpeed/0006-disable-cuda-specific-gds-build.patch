@@ -1,16 +1,15 @@
-From 2b07782c1aecd6a93d25e3d3bdbbe90aceb642d0 Mon Sep 17 00:00:00 2001
+From ca9314ae063f5c8ca7b636c4a90f6425ec084c16 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Sun, 1 Sep 2024 16:04:06 -0700
+Date: Tue, 1 Oct 2024 17:01:41 -0700
 Subject: [PATCH 6/6] disable cuda specific gds build
 
-causes build error if tried to build on rocm sdk
-environment without cuda home defined.
+gds build causes build error if it is build on rocm sdk
+environment which does not have cuda home specified.
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_rocm.sh     | 2 +-
- op_builder/gds.py | 4 ++++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ build_rocm.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 index 6cbf9e0e..c33076e0 100755
@@ -24,21 +23,6 @@ index 6cbf9e0e..c33076e0 100755
 +AMDGPU_TARGETS="${amd_target_gpu}" DS_BUILD_GDS=0 DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py build_ext -j1 bdist_wheel
  
  #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
-diff --git a/op_builder/gds.py b/op_builder/gds.py
-index 01c2d5a2..1bb7b5fa 100644
---- a/op_builder/gds.py
-+++ b/op_builder/gds.py
-@@ -44,6 +44,10 @@ class GDSBuilder(AsyncIOBuilder):
-             return False
- 
-         CUDA_HOME = torch.utils.cpp_extension.CUDA_HOME
-+        if CUDA_HOME is None:
-+            if verbose:
-+                self.warning("Disabling GDS, no CUDA_HOME defined")
-+            return False
-         CUDA_LIB64 = os.path.join(CUDA_HOME, "lib64")
-         gds_compatible = self.has_function(funcname="cuFileDriverOpen",
-                                            libraries=("cufile", ),
 -- 
-2.43.0
+2.34.1
 

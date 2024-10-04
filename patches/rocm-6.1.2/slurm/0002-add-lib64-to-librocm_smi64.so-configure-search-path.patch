@@ -1,0 +1,44 @@
+From c9c34ebf5aa3130768fc01b3758c19db77f49116 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 1 Oct 2024 09:37:41 -0700
+Subject: [PATCH 2/4] add lib64 to librocm_smi64.so configure search path
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ auxdir/x_ac_rsmi.m4 | 3 ++-
+ configure           | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/auxdir/x_ac_rsmi.m4 b/auxdir/x_ac_rsmi.m4
+index b23d6f981d..f3fd9cf340 100644
+--- a/auxdir/x_ac_rsmi.m4
++++ b/auxdir/x_ac_rsmi.m4
+@@ -40,8 +40,9 @@ AC_DEFUN([X_AC_RSMI],
+       ldflags_save="$LDFLAGS"
+       RSMI_CPPFLAGS="-I$_x_ac_rsmi_dir/include"
+       CPPFLAGS="$RSMI_CPPFLAGS"
++      RSMI_LIB64_DIR="$_x_ac_rsmi_dir/lib64"
+       RSMI_LIB_DIR="$_x_ac_rsmi_dir/lib"
+-      LDFLAGS="-L$RSMI_LIB_DIR"
++      LDFLAGS="-L$RSMI_LIB64_DIR -L$RSMI_LIB_DIR"
+       AS_UNSET([ac_cv_header_rocm_smi_h])
+       AS_UNSET([ac_cv_lib_rocm_smi64_rsmi_init])
+       AS_UNSET([ac_cv_lib_rocm_smi64_dev_drm_render_minor_get])
+diff --git a/configure b/configure
+index b78e6acc85..4ee0a190a7 100755
+--- a/configure
++++ b/configure
+@@ -23672,8 +23672,9 @@ printf "%s\n" "" >&6; }
+       ldflags_save="$LDFLAGS"
+       RSMI_CPPFLAGS="-I$_x_ac_rsmi_dir/include"
+       CPPFLAGS="$RSMI_CPPFLAGS"
++      RSMI_LIB64_DIR="$_x_ac_rsmi_dir/lib64"
+       RSMI_LIB_DIR="$_x_ac_rsmi_dir/lib"
+-      LDFLAGS="-L$RSMI_LIB_DIR"
++      LDFLAGS="-L$RSMI_LIB64_DIR -L$RSMI_LIB_DIR"
+       { ac_cv_header_rocm_smi_h=; unset ac_cv_header_rocm_smi_h;}
+       { ac_cv_lib_rocm_smi64_rsmi_init=; unset ac_cv_lib_rocm_smi64_rsmi_init;}
+       { ac_cv_lib_rocm_smi64_dev_drm_render_minor_get=; unset ac_cv_lib_rocm_smi64_dev_drm_render_minor_get;}
+-- 
+2.41.1
+

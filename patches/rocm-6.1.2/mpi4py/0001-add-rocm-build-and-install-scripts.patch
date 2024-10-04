@@ -1,58 +1,43 @@
-From 4c9414c0550f896f40aca00ac2a800eb357745fe Mon Sep 17 00:00:00 2001
+From 0bdff72dcc27bb5aad603f61f89462903f5d833d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Mon, 20 May 2024 22:36:23 -0700
-Subject: [PATCH 1/6] deepspeed rocm preconfig and build_install scripts
-
-discussed here:
-https://github.com/microsoft/DeepSpeed/issues/4989
+Date: Wed, 2 Oct 2024 01:20:39 -0700
+Subject: [PATCH] add rocm build and install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- build_rocm.sh     | 21 +++++++++++++++++++++
+ build_rocm.sh     |  9 +++++++++
  install_rocm.sh   | 26 ++++++++++++++++++++++++++
  preconfig_rocm.sh |  7 +++++++
- 3 files changed, 54 insertions(+)
+ 3 files changed, 42 insertions(+)
  create mode 100755 build_rocm.sh
  create mode 100755 install_rocm.sh
  create mode 100755 preconfig_rocm.sh
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000..f4a75855
+index 00000000..d0fccf84
 --- /dev/null
 +++ b/build_rocm.sh
-@@ -0,0 +1,21 @@
+@@ -0,0 +1,9 @@
 +if [ -z "$1" ]; then
-+    amd_target_gpu=""
-+    echo "No rocm gpu specified, deepspeed will use rocminfo to select gpus"
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory parameter specified, using default: ${install_dir_prefix_rocm}"
 +else
-+    amd_target_gpu=$1
-+    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
++    install_dir_prefix_rocm=${1}
++    echo "rocm_root_directory parameter: ${install_dir_prefix_rocm}"
 +fi
 +
-+mkdir -p deepspeed/ops/spatial
-+
-+#DS_BUILD_OPS=1 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_QUANTIZER=0 DS_BUILD_RANDOM_LTD=0 DS_BUILD_TRANSFORMER_INFERENCE=0 python3 setup.py bdist_wheel
-+
-+# needed by fedora40 which does not provide any cmake help for libaio
-+# fedora does not find the libaio, disabling now with: DS_BUILD_AIO=0
-+#export CFLAGS="-I/usr/include"
-+#export LDFLAGS="-L/usr/lib64"
-+
-+# install command will create wheel and install it. bdist_wheel comamnd would only create the wheel
-+AMDGPU_TARGETS=${amd_target_gpu} DS_BUILD_AIO=0 DS_BUILD_FP_QUANTIZER=0 DS_BUILD_QUANTIZER=0 DS_BUILD_SPARSE_ATTN=0 DS_BUILD_RAGGED_DEVICE_OPS=0 DS_BUILD_CUTLASS_OPS=0 DS_BUILD_EVOFORMER_ATTN=0 DS_BUILD_OPS=1 python setup.py bdist_wheel
-+
-+#DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
++OMPI_CXX=hipcc OMPI_MPICC=hipcc MPI4PY_BUILD_MPICC=${install_dir_prefix_rocm}/bin/mpicc python setup.py bdist_wheel
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000..67c061f6
+index 00000000..f83a665f
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
 +unset backup_dir_python_wheel
 +if [ ! -z "$1" ]; then
 +    backup_dir_python_wheel=${1}
-+    echo "copying DeepSpeed python whl file to directory: ${backup_dir_python_wheel}"
++    echo "copying mpi4py python whl file to directory: ${backup_dir_python_wheel}"
 +fi
 +# if there are multiple wheel files, find the newest one and install it
 +unset -v latest_wheel_file
@@ -72,7 +57,7 @@ index 00000000..67c061f6
 +        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
 +    fi
 +else
-+    echo "Could not find DeepSpeed python whl file to install"
++    echo "Could not find mpi4py python whl file to install"
 +    exit 1
 +fi
 diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
@@ -88,6 +73,5 @@ index 00000000..1730e027
 +        rm -rf ./build
 +    fi
 +fi
--- 
-2.34.1
-
+--
+2.41.1

@@ -1,0 +1,33 @@
+From ce8b35e4edf26ebc6bc493b94b10f1f0ec150dbb Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 29 Sep 2024 21:13:49 -0700
+Subject: [PATCH 1/4] add slurm hostname to tmpfilenames
+
+- without this change the execution of more than one
+  node in single computer fails when job has more
+  than one process to execute. (both nodes would
+  try to create the same tmpfile)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/plugins/mpi/pmix/pmixp_info.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/plugins/mpi/pmix/pmixp_info.c b/src/plugins/mpi/pmix/pmixp_info.c
+index e9a4f7561f..7645025ea3 100644
+--- a/src/plugins/mpi/pmix/pmixp_info.c
++++ b/src/plugins/mpi/pmix/pmixp_info.c
+@@ -477,8 +477,9 @@ static int _env_set(const stepd_step_rec_t *step, char ***env)
+ 	}
+ 
+ 	_pmixp_job_info.cli_tmpdir =
+-			xstrdup_printf("%s/spmix_appdir_%u_%d.%d",
++                        xstrdup_printf("%s/spmix_appdir_%s_%u_%d.%d",
+ 				       _pmixp_job_info.cli_tmpdir_base,
++                                       pmixp_info_hostname(),
+ 				       pmixp_info_jobuid(),
+ 				       pmixp_info_jobid(),
+ 				       pmixp_info_stepid());
+-- 
+2.41.1
+

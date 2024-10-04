@@ -250,7 +250,7 @@ func_repolist_checkout_default_versions() {
                 git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                 if [ $? -ne 0 ]; then
                     # try to fetch source code and then try again one time
-                    git fetch
+                    git fetch --all
                     git fetch --tags
                     git checkout "${LIST_APP_UPSTREAM_REPO_VERSION_TAG[$jj]}"
                     if [ $? -ne 0 ]; then

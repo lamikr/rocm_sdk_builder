@@ -7,6 +7,15 @@ export LD_LIBRARY_PATH=${ROCM_HOME}/x86_64/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${ROCM_HOME}/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${ROCM_HOME}/lib64:${LD_LIBRARY_PATH}
 
+#set mpicc openmpi compiler wrapper to use hipcc a compiler by default
+OMPI_CC=${ROCM_HOME}/bin/hipcc
+OMPI_CXX=${ROCM_HOME}/bin/hipcc
+#OMPI_CC=${ROCM_HOME}/bin/clang
+#OMPI_CXX=${ROCM_HOME}/bin/clang++
+
+# list of nodes available for openmpi/slurm. Test with command: scontrol show hostnames
+export SLURM_NODELIST=localhost
+
 #omnitrace-avail needs ROCP_METRICS
 export ROCP_METRICS=${ROCM_HOME}/lib64/rocprofiler/metrics.xml
 

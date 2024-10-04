@@ -1,4 +1,4 @@
-From 4ebdcb1502534bc6a3427acc579fcf1b44ad4da9 Mon Sep 17 00:00:00 2001
+From 8faa41fa251091af27ac1b1e9798b8e6857cde3b Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 00:38:45 +0200
 Subject: [PATCH 5/6] build DeepSpeed in parallel option
@@ -28,5 +28,5 @@ index b48a0ad9..6cbf9e0e 100755
  
  #DS_BUILD_UTILS=1 DS_BUILD_CPU_ADAGRAD=1 DS_BUILD_RANDOM_LTD=1 DS_BUILD_CPU_ADAM=1 DS_BUILD_FUSED_ADAM=1 DS_BUILD_FUSED_LAMB=1 DS_BUILD_CCL_COMM=1 python setup.py develop
 -- 
-2.43.0
+2.34.1
 
