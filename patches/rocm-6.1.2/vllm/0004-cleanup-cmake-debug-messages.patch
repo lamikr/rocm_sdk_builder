@@ -1,4 +1,4 @@
-From 15550220a264abca4aea050cf92ed6c009dd1149 Mon Sep 17 00:00:00 2001
+From d038fee165336969eac3093be5eafaafdb36ffda Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:13:59 -0700
 Subject: [PATCH 4/4] cleanup cmake debug messages
@@ -14,10 +14,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 05b345b5..23913b80 100644
+index cd74d66c..a79c8eea 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -33,7 +33,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
+@@ -50,7 +50,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
  # versions are derived from Dockerfile.rocm
  #
  set(TORCH_SUPPORTED_VERSION_CUDA "2.4.0")
@@ -26,7 +26,7 @@ index 05b345b5..23913b80 100644
  
  #
  # Try to find python package with an executable that exactly matches
-@@ -124,6 +124,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
+@@ -126,6 +126,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
        "expected for CUDA build, saw ${Torch_VERSION} instead.")
    endif()
  elseif(HIP_FOUND)
@@ -35,5 +35,5 @@ index 05b345b5..23913b80 100644
  
    # Importing torch recognizes and sets up some HIP/ROCm configuration but does
 -- 
-2.46.0
+2.41.1
 

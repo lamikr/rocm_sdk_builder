@@ -1,24 +1,23 @@
-From e0a50d334d415ecc17f9402c43e2f598480cbf8c Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@gmail.com>
-Date: Tue, 30 Jul 2024 12:10:43 -0700
+From 7f2427c6eb96aeca2821bf67037a32828cc0e3fb Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 4 Oct 2024 10:57:22 -0700
 Subject: [PATCH 3/4] do not use std::clamp on rocm
 
-Signed-off-by: Mika Laitio <lamikr@gmail.com>
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
  .../compressed_tensors/int8_quant_kernels.cu          | 11 ++++++++++-
  1 file changed, 10 insertions(+), 1 deletion(-)
 
 diff --git a/csrc/quantization/compressed_tensors/int8_quant_kernels.cu b/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
-index aa9511da..abc60faf 100644
+index aec9fa00..ac8005f3 100644
 --- a/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
 +++ b/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
-@@ -13,8 +13,17 @@ static inline __device__ int8_t float_to_int8_rn(float x) {
-       static_cast<float>(std::numeric_limits<int8_t>::max());
-   // round
+@@ -26,7 +26,16 @@ static inline __device__ int8_t float_to_int8_rn(float x) {
    float dst = std::nearbyint(x);
-+
+ 
    // saturate
 -  dst = std::clamp(dst, i8_min, i8_max);
++  // dst = std::clamp(dst, i8_min, i8_max);
 +  // do not use std::clamp on rocm
 +  // See https://github.com/pytorch/pytorch/issues/127666
 +  // and https://github.com/pytorch/pytorch/issues/128253.
@@ -32,5 +31,5 @@ index aa9511da..abc60faf 100644
  #else
    // CUDA path
 -- 
-2.46.0
+2.41.1
 
