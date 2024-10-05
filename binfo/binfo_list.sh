@@ -61,6 +61,7 @@ LIST_BINFO_FILE_BASENAME=(
     "core/023_04_SuiteSparse.binfo"
     "core/024_01_rocSOLVER.binfo"
     "core/024_02_hipSOLVER.binfo"
+    "core/024_03_hipTensor.binfo"
     "core/025_01_hipBLAS.binfo"
     "core/025_02_hipBLASLt.binfo"
     "core/025_03_blaze.binfo"    
