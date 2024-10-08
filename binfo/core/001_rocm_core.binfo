@@ -59,6 +59,7 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/opencl/hello_world/Makefile ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/opencl/hello_world/*.c* ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
+    "install -Dm750 ${SDK_ROOT_DIR}/docs/examples/opencl/hello_world/*.sh ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/opencl/hello_world"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.txt ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/llm/vllm/*.py ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/llm/vllm"

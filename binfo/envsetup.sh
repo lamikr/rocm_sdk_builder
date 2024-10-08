@@ -52,7 +52,7 @@ fi
 echo "ROCM_TARGET_TRIPLED: ${ROCM_TARGET_TRIPLED}"
 echo "ROCM_PYTHON_VERSION: ${ROCM_PYTHON_VERSION}"
 
-# set INSTALL_DIR_PREFIX_SDK_ROOT only if it not already set in the user environment variable or user_config.sh
+# set INSTALL_DIR_PREFIX_SDK_ROOT only if it is not already set in the user environment variable or in ./envsetup_pre.sh
 INSTALL_DIR_PREFIX_SDK_ROOT="${INSTALL_DIR_PREFIX_SDK_ROOT:-/opt/rocm_sdk_${ROCM_MAJOR_VERSION}${ROCM_MINOR_VERSION}${ROCM_PATCH_VERSION}}"
 export INSTALL_DIR_PREFIX_SDK_ROOT
 echo "INSTALL_DIR_PREFIX_SDK_ROOT: $INSTALL_DIR_PREFIX_SDK_ROOT"
