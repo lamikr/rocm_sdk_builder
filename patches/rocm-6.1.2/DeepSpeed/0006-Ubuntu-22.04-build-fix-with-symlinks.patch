@@ -1,0 +1,56 @@
+From 0d93c05fca6f8f1fd65219e836ce77b9bf671705 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 9 Oct 2024 11:38:26 -0700
+Subject: [PATCH 6/6] Ubuntu 22.04 build fix with symlinks
+
+deepspeed/accelerator, deepspeed/ops/csrc and deepspeed/ops/op_builder
+are symlinks in deepseed and that causes problem on setup.py on
+Ubuntu 22.04 during the install phase. Error message is that
+deepspeed/accelerator does not exist or is not a file.
+
+Fix is to delete symlinks and use cp -ax instead to copy the directories
+This is better than adding a patch as it quarantees that files are always up to date
+when deepspeed version changes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ preconfig_rocm.sh | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+index 1730e027..60d8e5a1 100755
+--- a/preconfig_rocm.sh
++++ b/preconfig_rocm.sh
+@@ -5,3 +5,29 @@ if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
+         rm -rf ./build
+     fi
+ fi
++
++# deepspeed/accelerator, deepspeed/ops/csrc and deepspeed/ops/op_builder
++# are symlinks in deepseed and that causes problem on Ubuntu 22.04
++# Delete symlinks and use cp -ax instead to copy the directories
++# This is better than adding a patch as it quarantees that files are always up to date
++# when deepspeed version changes
++if [[ -d accelerator ]]; then
++    if [[ -d deepspeed/accelerator ]]; then
++        rm -rf deepspeed/accelerator
++    fi
++    cp -ax accelerator deepspeed/accelerator
++fi
++
++if [[ -d csrc ]]; then
++    if [[ -d deepspeed/ops/csrc ]]; then
++        rm -rf deepspeed/ops/csrc
++    fi
++    cp -ax csrc deepspeed/ops/csrc
++fi
++
++if [[ -d op_builder ]]; then
++    if [[ -d deepspeed/ops/op_builder ]]; then
++        rm -rf deepspeed/ops/op_builder
++    fi
++    cp -ax op_builder deepspeed/ops/op_builder
++fi
+-- 
+2.41.1
+

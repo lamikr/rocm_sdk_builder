@@ -1,4 +1,4 @@
-From 15352f46f8fc02bfe0332be3b1a37aaa7c6fc3df Mon Sep 17 00:00:00 2001
+From ef0a49d3d68102318ffdcad0ce5d2c944a5acdc6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 21 May 2024 07:57:53 -0700
 Subject: [PATCH 2/6] check rocm path from installed pytorch variables
