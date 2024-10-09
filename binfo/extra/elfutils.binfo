@@ -5,6 +5,10 @@ BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=git://sourceware.org/git/elfutils.git
 BINFO_APP_UPSTREAM_REPO_VERSION_TAG=elfutils-0.191
 
+# fix ubuntu 22.04 error: error _FORTIFY_SOURCE already defined
+# https://github.com/neovim/neovim/issues/2557
+export CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+
 BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_SRC_DIR}"
     "autoreconf -i"
