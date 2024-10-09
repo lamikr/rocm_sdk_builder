@@ -294,8 +294,8 @@ func_babs_handle_update() {
                                     echo "${CUR_BINFO_FNAME} updated, rebuild recommended"
                                     ./babs.sh --clean ${CUR_BINFO_FNAME}
                                     func_envsetup_init
-                                    func_babs_checkout_by_binfo ${ARG__USER_CMD_PARAM1} ${ii}
-                                    func_babs_apply_patches_by_binfo ${ARG__USER_CMD_PARAM1} ${ii}
+                                    func_babs_checkout_by_binfo ${CUR_BINFO_FNAME} ${ii}
+                                    func_babs_apply_patches_by_binfo ${CUR_BINFO_FNAME} ${ii}
                                     blist_projects_has_updates=2
                                 fi
                                 ii=$(( ${ii} + 1 ))                                
