@@ -170,7 +170,6 @@ func_babs_handle_update() {
     declare -A DICTIONARY_UPDATED_APP_BINFO_CHECKSUM
 
     echo "ROCM SDK Builder update started"
-    
     # check first binfo and patch dir hashcodes for all core projects before git pull is done
 	func_build_env_init
     ii=0
@@ -227,8 +226,9 @@ func_babs_handle_update() {
             else
                 ./babs.sh --clean ${CUR_BINFO_FNAME}
 				func_envsetup_init
-				func_babs_checkout_by_binfo ${ARG__USER_CMD_PARAM1}
-				func_babs_apply_patches_by_binfo ${ARG__USER_CMD_PARAM1}
+				func_babs_checkout_by_binfo ${CUR_BINFO_FNAME}
+				cd ${SDK_ROOT_DIR}
+				func_babs_apply_patches_by_binfo ${CUR_BINFO_FNAME}
 				binfo_project_has_updates=2
             fi
         else
@@ -295,6 +295,7 @@ func_babs_handle_update() {
                                     ./babs.sh --clean ${CUR_BINFO_FNAME}
                                     func_envsetup_init
                                     func_babs_checkout_by_binfo ${CUR_BINFO_FNAME} ${ii}
+                                    cd ${SDK_ROOT_DIR}
                                     func_babs_apply_patches_by_binfo ${CUR_BINFO_FNAME} ${ii}
                                     blist_projects_has_updates=2
                                 fi
@@ -360,6 +361,7 @@ func_babs_handle_update() {
             ./babs.sh --clean ${CUR_BINFO_FNAME}
             func_envsetup_init
             func_babs_checkout_by_binfo ${CUR_BINFO_FNAME} ${ii}
+            cd ${SDK_ROOT_DIR}
             func_babs_apply_patches_by_binfo ${CUR_BINFO_FNAME} ${ii}
             core_projects_has_updates=1
         fi
@@ -400,12 +402,12 @@ func_babs_handle_repository_fetch() {
         if [[ "$1" = *.binfo ]] ; then
             func_envsetup_init
             # if new repo is created, apply also patches
-            func_babs_init_and_fetch_by_binfo ${ARG__USER_CMD_PARAM1} 0
+            func_babs_init_and_fetch_by_binfo "$1" 0
         fi
         if [[ "$1" = *.blist ]] ; then
             func_envsetup_init
             # if new repo is created, apply also patches
-            func_babs_init_and_fetch_by_blist ${ARG__USER_CMD_PARAM1} 0
+            func_babs_init_and_fetch_by_blist "$1" 0
         fi
     else
         # if new repo is created, apply also patches
@@ -423,11 +425,11 @@ func_babs_handle_repository_init() {
         echo "func_babs_handle_init param: $1"
         if [[ "$1" = *.binfo ]] ; then
             func_envsetup_init
-            func_upstream_remote_repo_add_by_binfo ${ARG__USER_CMD_PARAM1}
+            func_upstream_remote_repo_add_by_binfo "$1"
         fi
         if [[ "$1" = *.blist ]] ; then
             func_envsetup_init
-            func_upstream_remote_repo_add_by_blist ${ARG__USER_CMD_PARAM1}
+            func_upstream_remote_repo_add_by_blist "$1"
         fi
     else
         func_repolist_upstream_remote_repo_add #From build/repo_management.sh

@@ -276,7 +276,8 @@ func_babs_apply_patches_by_binfo() {
                 echo "Failed to apply patches, source directory not defined"
             fi
         else
-            echo "Failed to apply patches, binfo file does not exist"
+            pwd
+            echo "Failed to apply patches, binfo file does not exist. ${APP_INFO_FULL_NAME}"
         fi
     else
         echo "Failed to apply patches, binfo file not defined"
