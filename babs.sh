@@ -49,14 +49,18 @@ func_user_help_print() {
     echo "                         Apply of patches of top of the checked out version needs to be performed separately"
     echo "                         with '-ap' command."
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
-    echo "--clean:                 Clean directories which has been used to build core or extra repositories that are listed in binfo files."
-    echo "                         Cleaned directories are located under 'builddir' directory."
+    echo "--clean:                 Clean directories which has been used to build core or extra repositories that are listed"
+    echo "                         in binfo files. Cleaned directories are located under 'builddir' directory."
     echo "                         This will cause these repositories to be rebuild on next build attempt."
     echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
     echo "-f or --fetch:           Fetch latest source code for each git repository listed in binfo files."
     echo "                         Checkout of fetched source code to versioins specified in binfo files needs to be performed"
     echo "                         separately with '-ca' or '-co' command."
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-up or --update:         Update ROCM SDK Builder source code to latest version in current git branch and then check"
+    echo "                         which projects has updated binfo file or patches directory. Then do the do the checkout_apply"
+    echo "                         and clean commands for the updated projects so that they can be rebuild easily."
+    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
     echo "-h or --help:            Show this help"
     echo "-v or --version:         Show babs build system version information"
     #echo "-cp or --create_patches: generate patches by checking git diff for each repository"
@@ -158,6 +162,10 @@ func_handle_user_command_args() {
                 # Combined checkout and apply patches
                 func_is_git_configured
                 func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
+                exit 0
+                ;;
+            -up | --update)
+                func_babs_handle_update ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0
                 ;;
             -f | --fetch)

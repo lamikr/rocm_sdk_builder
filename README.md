@@ -411,6 +411,13 @@ Get help from the commands
 ```
 
 
+Update to latest version in branch and checkout, apply patches and clean all changed projects so that they can be rebuild.
+
+```
+# ./babs.sh --update
+```
+
+
 Checkout and apply patches to all core projects
 
 ```

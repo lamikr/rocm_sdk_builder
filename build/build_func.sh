@@ -238,7 +238,12 @@ func_build_env_init() {
     fi
     export CCACHE_DIR="${HOME}/.ccache"
     export CCACHE_TEMPDIR="${HOME}/.ccache"
-    ccache -M 30G
+    if ! [ -x "$(command -v ccache)" ]; then
+        :
+        #echo 'Error: ccache is not installed.' >&2
+    else
+        ccache -M 30G
+    fi
     echo "SDK_ROOT_DIR: ${SDK_ROOT_DIR}"
     
     APP_CFLAGS_DEFAULT=${CFLAGS}
