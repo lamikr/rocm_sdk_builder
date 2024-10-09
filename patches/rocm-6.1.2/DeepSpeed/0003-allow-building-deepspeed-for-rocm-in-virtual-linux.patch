@@ -1,4 +1,4 @@
-From 5171876c7cb42c110d89b1aebf8030aa7a4bb74a Mon Sep 17 00:00:00 2001
+From 3e6f049138b0856ec642163afb76e4b3ed569d96 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 26 Jun 2024 14:44:04 -0700
 Subject: [PATCH 3/6] allow building deepspeed for rocm in virtual linux

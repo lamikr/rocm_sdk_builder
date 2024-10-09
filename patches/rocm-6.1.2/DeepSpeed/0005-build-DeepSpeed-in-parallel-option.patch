@@ -1,4 +1,4 @@
-From 8faa41fa251091af27ac1b1e9798b8e6857cde3b Mon Sep 17 00:00:00 2001
+From 577bc577557b1e3f10ef1eb5377a3c34c73075c8 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 00:38:45 +0200
 Subject: [PATCH 5/6] build DeepSpeed in parallel option
