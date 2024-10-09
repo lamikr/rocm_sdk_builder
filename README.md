@@ -1,23 +1,17 @@
-# ROCM SDK Builder
+# ROCM SDK Builder Briefly
 
-## Purpose
+ROCM SDK Builder provides easy and convinient machine learning and GPU computing development environment by using single or multiple regular consumer level GPUs on PC and laptop environments.
 
-ROCM SDK Builder will provide an easy and customizable build and install of AMD ROCm machine learning environment for your Linux computer with the support for user level GPUs.
-Current version is based on to ROCM release 6.1.2 but contains lot of patches and optimizations on top of it.
+It builds and integrates AMD¨s ROCm machine learning stack and other common ML Tools and models to easy to use environment. It is especially targeting the consumer Level discrete and integrated GPUs available on desktops and laptops.
 
-In addition Rocm sdk builder will also by default build and install additional tools and frameworks like python, pytorch, jupyter-notebook, onnxruntime, deepspeed that has been build specifically for the AMD gpu's as a target. SDK will be installed under /opt/rocm_sdk_<version> directory.
+Latest ROCM SDK Builder 6.1.2 release is based on to source code of AMD's ROCM 6.1.2 base libraries with additional patches to tune and add support for additional GPUs. In addition an increasing number of additional libraries and applications has been integrated on top of it.
 
-As a new feature rocm sdk builder 6.1.2 has now support for building also extra applications which are not build by default.
+Testing of different GPUs and Linux distributions is mainly done by a users and developers and tracked in tickets.
 
-- stable diffusion webui
-- llama.cpp
-- vllm
 
-These can be build with commands like: ./babs.sh -b binfo/extra/llama.cpp after the base build has been done.
+## Supported GPUs
 
-![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_60pct.png "Pytorch GPU benchmark")
-
-This project has been so far tested at least with the following AMD GPUs:
+This project has been so far tested with the following AMD GPUs:
 
 - AMD RX 7900 XTX (gfx1100)
 - AMD RX 7800 XT (gfx1101)
@@ -28,153 +22,136 @@ This project has been so far tested at least with the following AMD GPUs:
 - AMD RX 6600 (gfx1032)
 - AMD RX 5700 (gfx1010)
 - AMD RX 5500 (gfx1012)
-- AMD Radeon 780M Laptop iGPU (gfx1035)
-- gfx1036
+- AMD Radeon 680M Laptop iGPU (gfx1035)
+- AMD Raphael iGPU (gfx1036) (desktops)
 
-AMD RX 5500 and AMD RX 6600 supoort is at the moment only partial. 
+Older GPUs with having 8GB or less memory may not be able to run more memory extensive benchmarks and applications but they are still in many ways suitable and multiple times faster than CPU's on certain type of tasks.
 
-For AMD RX 6600, select the RX 6800 (gfx1030) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.3.0
-For AMD RX 5500, select the RX 5700 (gfx1010) as a build target and use extra environment variable HSA_OVERRIDE_GFX_VERSION=10.1.0
+## Supported Linux Distributions
 
-In configuration it's possible to select also other GPU's for build target but with some of the older cards more work may be needed.
-All kind of feedback is more than welcome and can be discussed for example by opening a new issue to github.
+Tested and officially supported Linux distributions:
 
-![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
+- Fedora 40
+- Ubuntu 24.04
+- Ubuntu 22.04 (python 3.10 is build instead of 3.11)
+- Mageia 9
+- Arch Linux
+- Manjaro Linux
+- Void Linux
+- Mint Linux 21
 
-## Installation Requirements
+Thanks by the many users and developers who have contributed to ROCM SDK Builder, the list of supported Linux distros have increased signigicatly after the initial release. Manjaro and Arch Linux are rolling releases and therefore their status needs to be verified more often.
 
-ROCM SDK Builder has been tested on Mageia 9, Fedora 39, Fedora 40, Ubuntu 22.04, Ubuntu 23.10, Ubuntu 24.04, Linux Mint 21, Arch, Manjaro and Void Linux distributions.
 
-Build system itself has been written with bash shell language to limit external dependencies to minimal but the applications build and installed will have their own build time dependencies that can be
-installed by executing script:
+# First Build and Install
+
+babs.sh is the command line interface that is used for most of the rocm sdk builder tasks. It provides an interface to control the download, patch, configure, build, install and update either single application or a list of applications.
+
+Following set of commands below will download rocm sdk 6.1.2 project sources and then build and install it to directory /opt/rocm_sdk_612
+
+```
+# git clone https://github.com/lamikr/rocm_sdk_builder.git
+# cd rocm_sdk_builder
+# git checkout releases/rocm_sdk_builder_612
+# ./install_deps.sh
+# ./babs.sh -c
+# ./babs.sh -i
+# ./babs.sh -b
+```
+
+Below these commands are described more in detail.
+
+## Download Source Code
+
+```
+# git clone https://github.com/lamikr/rocm_sdk_builder.git
+# cd rocm_sdk_builder
+# git checkout releases/rocm_sdk_builder_612
+```
+
+## Install Linux Distibution Specific Dependencies
 
 ```
 # ./install_deps.sh
 ```
 
-To reduce the run-time dependency variance between different distributions, the build system will itself build and install standalone python 3.9 which seems to be pretty trouble-free version with the currently used pytorch rocm-components.
+In the end of the execution, install_debs.sh will check whether you have configured git and access to AMD GPU device driver properly. If either of these have problem, install_deps.sh will printout in the end instructions how to fix the problem.
 
-You need to also to use git configure command to set git username and email address, otherwise the 'git am' command that the project uses for applying patches on top of the upstream code versions will fail. This can be done in a following way.
+Git user.name and email address configuration is needed because ROCM SDK builder uses git-am command for applying patches on top of the projects source code and git am itself requires that they are configured. This can be done for example in a following way if not alrady set up.
 
 ```
 # git config --global user.name "John Doe"
 # git config --global user.email johndoe@example.com
 ```
 
-ROCM SDK Builder will require about 130 GB of free space to build the newest rocm 6.1.2 version. This is mostly divided in a following way:
+Access to GPU is not needed during the build time but it's needed while running the applications later on ROCM SDK Builder environment. Some users have tested this by building the environment on virtual linux machines which does not have access to their GPU's and then later installing the system to more isolated production environments where the devices does not have direct internet access.
+
+
+## Select target GPU's for the Build
+
+Many of the files needs to build on libraries for each GPU separately, so for regular builds you should really select only your GPUs to save significant amout of build time.
+
+Selections will be stored to build_cfg.user file. If this file will not exist, the selection dialog is also showed automaticlly before the many other babs.sh commands.
 
 ```
-- src_projects directory, for source code, about 30 GB
-- builddir directory for temporarily files, about 75 GB
-- /opt/rocm_sdk_611, install directory for the sdk, about 20 GB
+# ./babs.sh -c
 ```
 
-Once the build is ready, 'builddir' and 'src_projects' directories could be deleted to free more space. As the downloading the sources from scratch can take some, I recommend keeping at least the source directory.
 
-## Installation Directory and Environment Variables
+![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection.png  "GPU Selection for ROCm SDK Build Target")
 
-ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory. To set the paths and other environment variables required to execute the applications installed by the SDK can be loaded by executing a command:
+## Build the ROCM SDK Builder Core
 
-```
-# source /opt/rock_sdk_<version>/bin/env_rocm.sh
-```
+Note that the babs.sh -i command is not strictly required. That command will download source code for all projects in advance instead of downloading them one by one while the build progress. This is a new feature starting from the rocm sdk builder 6.1.2.
 
-Note that this command needs to be executed only once for each bash terminal session evenghouth we set it up on exery example below.
-
-## How to Build and Install ROCm SDK
-
-Following commands will download rocm sdk 6.1.2 project sources and then build and install the rocm_sdk version 6.1.2 to /opt/rocm_sdk_612 folder.
+Build is installed automatically to /opt/rocm_sdk_612 directory but it is possible to override that by specifying the INSTALL_DIR_PREFIX_SDK_ROOT environment that points to other directory before starting the build. This can be done for example by specifying the ./envsetup_pre.sh file that babs.sh will always run if it exist.
 
 ```
-# git clone https://github.com/lamikr/rocm_sdk_builder.git
-# cd rocm_sdk_builder
-# git checkout releases/rocm_sdk_builder_612
 # ./babs.sh -i
 # ./babs.sh -b
 ```
 
-SDK will pop-up the GPU selection fro the SDK build targets before the build will start
-and selections will be stored to build_cfg.user file.
-Configuration can also be done afterwards with ./babs.sh -c command.
-Note that build-configuration change does not automatically cause a rebuild
-of already builded projects. To force that you need to remove projects you want
-to rebuild from builddir folder. To force rebuilding everything you simply remove
-the 'builddir' directoty completely.
+... get some good coffee beans... grind ... brew ... enjoy ...
+It will take usually 5-10 hours to get everything build from scratch depending your machine.
 
-![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection.png  "GPU Selection for ROCm SDK Build Target")
 
-# Test the installed SDK
+# Examples How to use ROCM SDK BUILDER
 
-## Setup the rocm_sdk
+Following examples show how to run various types of applications in the builder ROCM SDK BUILDER environment.
 
-ROCm SDK builder environment needs to be first set to environment variables
-like path with following command:
+There is a lot of more examples under docs/examples folder related to different subjects but these help you to get started.
+
+## Play and Manipulate Audio Recordings with Pytorch Audio
+
+By default the pytorch audio supports the audio playback on Mac computers, but rocm sdk builder have patched it to do the playback also on Linux. At the moment implementation is done by using the ffmpeg but we are looking also for other alternavives like SDL for future.
 
 ```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/pytorch/audio
+# ./pytorch_audio_play_effects.sh
 ```
-Note that this command needs to be executed only once for each bash terminal session evenghouth we set it up on exery example below.
 
-## Verify your GPU with ROCM SDK
+## Viewing GPU Information
+
+rocminfo, amd-smi, rocm-smi and nvtop are usefull tools that can be used to query and monitor for example the memory usage, clock frequencies and temperatures.
+
+Note that command 'source /opt/rocm_sdk_612/bin/env_rocm.sh' needs to be run once on each terminal to set up environment variables and patch correctly.
 
 ```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
 # rocminfo
 ```
-This command should list both your CPU and AMD GPU as an agent and
-give information related to their capabilities.
 
+This will print out details about your detected CPUs and GPUs that can be used for running applications in ROCM SDK environment.
 
-## Test Pytorch install
 
 ```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/pytorch
-# ./run_pytorch_gpu_simple_test.sh
+# amd-smi metric
 ```
 
-## Test Jupyter-notebook usage with Pytorch.
+## Building Hello World GPU Example
 
-Following command will test that jupyter-notebook opens properly and
-show information about installed pytorch version and your GPU.
-(Note that AMD gpus are also handled as a cuda GPU on pytorch language)
+This will show how to build from source and then run the hello world type example application from document directory.
+Application loads HIP kernel to your GPU, sends data from the userspace to GPU where the kernel changes it and sends back to userspace. Userspace will then print the received data. 
 
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/pytorch
-# jupyter-notebook pytorch_amd_gpu_intro.ipynb
-```
-
-## Test Pytorch MIGraphX integration
-
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/pytorch
-# python test_torch_migraphx_resnet50.py
-```
-
-## Test MIGraphX
-
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/migraphx
-# ./test_migraphx_install.sh
-```
-
-## Test ONNXRuntime
-
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/onnxruntime
-# test_onnxruntime_providers.py*
-```
-
-This should printout: ['MIGraphXExecutionProvider', 'ROCMExecutionProvider', 'CPUExecutionProvider']
-
-## Test HIPCC compiler
-
-Following code shows how to transfer data to GPU and back
-by using hipcc.
 
 ```
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
@@ -182,140 +159,309 @@ by using hipcc.
 # ./build.sh
 ```
 
-## Test OpenCL Integration
+You should expect to see a following output if the application can communicate with your GPU.
 
-Following code printouts some information about OpenCL platform and devices found
+
+```
+./hello_world
+ System minor: 3
+ System major: 10
+ Agent name: AMD Radeon Graphics
+Kernel input: GdkknVnqkc
+Executing GPU kernel task to increases each input character by one...
+Kernel output: HelloWorld
+Output string matched with the expected text: HelloWorld
+Test ok!
+```
+
+## Simple CPU vs GPU benchmarks
+
+Very simple benchmark that shows how to run the same math operation both in the CPU and GPU is available on as pytorch program which can be run on jupyter notebook. On CPU the expected time is usually around 20-30 seconds. It can be executed with these commands:
 
 ```
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/opencl/check_opencl_caps
-# make
-# ./check_opencl_caps
-```
-
-Following code sends 200 numbers for GPU kernels which modifies and sends them back to userspace.
-
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# cd /opt/rocm_sdk_612/docs/examples/opencl/hello_world
-# make
-# ./hello_world
-```
-
-## Run Pytorch GPU Benchmark
-
-This test is pretty extensive and takes about 50 minutes on RX 6800.
-Test results are collected to result-folder but the python code which
-is supposed to parse the results from CSV files and plot pictures needs to be fixed.
-
-Results for different AMD and Nvidia GPUs are available in results folder.
-
-```
-# git clone https://github.com/lamikr/pytorch-gpu-benchmark/
-# cd pytorch-gpu-benchmark
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# ./test.sh
-```
-
-# Customizing the SDK Build
-
-Here is shortish but more detailed information how the SDK will work and can be modified.
-
-## Selecting the GPUs for which to build the SDK
-
-GPU's can be selected with ./babs -c option which opens checkbox and selects results to build_cfg.user file
-```
-./babs.sh -c
-```
-
-List of supported GPU's should be relatively easy to add, at the moment I have only added support for the one I have been able to test by myself. At some point, I had also the support working for older AMD G2400 but I have not had time to integrate those changes to newer rocm sdk. (Had it working for rocm sdk 3.0.0)
-
-## Adding New Projects to SDK for build and install
-
-New projects can be added to builder by modifying files in binfo directory.
-
-- First you need to create the <build_order_number>_<name>.binfo file where you specify details for the project like source code location, configure flags and build commands. By default the build system will use cmake and make commands for building the projects, but you can override those by supplying your BINFO array commands if the projects standard install command needs some customization.
-You can check details for those from the existing .binfo files but principle is following:
-
-```
-BINFO_APP_POST_INSTALL_CMD_ARRAY=(
-    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake ]; then mkdir -p ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake; fi"
-    "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhsakmt.so ]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhsakmt.so.1 ${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/libhsakmt.so; fi"
-}
-```
-
-- Then you will need to add your <build_order_number>_<name>.binfo file to binfo/binfo_list.sh file.
- 
-## ROCM SDK Builder Major Components
-
-- babs.sh, build/build.sh and build/binfo_utils.sh provides the framework for the build system and can be used more or less without modifications also on other projects. You can get help for available babs (acronym babs ain't patch build system)) commands with the '-h' argument.
-
-```
-[lamikr@localhost rocm_sdk_builder (master)]$ ./babs.sh -h
-babs (babs ain't patch build system)
-
-usage:
--h or --help:           Show this help
--i or --init:           Download git repositories listed in binfo directory to 'src_projects' directory
-                        and apply all patches from 'patches' directory.
--ap or --apply_patches: Scan 'patches/rocm-version' directory and apply each patch
-                        on top of the repositories in 'src_projects' directory.
--co or --checkout:      Checkout version listed in binfo files for each git repository in src_projects directory.
-                        Apply of patches of top of the checked out version needs to be performed separately with '-ap' command.
--f or --fetch:          Fetch latest source code for all repositories.
-                        Checkout of fetched sources needs to be performed separately with '-co' command.
-                        Possible subprojects needs to be fetched separately with '-fs' command. (after '-co' and '-ap')
--fs or --fetch_submod:  Fetch and checkout git submodules for all repositories which have them.
--b or --build:          Start or continue the building of rocm_sdk.
-                        Build files are located under 'builddir' directory and install is done under '/opt/rocm_sdk_version' directory.
--v or --version:        Show babs build system version information
-```
-
-- binfo folder contains the recipes for each projects which is wanted to be build. These recipes does not have support for listing the dependencies by purpose and insted the build order is managed in binfo/binfo_list.sh file.
-
-- patches directory contains the patches that are wanted to add on top of the each project that is downloaded from their upstream repository
-
-- src_projects is the directory under each sub-project source code is downloaded from internet.
-
-- builddir is the location where each project is build before install and work as a temporarily work environment. Build system can be cleaned to force the rebuild either by removing individual projects from builddir folder or by removing the whole projecs. More detailed  specific tuning is also possible by deleting build-phase result files.
-(builddir/project/.result_preconfig/config/postconfig/build/install/postinstall)
-
-## Rebuilding Individual Projects
-
-Rebuilding of individual projects can be triggered in two different ways if you have made for example some changes to project source code under the 'src_projects' directory: Note that builder will always build projects in an order listed in the binfo/binfo_list.sh file.
-
-- deleting the project specific directory from the builddir
-- removing the .result_* files under the build directory.
-
-For example:
-
-```
-# rm -rf builddir/037_magma (would trigger to re-run all build phases)
-# rm -f builddir/037_magma/.result_install (would trigger to re-run only the install phase)
-# ./babs.sh -b
-```
-
-## Additional build commands
-
-./babs.sh has also following commands:
-
-```
-# ./babs.sh -co (checkouts the sources back to basic level for all projects)
-# ./babs.sh -ap (apply patches to checked sources for all projects)
-# ./babs.sh -f (fetch latest sources for all projects)
-# ./babsh.sh -fs (fetch latest sources for all projects all submodules)
-```
-
-## GPU benchmarks
-
-- Very simple benchmark is available on by executing command:
-
-```
-# source /opt/rocm_sdk_612/bin/env_rocm.sh
-# jupyter-notebook /opt/rocm_sdk_612/docs/examples/pytorch/pytorch_simple_cpu_vs_gpu_benchmark.ipynb
+# cd /opt/rocm_sdk_612/docs/examples/pytorch
+# ./pytorch_simple_cpu_vs_gpu_benchmark.sh
 ```
 
 ![Pytorch simple CPU vs GPU benchmark](docs/tutorial/pics/pytorch_simple_cpu_vs_gpu_benchmark_25p.png  "Pytorch simple CPU vs GPU benchmark")
+
+
+## Extra AI Tools
+
+ROCM SDK Builder has defines ai_tools.blist file which can be used to build 3 commonly known AI tool that can be used for running LLM models for chat type communication and image geneation. Application included are:
+
+- llama.cpp
+- VLLM
+- statble-diffusion-webui
+
+They can all utilize the AMD GPU's and can be build with the following commands.
+
+```
+# cd rocm_sdk_builder
+# ./babs.sh -b binfo/extra/ai_tools.blist
+```
+
+## Test LLAMA.CPP
+
+```
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# llama-server_rocm.sh
+```
+
+Launch your browser to test chat-ui:
+http://127.0.0.1:8080
+
+## Test Stable Diffusion WebUI
+
+```
+# cd /opt/rocm_sdk_612/apps/stable-diffusion-webui
+# ./webui.sh
+```
+
+Wait for models to be loaded to /opt/rocm_sdk_models directory and then open ui on browser to test the picture generation:
+
+http://127.0.0.1:7860/
+
+## Run GPU Benchmarks
+
+External Benchmark originally made for NVIDIA cards is available here. Upstream does not seems to be anymore active so the benchmark is now available here.
+
+https://github.com/lamikr/pytorch-gpu-benchmark/
+
+![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_60pct.png "Pytorch GPU benchmark")
+
+AMD GPU specific results have been run either on ROCM SDK Builder 6.11 or 6.12 environment. As the same commands for downloading the benchmarks will now run more tests than couple of years ago, the newer tests requiring much more memory, the benchmark has been tweaked to check the available GPU memory and then using that information to determine if to run all or only a subset of tests.
+
+For many GPU's the benchmark results have improved significantly from 6.1.1 release thanks to improvements made to tuning made ROCBLAS, Composable Kernel and FFTW. 
+
+# ROCM SDK Builder Provides
+
+- Integrated environment targeting to build Machine Learning environment fully from the source code
+- Machine learning Runtime environment for AMD GPUs
+- ROCM SDK Builder Core which is build and installed by default provides most essential ML applications and tools optimized for AMD consumer level Radeon GPUs. This includes Pytoch/cuda runtime with AMD GPUs.
+- Optional extra applications that can be build and installed on top of the core. (Stable diffusion webui, whisper, llama.cpp, VLLM, Jax, etc.)
+- C/C++/Python ML and HTCP example applications with source code for learning and testing purposes.
+- Development environment developing and testing either single GPU or multi-GPU machine learning applications.
+
+# ROCM SDK Builder Architecture
+
+ROCM SDK Builder build system itself has been written with bash shell language to limit external dependencies on minimal in the basic linux command line tools.
+
+It build own python instance that is used for installing and running the python apps on the ROCM SDK environment in one if it's first steps during the build.
+
+Linux distro compability specific checks verifying that it has all the required applications installed is handled by the install_deps.sh file.
+
+Babs.sh is the main tool in ROCM SDK Builder and it is designed to checkout, patch, build and install either single application, list of core applications or list of extra applications.
+
+Applications are all installed inside the isolated directory structure under /opt/rocm_sdk_xyz directory and also the typical configurations files are located there in /opt/rocm_sdk_xyz/etc directory.
+
+Applications which are downloading the large model files for example from the HuggingFace, are typically configured to downloading files to /opt/rocm_sdk_models directory. All the documentations is also referring for using that directory.
+
+![ROCM SDK Builder](docs/tutorial/pics/rocm_sdk_builder_env.png "GPU Selection for ROCm SDK Build Target")
+
+## Core and Extra
+
+Application is classified being either the core or extra application. Core applications are build automatically while the extra applications user can build separately if he needs it.
+
+Extra applications is a new feature is ROCM SDK Builder 6.1.2 and has been implemented to allow user to select which applications he needs from the increasing list of applications available.
+
+## Application Information in BINFO Files
+
+Each application has it's own BINFO file which contains details required to build the library or application. This includes the application name, source code repository location, version information.
+
+BINFO files are especially optimized for checking out source code from git repository and working with the projects that uses cmake. 
+
+They can also use various environment variables to specify things like:
+
+- SDK Install root directory
+- build directory
+- source code directory
+- default c/c++-compiler with full path
+- safe/moderate/default cpu count used for building app (To avoid out of memory errors during certain application build or linking time)
+
+During the source code download following steps are done for each application.
+
+1. source code download from repository specified in binfo file to directory specified there
+2. checkout the source code correct version specified in the binfo file
+3.  checkout the source code for possible git submodules
+4. apply of patches specified in patches directory
+
+During the application build time following steps are done that can be specified in the binfo file. If they are not specified, the default implementation is executed. (which none for some steps)
+
+1. pre-configure
+2. configure
+3. post-configure
+4. build
+5. install
+6. post-install
+
+Binfo files are located in binfo/core and binfo/extra directories.
+
+## Application Specific Patches
+
+When babs.sh commands are checking out the source code, they will also look from the patches directory if there is some application specific patches. If those exist, babs.sh will apply them automatically while checking out the source code.
+
+Patch files are located under patches/rocm-x.y.z directory. For example the pytorch patches are available in directory patches/rocm-6.1.2/pytorch.
+
+## Core Applications
+
+List of core applications is defined internally in the babs.sh tool and it is the original way to define the list applications that ROCM SDK Builder build.
+
+By default the babs.sh assumes that operations are targeted for the core application list, when the binfo-file or blist file is not specified as an additional parameter.
+
+This will build all basic machine learning apps starting from the compilers and libraries and ending to the ML runtimes like pytorch and onnxruntime. This will take many hours as there are about 90 libraries and apps that are needed to be build. Depending from the application, the build time may range from seconds to tens of minutes.
+
+## Extra Applications
+
+As a new feature in ROCM SDK Builder 6.1.2 there exist now support for defining additional BLIST files to build easily an additional set of extra applications that are not included in the core and are not thus build by default. BList files can be much faster to build after the core, as they can depending from the dependencies contain only a couple of apps to build.
+
+At the moment there exist 4 extra blist files.
+
+- binfo/extra/ai_tools.blist
+- binfo/extra/amd_media_tools.blist
+- binfo/extra/amd_devel_tools.blist
+- binfo/extra/google_tools.blist
+
+These files are simply text files which list the binfo files in the dependency order they are needed or wanted to be build.
+They can build for example a following apps
+
+- stable diffusion webui
+- llama.cpp
+- VLLM
+- Jax
+- Omnitrace
+- Omniperf
+- CoreCtrl
+
+## Application Source Code Directories
+
+Source code for each application is downloaded under src_projects directory. ROCM SDK patched amd-smi sourcecode is for example in the src_projects/amdsmi directory.
+
+## Application Build Directory
+
+Application specific files generated during the build time are under builddir directory in application specific own directory. Exact directory name is specified in the binfo-file.
+
+In addition of files generated by the project during the build time, these directories contains also files used to track which build steps have already peformed for the project.
+
+If the step specific file is located in that directory, then it is not performed again. For example builddir/001_rocm_core could have folliwing files to mark down that all build specific steps have been done:
+
+```
+# ls -la builddir/001_rocm_core/.result_*
+builddir/001_rocm_core/.result_build
+builddir/001_rocm_core/.result_config
+builddir/001_rocm_core/.result_install
+builddir/001_rocm_core/.result_postconfig
+builddir/001_rocm_core/.result_postinstall
+builddir/001_rocm_core/.result_preconfig
+```
+
+Remove of some of those files would trigger the execution of that step again on next build.
+
+
+ROCM SDK builder 6.1.2 has now some GPU specific tunings for the libraries like RocBLAS, Composible kernel a
+
+so that the GPU's should now be able to perform optimal way without need to use the HSA_OVERRIDE_GFX_VERSION mechanism that has been used earlier. But in case there is some problems, that mechanism will still work. (RocBLAS tuning for GFX103* series and Composable Kernel tuning for gfx11* series GPUs)
+
+
+![Pytorch with AMD GPU](docs/tutorial/pics/pytorch_amd_gpu_example.png  "Pytorch with AMD GPU")
+
+
+## Installation Directory and Environment Variables
+
+ROCM SDK Builder will by default install the SDK to /opt/rocm_sdk_<version> directory. 
+
+
+## Runtime Environment Variables
+
+Binary and library search paths and other environment variables required to execute the applications installed by the ROCM SDK Builder can be loaded by executing a command:
+
+```
+# source /opt/rock_sdk_<version>/bin/env_rocm.sh
+```
+
+Note that this command needs to be executed only once for each bash terminal session.
+
+
+## New Project Addition
+
+New projects can be added to builder by creating a new binfo-file to binfo/extra directory. It is recommended to use existing binfo-files as a template.
+
+Easiest way to test the binfo-file is to use the following command then to build it:
+
+
+```
+# ./babs.sh -b binfo/extra/my_app.binfo
+```
+
+And to force the execution of all build phases.
+
+```
+# ./babs.sh --clean binfo/extra/my_app.binfo
+# ./babs.sh -b binfo/extra/my_app.binfo
+```
+
+
+# Commonly Used Babs.sh commands
+
+Get help from the commands
+
+```
+# ./babs.sh -h
+```
+
+
+Checkout and apply patches to all core projects
+
+```
+# ./babs.sh -ca
+```
+
+Checkout and apply patches to binfo/extra/ai_tools.blist
+
+```
+# ./babs.sh -ca binfo/extra/ai_tools.blist
+```
+
+Update ROCM SDK Buider to latest version, apply new patches added to ai_tools project list and rebuild all ai_tools projects
+
+```
+# cd rocm_sdk_builder
+# git pull
+# ./babs.sh --clean binfo/extra/ai_tools.blist
+# ./babs.sh -ca binfo/extra/ai_tools.blist
+# ./babs.sh -b binfo/extra/ai_tools.blist
+```
+
+Update ROCM SDK Buider to latest version, apply new patches added to VLLM project and rebuild VLLM
+
+```
+# cd rocm_sdk_builder
+# git pull
+# ./babs.sh --clean binfo/extra/vllm.binfo
+# ./babs.sh -ca binfo/extra/vllm.blist
+# ./babs.sh -b binfo/extra/vllm.blist
+```
+Other commands:
+
+Checkouts the sources back to basic level for all projects without applying patches
+
+```
+# ./babs.sh -co
+```
+
+Apply patches on top of the checked out versions of projects
+
+```
+# ./babs.sh -ap
+```
+
+Fetch latest source code from repositories but do not do checkout
+
+```
+# ./babs.sh -f
+```
+
 
 Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
