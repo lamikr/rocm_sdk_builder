@@ -27,6 +27,10 @@ This project has been so far tested with the following AMD GPUs:
 
 Older GPUs with having 8GB or less memory may not be able to run more memory extensive benchmarks and applications but they are still in many ways suitable and multiple times faster than CPU's on certain type of tasks.
 
+Some GPU's have been benchmarked after building the ROCM SDK Builder with the benchmark available at https://github.com/lamikr/pytorch-gpu-benchmark/
+
+![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_60pct.png "Pytorch GPU benchmark")
+
 ## Supported Linux Distributions
 
 Tested and officially supported Linux distributions:
@@ -244,13 +248,11 @@ Wait for models to be loaded to /opt/rocm_sdk_models directory and then open ui 
 
 http://127.0.0.1:7860/
 
-## Run GPU Benchmarks
+## Run Full GPU Benchmarks
 
 External Benchmark originally made for NVIDIA cards is available here. Upstream does not seems to be anymore active so the benchmark is now available here.
 
 https://github.com/lamikr/pytorch-gpu-benchmark/
-
-![Pytorch gpu benchmarks](benchmarks/results/summary/resnet_benchmarks_60pct.png "Pytorch GPU benchmark")
 
 AMD GPU specific results have been run either on ROCM SDK Builder 6.11 or 6.12 environment. As the same commands for downloading the benchmarks will now run more tests than couple of years ago, the newer tests requiring much more memory, the benchmark has been tweaked to check the available GPU memory and then using that information to determine if to run all or only a subset of tests.
 
