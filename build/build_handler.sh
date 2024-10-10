@@ -512,7 +512,7 @@ func_babs_handle_update() {
                 echo "Rebuild rebuild recommended with commands:"
                 # get length of an array
                 arr_sz=${#UPDATED_BLIST_ARRAY[@]}
-                echo "arr_sz: ${arr_sz}"
+                #echo "arr_sz: ${arr_sz}"
                 # use for loop to read all values and indexes
                 local jj
                 for ((jj = 0; jj < ${arr_sz}; jj++));
