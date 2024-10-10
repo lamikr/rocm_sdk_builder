@@ -1,6 +1,6 @@
 From 259c6114b7af43f5b8ae5a4a8eb47fbf089572d7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Wed, 31 Jul 2024 14:03:48 -0700
+Date: Wed, 30 Jul 2024 14:03:48 -0700
 Subject: [PATCH 1/5] rocm sdk install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>

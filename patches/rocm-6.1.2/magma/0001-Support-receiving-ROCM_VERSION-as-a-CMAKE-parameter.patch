@@ -1,6 +1,6 @@
 From 7c4266ee8332c71c3b29ca0d19821eb15195598a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Mon, 15 Jul 2024 17:09:38 -0400
+Date: Mon, 16 Jul 2024 17:09:38 -0400
 Subject: [PATCH] Support receiving ROCM_VERSION as a CMAKE parameter
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
