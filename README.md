@@ -235,6 +235,14 @@ They can all utilize the AMD GPU's and can be build with the following commands.
 - llama.cpp will create server on address http://127.0.0.1:8080
 - Launch your browser to access the server and test chat-ui: http://127.0.0.1:8080
 
+## Test stable-diffusion.cpp
+
+```
+# curl -L -O https://huggingface.co/CompVis/stable-diffusion-v-1-4-original/resolve/main/sd-v1-4.ckpt --output-dir /opt/rocm_sdk_models/
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# sd -M txt2img -p "a cat" -m /opt/rocm_sdk_models/sd-v1-4.ckpt -o ~/Pictures/test_cat.png
+```
+- stable-diffusion.cpp will run and create the image of a cat and save it in the Pictures folder
 
 ## Test Stable Diffusion WebUI
 

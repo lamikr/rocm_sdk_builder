@@ -1,4 +1,5 @@
 binfo/extra/ai_tools_dependencies.binfo
 binfo/extra/vllm.binfo
+binfo/extra/stable-diffusion_cpp.binfo
 binfo/extra/stable-diffusion-webui.binfo
 binfo/extra/llama_cpp.binfo
