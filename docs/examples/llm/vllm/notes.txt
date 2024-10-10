@@ -1,11 +1,27 @@
-This example requires the vllm that is not build by default
-by the rocm sdk builder. To get it included you need to do these steps.
+This example requires the VLLM that is not build by default.
+VLLM is defined in 
+    binfo/extra/vllm.binfo
+and included also in
+    binfo/extra/ai_tools.blist
+ extra blist
+ 
+You can build and test it with following steps
 
 1) build the vllm with rocm_sdk_builder
 
 # ./babs.sh -b binfo/extra/vllm.binfo
 
+  or
+# ./babs.sh -b binfo/extra/ai_tools.blist
+
+
 2) Run the example
 
 # cd /opt/rocm_sdk_612/docs/examples/llm/vllm
 # ./test_questions_and_answers.sh
+
+test_questions_and_answers.sh defines
+    export XDG_CACHE_HOME=/opt/rocm_sdk_models/vllm
+to force the model files to be loaded loaded directory:
+   /opt/rocm_sdk_models/vllm
+

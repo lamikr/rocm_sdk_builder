@@ -8,7 +8,6 @@ Latest ROCM SDK Builder 6.1.2 release is based on to source code of AMD's ROCM 6
 
 Testing of different GPUs and Linux distributions is mainly done by a users and developers and tracked in tickets.
 
-
 ## Supported GPUs
 
 This project has been so far tested with the following AMD GPUs:
@@ -233,9 +232,9 @@ They can all utilize the AMD GPU's and can be build with the following commands.
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
 # llama-server_rocm.sh
 ```
+- llama.cpp will create server on address http://127.0.0.1:8080
+- Launch your browser to access the server and test chat-ui: http://127.0.0.1:8080
 
-Launch your browser to test chat-ui:
-http://127.0.0.1:8080
 
 ## Test Stable Diffusion WebUI
 
@@ -244,9 +243,18 @@ http://127.0.0.1:8080
 # ./webui.sh
 ```
 
-Wait for models to be loaded to /opt/rocm_sdk_models directory and then open ui on browser to test the picture generation:
+- Stable Diffusion WebUI will create server on address http://127.0.0.1:7860/
+- Launch your browser to access the server and test the image generation from text description: http://127.0.0.1:7860/
 
-http://127.0.0.1:7860/
+Note: It may take a while from the stable-diffustion to download the model files to /opt/rocm_sdk_models directory and then to open ui on browserto test the picture generation:
+
+## Test VLLM
+
+```
+# cd /opt/rocm_sdk_612/docs/examples/llm/vllm
+# ./test_questions_and_answers.sh
+```
+Note: It may take a while for the first run to download the model on first time to /opt/rocm_sdk_models/vllm directory and then to run the question/answer example.
 
 ## Run Full GPU Benchmarks
 
