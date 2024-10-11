@@ -8,6 +8,8 @@ Latest ROCM SDK Builder 6.1.2 release is based on to source code of AMD's ROCM 6
 
 Testing of different GPUs and Linux distributions is mainly done by a users and developers and tracked in tickets.
 
+![ROCM SDK Builder](docs/tutorial/pics/rocm_sdk_builder_runtime.png "ROCM SDK Builder Runtime")
+
 ## Supported GPUs
 
 This project has been so far tested with the following AMD GPUs:
@@ -283,10 +285,10 @@ Get help from the commands
 ```
 
 Update the ROCM SDK Builder to latest version in branch and check if projects has updated binfo or patch directories.
-Do the source code checkout, apply patches and clean commands for all changed projects so that they can be rebuild. 
+Do the source code checkout, apply patches and clean commands for all changed projects so that they can be rebuild. Check the printout in the end about how to build the updated projects.
 
 ```
-# ./babs.sh --up
+# ./babs.sh -up
 ```
 
 
@@ -302,7 +304,15 @@ Checkout and apply patches to binfo/extra/ai_tools.blist
 # ./babs.sh -ca binfo/extra/ai_tools.blist
 ```
 
-Update ROCM SDK Buider to latest version, apply new patches added to ai_tools project list and rebuild all ai_tools projects
+Update ROCM SDK Buider to latest version, apply new patches added to ai_tools project list and rebuild all changed ai_tools projects
+
+```
+# cd rocm_sdk_builder
+# ./babs.sh -up
+# ./babs.sh -b binfo/extra/ai_tools.blist
+```
+
+Or alternatively do same in steps with separate git pull, babs.sh commands. Note that this will rebuild all ai_tools projects, not only the updated ones.
 
 ```
 # cd rocm_sdk_builder
@@ -394,9 +404,6 @@ Applications which are downloading the large model files for example from the Hu
 - Optional extra applications that can be build and installed on top of the core. (Stable diffusion webui, whisper, llama.cpp, VLLM, Jax, etc.)
 - C/C++/Python ML and HTCP example applications with source code for learning and testing purposes.
 - Development environment developing and testing either single GPU or multi-GPU machine learning applications.
-
-![ROCM SDK Builder](docs/tutorial/pics/rocm_sdk_builder_runtime.png "ROCM SDK Builder Runtime")
-
 
 ## Main Components
 
