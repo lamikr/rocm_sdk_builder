@@ -240,9 +240,9 @@ They can all utilize the AMD GPU's and can be build with the following commands.
 ## Test stable-diffusion.cpp
 
 ```
-# curl -L -O https://huggingface.co/CompVis/stable-diffusion-v-1-4-original/resolve/main/sd-v1-4.ckpt --output-dir /opt/rocm_sdk_models/
+# curl -L https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors --output-dir /opt/rocm_sdk_models/ -o sd-v1-5-pruned-emaonly-fp16.safetensors
 # source /opt/rocm_sdk_612/bin/env_rocm.sh
-# sd -M txt2img -p "a cat" -m /opt/rocm_sdk_models/sd-v1-4.ckpt -o ~/Pictures/test_cat.png
+# sd -M txt2img -p "a cat" -m /opt/rocm_sdk_models/sd-v1-5-pruned-emaonly-fp16 -o ~/Pictures/test_cat.png
 ```
 - stable-diffusion.cpp will run and create the image of a cat and save it in the Pictures folder
 
