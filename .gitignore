@@ -13,6 +13,6 @@ docs/examples/pytorch/audio/microphone_rec.wav
 docs/examples/pytorch/audio/speech_resave.wav
 docs/examples/openmpi/mpi_msg_ping/mpi_msg_ping
 packages
-envsetup_pre.sh
+envsetup_user.sh
 node_modules
 docs/examples/llm/vllm/sys

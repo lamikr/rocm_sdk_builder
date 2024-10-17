@@ -8,10 +8,10 @@ SDK_ROOT_DIR="$PWD"
 # user configuration menu functionality
 source binfo/user_config.sh
 
-# allow enable doing some user specific extra actions before the build start
+# allow some user specific extra actions before the build start
 # like overriding the default INSTALL_DIR_PREFIX_SDK_ROOT directory location
-if [[ -e "../envsetup_pre.sh" ]]; then
-    source ../envsetup_pre.sh
+if [[ -e "${SDK_ROOT_DIR}/envsetup_user.sh" ]]; then
+    source ${SDK_ROOT_DIR}/envsetup_user.sh
 fi
 
 # check the linux distribution for the target triplet

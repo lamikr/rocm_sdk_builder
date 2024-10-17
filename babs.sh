@@ -10,9 +10,6 @@
 # user configuration menu functionality
 source binfo/user_config.sh
 
-# allow enable doing some user specific extra actions before the build start
-# source ./envsetup_pre.sh
-
 source build/system_utils.sh
 source build/build_handler.sh
 source build/config.sh

@@ -108,7 +108,8 @@ Selections will be stored to build_cfg.user file. If this file will not exist, t
 
 Note that the babs.sh -i command is not strictly required. That command will download source code for all projects in advance instead of downloading them one by one while the build progress. This is a new feature starting from the rocm sdk builder 6.1.2.
 
-Build is installed automatically to /opt/rocm_sdk_612 directory but it is possible to override that by specifying the INSTALL_DIR_PREFIX_SDK_ROOT environment that points to other directory before starting the build. This can be done for example by specifying the ./envsetup_pre.sh file that babs.sh will always run if it exist.
+Build is installed automatically to /opt/rocm_sdk_612 directory but it is possible to change this by specifying the INSTALL_DIR_PREFIX_SDK_ROOT environment variable in envsetup_user.sh file.
+Check the envsetup_user_template.sh for further information.
 
 ```
 # ./babs.sh -i
@@ -360,6 +361,27 @@ Fetch latest source code from repositories but do not do checkout
 ```
 
 # Common Developer Tasks
+
+## Change Default Build Variables
+
+Default install directory and CPU count used for doing the build can be overrided in file envsetup_user.sh.
+You can do this with following steps:
+
+1) copy envsetup_user_template.sh to envsetup_user.sh
+
+```
+cp envsetup_user_template.sh envsetup_user.sh
+```
+
+2) Uncomment and define the desired variables in file envsetup_user.sh by removing the '#'-character from the beginning of the line for variables you wan to override
+
+```
+#export INSTALL_DIR_PREFIX_SDK_AI_MODELS=~/rocm/rocm_sdk_models
+#export INSTALL_DIR_PREFIX_SDK_ROOT=~/rocm/rocm_sdk_612
+#export BUILD_CPU_COUNT_DEFAULT=8
+#export BUILD_CPU_COUNT_MODERATE=8
+#export BUILD_CPU_COUNT_SAFE=8
+```
 
 ## New Project Creation
 
