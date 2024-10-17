@@ -57,10 +57,11 @@ func_user_help_print() {
     echo "                         Checkout of fetched source code to versioins specified in binfo files needs to be performed"
     echo "                         separately with '-ca' or '-co' command."
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
-    echo "-up or --update:         Update ROCM SDK Builder source code to latest version in current git branch and then check"
-    echo "                         which projects has updated binfo file or patches directory. Then do the do the checkout_apply"
-    echo "                         and clean commands for the updated projects so that they can be rebuild easily."
-    echo "                         Optional parameter: binfo/extra/mytoollist.blist or binfo/extra/myapp.binfo"
+    echo "-up or --update:         Update ROCM SDK Builder source code to latest version and then check"
+    echo "                         project specific binfo and patch directories for updates."
+    echo "                         Do the source code checkout, apply patches and clean commands for all changed projects."
+    echo "                         Check the end of the command output for instructions how to re-build the updated projects."
+    echo "                         Optional parameter: git branch name where to update."
     echo "-h or --help:            Show this help"
     echo "-v or --version:         Show babs build system version information"
     #echo "-cp or --create_patches: generate patches by checking git diff for each repository"
@@ -121,17 +122,25 @@ func_handle_user_command_args() {
         unset ARG__USER_CMD_PARAM1
         ARG__USER_CMD=${LIST_USER_CMD_ARGS[ii]}
         if [[ ${ARG__USER_CMD:0:1} == '-' ]]; then
-            echo "ARG__USER_CMD: ${ARG__USER_CMD}"
+            #echo "ARG__USER_CMD: ${ARG__USER_CMD}"
             if [ -n "${LIST_USER_CMD_ARGS[ii + 1]}" ]; then
-                ARG__USER_CMD_PARAM1=${SDK_ROOT_DIR}/${LIST_USER_CMD_ARGS[ii + 1]}
+                ((ii++))
+                ARG__USER_CMD_PARAM1=${LIST_USER_CMD_ARGS[ii]}
                 if [[ ! ${ARG__USER_CMD_PARAM1:0:1} == '-' ]]; then
                     # should be a valid parameter for command
-                    ((ii++))
-                    echo "ARG__USER_CMD_PARAM1: ${ARG__USER_CMD_PARAM1}"
+                    case "${ARG__USER_CMD}" in
+                        -up | --update)
+                            #echo "update to git branch: ${ARG__USER_CMD_PARAM1}"
+                            ;;
+                        *)
+                            ARG__USER_CMD_PARAM1=${SDK_ROOT_DIR}/${ARG__USER_CMD_PARAM1}
+                            #echo "ARG__USER_CMD_PARAM1: ${ARG__USER_CMD_PARAM1}"
+                            ;;
+                    esac
                 else
                     # another command starting with "-"-character
                     unset ARG__USER_CMD_PARAM1
-                    echo "ARG__USER_CMD_PARAM1 not provided for ${ARG__USER_CMD}"
+                    #echo "ARG__USER_CMD_PARAM1 not provided for ${ARG__USER_CMD}"
                 fi
             fi
             case "${ARG__USER_CMD}" in
@@ -197,7 +206,7 @@ func_handle_user_command_args() {
                 exit 0
                 ;;
             *)
-                echo "Unknown user command parameter: ${LIST_USER_CMD_ARGS[ii]}"
+                echo "Unknown user command parameter: ${ARG__USER_CMD}"
                 exit 0
                 ;;
             esac

@@ -120,7 +120,7 @@ It will take usually 5-10 hours to get everything build from scratch depending y
 
 ## Source Code and Build Update
 
-Babs.sh provides now as a new command since 6.1.2 version an update command which can be used on updating the source code in same git branch to latest version in a way that it will check which projects has been updated and then clean the build dir from those so that only those needs to be rebuild.
+Babs.sh provides now as a new command since 6.1.2 version an update command which can be used on updating the source code in a way that it will check which projects has been updated. For updated projects the build dir is cleaned so that they are easy to rebuild.
 
 
 ```
@@ -128,7 +128,7 @@ Babs.sh provides now as a new command since 6.1.2 version an update command whic
 # ./babs.sh -b
 ```
 
-Command will accept also the binfo or blist file as an optional parameter. Note that the update command does not yet handle the switching between git branches or multiple blist files. In those situations you may still need to remove individual application directory from builddir manually to force the rebuild of specific app.
+Command will accept the git branch name where to checkout as an optional parameter. Note that update command does not check binfo files which does not belong to any blist files in binfo/extra directory.
 
 
 # ROCM SDK Builder Use Examples
@@ -284,13 +284,21 @@ Get help from the commands
 # ./babs.sh -h
 ```
 
-Update the ROCM SDK Builder to latest version in branch and check if projects has updated binfo or patch directories.
-Do the source code checkout, apply patches and clean commands for all changed projects so that they can be rebuild. Check the printout in the end about how to build the updated projects.
+Update the ROCM SDK Builder to latest version in current branch and then check if project specific binfo or patch directories have been updated.
+Do the source code checkout, apply patches and clean commands for all changed projects so that they can be rebuild.
+Check the end of the command output for instructions how to re-build the updated projects.
 
 ```
 # ./babs.sh -up
 ```
 
+Update the ROCM SDK Builder to latest version in git master branch and then check if project specific binfo or patch directories have been updated.
+Do the source code checkout, apply patches and clean commands for all changed projects so that they can be rebuild.
+Check the end of the command output for instructions how to re-build the updated projects.
+
+```
+# ./babs.sh -up master
+```
 
 Checkout and apply patches to all core projects
 
@@ -304,7 +312,7 @@ Checkout and apply patches to binfo/extra/ai_tools.blist
 # ./babs.sh -ca binfo/extra/ai_tools.blist
 ```
 
-Update ROCM SDK Buider to latest version, apply new patches added to ai_tools project list and rebuild all changed ai_tools projects
+Update ROCM SDK Buider to latest version in current branch, apply new patches added to ai_tools project list and rebuild all changed ai_tools projects
 
 ```
 # cd rocm_sdk_builder
