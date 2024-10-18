@@ -1,7 +1,7 @@
-From d1ef1b53a682f2c55f11e7f3a7da8779fe396868 Mon Sep 17 00:00:00 2001
+From 32eeb542a2a3a40b0d6e92c5764f30bdad97b661 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 19:25:50 -0700
-Subject: [PATCH 5/9] fix gcc parameter is null optimization error
+Subject: [PATCH 05/10] fix gcc parameter is null optimization error
 
 https://github.com/pytorch/pytorch/issues/112089
 and
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 5 insertions(+)
 
 diff --git a/test/cpp/api/CMakeLists.txt b/test/cpp/api/CMakeLists.txt
-index ceeb607d52..93f3d66aef 100644
+index ceeb607d52a..93f3d66aef0 100644
 --- a/test/cpp/api/CMakeLists.txt
 +++ b/test/cpp/api/CMakeLists.txt
 @@ -65,6 +65,11 @@ if(NOT MSVC)
@@ -29,5 +29,5 @@ index ceeb607d52..93f3d66aef 100644
  
  if(INSTALL_TEST)
 -- 
-2.43.0
+2.41.1
 

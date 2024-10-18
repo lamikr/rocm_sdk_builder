@@ -1,20 +1,19 @@
-From fdbdeb77c44372c454ba2bc010b6be8dc2cfc9b0 Mon Sep 17 00:00:00 2001
+From 52298c1f8fb4999e8c4d4d8174f40276f8e401d7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 31 Aug 2024 23:28:55 -0700
-Subject: [PATCH 9/9] add HSA_RUNTIME_64_LIB
+Subject: [PATCH 09/10] add HSA_RUNTIME_64_LIB
 
-- ubuntu 24.04 does something very differently
-  with cmake than other distros and fails to
-  build pytorch due to missing dependencies to
-  hsa-runtime64... So for to get it building on\
-  on all distros we need to introduce the
-  HSA_RUNTIME_LIBS
-- disable also the building of pytorch tests
+- cmake library search works differently on ubuntu 24.04
+  compared to other distros.and fails to
+  build pytorch because it not finding the hsa-runtime64.
+  It seems that cmake in ubuntu can not search recursively
+  subdirectories, and to get get pytorch building on
+  on ubuntu we need to introduce the
+  HSA_RUNTIME_LIBS and add that explicitly to search path
+- disable building of pytorch tests
   which will require special handling
-  of linking hsa-runtime64. On other distros
-  they seem to be disabled by default...
-  (why ubuntu wants to be so different from
-   common standards of linux disroes???)
+  to link agains hsa-runtime64. On other distros
+  these tests are be disabled by default...
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -24,7 +23,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  3 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/build_rocm.sh b/build_rocm.sh
-index 5dedc9b9f8..8215fbac04 100755
+index 5dedc9b9f8c..8215fbac041 100755
 --- a/build_rocm.sh
 +++ b/build_rocm.sh
 @@ -20,4 +20,4 @@ unset LDFLAGS
@@ -34,7 +33,7 @@ index 5dedc9b9f8..8215fbac04 100755
 -USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
 +BUILD_TEST=0 USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
 diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
-index 70fe47a9e6..a58db43614 100644
+index 70fe47a9e64..a58db436142 100644
 --- a/cmake/public/LoadHIP.cmake
 +++ b/cmake/public/LoadHIP.cmake
 @@ -160,6 +160,7 @@ if(HIP_FOUND)
@@ -55,7 +54,7 @@ index 70fe47a9e6..a58db43614 100644
    # check whether HIP declares new types
    set(file "${PROJECT_BINARY_DIR}/hip_new_types.cc")
 diff --git a/torch/lib/libshm/CMakeLists.txt b/torch/lib/libshm/CMakeLists.txt
-index 8a7329ddab..fba1921bbc 100644
+index 8a7329ddab7..fba1921bbce 100644
 --- a/torch/lib/libshm/CMakeLists.txt
 +++ b/torch/lib/libshm/CMakeLists.txt
 @@ -65,6 +65,7 @@ if(BUILD_LIBTORCHLESS)
@@ -67,5 +66,5 @@ index 8a7329ddab..fba1921bbc 100644
  set_target_properties(torch_shm_manager PROPERTIES
    INSTALL_RPATH "${_rpath_portable_origin}/../lib")
 -- 
-2.43.0
+2.41.1
 

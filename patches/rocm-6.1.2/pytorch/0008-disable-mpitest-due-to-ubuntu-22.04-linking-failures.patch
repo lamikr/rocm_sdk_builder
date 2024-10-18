@@ -1,7 +1,7 @@
-From c52c372019318e0426c75496c3903196d7a6cf27 Mon Sep 17 00:00:00 2001
+From e44bbc617ecbfc1d7c61c8859c845a5bc199605f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 30 Aug 2024 14:07:36 -0700
-Subject: [PATCH 8/9] disable mpitest due to ubuntu 22.04 linking failures
+Subject: [PATCH 08/10] disable mpitest due to ubuntu 22.04 linking failures
 
 - rocm-openmpi that is tried to link contains dependency
   to libpmix.so and on ubuntu 22.04 that is not linked
@@ -15,7 +15,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/test/cpp/c10d/CMakeLists.txt b/test/cpp/c10d/CMakeLists.txt
-index 5c8974836d..5f92023008 100644
+index 5c8974836de..5f920230086 100644
 --- a/test/cpp/c10d/CMakeLists.txt
 +++ b/test/cpp/c10d/CMakeLists.txt
 @@ -10,6 +10,7 @@ function(c10d_add_test test_src)
@@ -44,5 +44,5 @@ index 5c8974836d..5f92023008 100644
      install(TARGETS ProcessGroupMPITest DESTINATION bin)
    endif()
 -- 
-2.43.0
+2.41.1
 
