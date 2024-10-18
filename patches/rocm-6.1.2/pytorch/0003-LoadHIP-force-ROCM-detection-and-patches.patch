@@ -1,7 +1,7 @@
-From 0e70059b60bea1f8e619ba9765e792c8c9a7e4d3 Mon Sep 17 00:00:00 2001
+From 28b78bb54fc1a7c89015c588c13ba0724b3c16ef Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:32:33 -0700
-Subject: [PATCH 3/9] LoadHIP force ROCM detection and patches
+Subject: [PATCH 03/10] LoadHIP force ROCM detection and patches
 
 - set HIP_ROOT_DIR to ROCM_PATH which is set
   by the build scripts
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 10 insertions(+)
 
 diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
-index fa39156031..d1e8f53445 100644
+index fa39156031f..d1e8f534455 100644
 --- a/cmake/public/LoadHIP.cmake
 +++ b/cmake/public/LoadHIP.cmake
 @@ -41,6 +41,7 @@ endmacro()
@@ -72,5 +72,5 @@ index fa39156031..d1e8f53445 100644
    message("\n***** Library versions from dpkg *****\n")
    execute_process(COMMAND dpkg -l COMMAND grep rocm-dev COMMAND awk "{print $2 \" VERSION: \" $3}")
 -- 
-2.43.0
+2.41.1
 

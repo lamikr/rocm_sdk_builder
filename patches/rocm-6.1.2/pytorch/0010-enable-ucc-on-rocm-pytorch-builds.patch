@@ -1,0 +1,49 @@
+From c8f251ae0a9424035a1e15bc394ec17c96782d8c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 17 Oct 2024 22:51:26 -0700
+Subject: [PATCH 10/10] enable ucc on rocm pytorch builds
+
+- enable UCC and UCX by using environment variables
+- add 2 missing method calls used by ROCM to cuda version of
+  AtenNVRTC.h so that the hipify will translate them
+  to hip version of same header. (This fixes build errors
+  related to non-existing functions)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ aten/src/ATen/cuda/nvrtc_stub/ATenNVRTC.h | 4 +++-
+ build_rocm.sh                             | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/aten/src/ATen/cuda/nvrtc_stub/ATenNVRTC.h b/aten/src/ATen/cuda/nvrtc_stub/ATenNVRTC.h
+index 574b2c41c26..5eada549276 100644
+--- a/aten/src/ATen/cuda/nvrtc_stub/ATenNVRTC.h
++++ b/aten/src/ATen/cuda/nvrtc_stub/ATenNVRTC.h
+@@ -110,9 +110,11 @@ namespace at { namespace cuda {
+   _(cuLaunchKernel)                               \
+   _(nvrtcCompileProgram)                          \
+   _(cuCtxGetCurrent)                              \
++  _(cuCtxSetCurrent)                              \
+   _(nvrtcGetLoweredName)                          \
+   _(cuModuleUnload)                               \
+-  _(cuDevicePrimaryCtxGetState)
++  _(cuDevicePrimaryCtxGetState)                   \
++  _(cuDevicePrimaryCtxRetain)
+ 
+ #endif
+ 
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 8215fbac041..05dca4de849 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -20,4 +20,6 @@ unset LDFLAGS
+ unset CFLAGS
+ unset CPPFLAGS
+ unset PKG_CONFIG_PATH
+-BUILD_TEST=0 USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
++export UCC_HOME=$install_dir_prefix_rocm
++export UCX_HOME=$install_dir_prefix_rocm
++USE_SYSTEM_UCC=1 USE_UCC=1 BUILD_TEST=0 USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
+-- 
+2.41.1
+
