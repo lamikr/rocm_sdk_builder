@@ -1,19 +1,21 @@
+Example 1:  Test questions and answers with VLLM python app
+===========================================================
+
 This example requires the VLLM that is not build by default.
 VLLM is defined in 
     binfo/extra/vllm.binfo
-and included also in
+and included also in blist file
     binfo/extra/ai_tools.blist
- extra blist
  
-You can build and test it with following steps
+You can build and test VLLM by using following commands:
 
 1) build the vllm with rocm_sdk_builder
 
-# ./babs.sh -b binfo/extra/vllm.binfo
+    # ./babs.sh -b binfo/extra/vllm.binfo
 
-  or
-# ./babs.sh -b binfo/extra/ai_tools.blist
-
+or alternatively if you want to build VLLM along with other apps
+  
+    # ./babs.sh -b binfo/extra/ai_tools.blist
 
 2) Run the example
 
@@ -24,4 +26,40 @@ test_questions_and_answers.sh defines
     export XDG_CACHE_HOME=/opt/rocm_sdk_models/vllm
 to force the model files to be loaded loaded directory:
    /opt/rocm_sdk_models/vllm
+
+Example 2: Running VLLM server with llama-3.2 model
+===================================================
+
+1) Download Llama-3.2-1B model
+
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# pip install --upgrade huggingface_hub
+# huggingface-cli download meta-llama/Llama-3.2-1B --include "*" --local-dir /opt/rocm_sdk_models/Llama-3.2-1B
+
+2) launch vllm server to background
+
+vllm serve /opt/rocm_sdk_models/Llama-3.2-1B/ --max-model-len 50000
+
+3) Test on second terminal
+
+ curl http://localhost:8000/v1/completions -H "Content-Type: application/json" -d '{
+"model": "/opt/rocm_sdk_models/Llama-3.2-1B/",
+"prompt": "Tell me the story about Paavo Nurmi Statues and Swedish Vasa museum ship?",
+"max_tokens": 7,
+"temperature": 0
+}'
+
+4) launch jupyter-lab and test following code
+from openai import OpenAI
+
+# Modify OpenAI's API key and API base to use vLLM's API server.
+openai_api_key = "EMPTY"
+openai_api_base = "http://localhost:8000/v1"
+client = OpenAI(
+    api_key=openai_api_key,
+    base_url=openai_api_base,
+)
+completion = client.completions.create(model="/opt/rocm_sdk_models/Llama-3.2-1B/",
+                                      prompt="Tell me the story about Paavo Nurmi Statues and Swedish Vasa museum ship?", max_tokens=200)
+print("Completion result:", completion)
 
