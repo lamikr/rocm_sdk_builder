@@ -1,10 +1,11 @@
-From a5ee7714848dd262f1c92767b7b5e142a94c1761 Mon Sep 17 00:00:00 2001
+From 47a577605dbc924c26bac7d602b4d63c12c10cc7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 25 Jul 2024 14:36:23 -0700
-Subject: [PATCH 2/2] do not use s_getreg_b32 HW_REG_HW_ID to trace_hwid in
- gfx1103
+Subject: [PATCH 2/2] s_getreg_b32 HW_REG_HW_ID not suppored fix
 
-- register HW_REG_HW_ID is not supported by gfx1103
+- this command is not suppored in newer radeon gpus
+  and can not be used for tracing
+- add gfx1103, gfx1150, gfx1151
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -13,7 +14,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/src/collectives/device/common.h b/src/collectives/device/common.h
-index 093a26c..c51bd4a 100644
+index 093a26c..ef70a5a 100644
 --- a/src/collectives/device/common.h
 +++ b/src/collectives/device/common.h
 @@ -43,7 +43,7 @@ class ncclFunction {
@@ -21,7 +22,7 @@ index 093a26c..c51bd4a 100644
  };
  
 -#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
-+#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || defined(__gfx1150__) || defined(__gfx1151__)
  #define __trace_hwreg()
  #else
  #define __trace_hwreg() \
@@ -33,7 +34,7 @@ index 093a26c..c51bd4a 100644
 \ No newline at end of file
 +#endif
 diff --git a/tools/JitterBench/Common.hpp b/tools/JitterBench/Common.hpp
-index 8fad0ac..8728833 100644
+index 8fad0ac..9961993 100644
 --- a/tools/JitterBench/Common.hpp
 +++ b/tools/JitterBench/Common.hpp
 @@ -43,7 +43,7 @@ THE SOFTWARE.
@@ -41,10 +42,10 @@ index 8fad0ac..8728833 100644
  
  // Macro for collecting HW_REG_HW_ID
 -#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__NVCC__)
-+#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || defined(__NVCC__)
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || defined(__gfx1150__) || defined(__gfx1151__) || defined(__NVCC__)
  #define GetHwId(val) \
    val = 0
  #else
 -- 
-2.43.0
+2.41.1
 
