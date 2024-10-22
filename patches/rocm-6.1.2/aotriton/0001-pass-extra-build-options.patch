@@ -1,7 +1,7 @@
-From 6e4bd48fc774cc116fcc86507e6398de5216f2c1 Mon Sep 17 00:00:00 2001
+From 5a7bd944af2765f84cd08511dc95a4fece11e786 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jul 2024 00:01:32 -0700
-Subject: [PATCH 1/4] pass extra build options
+Subject: [PATCH 1/5] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -164,7 +164,7 @@ index 0a0ec8c..78dd4de 100644
      # execute python sources and extract functions wrapped in JITFunction
      arg_path = Path(args.path)
 diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
-index 1101382..91473ed 100644
+index 1101382..aae98d8 100644
 --- a/v2python/generate_compile.py
 +++ b/v2python/generate_compile.py
 @@ -19,6 +19,8 @@ def parse():
@@ -172,7 +172,7 @@ index 1101382..91473ed 100644
      p.add_argument("--python", type=str, default=None, help="python binary to run compile.py")
      p.add_argument("--enable_zstd", type=str, default=None, help="Use zstd to compress the compiled kernel")
 +    p.add_argument("--libhsa_runtime64", type=str, default='/opt/rocm_sdk/lib/libhsa-runtime64.so', help="libhsa_runtime64.so location")
-+    p.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")    
++    p.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")
      p.add_argument("--bare_mode", action='store_true', help="Instead of generating a proper Makefile, only generate compiler options and leave the remaining tasks to cmake.")
      p.add_argument("--build_for_tuning", action='store_true', help="Build all possible GPU kernels for performance tuning.")
      p.add_argument("--timeout", type=float, default=8.0, help='Maximal time the compiler can run. Passing < 0 for indefinite. No effect in bare mode (handled separately)')
@@ -227,5 +227,5 @@ index ca7a4b5..5c7d2a2 100644
    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
  )
 -- 
-2.45.2
+2.41.1
 
