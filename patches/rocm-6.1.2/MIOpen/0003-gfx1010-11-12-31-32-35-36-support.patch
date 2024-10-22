@@ -1,7 +1,7 @@
-From 1d05a1618c181f93e94b2aeed313b0e6875fce12 Mon Sep 17 00:00:00 2001
+From 855b6d711a074146aca90c64a5634b5877e276d0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 18 Aug 2024 14:26:57 -0700
-Subject: [PATCH 3/3] gfx1010/11/12/31/32/35/36 support
+Subject: [PATCH 3/5] gfx1010/11/12/31/32/35/36 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

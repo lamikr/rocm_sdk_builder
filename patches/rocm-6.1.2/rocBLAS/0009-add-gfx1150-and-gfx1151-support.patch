@@ -1,0 +1,81 @@
+From a9517762b6d8307ee2868e8cbe0f8b221255a0cd Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 22 Oct 2024 13:14:13 -0700
+Subject: [PATCH 9/9] add gfx1150 and gfx1151 support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                 | 2 +-
+ library/src/handle.cpp         | 8 ++++++++
+ library/src/include/handle.hpp | 4 +++-
+ library/src/tensile_host.cpp   | 8 ++++++++
+ 4 files changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0e404317..d3ed947a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -110,7 +110,7 @@ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /
+ # setting target list based on ROCm version
+ set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
+ set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
+-set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
+
+ if(ROCM_PLATFORM_VERSION)
+   if(${ROCM_PLATFORM_VERSION} VERSION_LESS 5.7.0)
+diff --git a/library/src/handle.cpp b/library/src/handle.cpp
+index eb2254dd..e97c490d 100644
+--- a/library/src/handle.cpp
++++ b/library/src/handle.cpp
+@@ -153,6 +153,14 @@ static Processor getActiveArch(int deviceId)
+     {
+         return Processor::gfx1103;
+     }
++    else if(deviceString.find("gfx1150") != std::string::npos)
++    {
++        return Processor::gfx1150;
++    }
++    else if(deviceString.find("gfx1151") != std::string::npos)
++    {
++        return Processor::gfx1151;
++    }
+     return static_cast<Processor>(0);
+ }
+
+diff --git a/library/src/include/handle.hpp b/library/src/include/handle.hpp
+index cc3e6c0f..e5d4859f 100644
+--- a/library/src/include/handle.hpp
++++ b/library/src/include/handle.hpp
+@@ -94,7 +94,9 @@ enum class Processor : int
+     gfx1100 = 1100,
+     gfx1101 = 1101,
+     gfx1102 = 1102,
+-    gfx1103 = 1103
++    gfx1103 = 1103,
++    gfx1150 = 1150,
++    gfx1151 = 1151
+ };
+
+ // helper function in handle.cpp
+diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
+index 073bb244..06e4e468 100644
+--- a/library/src/tensile_host.cpp
++++ b/library/src/tensile_host.cpp
+@@ -281,6 +281,14 @@ namespace
+         {
+             return Tensile::LazyLoadingInit::gfx1103;
+         }
++        else if(deviceString.find("gfx1150") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1150;
++        }
++        else if(deviceString.find("gfx1151") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1151;
++        }
+         return Tensile::LazyLoadingInit::None;
+     }
+
+--
+2.41.1

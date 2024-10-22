@@ -1,7 +1,7 @@
-From 11d89a63a565948158cb726bb1e235e5392500ac Mon Sep 17 00:00:00 2001
+From 98877c9f3820d0491739c6ea34accb4f51611b87 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 14:21:04 -0700
-Subject: [PATCH 1/3] disable tests which fails to build
+Subject: [PATCH 1/4] disable tests which fails to build
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
