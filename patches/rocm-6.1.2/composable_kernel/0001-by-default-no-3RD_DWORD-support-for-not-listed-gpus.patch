@@ -1,7 +1,7 @@
-From b58484ae4ea062de46db0602eddadfad469c3bc7 Mon Sep 17 00:00:00 2001
+From 8ea1b3715d0e8d755947d2f8c2f70fb8cdb59cc6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 19 Dec 2023 15:16:58 -0800
-Subject: [PATCH 1/3] by default no 3RD_DWORD support for not listed gpus
+Subject: [PATCH 1/4] by default no 3RD_DWORD support for not listed gpus
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
