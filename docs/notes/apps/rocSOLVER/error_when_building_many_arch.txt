@@ -1,0 +1,39 @@
+when building for really many architectures at a same time, linking will fail in similar way than in:
+https://github.com/pytorch/pytorch/issues/39968
+
+gfx906
+gfx90a
+gfx940
+gfx941
+gfx942
+gfx1010
+gfx1011
+gfx1012
+gfx1030
+gfx1031
+gfx1032
+gfx1035
+gfx1036
+gfx1100
+gfx1101
+gfx1102
+gfx1103
+gfx1150
+gfx1151
+
+/opt/rocm_sdk_612/lib/clang/17/lib/linux/clang_rt.crtbegin-x86_64.o: in function `__do_init':
+crtbegin.c:(.text.__do_init+0xb): relocation truncated to fit: R_X86_64_PC32 against `.bss.__initialized.2'
+crtbegin.c:(.text.__do_init+0x19): relocation truncated to fit: R_X86_64_PC32 against `.bss.__initialized.2'
+crtbegin.c:(.text.__do_init+0x21): additional relocation overflows omitted from the output
+CMakeFiles/rocsolver.dir/specialized/roclapack_gemm_specialized_kernels_s.cpp.o: in function `rocblas_status_ rocsolver_gemm<false, false, float, float*>(_rocblas_handle*, rocblas_operation_, rocblas_operation_, int, int, int, float const*, float*, long, int, int, long, float*, long, int, int, long, float const*, float*, long, int, int, long, int, float**)':
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x36): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x346): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x64f): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x676): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x985): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+roclapack_gemm_specialized_kernels_s.cpp:(.text._Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_[_Z14rocsolver_gemmILb0ELb0EfPfE15rocblas_status_P15_rocblas_handle18rocblas_operation_S4_iiiPKT1_T2_liilS8_liilS7_S8_liiliPPS5_]+0x9bb): failed to convert GOTPCREL relocation against '_ZN16rocsolver_logger9_instanceE'; relink with --no-relax
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+make[2]: *** [library/src/CMakeFiles/rocsolver.dir/build.make:3573: library/src/librocsolver.so.0.1.60102] Error 1
+make[2]: Leaving directory '/rocm_sdk_builder/builddir/024_01_rocSOLVER'
+make[1]: *** [CMakeFiles/Makefile2:131: library/src/CMakeFiles/rocsolver.dir/all] Error 2
+make[1]: Leaving directory '/rocm_sdk_builder/builddir/024_01_rocSOLVER'
