@@ -1,7 +1,7 @@
-From 52e94d087d842df14680b84be93ddabc1fbddf33 Mon Sep 17 00:00:00 2001
+From 46b1cbc957d3cad86b1a6c327ef53608d19bf1c8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 16 Aug 2024 15:10:33 -0700
-Subject: [PATCH 5/5] add gfx1011 and gfx1012 as a build targets
+Subject: [PATCH 5/6] add gfx1011 and gfx1012 as a build targets
 
 - add gfx1011 and gfx1012
 

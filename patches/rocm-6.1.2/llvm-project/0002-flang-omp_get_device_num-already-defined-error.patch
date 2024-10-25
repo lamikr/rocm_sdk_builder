@@ -1,7 +1,7 @@
-From 62b3e326f82e9a978e6c457f345671c95fac3c8f Mon Sep 17 00:00:00 2001
+From de127182d7dca5ea445fbb9a3c796b6897fa97e5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Mon, 4 Dec 2023 17:22:53 -0800
-Subject: [PATCH 2/5] flang omp_get_device_num already defined error
+Subject: [PATCH 2/6] flang omp_get_device_num already defined error
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
