@@ -1,0 +1,55 @@
+From 851f14e66e4474fb0f551866725638d9cc676edb Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 25 Oct 2024 15:01:34 -0700
+Subject: [PATCH 6/6] add cu count for missing amd gpus
+
+- gfx1010/11/12
+- gfx1035/36
+- gfx1103/50/51
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../deviceRTLs/amdgcn/src/target_impl.h        | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h b/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
+index 75f565118427..d459bbabd191 100644
+--- a/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
++++ b/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
+@@ -75,16 +75,34 @@ enum { WARPSIZE = getGridValue().GV_Warp_Size };
+ #define MAX_SM  110
+ #elif defined(__gfx90c__)
+ #define MAX_SM  120
++#elif defined(__gfx1010__)
++#define MAX_SM  40
++#elif defined(__gfx1011__)
++#define MAX_SM  36
++#elif defined(__gfx1012__)
++#define MAX_SM  22
+ #elif defined(__gfx1030__)
+ #define MAX_SM  72
+ #elif defined(__gfx1031__)
+ #define MAX_SM  40
++#elif defined(__gfx1032__)
++#define MAX_SM  32
++#elif defined(__gfx1035__)
++#define MAX_SM  12
++#elif defined(__gfx1036__)
++#define MAX_SM  2
+ #elif defined(__gfx1100__)
+ #define MAX_SM  84
+ #elif defined(__gfx1101__)
+ #define MAX_SM  64
+ #elif defined(__gfx1102__)
+ #define MAX_SM  40
++#elif defined(__gfx1103__)
++#define MAX_SM  12
++#elif defined(__gfx1150__)
++#define MAX_SM  16
++#elif defined(__gfx1151__)
++#define MAX_SM  40
+ #else
+ #define MAX_SM  120
+ #endif
+--
+2.41.1

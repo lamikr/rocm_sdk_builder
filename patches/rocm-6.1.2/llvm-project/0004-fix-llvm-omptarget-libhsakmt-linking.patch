@@ -1,7 +1,7 @@
-From 02ff03076dd2484e7f0d7ec5e68a430555828bc1 Mon Sep 17 00:00:00 2001
+From 78bd9a68a570d13cd79a5ea666e873c7f261fd1a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sat, 11 May 2024 13:51:59 -0700
-Subject: [PATCH 4/5] fix llvm omptarget libhsakmt linking
+Subject: [PATCH 4/6] fix llvm omptarget libhsakmt linking
 
 ld.lld: error: unable to find library -lhsakmt
 
