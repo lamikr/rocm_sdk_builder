@@ -1,7 +1,7 @@
-From 11b218f1f3a36aa98bf98455c3e78e855d59c993 Mon Sep 17 00:00:00 2001
+From a29318dedad19e7bf86a56dcbcbd33f785de7d0d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 31 Jul 2024 20:50:48 -0700
-Subject: [PATCH] add llama-server_rocm.sh
+Subject: [PATCH 1/2] add llama-server_rocm.sh
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
