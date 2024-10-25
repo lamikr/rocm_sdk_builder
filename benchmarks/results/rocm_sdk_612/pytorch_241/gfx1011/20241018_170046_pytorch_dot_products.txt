@@ -1,0 +1,58 @@
+Pytorch version: 2.4.1
+dot product calculation test
+tensor([[[ 0.7622,  0.7941,  0.4729, -0.3396,  1.0028, -0.2302,  0.2754,
+          -0.7446],
+         [ 0.5055,  0.6719,  2.0997, -0.7004,  0.7828,  0.1836,  0.0315,
+          -0.3410],
+         [ 0.5983,  0.8340,  1.2641, -0.3829,  0.9431, -0.0170,  0.0387,
+          -0.5019]],
+
+        [[-1.2657,  0.5424, -0.4005,  1.4245, -0.4709,  0.1414,  0.2877,
+           0.4334],
+         [-0.2343, -0.7952, -0.3422,  1.1036, -0.0367,  0.0389,  1.1563,
+           0.7373],
+         [-0.7556, -0.2861, -0.3829,  1.2858, -0.1503,  0.0333,  0.8259,
+           0.5391]]], device='cuda:0')
+
+Benchmarking cuda and cpu with Default, Math, Flash Attention amd Memory pytorch backends
+Device: AMD Radeon Pro V520 / cuda:0
+    Default benchmark:
+        17420.152 microseconds, 0.01742015150084626 sec
+    SDPBackend.MATH benchmark:
+        17418.967 microseconds, 0.017418967001140116 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+    SDPBackend.FLASH_ATTENTION cuda:0 is not supported. See warnings for reasons.
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cuda:0 is not supported. See warnings for reasons.
+Device:  AMD EPYC 7R32 / cpu
+    Default benchmark:
+        3758705.576 microseconds, 3.7587055760086514 sec
+    SDPBackend.MATH benchmark:
+        3758394.976 microseconds, 3.758394976001 sec
+    SDPBackend.FLASH_ATTENTION benchmark:
+        3761625.010 microseconds, 3.7616250100109028 sec
+    SDPBackend.EFFICIENT_ATTENTION benchmark:
+    SDPBackend.EFFICIENT_ATTENTION cpu is not supported. See warnings for reasons.
+Summary
+
+Pytorch version: 2.4.1
+ROCM HIP version: 6.1.40093-2868be642
+CPU:  AMD EPYC 7R32
+Problem parameters:
+    Sequence-length: 512
+    Batch-size: 32
+    Heads: 16
+    Embed_dimension: 16
+    Datatype: torch.float16
+Device: AMD Radeon Pro V520 / cuda:0
+                           Default:       17420.152 ms
+                   SDPBackend.MATH:       17418.967 ms
+        SDPBackend.FLASH_ATTENTION:          -1.000 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+
+Device:  AMD EPYC 7R32 / cpu
+                           Default:     3758705.576 ms
+                   SDPBackend.MATH:     3758394.976 ms
+        SDPBackend.FLASH_ATTENTION:     3761625.010 ms
+    SDPBackend.EFFICIENT_ATTENTION:          -1.000 ms
+

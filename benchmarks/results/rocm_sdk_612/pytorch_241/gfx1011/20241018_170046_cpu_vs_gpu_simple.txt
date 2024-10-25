@@ -1,0 +1,9 @@
+Benchmarking CPU and GPUs
+Pytorch version: 2.4.1
+ROCM HIP version: 6.1.40093-2868be642
+       Device:  AMD EPYC 7R32
+    'CPU time: 16.057 sec
+       Device: AMD Radeon Pro V520
+    'GPU time: 0.386 sec
+Benchmark ready
+
