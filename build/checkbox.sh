@@ -510,9 +510,11 @@ display_selected_options() {
         for option in "${checkbox_output[@]}"; do
             if [ ! -v NEW_CFG_FILE_DONE ]; then
                 echo "$option" > build_cfg.user
+                sed -i 's/\([[:blank:]]\).*/\1/' build_cfg.user
                 NEW_CFG_FILE_DONE=1
             else
                 echo "$option" >> build_cfg.user
+                sed -i 's/\([[:blank:]]\).*/\1/' build_cfg.user
             fi
         done
     else
