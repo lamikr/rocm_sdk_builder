@@ -10,13 +10,13 @@ func_is_user_in_dev_kfd_render_group() {
             if [ ${group_owner_name} = "render" ]; then
                 echo "Add your username to group render with command: "
                 echo "    sudo adduser $USERNAME render"
-                echo "Usually you need then reboot to get change to in permissions to take effect"
+                echo "Usually you will need reboot to get changes in the driver permissions to take effect"
                 return 2
             else
                 echo "Unusual /dev/kfd group owner instead of 'render': ${group_owner_name}"
                 echo "Add your username to group ${group_owner_name} with command: "
                 echo "    sudo adduser $USERNAME ${group_owner_name}"
-                echo "Usually you need then reboot to get change to in permissions to take effect"
+                echo "Usually you will need reboot to get changes in the driver permissions to take effect"
                 return 3
             fi
         }
