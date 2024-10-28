@@ -1,7 +1,7 @@
-From c2c69a127d3d3301e96d74be1542451c5aef3254 Mon Sep 17 00:00:00 2001
+From cde2f3673f3f3771c320a37466827fc4bb044b58 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 15:27:25 -0700
-Subject: [PATCH 4/4] initial strix point/strix halo gfx1150/51 support
+Subject: [PATCH 4/6] initial strix point/strix halo gfx1150/51 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -95,7 +95,7 @@ index 21f377f1c..20ea304f3 100644
 +      defined(__gfx1150__) || defined(__gfx1151__) // for GPU code
  #define CK_USE_AMD_WMMA
  #endif
-
+ 
 diff --git a/include/ck/host_utility/device_prop.hpp b/include/ck/host_utility/device_prop.hpp
 index a573ca1a9..dfe75e620 100644
 --- a/include/ck/host_utility/device_prop.hpp
@@ -107,7 +107,7 @@ index a573ca1a9..dfe75e620 100644
 +        {"strixpoint", "gfx1150"},
 +        {"strixhalo", "gfx1151"},
      };
-
+ 
      const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
 diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
 index ed30c5517..d3e1dbb80 100644
@@ -134,7 +134,7 @@ index aeb028a74..3828add4f 100644
 -    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__))
 +    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
 +    defined(__gfx1150__) || defined(__gfx1151__))
-
+ 
      const index_t num_blocks_per_batch =
          __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
 @@ -656,7 +657,8 @@ struct DeviceBatchedGemmMultipleD_Dl : public DeviceBatchedGemmMultiD<ALayout,
@@ -199,7 +199,7 @@ index fbfbf44c9..fcac77133 100644
      defined(__gfx1102__) || defined(__gfx1103__) || \
 +    defined(__gfx1150__) || defined(__gfx1151__) || \
      defined(__gfx941__) || defined(__gfx942__))
-
+ 
      constexpr index_t shared_block_size =
 @@ -564,6 +565,7 @@ struct DeviceGemmMultipleD_Dl : public DeviceGemmMultipleD<ALayout,
             ck::get_device_name() == "gfx940" ||
@@ -327,7 +327,7 @@ index 7d18a900c..71fae78b7 100644
 +++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
 @@ -531,8 +531,9 @@ struct DeviceGroupedConvFwdMultipleD_Wmma_CShuffle
          namespace ctc = tensor_layout::convolution;
-
+ 
          // check device
 -        if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
 -           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
@@ -348,7 +348,7 @@ index a5acec5b5..779a21cc4 100644
 +    defined(__gfx1150__) || defined(__gfx1151__) || \
      defined(__gfx940__)  || defined(__gfx941__) || defined(__gfx942__))
      __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
-
+ 
 diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
 index 8188a18c9..31c7d290b 100644
 --- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
@@ -361,7 +361,7 @@ index 8188a18c9..31c7d290b 100644
 +    defined(__gfx1102__) || defined(__gfx1103__) || \
 +    defined(__gfx1150__) || defined(__gfx1151__))
      __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
-
+ 
      const auto a_grid_desc_ak0_m_ak1 = amd_wave_read_first_lane(
 diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
 index 4cee092c5..c4a1b0c7a 100644
@@ -389,7 +389,7 @@ index d530c0fd8..d626d3432 100644
 +    defined(__gfx1102__) || defined(__gfx1103__) || \
 +    defined(__gfx1150__) || defined(__gfx1151__))
      __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
-
+ 
      GridwiseGemm::template Run<HasMainKBlockLoop>(p_a_grid,
 diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
 index 8ee68ec26..452aab099 100644
@@ -516,7 +516,7 @@ index fb37c90b9..4f5107cae 100644
  list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
 -list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103)
 +list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
-
+ 
  set(target 0)
  foreach(gpu IN LISTS GPU_TARGETS)
 diff --git a/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp b/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
@@ -534,5 +534,6 @@ index 347cb65f6..9097242a8 100644
          if(is_navi3x)
          {
              // on navi3x only support for 3d is implemented
---
+-- 
 2.41.1
+

@@ -1,0 +1,30 @@
+From c4bb2b655121d62d97790101f8afa5fa2d4a0334 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 28 Oct 2024 01:02:20 -0700
+Subject: [PATCH 6/6] do not build examples by default
+
+speeds up the build considerably
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3f5afed74..1abf2d170 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -475,7 +475,9 @@ if (NOT CK_BUILD_JIT_LIB)
+                         LIBRARY_NAME composablekernel
+                         PACKAGE_NAME examples
+            )
+-           add_subdirectory(example)
++           if(BUILD_EXAMPLES)
++                  add_subdirectory(example)
++           endif()
+            if(BUILD_TESTING)
+                   add_subdirectory(test)
+            endif()
+-- 
+2.41.1
+
