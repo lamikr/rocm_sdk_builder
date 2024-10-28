@@ -508,13 +508,16 @@ display_selected_options() {
     if [[ ${#checkbox_output[@]} -gt 0 ]]; then
         unset NEW_CFG_FILE_DONE
         for option in "${checkbox_output[@]}"; do
+            # remove everything starting from the space on each option selected
+            # leaving only the gfxxxx
+            option=$(echo "$option"  | sed 's/\([[:blank:]]\).*/\1/')
             if [ ! -v NEW_CFG_FILE_DONE ]; then
-                echo "$option" > build_cfg.user
-                sed -i 's/\([[:blank:]]\).*/\1/' build_cfg.user
+                # echo first selectionto new file
                 NEW_CFG_FILE_DONE=1
+                echo $option > build_cfg.user
             else
-                echo "$option" >> build_cfg.user
-                sed -i 's/\([[:blank:]]\).*/\1/' build_cfg.user
+                # append selections after the first one
+                echo $option >> build_cfg.user
             fi
         done
     else
