@@ -32,7 +32,7 @@
 readonly SELECTED="[x]"
 readonly UNSELECTED="[ ]"
 
-readonly WHITE="\033[2K\033[37m"
+readonly CLR_CYAN="\033[2K\033[0;36m"
 readonly BLUE="\033[2K\033[34m"
 readonly RED="\033[2K\033[31m"
 readonly GREEN="\033[2K\033[32m"
@@ -63,7 +63,7 @@ content=""
 message=""
 separator=""
 options_input=""
-color=$WHITE
+color=$CLR_CYAN
 checkbox_output=()
 
 #===============================================================================
@@ -142,7 +142,7 @@ handle_options() {
 
             [[ ${options[$cursor]} == $option ]] && set_line_color
             handle_option "$index" "$option"
-            color=$WHITE
+            color=$CLR_CYAN
         fi
     done
 }
@@ -233,9 +233,9 @@ get_output() {
     local footer="$( get_footer )"
 
     local output="  $message\n"
-    output+="$WHITE$separator\n"
+    output+="$CLR_CYAN$separator\n"
     output+="$content"
-    output+="$WHITE$separator\n"
+    output+="$CLR_CYAN$separator\n"
     output+="  $footer\n"
 
     echo "$output"

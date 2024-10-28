@@ -27,9 +27,9 @@ func_babs_handle_build() {
             func_is_user_in_dev_kfd_render_group #From system_utils.sh
             res=$?
             if [ ${res} -eq 0 ]; then
-                echo "You can use the following commands to test your gpu is detected:"
+                echo "You can use following commands to check your GPU"
             else
-                echo "After fixing /dev/kff permission problems, you can use the following commands to test that your gpu"
+                echo "After fixing the /dev/kff permission problems, you can use following commands to check your GPU"
             fi
             echo ""
             echo "    source ${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/env_rocm.sh"

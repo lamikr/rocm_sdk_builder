@@ -12,7 +12,7 @@ Testing of different GPUs and Linux distributions is mainly done by a users and 
 
 ## Supported GPUs
 
-This project has been so far tested with the following AMD GPUs:
+This project has been so far tested with the following AMD Radeon GPUs:
 
 - AMD RX 7900 XTX (gfx1100)
 - AMD RX 7800 XT (gfx1101)
@@ -22,11 +22,19 @@ This project has been so far tested with the following AMD GPUs:
 - AMD RX 6800 (gfx1030)
 - AMD RX 6600 (gfx1032)
 - AMD RX 5700 (gfx1010)
+- AMD Radeon Pro V520 (gfx1011)
 - AMD RX 5500 (gfx1012)
 - AMD Radeon 680M Laptop iGPU (gfx1035)
 - AMD Raphael iGPU (gfx1036) (desktops)
+- AMD Strix Point iGPU (gfx1150) / (Experimental support, testing and feedback needed)
+- AMD Strix Halo iGPU (gfx1151) / (Experimental support)
+- Radeon VII (gfx906) / (Experimental support)
+- MI50 CDNA (gfx906) / (Experimental support)
+- MI100 CDNA (gfx908) / (Experimental support)
+- MI210/250 CDNA (gfx90a) / (Experimental support)
+- MI300A/MI300X CDNA (gfx940, gfx941, gfx942) / (Experimental support)
 
-Older GPUs with having 8GB or less memory may not be able to run more memory extensive benchmarks and applications but they are still in many ways suitable and multiple times faster than CPU's on certain type of tasks.
+Older GPUs having 8GB of memory or less may not be able to run the memory extensive benchmarks and applications but there are many application where they will still work well compared to CPU based opeations.
 
 Some GPU's have been benchmarked after building the ROCM SDK Builder with the benchmark available at https://github.com/lamikr/pytorch-gpu-benchmark/
 
@@ -102,7 +110,7 @@ Selections will be stored to build_cfg.user file. If this file will not exist, t
 # ./babs.sh -c
 ```
 
-![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection.png  "GPU Selection for ROCm SDK Build Target")
+![GPU Selection for ROCm SDK Build Target](docs/tutorial/pics/rocm_sdk_gpu_selection_40pct.png "GPU Selection for ROCm SDK Build Target")
 
 ## Build the ROCM SDK Builder Core
 
