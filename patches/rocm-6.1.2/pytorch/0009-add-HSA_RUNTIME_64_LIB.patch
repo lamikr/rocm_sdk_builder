@@ -1,7 +1,7 @@
-From 52298c1f8fb4999e8c4d4d8174f40276f8e401d7 Mon Sep 17 00:00:00 2001
+From e14c85efe3790dfec8561cdb99de66cf757a7402 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 31 Aug 2024 23:28:55 -0700
-Subject: [PATCH 09/10] add HSA_RUNTIME_64_LIB
+Subject: [PATCH 09/11] add HSA_RUNTIME_64_LIB
 
 - cmake library search works differently on ubuntu 24.04
   compared to other distros.and fails to

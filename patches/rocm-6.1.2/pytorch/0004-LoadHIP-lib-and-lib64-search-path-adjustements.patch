@@ -1,7 +1,7 @@
-From 314c9906fb47377e0b4a99df5f53e95aa66f253a Mon Sep 17 00:00:00 2001
+From 8db5c433e0695ce7903bf9c0f1420a797eaf040c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 27 Jul 2024 19:31:03 -0700
-Subject: [PATCH 04/10] LoadHIP lib and lib64 search path adjustements
+Subject: [PATCH 04/11] LoadHIP lib and lib64 search path adjustements
 
 - search both lib and lib64 directories
   (note some libs still installed to lib-dir

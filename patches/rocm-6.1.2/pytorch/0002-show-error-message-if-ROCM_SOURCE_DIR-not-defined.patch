@@ -1,7 +1,7 @@
-From 6d2ce4e07ba7de3b191326c771879f42a69a6eda Mon Sep 17 00:00:00 2001
+From a4214aa2d724c539dd0f30f24ce3c13edb61ac44 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:16:19 -0700
-Subject: [PATCH 02/10] show error message if ROCM_SOURCE_DIR not defined
+Subject: [PATCH 02/11] show error message if ROCM_SOURCE_DIR not defined
 
 ROCM_SOURCE_DIR is required by by third_party/kineto module
 and if it is not set, kineto will not find the

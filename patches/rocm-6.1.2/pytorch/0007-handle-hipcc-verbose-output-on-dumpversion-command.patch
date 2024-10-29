@@ -1,7 +1,7 @@
-From ae0b1aa0857a49612c5d1f2b4d6ab46e6321522d Mon Sep 17 00:00:00 2001
+From 96de1f68987b64ef5cb924f19e85d9ac1687909f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 15 Jul 2024 00:57:55 -0400
-Subject: [PATCH 07/10] handle hipcc verbose output on dumpversion command
+Subject: [PATCH 07/11] handle hipcc verbose output on dumpversion command
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

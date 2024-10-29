@@ -59,8 +59,8 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DAOTRITON_COMPRESS_KERNEL_STATIC_ZS
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DMLIR_ENABLE_DUMP=1"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DLLVM_IR_ENABLE_DUMP=1"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DAMDGCN_ENABLE_DUMP=1"
-# build libaotriton.a instead of libaotriton.so (required by pytorch 2.4.0)
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DAOTRITON_NO_SHARED=1"
+# causes to build libaotriton.a instead of libaotriton.so (required by pytorch 2.4.0 earlier before we patched to use so)
+# BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DAOTRITON_NO_SHARED=1"
 # separate build needed to do a backend mode as if this is enabled, other part of build is skipped???
 #BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DHIP_BACKEND_MODE=1"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
