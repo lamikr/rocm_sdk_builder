@@ -1,7 +1,7 @@
-From ef9317904e55d69e92c0f99d7c13aab8583dcbc3 Mon Sep 17 00:00:00 2001
+From 68dce89476bd816d1819e1923de71c920c22a4fa Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:18:33 -0700
-Subject: [PATCH 02/11] add gfx1011/12/35/36/1103 to gpulist
+Subject: [PATCH 02/12] add gfx1011/12/35/36/1103 to gpulist
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -106,5 +106,5 @@ index 1f0349fd..073bb244 100644
      }
  
 -- 
-2.43.0
+2.41.1
 

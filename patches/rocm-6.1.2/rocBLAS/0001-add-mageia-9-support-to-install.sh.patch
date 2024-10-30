@@ -1,7 +1,7 @@
-From d3bf7121c9a394f8c1f04f4642822ea7e6c8072d Mon Sep 17 00:00:00 2001
+From abed4ee267dadd60256b346b3121bcbb9188161c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:17:42 -0700
-Subject: [PATCH 01/11] add mageia 9 support to install.sh
+Subject: [PATCH 01/12] add mageia 9 support to install.sh
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -54,5 +54,5 @@ index fc644b87..46c95775 100755
        elevate_if_not_root zypper -n --no-gpg-checks install rocblas-*.rpm
      ;;
 -- 
-2.43.0
+2.41.1
 
