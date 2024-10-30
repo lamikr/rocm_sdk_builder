@@ -1,0 +1,55 @@
+Buffer resource bits are used/defined at least on these projects
+----------------------------------------------------------------
+composable_kernel
+MIOpen
+rocFFT
+hipBLASLt
+onnxruntime
+jax
+
+defined either as CK_BUFFER_RESOURCE_3RD_DWORD or BUFFER_RESOURCE_3RD_DWORD
+
+RDNA isa is little endian, so lsb bypes are stored to first addresses
+RDNA3 and CDNA123 have different structure for buffer resource bits than rdna1 and rdna2
+
+gfx1030: 0x31014000: 0011 0001 0000 0001 0100 0000 0000 0000
+gfx1100: 0x31004000: 0011 0001 0000 0000 0100 0000 0000 0000
+
+(RDNA1 and RDNA2)
+096 DSTX0			0
+097 DSTX1			0
+098 DSTX2			0
+099 DSTY0			0
+100 DSTY1			0
+101 DSTY2			0
+102 DSTZ0			0
+103 DSTZ1			0
+104 DSTZ2			0
+105 DSTW0			0
+106 DSTW1			0
+107 DSTW2			0
+108 NUM_FORMAT0		0
+109 NUM_FORMAT1		0
+110 NUM_FORMAT2		1
+111 DATA_FORMAT0	0
+112 DATA_FORMAT1	1
+113 DATA_FORMAT2	0
+114 DATA_FORMAT3	0
+115 UNKNOWN			0
+116 NKNOWN			0
+117 INDX_STR		0
+118 INDX_STR		0
+119 TID_ENABLE		0
+120 RESOURCE_LEVEL	1 
+121 UNKNOWN			0
+122 UNKNOWN			0
+123 UNKNOWN			0
+124 OOB_SEL			1
+125 OOB_SEL			1
+126 TYPE			0
+127 TYPE			0
+
+
+todo: check
+1) Composable kernel:
+CK_EXPERIMENTAL_USE_BUFFER_LOAD_OOB_CHECK_OFFSET_TRICK disable/enable on RDNA1 devices (gfx1010,1011,1012)
