@@ -1,0 +1,26 @@
+From 0b6a828ef37946ad0d38dda8dcc6870b06c477bd Mon Sep 17 00:00:00 2001
+From: "Galantsev, Dmitrii" <dmitrii.galantsev@amd.com>
+Date: Fri, 19 Jul 2024 14:03:53 -0500
+Subject: [PATCH 8/8] Fix missing c_str() introduced in 8bc8307
+
+Change-Id: Ife778276aaebd109a413efb3db703de36b730613
+Signed-off-by: Galantsev, Dmitrii <dmitrii.galantsev@amd.com>
+---
+ third_party/shared_mutex/shared_mutex.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/third_party/shared_mutex/shared_mutex.cc b/third_party/shared_mutex/shared_mutex.cc
+index 59504ee..54b0584 100755
+--- a/third_party/shared_mutex/shared_mutex.cc
++++ b/third_party/shared_mutex/shared_mutex.cc
+@@ -259,7 +259,7 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
+       std::vector<std::string> ids = lsof(shared_mutex_filename.c_str());
+       if (ids.size() == 0) {  // no process is using it
+         fprintf(stderr, "%d re-init the mutex %s since no one use it. ret:%d ptr:%p\n",
+-              cur_pid, shared_mutex_filename, ret, reinterpret_cast<shared_mutex_t *>(addr)->ptr);
++              cur_pid, shared_mutex_filename.c_str(), ret, reinterpret_cast<shared_mutex_t *>(addr)->ptr);
+         memset(mutex_ptr, 0, sizeof(pthread_mutex_t));
+         // Set mutex.created == 1 so that it can be initialized latter.
+         mutex.created = 1;
+--
+2.41.1

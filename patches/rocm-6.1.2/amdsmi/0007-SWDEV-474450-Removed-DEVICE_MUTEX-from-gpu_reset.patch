@@ -1,0 +1,46 @@
+From a2819ba56eb8042e5ea5e5818e78f7ac0a9cfcd5 Mon Sep 17 00:00:00 2001
+From: Maisam Arif <Maisam.Arif@amd.com>
+Date: Fri, 19 Jul 2024 10:47:03 -0500
+Subject: [PATCH 7/8] [SWDEV-474450] Removed DEVICE_MUTEX from gpu_reset
+
+Signed-off-by: Maisam Arif <Maisam.Arif@amd.com>
+Change-Id: I706fb47288738bfbde94b56fee66bbf807b3c0cb
+---
+ rocm_smi/src/rocm_smi.cc                 | 3 ++-
+ third_party/shared_mutex/shared_mutex.cc | 5 +++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/rocm_smi/src/rocm_smi.cc b/rocm_smi/src/rocm_smi.cc
+index 11be39f..6fd436d 100755
+--- a/rocm_smi/src/rocm_smi.cc
++++ b/rocm_smi/src/rocm_smi.cc
+@@ -3428,7 +3428,8 @@ rsmi_dev_gpu_reset(uint32_t dv_ind) {
+   ss << __PRETTY_FUNCTION__ << "| ======= start =======";
+   LOG_TRACE(ss);
+   REQUIRE_ROOT_ACCESS
+-  DEVICE_MUTEX
++  // No longer using DEVICE_MUTEX as it blocks long running processes
++  // DEVICE_MUTEX
+
+   rsmi_status_t ret;
+   uint64_t status_code = 0;
+diff --git a/third_party/shared_mutex/shared_mutex.cc b/third_party/shared_mutex/shared_mutex.cc
+index 414faa1..59504ee 100755
+--- a/third_party/shared_mutex/shared_mutex.cc
++++ b/third_party/shared_mutex/shared_mutex.cc
+@@ -255,10 +255,11 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
+     // When process crash before unlock the mutex, the mutex is in bad status.
+     // reset the mutex if no process is using it, and then retry lock
+     if (!retried) {
+-      std::vector<std::string> ids = lsof(name);
++      std::string shared_mutex_filename = "/dev/shm" + std::string(name);
++      std::vector<std::string> ids = lsof(shared_mutex_filename.c_str());
+       if (ids.size() == 0) {  // no process is using it
+         fprintf(stderr, "%d re-init the mutex %s since no one use it. ret:%d ptr:%p\n",
+-              cur_pid, name, ret, reinterpret_cast<shared_mutex_t *>(addr)->ptr);
++              cur_pid, shared_mutex_filename, ret, reinterpret_cast<shared_mutex_t *>(addr)->ptr);
+         memset(mutex_ptr, 0, sizeof(pthread_mutex_t));
+         // Set mutex.created == 1 so that it can be initialized latter.
+         mutex.created = 1;
+--
+2.41.1

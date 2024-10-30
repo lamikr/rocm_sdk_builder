@@ -1,7 +1,7 @@
-From 86688f688f119a269c55c9465445befaf9ec07f7 Mon Sep 17 00:00:00 2001
+From 3e961df0573823db78aeaa9409ac36515fa4dbe3 Mon Sep 17 00:00:00 2001
 From: "Bill(Shuzhou) Liu" <shuzhou.liu@amd.com>
 Date: Tue, 25 Jun 2024 10:03:33 -0500
-Subject: [PATCH 2/3] Make the the devInfoTypesStrings.at(type) exception safe
+Subject: [PATCH 2/8] Make the the devInfoTypesStrings.at(type) exception safe
 
 Wrap it in a function to make it exception safe.
 
@@ -471,5 +471,5 @@ index c078712..5625fb5 100755
      if(++temp_it != env_vars_.enum_overrides.end()) {
        ss << ", ";
 -- 
-2.46.0
+2.41.1
 
