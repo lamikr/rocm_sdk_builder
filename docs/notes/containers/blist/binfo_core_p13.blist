@@ -1,0 +1,5 @@
+binfo/extra/rocprofiler-register.binfo
+binfo/extra/rocprofiler_aql.binfo
+binfo/extra/caliper.binfo
+binfo/extra/timemory.binfo
+binfo/extra/omnitrace.binfo
