@@ -1,4 +1,4 @@
-From e6de9c1658af93b6122f90363af7b73732c070ef Mon Sep 17 00:00:00 2001
+From eb102973999ace7b2da6075e6a4cf869884325c4 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 14:58:56 +0000
 Subject: [PATCH 2/2] Replace bashisms with POSIX syntax
