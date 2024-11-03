@@ -61,7 +61,16 @@ func_install_packages()
         arch|manjaro)
             # elevate_if_not_root pacman -Syu
             sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind openpmix flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx sox ncurses expat systemd cpio
-            git-lfs install
+            if pacman -Qs babeltrace > /dev/null ; then
+                echo "Babeltrace already installed."
+            else
+                git clone https://aur.archlinux.org/babeltrace.git
+                cd babeltrace
+                makepkg -si
+                cd ..
+                rm -rf babeltrace
+            fi
+	    git-lfs install
             ;;
         void)
             sudo xbps-install -S git-lfs base-devel gcc-fortran cmake doxygen babeltrace-devel bzip2-devel elfutils-devel expat-devel ffmpeg ffmpeg-devel gdb gdbm-devel gmp-devel icu icu-devel json-c++ lcov libaio-devel libdrm-devel libffi-devel libglvnd-devel libgomp-devel libjpeg-turbo-devel liblzma liblzma-devel libnuma-devel libpng-devel libuuid-devel mpfr-devel msgpack-cxx ncurses-devel ninja openssl-devel protobuf protobuf-devel python3-pip python3-pybind11 readline readline-devel sox sqlite sqlite-devel xxd zlib-devel
