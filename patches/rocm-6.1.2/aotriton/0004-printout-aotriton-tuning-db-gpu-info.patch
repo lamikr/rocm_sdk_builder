@@ -1,7 +1,7 @@
-From 33f551057998a472220d3fc77a02c30838497f82 Mon Sep 17 00:00:00 2001
+From f3b35c4f2be53a13bf3782b35cda1cee5e1a7412 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 6 Aug 2024 17:15:39 -0700
-Subject: [PATCH 4/5] printout aotriton tuning db gpu info
+Subject: [PATCH 4/6] printout aotriton tuning db gpu info
 
 printout information if tuning data was available
 in database for kernel when build for certain gpu
@@ -34,5 +34,5 @@ index 14ef241..fd1dc59 100644
  
      @property
 -- 
-2.41.1
+2.43.0
 

@@ -1,0 +1,114 @@
+From 99181464557993f88cbc142b4e7d5b3a0e789c7c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 4 Nov 2024 13:17:38 -0800
+Subject: [PATCH 6/6] build fixes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                             | 2 +-
+ include/aotriton/_internal/packed_kernel.h | 6 +++++-
+ include/aotriton/_internal/triton_kernel.h | 2 +-
+ v2python/generate_shim.py                  | 1 -
+ v2python/tuning_lut.py                     | 4 ++++
+ v2src/packed_kernel.cc                     | 1 +
+ 6 files changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 404ca48..62ea862 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+ 
+ project(AOTriton CXX C)
+ 
+-set(CMAKE_CXX_STANDARD 17)
++set(CMAKE_CXX_STANDARD 20)
+ 
+ add_subdirectory(third_party/pybind11)
+ find_package(Python3 COMPONENTS Interpreter REQUIRED)
+diff --git a/include/aotriton/_internal/packed_kernel.h b/include/aotriton/_internal/packed_kernel.h
+index 1d41c64..5ec80c7 100644
+--- a/include/aotriton/_internal/packed_kernel.h
++++ b/include/aotriton/_internal/packed_kernel.h
+@@ -5,7 +5,7 @@
+ #define AOTRITON_V2_API_PACKED_KERNEL_H
+ 
+ #include <aotriton/_internal/triton_kernel.h>
+-#include <aotriton/config.h>
++//#include <aotriton/config.h>
+ #include <memory>
+ #include <shared_mutex>
+ #include <stdint.h>
+@@ -14,6 +14,10 @@
+ #include <unordered_map>
+ #include <vector>
+ 
++#ifndef AOTRITON_NS
++  #define AOTRITON_NS aotriton
++#endif
++
+ namespace AOTRITON_NS {
+ 
+ using PackedKernelPtr = std::shared_ptr<PackedKernel>;
+diff --git a/include/aotriton/_internal/triton_kernel.h b/include/aotriton/_internal/triton_kernel.h
+index 7e54f48..d679d3d 100644
+--- a/include/aotriton/_internal/triton_kernel.h
++++ b/include/aotriton/_internal/triton_kernel.h
+@@ -6,7 +6,7 @@
+ 
+ #include "../runtime.h"
+ #include <unordered_map>
+-#include <aotriton/config.h>
++//#include <aotriton/config.h>
+ #include <memory>
+ #include <shared_mutex>
+ #include <tuple>
+diff --git a/v2python/generate_shim.py b/v2python/generate_shim.py
+index 15aa95a..1a7831b 100755
+--- a/v2python/generate_shim.py
++++ b/v2python/generate_shim.py
+@@ -346,7 +346,6 @@ class AutotuneCodeGenerator(MakefileSegmentGenerator):
+         self.verbose('AutotuneCodeGenerator')
+         # Write the code to file
+         self._ofn = self._lut.write_lut_source(self._outdir,
+-                                               compressed=self._args.enable_zstd is not None,
+                                                bare_mode=self.is_bare,
+                                                noimage_mode=self._args.noimage_mode)
+         self.verbose(f'\t lut = {self._fsels}')
+diff --git a/v2python/tuning_lut.py b/v2python/tuning_lut.py
+index d6212da..e101618 100644
+--- a/v2python/tuning_lut.py
++++ b/v2python/tuning_lut.py
+@@ -17,6 +17,8 @@ GPU_TO_DIRECTORY = {
+     'MI300X' : 'amd-gfx942',
+     'Navi31' : 'amd-gfx110x',
+     'Navi32' : 'amd-gfx110x',
++    'gfx1102' : 'amd-gfx1102',
++    'gfx1103' : 'amd-gfx1103',
+ }
+ 
+ GPU_TO_CLUSTER_SUFFIX = {
+@@ -24,6 +26,8 @@ GPU_TO_CLUSTER_SUFFIX = {
+     'MI300X' : 'MI300X',
+     'Navi31' : 'Navi3x',
+     'Navi32' : 'Navi3x',
++    'gfx1102' : 'gfx1102',
++    'gfx1103' : 'gfx1103',
+ }
+ 
+ class KernelTuningEntryForFunctionalOnGPU(object):
+diff --git a/v2src/packed_kernel.cc b/v2src/packed_kernel.cc
+index c5baf1f..5434036 100644
+--- a/v2src/packed_kernel.cc
++++ b/v2src/packed_kernel.cc
+@@ -11,6 +11,7 @@
+ #include <iostream>
+ #include <lzma.h>
+ #include <unistd.h>
++#include <mutex>
+ 
+ #ifdef NDEBUG
+ #define AOTRITON_KERNEL_VERBOSE 0
+-- 
+2.43.0
+
