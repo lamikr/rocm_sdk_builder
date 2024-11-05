@@ -1,0 +1,316 @@
+From 85114fb71f1562c8719786446128f96868444f06 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 4 Nov 2024 16:11:47 -0800
+Subject: [PATCH 2/5] add rocm sdk supported gpus
+
+- add all rocm sdk gpu's to build list
+- use the gfx* names for specifying the gpus instead
+  of using the marketing names. This allows rocm sdk builder
+  to specify target gpus in same way than with other
+  rocm components.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/aotriton/util.h      | 16 ++++++++++
+ v2python/compile.py          | 20 ++++++++++++
+ v2python/generate_compile.py | 40 ++++++++++++++++++++++++
+ v2python/gpu_targets.py      | 60 ++++++++++++++++++++++++++++++++++++
+ v2python/tuning_lut.py       | 40 ++++++++++++++++++++++++
+ v2src/util.cc                | 16 ++++++++++
+ 6 files changed, 192 insertions(+)
+
+diff --git a/include/aotriton/util.h b/include/aotriton/util.h
+index 222f025..b7350d2 100644
+--- a/include/aotriton/util.h
++++ b/include/aotriton/util.h
+@@ -36,10 +36,26 @@ enum GpuVendor : uint32_t {
+ // More bits for potential non-PCI architectures
+ enum GpuArch : uint64_t {
+   GPU_ARCH_UNKNOWN = 0,
++  GPU_ARCH_AMD_GFX906 = CAT(GpuVendor::kAMD, 0x906),
++  GPU_ARCH_AMD_GFX908 = CAT(GpuVendor::kAMD, 0x908),
+   GPU_ARCH_AMD_GFX90A = CAT(GpuVendor::kAMD, 0x90a),
++  GPU_ARCH_AMD_GFX940 = CAT(GpuVendor::kAMD, 0x940),
++  GPU_ARCH_AMD_GFX941 = CAT(GpuVendor::kAMD, 0x941),
+   GPU_ARCH_AMD_GFX942 = CAT(GpuVendor::kAMD, 0x942),
++  GPU_ARCH_AMD_GFX1010 = CAT(GpuVendor::kAMD, 0x1010),
++  GPU_ARCH_AMD_GFX1011 = CAT(GpuVendor::kAMD, 0x1011),
++  GPU_ARCH_AMD_GFX1012 = CAT(GpuVendor::kAMD, 0x1012),
++  GPU_ARCH_AMD_GFX1030 = CAT(GpuVendor::kAMD, 0x1030),
++  GPU_ARCH_AMD_GFX1031 = CAT(GpuVendor::kAMD, 0x1031),
++  GPU_ARCH_AMD_GFX1032 = CAT(GpuVendor::kAMD, 0x1032),
++  GPU_ARCH_AMD_GFX1035 = CAT(GpuVendor::kAMD, 0x1035),
++  GPU_ARCH_AMD_GFX1036 = CAT(GpuVendor::kAMD, 0x1036),
+   GPU_ARCH_AMD_GFX1100 = CAT(GpuVendor::kAMD, 0x1100),
+   GPU_ARCH_AMD_GFX1101 = CAT(GpuVendor::kAMD, 0x1101),
++  GPU_ARCH_AMD_GFX1102 = CAT(GpuVendor::kAMD, 0x1102),
++  GPU_ARCH_AMD_GFX1103 = CAT(GpuVendor::kAMD, 0x1103),
++  GPU_ARCH_AMD_GFX1150 = CAT(GpuVendor::kAMD, 0x1150),
++  GPU_ARCH_AMD_GFX1151 = CAT(GpuVendor::kAMD, 0x1151),
+ };
+ 
+ template<int Rank>
+diff --git a/v2python/compile.py b/v2python/compile.py
+index 4f37a98..6c61840 100644
+--- a/v2python/compile.py
++++ b/v2python/compile.py
+@@ -20,6 +20,26 @@ KNOWN_TARGETS = {
+         'MI300X' : GPUTarget('hip', 'gfx942', 64),
+         'Navi31' : GPUTarget('hip', 'gfx1100', 32),
+         'Navi32' : GPUTarget('hip', 'gfx1101', 32),
++        'gfx906' : GPUTarget('hip', 'gfx906', 64),
++        'gfx908' : GPUTarget('hip', 'gfx908', 64),
++        'gfx90a' : GPUTarget('hip', 'gfx90a', 64),
++        'gfx940' : GPUTarget('hip', 'gfx940', 64),
++        'gfx941' : GPUTarget('hip', 'gfx941', 64),
++        'gfx942' : GPUTarget('hip', 'gfx942', 64),
++        'gfx1010' : GPUTarget('hip', 'gfx1010', 32),
++        'gfx1011' : GPUTarget('hip', 'gfx1011', 32),
++        'gfx1012' : GPUTarget('hip', 'gfx1012', 32),
++        'gfx1030' : GPUTarget('hip', 'gfx1030', 32),
++        'gfx1031' : GPUTarget('hip', 'gfx1031', 32),
++        'gfx1032' : GPUTarget('hip', 'gfx1032', 32),
++        'gfx1035' : GPUTarget('hip', 'gfx1035', 32),
++        'gfx1036' : GPUTarget('hip', 'gfx1036', 32),
++        'gfx1100' : GPUTarget('hip', 'gfx1100', 32),
++        'gfx1101' : GPUTarget('hip', 'gfx1101', 32),
++        'gfx1102' : GPUTarget('hip', 'gfx1102', 32),
++        'gfx1103' : GPUTarget('hip', 'gfx1103', 32),
++        'gfx1150' : GPUTarget('hip', 'gfx1150', 32),
++        'gfx1151' : GPUTarget('hip', 'gfx1151', 32),
+ }
+ 
+ desc = """
+diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
+index 4b1ea27..8edf6a8 100644
+--- a/v2python/generate_compile.py
++++ b/v2python/generate_compile.py
+@@ -19,6 +19,26 @@ GPU_TO_DIRECTORY = {
+     'MI300X' : 'amd-gfx942',
+     'Navi31' : 'amd-gfx110x',
+     'Navi32' : 'amd-gfx110x',
++    'gfx906' : 'amd-gfx906',
++    'gfx908' : 'amd-gfx908',
++    'gfx90a' : 'amd-gfx90a',
++    'gfx940' : 'amd-gfx940',
++    'gfx941' : 'amd-gfx941',
++    'gfx942' : 'amd-gfx942',
++    'gfx1010' : 'amd-gfx1010',
++    'gfx1011' : 'amd-gfx1011',
++    'gfx1012' : 'amd-gfx1012',
++    'gfx1030' : 'amd-gfx1030',
++    'gfx1031' : 'amd-gfx1031',
++    'gfx1032' : 'amd-gfx1032',
++    'gfx1035' : 'amd-gfx1035',
++    'gfx1036' : 'amd-gfx1036',
++    'gfx1100' : 'amd-gfx1100',
++    'gfx1101' : 'amd-gfx1101',
++    'gfx1102' : 'amd-gfx1102',
++    'gfx1103' : 'amd-gfx1103',
++    'gfx1150' : 'amd-gfx1150',
++    'gfx1151' : 'amd-gfx1151',
+ }
+ 
+ GPU_TO_CLUSTER_SUFFIX = {
+@@ -26,6 +46,26 @@ GPU_TO_CLUSTER_SUFFIX = {
+     'MI300X' : 'MI300X',
+     'Navi31' : 'Navi3x',
+     'Navi32' : 'Navi3x',
++    'gfx906' : 'amd-gfx906',
++    'gfx908' : 'amd-gfx908',
++    'gfx90a' : 'amd-gfx90a',
++    'gfx940' : 'amd-gfx940',
++    'gfx941' : 'amd-gfx941',
++    'gfx942' : 'amd-gfx942',
++    'gfx1010' : 'amd-gfx1010',
++    'gfx1011' : 'amd-gfx1011',
++    'gfx1012' : 'amd-gfx1012',
++    'gfx1030' : 'amd-gfx1030',
++    'gfx1031' : 'amd-gfx1031',
++    'gfx1032' : 'amd-gfx1032',
++    'gfx1035' : 'amd-gfx1035',
++    'gfx1036' : 'amd-gfx1036',
++    'gfx1100' : 'amd-gfx1100',
++    'gfx1101' : 'amd-gfx1101',
++    'gfx1102' : 'amd-gfx1102',
++    'gfx1103' : 'amd-gfx1103',
++    'gfx1150' : 'amd-gfx1150',
++    'gfx1151' : 'amd-gfx1151',
+ }
+ 
+ class ClusterKernel(object):
+diff --git a/v2python/gpu_targets.py b/v2python/gpu_targets.py
+index fb51fef..a588b63 100644
+--- a/v2python/gpu_targets.py
++++ b/v2python/gpu_targets.py
+@@ -6,6 +6,26 @@ AOTRITON_SUPPORTED_GPUS = {
+     'MI300X'    : 'GPU_ARCH_AMD_GFX942',
+     'Navi31'    : 'GPU_ARCH_AMD_GFX1100',
+     'Navi32'    : 'GPU_ARCH_AMD_GFX1101',
++    'gfx906'    : 'GPU_ARCH_AMD_GFX906',
++    'gfx908'    : 'GPU_ARCH_AMD_GFX908',
++    'gfx90a'    : 'GPU_ARCH_AMD_GFX90A',
++    'gfx940'    : 'GPU_ARCH_AMD_GFX940',
++    'gfx941'    : 'GPU_ARCH_AMD_GFX941',
++    'gfx942'    : 'GPU_ARCH_AMD_GFX942',
++    'gfx1010'   : 'GPU_ARCH_AMD_GFX1010',
++    'gfx1011'   : 'GPU_ARCH_AMD_GFX1011',
++    'gfx1012'   : 'GPU_ARCH_AMD_GFX1012',
++    'gfx1030'   : 'GPU_ARCH_AMD_GFX1030',
++    'gfx1031'   : 'GPU_ARCH_AMD_GFX1031',
++    'gfx1032'   : 'GPU_ARCH_AMD_GFX1032',
++    'gfx1035'   : 'GPU_ARCH_AMD_GFX1035',
++    'gfx1036'   : 'GPU_ARCH_AMD_GFX1036',
++    'gfx1100'   : 'GPU_ARCH_AMD_GFX1100',
++    'gfx1101'   : 'GPU_ARCH_AMD_GFX1101',
++    'gfx1102'   : 'GPU_ARCH_AMD_GFX1102',
++    'gfx1103'   : 'GPU_ARCH_AMD_GFX1103',
++    'gfx1150'   : 'GPU_ARCH_AMD_GFX1150',
++    'gfx1151'   : 'GPU_ARCH_AMD_GFX1151',
+ }
+ 
+ AOTRITON_GPU_ARCH_TUNING_STRING = {
+@@ -13,6 +33,26 @@ AOTRITON_GPU_ARCH_TUNING_STRING = {
+     'MI300X'    : 'gfx942',
+     'Navi31'    : 'gfx1100',
+     'Navi32'    : 'gfx1101',
++    'gfx906'    : 'gfx906',
++    'gfx908'    : 'gfx908',
++    'gfx90a'    : 'gfx90a',
++    'gfx940'    : 'gfx940',
++    'gfx941'    : 'gfx941',
++    'gfx942'    : 'gfx942',
++    'gfx1010'   : 'gfx1010',
++    'gfx1011'   : 'gfx1011',
++    'gfx1012'   : 'gfx1012',
++    'gfx1030'   : 'gfx1030',
++    'gfx1031'   : 'gfx1031',
++    'gfx1032'   : 'gfx1032',
++    'gfx1035'   : 'gfx1035',
++    'gfx1036'   : 'gfx1036',
++    'gfx1100'   : 'gfx1100',
++    'gfx1101'   : 'gfx1101',
++    'gfx1102'   : 'gfx1102',
++    'gfx1103'   : 'gfx1103',
++    'gfx1150'   : 'gfx1150',
++    'gfx1151'   : 'gfx1151',
+ }
+ 
+ AOTRITON_GPU_WARPSIZE = {
+@@ -20,4 +60,24 @@ AOTRITON_GPU_WARPSIZE = {
+     'MI300X'    : 64,
+     'Navi31'    : 32,
+     'Navi32'    : 32,
++    'gfx906'    : 64,
++    'gfx908'    : 64,
++    'gfx90a'    : 64,
++    'gfx940'    : 64,
++    'gfx941'    : 64,
++    'gfx942'    : 64,
++    'gfx1010'   : 32,
++    'gfx1011'   : 32,
++    'gfx1012'   : 32,
++    'gfx1030'   : 32,
++    'gfx1031'   : 32,
++    'gfx1032'   : 32,
++    'gfx1035'   : 32,
++    'gfx1036'   : 32,
++    'gfx1100'   : 32,
++    'gfx1101'   : 32,
++    'gfx1102'   : 32,
++    'gfx1103'   : 32,
++    'gfx1150'   : 32,
++    'gfx1151'   : 32,
+ }
+diff --git a/v2python/tuning_lut.py b/v2python/tuning_lut.py
+index c78a48f..c8c0326 100644
+--- a/v2python/tuning_lut.py
++++ b/v2python/tuning_lut.py
+@@ -17,6 +17,26 @@ GPU_TO_DIRECTORY = {
+     'MI300X' : 'amd-gfx942',
+     'Navi31' : 'amd-gfx110x',
+     'Navi32' : 'amd-gfx110x',
++    'gfx906' : 'amd-gfx906',
++    'gfx908' : 'amd-gfx908',
++    'gfx90a' : 'amd-gfx90a',
++    'gfx940' : 'amd-gfx940',
++    'gfx941' : 'amd-gfx941',
++    'gfx942' : 'amd-gfx942',
++    'gfx1010' : 'amd-gfx1010',
++    'gfx1011' : 'amd-gfx1011',
++    'gfx1012' : 'amd-gfx1012',
++    'gfx1030' : 'amd-gfx1030',
++    'gfx1031' : 'amd-gfx1031',
++    'gfx1032' : 'amd-gfx1032',
++    'gfx1035' : 'amd-gfx1035',
++    'gfx1036' : 'amd-gfx1036',
++    'gfx1100' : 'amd-gfx1100',
++    'gfx1101' : 'amd-gfx1101',
++    'gfx1102' : 'amd-gfx1102',
++    'gfx1103' : 'amd-gfx1103',
++    'gfx1150' : 'amd-gfx1150',
++    'gfx1151' : 'amd-gfx1151',
+ }
+ 
+ GPU_TO_CLUSTER_SUFFIX = {
+@@ -24,6 +44,26 @@ GPU_TO_CLUSTER_SUFFIX = {
+     'MI300X' : 'MI300X',
+     'Navi31' : 'Navi3x',
+     'Navi32' : 'Navi3x',
++    'gfx906' : 'amd-gfx906',
++    'gfx908' : 'amd-gfx908',
++    'gfx90a' : 'amd-gfx90a',
++    'gfx940' : 'amd-gfx940',
++    'gfx941' : 'amd-gfx941',
++    'gfx942' : 'amd-gfx942',
++    'gfx1010' : 'amd-gfx1010',
++    'gfx1011' : 'amd-gfx1011',
++    'gfx1012' : 'amd-gfx1012',
++    'gfx1030' : 'amd-gfx1030',
++    'gfx1031' : 'amd-gfx1031',
++    'gfx1032' : 'amd-gfx1032',
++    'gfx1035' : 'amd-gfx1035',
++    'gfx1036' : 'amd-gfx1036',
++    'gfx1100' : 'amd-gfx1100',
++    'gfx1101' : 'amd-gfx1101',
++    'gfx1102' : 'amd-gfx1102',
++    'gfx1103' : 'amd-gfx1103',
++    'gfx1150' : 'amd-gfx1150',
++    'gfx1151' : 'amd-gfx1151',
+ }
+ 
+ class MissingLutEntry(Exception):
+diff --git a/v2src/util.cc b/v2src/util.cc
+index e9520a7..06ef4f5 100644
+--- a/v2src/util.cc
++++ b/v2src/util.cc
+@@ -34,10 +34,26 @@ private:
+ };
+ 
+ std::unordered_map<std::string, GpuArch> LazyArch::string_to_arch = {
++  {"gfx906", GPU_ARCH_AMD_GFX906},
++  {"gfx908", GPU_ARCH_AMD_GFX908},
+   {"gfx90a", GPU_ARCH_AMD_GFX90A},
++  {"gfx940", GPU_ARCH_AMD_GFX940},
++  {"gfx941", GPU_ARCH_AMD_GFX941},
+   {"gfx942", GPU_ARCH_AMD_GFX942},
++  {"gfx1010", GPU_ARCH_AMD_GFX1010},
++  {"gfx1011", GPU_ARCH_AMD_GFX1011},
++  {"gfx1012", GPU_ARCH_AMD_GFX1012},
++  {"gfx1030", GPU_ARCH_AMD_GFX1030},
++  {"gfx1031", GPU_ARCH_AMD_GFX1031},
++  {"gfx1032", GPU_ARCH_AMD_GFX1032},
++  {"gfx1035", GPU_ARCH_AMD_GFX1035},
++  {"gfx1036", GPU_ARCH_AMD_GFX1036},
+   {"gfx1100", GPU_ARCH_AMD_GFX1100},
+   {"gfx1101", GPU_ARCH_AMD_GFX1101},
++  {"gfx1102", GPU_ARCH_AMD_GFX1102},
++  {"gfx1103", GPU_ARCH_AMD_GFX1103},
++  {"gfx1150", GPU_ARCH_AMD_GFX1150},
++  {"gfx1151", GPU_ARCH_AMD_GFX1151},
+ };
+ 
+ GpuArch
+-- 
+2.43.0
+

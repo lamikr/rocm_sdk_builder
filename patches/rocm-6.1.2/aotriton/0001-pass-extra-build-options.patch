@@ -1,28 +1,26 @@
-From 5a7bd944af2765f84cd08511dc95a4fece11e786 Mon Sep 17 00:00:00 2001
+From 774e0e918e3baa52d2fbac38c88431d0561cb746 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Mon, 29 Jul 2024 00:01:32 -0700
+Date: Mon, 4 Nov 2024 15:32:47 -0800
 Subject: [PATCH 1/5] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- CMakeLists.txt                     | 26 +++++++++++++++++++++++---
- python/generate.py                 |  4 +++-
+ CMakeLists.txt                     | 25 ++++++++++++++++++++++++-
  third_party/triton/CMakeLists.txt  | 12 ++++++++++++
  third_party/triton/python/setup.py | 21 +++++++++++++++++++++
  v2python/compile.py                |  2 ++
  v2python/generate_compile.py       |  7 ++++++-
- v2src/CMakeLists.txt               |  3 ++-
- 7 files changed, 69 insertions(+), 6 deletions(-)
+ v2src/CMakeLists.txt               |  3 +++
+ 6 files changed, 68 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5f167bd..08b27a8 100644
+index c5f2522..cebbcfd 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -18,7 +18,27 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
- option(AOTRITON_BUILD_FOR_TUNING "Build all GPU kernels and set -DAOTRITON_BUILD_FOR_TUNING=1 (=0 otherwise)" OFF)
+@@ -25,6 +25,28 @@ option(AOTRITON_NOIMAGE_MODE "Only build C++ Shim part. Kernel image builds are
  set(AOTRITON_GPU_BUILD_TIMEOUT "8.0" CACHE STRING "GPU kernel compiler times out after X minutes. 0 for indefinite. Highly recommended if AOTRITON_BUILD_FOR_TUNING=On.")
  set(TARGET_GPUS "MI200;MI300X;Navi31" CACHE STRING "Target Architecture (Note here uses Trade names)")
--set(AMDHSA_LD_PRELOAD "/opt/rocm/lib/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
+ 
 +if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so")
 +    set(AMDHSA_LD_PRELOAD "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
 +else()
@@ -44,52 +42,29 @@ index 5f167bd..08b27a8 100644
 +set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
 +
 +message(STATUS "TRITON_USE_ROCM: ${TRITON_USE_ROCM} MLIR_ENABLE_DUMP: ${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP: ${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP: ${AMDGCN_ENABLE_DUMP} target GPUS: ${TARGET_GPUS}")
++
+ # Early failure for python binding
+ if(NOT AOTRITON_NO_PYTHON)
+   find_package(Python3 ${AOTRITON_MIN_PYTHON} COMPONENTS Development REQUIRED)
+@@ -53,6 +75,7 @@ target_link_libraries(lzma_interface INTERFACE ${LZMA_LIBRARIES})
+ target_link_directories(lzma_interface INTERFACE ${LZMA_LIBRARY_DIRS})
+ target_include_directories(lzma_interface INTERFACE ${LZMA_INCLUDE_DIRS})
  
- # GPU kernel compression related options
- option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
-@@ -59,7 +79,7 @@ if(AOTRITON_COMPRESS_KERNEL)
-     endif()
- endif()
- 
--set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I/opt/rocm/include/ ")
 +set(AOTRITON_EXTRA_COMPILER_OPTIONS "-I${CMAKE_INSTALL_PREFIX}/include/ ")
  if(AOTRITON_ENABLE_ASAN)
-     set(AOTRITON_EXTRA_COMPILER_OPTIONS "${AOTRITON_EXTRA_COMPILER_OPTIONS} -g -fsanitize=address -fno-omit-frame-pointer")
-     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AOTRITON_EXTRA_COMPILER_OPTIONS}")
-@@ -97,7 +117,7 @@ set(AOTRITON_TRITON_EGGLINK "${VENV_SITE}/triton.egg-link")
- message("AOTRITON_TRITON_EGGLINK ${AOTRITON_TRITON_EGGLINK}")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address -fno-omit-frame-pointer")
+ endif()
+@@ -83,7 +106,7 @@ if(NOT AOTRITON_NOIMAGE_MODE)
+   message("AOTRITON_TRITON_EGGLINK ${AOTRITON_TRITON_EGGLINK}")
  
- add_custom_command(OUTPUT "${AOTRITON_TRITON_EGGLINK}"
--  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} TRITON_BUILD_DIR=${TRITON_BUILD_DIR} "${VENV_DIR}/bin/python" setup.py develop
-+  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} TRITON_USE_ROCM=${TRITON_USE_ROCM} ROCM_DEFAULT_DIR=${ROCM_DEFAULT_DIR} MLIR_ENABLE_DUMP=${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP=${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP=${AMDGCN_ENABLE_DUMP} TRITON_BUILD_DIR=${TRITON_BUILD_DIR} "${VENV_DIR}/bin/python" setup.py develop
-   # COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} python -m pip show triton
-   WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/third_party/triton/python/"
-   BYPRODUCTS "${AOTRITON_TRITON_SO}"
-diff --git a/python/generate.py b/python/generate.py
-index 29c3526..6a94121 100644
---- a/python/generate.py
-+++ b/python/generate.py
-@@ -15,6 +15,7 @@ def parse():
-     p.add_argument("--target", type=str, default=None, help="Ahead of Time (AOT) Compile Architecture. PyTorch is required for autodetection if --target is missing.")
-     p.add_argument("--build_dir", type=str, default='build/', help="build directory")
-     p.add_argument("--python", type=str, default=None, help="python binary to run compile.py")
-+    p.add_argument("--libhsa_runtime64", type=str, default='/opt/rocm_sdk/lib/libhsa-runtime64.so', help="libhsa_runtime64.so location")
-     args = p.parse_args()
-     # print(args)
-     return args
-@@ -47,8 +48,9 @@ def gen_from_kernel(args, k, p, makefile):
- def main():
-     args = parse()
-     build_dir = Path(args.build_dir)
-+    libhsa_runtime64 = args.libhsa_runtime64
-     with open(build_dir / 'Makefile.compile', 'w') as f:
--        print('LIBHSA_RUNTIME64=/opt/rocm/lib/libhsa-runtime64.so\n', file=f)
-+        print('LIBHSA_RUNTIME64=' + libhsa_runtime64 + '\n', file=f)
-         makefile_content = io.StringIO()
-         per_kernel_targets = []
-         for k in rules.kernels:
+   add_custom_command(OUTPUT "${AOTRITON_TRITON_EGGLINK}"
+-    COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} TRITON_BUILD_DIR=${TRITON_BUILD_DIR} "${VENV_DIR}/bin/python" setup.py develop
++    COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} TRITON_USE_ROCM=${TRITON_USE_ROCM} ROCM_DEFAULT_DIR=${ROCM_DEFAULT_DIR} MLIR_ENABLE_DUMP=${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP=${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP=${AMDGCN_ENABLE_DUMP} TRITON_BUILD_DIR=${TRITON_BUILD_DIR} "${VENV_DIR}/bin/python" setup.py develop
+     # COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} python -m pip show triton
+     WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/third_party/triton/python/"
+     BYPRODUCTS "${AOTRITON_TRITON_SO}"
 diff --git a/third_party/triton/CMakeLists.txt b/third_party/triton/CMakeLists.txt
-index ad0b57c..e1d7e70 100644
+index a892a66..fef1767 100644
 --- a/third_party/triton/CMakeLists.txt
 +++ b/third_party/triton/CMakeLists.txt
 @@ -28,6 +28,18 @@ option(TRITON_BUILD_PROTON "Build the Triton Proton profiler" ON)
@@ -112,12 +87,12 @@ index ad0b57c..e1d7e70 100644
  # used conditionally in this file and by lit tests
  
 diff --git a/third_party/triton/python/setup.py b/third_party/triton/python/setup.py
-index 7dafce2..390ee8b 100644
+index 544df97..9dd18e6 100644
 --- a/third_party/triton/python/setup.py
 +++ b/third_party/triton/python/setup.py
-@@ -378,6 +378,27 @@ class CMakeBuild(build_ext):
-             "-DTRITON_BUILD_PROTON=OFF",
-             "-DTRITON_BUILD_UT=OFF",
+@@ -422,6 +422,27 @@ class CMakeBuild(build_ext):
+             "-DTRITON_CODEGEN_BACKENDS=" + ';'.join([b.name for b in backends if not b.is_external]),
+             "-DTRITON_PLUGIN_DIRS=" + ';'.join([b.src_dir for b in backends if b.is_external])
          ]
 +        triton_use_rocm = os.getenv('TRITON_USE_ROCM')
 +        if triton_use_rocm is None:
@@ -144,7 +119,7 @@ index 7dafce2..390ee8b 100644
              cmake_args.append("-DLLVM_EXTERNAL_LIT=" + lit_dir)
          cmake_args.extend(thirdparty_cmake_args)
 diff --git a/v2python/compile.py b/v2python/compile.py
-index 0a0ec8c..78dd4de 100644
+index b71b3b6..4f37a98 100644
 --- a/v2python/compile.py
 +++ b/v2python/compile.py
 @@ -45,6 +45,7 @@ def parse():
@@ -164,27 +139,27 @@ index 0a0ec8c..78dd4de 100644
      # execute python sources and extract functions wrapped in JITFunction
      arg_path = Path(args.path)
 diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
-index 1101382..aae98d8 100644
+index 8afa4a9..4b1ea27 100644
 --- a/v2python/generate_compile.py
 +++ b/v2python/generate_compile.py
-@@ -19,6 +19,8 @@ def parse():
+@@ -116,6 +116,8 @@ def parse():
+                    help="Ahead of Time (AOT) Compile Architecture. PyTorch is required for autodetection if --targets is missing.")
      p.add_argument("--build_dir", type=str, default='build/', help="build directory")
      p.add_argument("--python", type=str, default=None, help="python binary to run compile.py")
-     p.add_argument("--enable_zstd", type=str, default=None, help="Use zstd to compress the compiled kernel")
 +    p.add_argument("--libhsa_runtime64", type=str, default='/opt/rocm_sdk/lib/libhsa-runtime64.so', help="libhsa_runtime64.so location")
 +    p.add_argument("--llvm_prefix_path", type=str, default='/opt/rocm/llvm', help="llvm compiler toolchain location dir prefix")
      p.add_argument("--bare_mode", action='store_true', help="Instead of generating a proper Makefile, only generate compiler options and leave the remaining tasks to cmake.")
-     p.add_argument("--build_for_tuning", action='store_true', help="Build all possible GPU kernels for performance tuning.")
-     p.add_argument("--timeout", type=float, default=8.0, help='Maximal time the compiler can run. Passing < 0 for indefinite. No effect in bare mode (handled separately)')
-@@ -28,6 +30,7 @@ def parse():
+     p.add_argument("--test_clustering", action='store_true', help="Generate TestClustering.sh to find the optimal clustering scheme.")
+     p.add_argument("--generate_cluster_info", action='store_true', help="Generate Bare.functionals for clustering.")
+@@ -129,6 +131,7 @@ def parse():
      return args
  
  def gen_from_object(args, o : 'ObjectFileDescription', makefile):
 +    llvm_prefix_path = args.llvm_prefix_path
-     target_fn = f'{o.KERNEL_FAMILY}/gpu_kernel_image.{o.SHIM_KERNEL_NAME}/{o._hsaco_kernel_path.name}'
+     if args.test_clustering or args.generate_cluster_info:
+         args._cluster_registry.collect_object_file(o)
      if args.bare_mode:
-         print(o.obj.absolute(), o.src.absolute(), o.entrance, o.num_warps, o.num_stages, o.waves_per_eu, o.target_gpu, o.signature, sep=';', file=makefile)
-@@ -36,6 +39,7 @@ def gen_from_object(args, o : 'ObjectFileDescription', makefile):
+@@ -139,6 +142,7 @@ def gen_from_object(args, o : 'ObjectFileDescription', makefile):
      print(target_fn, ':', o.src.absolute(), COMPILER.absolute(), file=makefile)
      cmd  = f'LD_PRELOAD=$(LIBHSA_RUNTIME64) {COMPILER} {o.src.absolute()} --kernel_name {o.entrance} -o {o.obj.absolute()}'
      cmd += f' -g 1,1,1 --num_warps {o.num_warps} --num_stages {o.num_stages} --waves_per_eu {o.waves_per_eu}'
@@ -192,7 +167,7 @@ index 1101382..aae98d8 100644
      if o.target_gpu is not None:
          cmd += f" --target '{o.target_gpu}'"
          target_gpu = o.target_gpu
-@@ -76,10 +80,11 @@ def gen_from_kernel(args, k, build_dir, makefile):
+@@ -177,10 +181,11 @@ def gen_from_kernel(args, k, build_dir, makefile):
  def main():
      args = parse()
      build_dir = Path(args.build_dir)
@@ -206,7 +181,7 @@ index 1101382..aae98d8 100644
          per_kernel_targets = []
          for k in triton_kernels:
 diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
-index ca7a4b5..5c7d2a2 100644
+index 4eb517f..d7b34ad 100644
 --- a/v2src/CMakeLists.txt
 +++ b/v2src/CMakeLists.txt
 @@ -1,6 +1,7 @@
@@ -217,15 +192,15 @@ index ca7a4b5..5c7d2a2 100644
  message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
  message("CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
  cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH CMAKE_CURRENT_SOURCE_PARENT_DIR)
-@@ -31,7 +32,7 @@ else(AOTRITON_BUILD_FOR_TUNING)
-   set(GENERATE_OPTION "")
- endif()
- execute_process(
--  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --bare_mode ${GENERATE_OPTION}
-+  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --libhsa_runtime64 "${AMDHSA_LD_PRELOAD}" --llvm_prefix_path "${LLVM_PREFIX_PATH}" --bare_mode ${GENERATE_OPTION}
-   COMMAND_ECHO STDOUT
-   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
- )
+@@ -43,6 +44,8 @@ if(NOT AOTRITON_NOIMAGE_MODE)
+     --build_dir "${AOTRITON_V2_BUILD_DIR}"
+     --bare_mode ${GENERATE_OPTION}
+     --generate_cluster_info
++    --libhsa_runtime64 "${AMDHSA_LD_PRELOAD}"
++    --llvm_prefix_path "${LLVM_PREFIX_PATH}"
+     COMMAND_ECHO STDOUT
+     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
+     COMMAND_ERROR_IS_FATAL ANY
 -- 
-2.41.1
+2.43.0
 

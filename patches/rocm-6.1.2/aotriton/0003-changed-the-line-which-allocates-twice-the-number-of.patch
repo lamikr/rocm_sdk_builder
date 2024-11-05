@@ -1,4 +1,4 @@
-From dda4d7a4fbaf83a88bb84f66322c1bd408abe8f5 Mon Sep 17 00:00:00 2001
+From 903d07f2c465d446285cd60cf52d69a91c6974d2 Mon Sep 17 00:00:00 2001
 From: mritunjaymusale <mritunjaymusale@gmail.com>
 Date: Sun, 2 Jun 2024 18:00:59 +0530
 Subject: [PATCH 3/5] changed the line which allocates twice the number of max
@@ -10,10 +10,10 @@ Signed-off-by: mritunjaymusale <mritunjaymusale@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/third_party/triton/python/setup.py b/third_party/triton/python/setup.py
-index 390ee8b..4030cad 100644
+index 9dd18e6..c2c669d 100644
 --- a/third_party/triton/python/setup.py
 +++ b/third_party/triton/python/setup.py
-@@ -413,7 +413,7 @@ class CMakeBuild(build_ext):
+@@ -457,7 +457,7 @@ class CMakeBuild(build_ext):
                  cmake_args += ["-A", "x64"]
          else:
              cmake_args += ["-DCMAKE_BUILD_TYPE=" + cfg]
@@ -23,5 +23,5 @@ index 390ee8b..4030cad 100644
  
          if check_env_flag("TRITON_BUILD_WITH_CLANG_LLD"):
 -- 
-2.41.1
+2.43.0
 
