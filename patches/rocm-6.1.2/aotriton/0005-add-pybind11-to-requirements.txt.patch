@@ -1,7 +1,7 @@
 From c44148d15fbdc7a0be8374d3ebd8e79cee176f59 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 4 Nov 2024 18:50:50 -0800
-Subject: [PATCH 5/5] add pybind11 to requirements.txt
+Subject: [PATCH 5/6] add pybind11 to requirements.txt
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

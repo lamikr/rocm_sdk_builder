@@ -1,7 +1,7 @@
 From 85114fb71f1562c8719786446128f96868444f06 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 4 Nov 2024 16:11:47 -0800
-Subject: [PATCH 2/5] add rocm sdk supported gpus
+Subject: [PATCH 2/6] add rocm sdk supported gpus
 
 - add all rocm sdk gpu's to build list
 - use the gfx* names for specifying the gpus instead

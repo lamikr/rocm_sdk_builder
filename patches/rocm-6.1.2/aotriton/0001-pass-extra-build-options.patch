@@ -1,7 +1,7 @@
 From 774e0e918e3baa52d2fbac38c88431d0561cb746 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 4 Nov 2024 15:32:47 -0800
-Subject: [PATCH 1/5] pass extra build options
+Subject: [PATCH 1/6] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
