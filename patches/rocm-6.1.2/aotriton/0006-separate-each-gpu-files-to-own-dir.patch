@@ -1,0 +1,118 @@
+From 881bd78a4ab1f9152fe7a236db35bf62a59c5e84 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Tue, 5 Nov 2024 00:13:12 -0800
+Subject: [PATCH 6/6] separate each gpu files to own dir
+
+- should help to avoid errors on situations
+  where there are too many files in single
+  directory
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ v2python/generate_compile.py           | 1 +
+ v2python/generate_shim.py              | 6 +++++-
+ v2python/kernel_desc.py                | 8 +++++++-
+ v2python/tuning_lut.py                 | 4 ++--
+ v2src/template/autotune_table_entry.cc | 2 +-
+ 5 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
+index aae98d8..6b93332 100644
+--- a/v2python/generate_compile.py
++++ b/v2python/generate_compile.py
+@@ -65,6 +65,7 @@ def gen_from_kernel(args, k, build_dir, makefile):
+     if False: # Debugging
+         if k.SHIM_KERNEL_NAME == 'attn_fwd':
+             assert not ktd.empty
++    k.create_output_paths(outpath, arches)
+     k.set_target_gpus(arches)
+     for o in k.gen_all_object_files(outpath, tuned_db=ktd):
+         all_targets.append(gen_from_object(args, o, object_rules))
+diff --git a/v2python/generate_shim.py b/v2python/generate_shim.py
+index 0afbd70..331deee 100755
+--- a/v2python/generate_shim.py
++++ b/v2python/generate_shim.py
+@@ -284,6 +284,10 @@ class KernelShimGenerator(MakefileSegmentGenerator):
+         # Autotune dispatcher
+         self._autotune_path = Path(args.build_dir) / k.KERNEL_FAMILY / f'autotune.{k.SHIM_KERNEL_NAME}'
+         self._autotune_path.mkdir(parents=True, exist_ok=True)
++        gpu_list = ['native'] if args.target_gpus is None else list(args.target_gpus)
++        for i, gpu in enumerate(gpu_list):
++            outpath_gpu = self._autotune_path / gpu
++            outpath_gpu.mkdir(parents=True, exist_ok=True)
+         self._ktd = KernelTuningDatabase(SOURCE_PATH.parent / 'rules',
+                                          k,
+                                          build_for_tuning=self._args.build_for_tuning)
+@@ -315,7 +319,7 @@ class KernelShimGenerator(MakefileSegmentGenerator):
+         debug_counter = 0
+         for gpu, fsels, lut in k.gen_tuned_kernel_lut(self._ktd):
+             # print(f'KernelShimGenerator.gen_children {fsels=}')
+-            yield AutotuneCodeGenerator(args, self.children_out, self._autotune_path, k, gpu, fsels, lut)
++            yield AutotuneCodeGenerator(args, self.children_out, self._autotune_path / gpu, k, gpu, fsels, lut)
+             '''
+             debug_counter +=1
+             if debug_counter >= 2:
+diff --git a/v2python/kernel_desc.py b/v2python/kernel_desc.py
+index fcb6835..0871e12 100644
+--- a/v2python/kernel_desc.py
++++ b/v2python/kernel_desc.py
+@@ -171,6 +171,12 @@ class KernelDescription(object):
+         for psels, compiler_options in dba.select(fsels, self._perf_meta):
+             yield gpu, fsels, psels, compiler_options
+ 
++    def create_output_paths(self, outpath_base, gpus):
++        gpu_list = ['native'] if gpus is None else list(gpus)
++        for i, gpu in enumerate(gpu_list):
++            outpath_gpu = outpath_base / gpu
++            outpath_gpu.mkdir(parents=True, exist_ok=True)
++
+     def set_target_gpus(self, gpus):
+         self._target_gpus = ['native'] if gpus is None else list(gpus)
+ 
+@@ -227,7 +233,7 @@ class KernelDescription(object):
+         fn += '-Sig-' + sig.compact_signature
+         fn += '-Gpu-' + sig.target_gpu
+         fn += '.hsaco'
+-        return ObjectFileDescription(self, sig, outpath / fn, sancheck_fileexists=sancheck_fileexists)
++        return ObjectFileDescription(self, sig, outpath / sig.target_gpu / fn, sancheck_fileexists=sancheck_fileexists)
+ 
+     def gen_tuned_kernel_lut(self, tuned_db : 'KernelTuningDatabase') -> 'Iterator[KernelTuningLutForGPU]':
+         for gpu, fsels in itertools.product(self._target_gpus,
+diff --git a/v2python/tuning_lut.py b/v2python/tuning_lut.py
+index fc61930..c6601af 100644
+--- a/v2python/tuning_lut.py
++++ b/v2python/tuning_lut.py
+@@ -146,7 +146,7 @@ class KernelTuningEntryForFunctionalOnGPU(object):
+     def codegen_kernel_image_objects(self, kernel_image_dir):
+         kernel_image_symbols = []
+         for incbin_symbol_name, _, o in self.gen_kernel_symbols(kernel_image_dir):
+-            assert o.compiled_files_exist, f'Compiled file {o._hsaco_kernel_path} not exists'
++            assert o.compiled_files_exist, f'Compiled file {o._hsaco_kernel_path} not exists, image_dir: ' + str(kernel_image_dir)
+             kernel_image_symbols.append(f'{{ mangle({incbin_symbol_name}), smangle({incbin_symbol_name}), {{ {o.num_warps * o.warp_size} , 1, 1 }}, {o.shared_memory_size} }},')
+         ALIGN = '\n' + 4 * ' '
+         return ALIGN.join(kernel_image_symbols)
+@@ -159,7 +159,7 @@ class KernelTuningEntryForFunctionalOnGPU(object):
+         return ALIGN.join(kernel_image_perfs)
+ 
+     def write_lut_source(self, outdir : 'pathlib.Path', compressed, bare_mode):
+-        gpu_kernel_image_dir = outdir.parent / f'gpu_kernel_image.{self._kdesc.SHIM_KERNEL_NAME}'
++        gpu_kernel_image_dir = outdir.parent.parent / f'gpu_kernel_image.{self._kdesc.SHIM_KERNEL_NAME}'
+         lut_tensor, sigs = self.get_lut()
+         try:
+             first_sig = sigs[0]
+diff --git a/v2src/template/autotune_table_entry.cc b/v2src/template/autotune_table_entry.cc
+index ec1e39f..a085ea4 100644
+--- a/v2src/template/autotune_table_entry.cc
++++ b/v2src/template/autotune_table_entry.cc
+@@ -8,7 +8,7 @@
+ #define mangle(x) g_aotriton_FAMILY_[[kernel_family_name]]_KERNEL_[[shim_kernel_name]]_GPU_[[gpu]]_ ## x ## _data
+ #define smangle(x) g_aotriton_FAMILY_[[kernel_family_name]]_KERNEL_[[shim_kernel_name]]_GPU_[[gpu]]_ ## x ## _size
+ 
+-#include "../shim.[[shim_kernel_name]].h"
++#include "../../shim.[[shim_kernel_name]].h"
+ #include <aotriton/_internal/triton_kernel.h>
+ #include <aotriton/cpp_tune.h>
+ #include <incbin.h>
+-- 
+2.41.1
+
