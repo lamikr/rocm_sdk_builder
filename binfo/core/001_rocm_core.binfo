@@ -83,5 +83,9 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "install -Dm660 ${SDK_ROOT_DIR}/docs/examples/openmpi/mpi_rank_printout/*.c ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/examples/openmpi/mpi_rank_printout"
     "install -d ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/openmpi"
     "install -Dm660 ${SDK_ROOT_DIR}/docs/tutorial/openmpi/howto.txt ${INSTALL_DIR_PREFIX_SDK_ROOT}/docs/tutorial/openmpi"
+    "cd ${SDK_ROOT_DIR}"
+    "tar -c benchmarks | tar -x -C ${INSTALL_DIR_PREFIX_SDK_ROOT}/"
     "printf \"SDK_BUILDER_VERSION: %s.%s.%s-%s\nBABS_VERSION: %s\nSRC_COMMIT: %s\n\" ${ROCM_MAJOR_VERSION} ${ROCM_MINOR_VERSION} ${ROCM_PATCH_VERSION} ${ROCM_SDK_RELEASE_VERSION} ${BABS_VERSION} ${ROCM_SDK_BUILDER_SRC_REV} > ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/rocm_sdk_builder"
+    "echo $(git show -s --format=%h) > ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/rocm_sdk_builder_git_hash"
+    "install -Dm660 ${SDK_ROOT_DIR}/build_cfg.user ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/build_cfg.user"
 )
