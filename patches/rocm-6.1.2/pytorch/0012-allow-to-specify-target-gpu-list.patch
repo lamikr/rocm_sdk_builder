@@ -1,0 +1,30 @@
+From 6b5d01ecb95b5cbdd23dd853259682a67e83a59d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 7 Nov 2024 22:24:08 -0800
+Subject: [PATCH 12/12] allow to specify target gpu list
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 05dca4de849..61b4e9230d6 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -16,6 +16,12 @@ else
+     rocm_version_str=${2}
+     echo "Using rocm version parameter: ${rocm_version_str}"
+ fi
++if [ ! -z "$3" ]; then
++    export PYTORCH_ROCM_ARCH="$3"
++    echo "Building Pytorch for GPUs: ${PYTORCH_ROCM_ARCH}"
++else
++	echo "Building Pytorch for GPU's used on rocm sdk build."
++fi
+ unset LDFLAGS
+ unset CFLAGS
+ unset CPPFLAGS
+-- 
+2.43.0
+
