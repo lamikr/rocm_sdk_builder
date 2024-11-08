@@ -1,7 +1,7 @@
-From 17183f59fbd02d90dc1323733c3e5020c258b475 Mon Sep 17 00:00:00 2001
+From 0cb74040b58cda4042df1b4552a61ff71b73e825 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 01/11] pytorch_rocm preconfig, build and install scripts
+Subject: [PATCH 01/12] pytorch_rocm preconfig, build and install scripts
 
 - clean previous build, build wheel and install wheel scripts
 "-Wno-error=maybe-uninitialized" is needed during
@@ -109,5 +109,5 @@ index 00000000000..7ad2528e9fe
 +fi
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.41.1
+2.43.0
 

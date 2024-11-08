@@ -1,7 +1,7 @@
-From 2270cde2d57ee67ae332add52f3b457542a3bf2a Mon Sep 17 00:00:00 2001
+From d5ed76d9d74a2294dda1e7047d2bd525a4de1932 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 31 May 2024 18:35:12 -0700
-Subject: [PATCH 06/11] replace clamp with min and max for fedora 40 issue
+Subject: [PATCH 06/12] replace clamp with min and max for fedora 40 issue
 
 Fedora 40/gcc 14 throws following error during build time
 for clamp function usage during pytorch build time.
@@ -40,5 +40,5 @@ index 5682ba27573..862bcb9614d 100644
      });
    });
 -- 
-2.41.1
+2.43.0
 
