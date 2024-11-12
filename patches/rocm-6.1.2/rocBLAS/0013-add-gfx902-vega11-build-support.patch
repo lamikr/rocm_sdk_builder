@@ -1,0 +1,83 @@
+From f4904b2eb6bc62d2fef7d26831aeea022b368e74 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 9 Nov 2024 14:55:12 -0800
+Subject: [PATCH 13/13] add gfx902 vega11 build support
+
+- logic files could propably be re-used
+  from gfx900
+- build will now pass but all hip applications
+  seems to crash easily with gfx902 when
+  sending and reading data from the kernel.
+  (kfd queue gets stuck)
+  (tested with linux 6.12.rc7 kernel)
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                 | 6 +++---
+ library/src/handle.cpp         | 4 ++++
+ library/src/include/handle.hpp | 1 +
+ library/src/tensile_host.cpp   | 4 ++++
+ 4 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d3ed947a..cf78cd1e 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -108,9 +108,9 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
+ list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH} ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm /opt/rocm/hip )
+ 
+ # setting target list based on ROCm version
+-set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
+-set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
+-set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
++set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx902;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx902;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++set( TARGET_LIST_ROCM_6.0 "gfx900;gfx902;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
+ 
+ if(ROCM_PLATFORM_VERSION)
+   if(${ROCM_PLATFORM_VERSION} VERSION_LESS 5.7.0)
+diff --git a/library/src/handle.cpp b/library/src/handle.cpp
+index e97c490d..75034c31 100644
+--- a/library/src/handle.cpp
++++ b/library/src/handle.cpp
+@@ -89,6 +89,10 @@ static Processor getActiveArch(int deviceId)
+     {
+         return Processor::gfx900;
+     }
++    else if(deviceString.find("gfx902") != std::string::npos)
++    {
++        return Processor::gfx902;
++    }
+     else if(deviceString.find("gfx906") != std::string::npos)
+     {
+         return Processor::gfx906;
+diff --git a/library/src/include/handle.hpp b/library/src/include/handle.hpp
+index e5d4859f..d588ad88 100644
+--- a/library/src/include/handle.hpp
++++ b/library/src/include/handle.hpp
+@@ -76,6 +76,7 @@ enum class Processor : int
+     // only including supported types
+     gfx803  = 803,
+     gfx900  = 900,
++    gfx902  = 902,
+     gfx906  = 906,
+     gfx908  = 908,
+     gfx90a  = 910,
+diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
+index 06e4e468..2259ab50 100644
+--- a/library/src/tensile_host.cpp
++++ b/library/src/tensile_host.cpp
+@@ -217,6 +217,10 @@ namespace
+         {
+             return Tensile::LazyLoadingInit::gfx900;
+         }
++        else if(deviceString.find("gfx902") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx902;
++        }
+         else if(deviceString.find("gfx906") != std::string::npos)
+         {
+             return Tensile::LazyLoadingInit::gfx906;
+-- 
+2.41.1
+

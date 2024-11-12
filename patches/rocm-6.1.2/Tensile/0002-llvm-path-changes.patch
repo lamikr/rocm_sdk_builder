@@ -1,7 +1,7 @@
-From 243c6ae174cbc1cd7b6b485914e9960a47e27b8e Mon Sep 17 00:00:00 2001
+From 420a2189817caa41578f61d3958ab6019cdf3f9b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 15 May 2024 21:09:56 -0700
-Subject: [PATCH 2/3] llvm path changes
+Subject: [PATCH 2/4] llvm path changes
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

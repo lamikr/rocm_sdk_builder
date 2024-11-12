@@ -1,22 +1,32 @@
-From 895d5c43c7fcf2543900c27b45898e731d7c280d Mon Sep 17 00:00:00 2001
+From 8c5d33c6727fbeea6fd3fb4333ce31c2d77e8a9b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 25 Oct 2024 14:08:59 -0700
 Subject: [PATCH] add cu count for missing amd gpus
 
+- gfx902
 - gfx1010/11/12
 - gfx1035/36
 - gfx1103/50/51
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- .../deviceRTLs/amdgcn/src/target_impl.h        | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ .../deviceRTLs/amdgcn/src/target_impl.h       | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
 diff --git a/external/llvm-project/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h b/external/llvm-project/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
-index 75f565118427..d459bbabd191 100644
+index 75f565118427..e25e02d519c9 100644
 --- a/external/llvm-project/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
 +++ b/external/llvm-project/openmp/libomptarget/deviceRTLs/amdgcn/src/target_impl.h
-@@ -75,16 +75,34 @@ enum { WARPSIZE = getGridValue().GV_Warp_Size };
+@@ -67,6 +67,8 @@ enum { WARPSIZE = getGridValue().GV_Warp_Size };
+ // FIXME: determine correct number of CUs for each amdgpu
+ #if defined(__gfx900__)
+ #define MAX_SM  64
++#elif defined(__gfx902__)
++#define MAX_SM  11
+ #elif defined(__gfx906__)
+ #define MAX_SM  64
+ #elif defined(__gfx908__)
+@@ -75,16 +77,34 @@ enum { WARPSIZE = getGridValue().GV_Warp_Size };
  #define MAX_SM  110
  #elif defined(__gfx90c__)
  #define MAX_SM  120
@@ -51,5 +61,6 @@ index 75f565118427..d459bbabd191 100644
  #else
  #define MAX_SM  120
  #endif
---
+-- 
 2.41.1
+

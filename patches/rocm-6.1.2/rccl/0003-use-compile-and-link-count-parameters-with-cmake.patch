@@ -1,7 +1,7 @@
-From 4a67303504e23e61f0e4064b0543de2e6e79e386 Mon Sep 17 00:00:00 2001
+From badd3f46bc39747d7e162410d2195facfdeb63e5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 29 Oct 2024 03:45:28 -0700
-Subject: [PATCH 3/3] use compile and link count parameters with cmake
+Subject: [PATCH 3/5] use compile and link count parameters with cmake
 
 - allow defining LLVM_PARALLEL_COMPILE_JOBS
   and LLVM_PARALLEL_LINK_JOBS parameters
@@ -49,5 +49,5 @@ index f9a4d7f..26cfee7 100644
    target_link_options(rccl PRIVATE -fuse-ld=lld)
  endif()
 -- 
-2.43.0
+2.41.1
 

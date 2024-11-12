@@ -1,7 +1,7 @@
-From abed4ee267dadd60256b346b3121bcbb9188161c Mon Sep 17 00:00:00 2001
+From cde49e066ef798a64288a1f1264a6ff831af89e7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:17:42 -0700
-Subject: [PATCH 01/12] add mageia 9 support to install.sh
+Subject: [PATCH 01/13] add mageia 9 support to install.sh
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

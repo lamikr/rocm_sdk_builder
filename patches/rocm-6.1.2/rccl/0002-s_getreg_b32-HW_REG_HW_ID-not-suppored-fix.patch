@@ -1,7 +1,7 @@
-From 837e97a60fa5f42c46cba7bcdde14d487395beeb Mon Sep 17 00:00:00 2001
+From f9522e293c3b08c9ad2f447107f462e179c160ea Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 25 Jul 2024 14:36:23 -0700
-Subject: [PATCH 2/3] s_getreg_b32 HW_REG_HW_ID not suppored fix
+Subject: [PATCH 2/5] s_getreg_b32 HW_REG_HW_ID not suppored fix
 
 - this command is not suppored in newer radeon gpus
   and can not be used for tracing
@@ -47,5 +47,5 @@ index 8fad0ac..9961993 100644
    val = 0
  #else
 -- 
-2.43.0
+2.41.1
 
