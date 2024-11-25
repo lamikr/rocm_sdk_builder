@@ -1,0 +1,36 @@
+From 8df1dd4e0fb79d039649e9ab2e5a48d59d5c66b6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 24 Nov 2024 23:46:57 -0800
+Subject: [PATCH] gfx1010 testing
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ library/src/device/kernels/memory_gfx.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/library/src/device/kernels/memory_gfx.h b/library/src/device/kernels/memory_gfx.h
+index 0d84cc8c..59f5999d 100644
+--- a/library/src/device/kernels/memory_gfx.h
++++ b/library/src/device/kernels/memory_gfx.h
+@@ -44,10 +44,16 @@
+     || defined(__gfx942__) // test device
+ #define USE_GFX_BUFFER_INTRINSIC
+ #define BUFFER_RESOURCE_3RD_DWORD 0x00020000
+-#elif defined(__gfx1030__) // special device
++#elif defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__) || \
++      defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
++      defined(__gfx1035__) || defined(__gfx1036__) // for GPU code
+ #define USE_GFX_BUFFER_INTRINSIC
+ #define BUFFER_RESOURCE_3RD_DWORD 0x31014000
+-#else // not support
++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
++      defined(__gfx1150__) || defined(__gfx1151__) // for GPU code
++#define USE_GFX_BUFFER_INTRINSIC
++#define BUFFER_RESOURCE_3RD_DWORD 0x31004000
++#else
+ #define BUFFER_RESOURCE_3RD_DWORD -1
+ #endif
+ 
+-- 
+2.41.1
+

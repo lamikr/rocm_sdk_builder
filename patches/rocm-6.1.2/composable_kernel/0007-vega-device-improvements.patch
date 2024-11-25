@@ -1,7 +1,7 @@
-From c08af941ed9e2f575ae8d62e8dc6d7916066eac2 Mon Sep 17 00:00:00 2001
+From d177bccc76b832444dd2047d3b330387b7171829 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 24 Nov 2024 22:46:58 -0800
-Subject: [PATCH 7/7] vega device improvements
+Subject: [PATCH 7/8] vega device improvements
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -24,5 +24,5 @@ index dfe75e620..b475ee07c 100644
          {"navi12", "gfx1011"},
          {"navi14", "gfx1012"},
 -- 
-2.43.0
+2.41.1
 

@@ -1,7 +1,7 @@
-From b39fef1fa3da7a23e3ab52943b3d8ce79f5aed15 Mon Sep 17 00:00:00 2001
+From b06b821bf7dbdca80fadb71cd82cf022d3fd50dc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 15:27:25 -0700
-Subject: [PATCH 4/7] initial strix point/strix halo gfx1150/51 support
+Subject: [PATCH 4/8] initial strix point/strix halo gfx1150/51 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -535,5 +535,5 @@ index 347cb65f6..9097242a8 100644
          {
              // on navi3x only support for 3d is implemented
 -- 
-2.43.0
+2.41.1
 

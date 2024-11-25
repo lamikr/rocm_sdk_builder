@@ -1,7 +1,7 @@
-From 612ab0f42c102e8572276ca821efa52c6b8a93b4 Mon Sep 17 00:00:00 2001
+From 91e4eaecb29b7ec90e8964f37070d532fd6cc296 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 01:00:13 -0700
-Subject: [PATCH 5/7] fix target already added error
+Subject: [PATCH 5/8] fix target already added error
 
 error could happen if tried to
 build simulataneously for more than 1 gpu at the same time
@@ -28,5 +28,5 @@ index d82c42d5a..97508532c 100644
  endforeach()
  
 -- 
-2.43.0
+2.41.1
 

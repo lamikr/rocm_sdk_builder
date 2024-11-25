@@ -1,7 +1,7 @@
-From cde6231437ae222b883125fe1221c0e149e32a11 Mon Sep 17 00:00:00 2001
+From 29bedb5d1b7e6ee59107b1d3348e67cda1550f08 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 25 Oct 2024 16:38:41 -0700
-Subject: [PATCH 5/6] add gfx1150/51 strixpoint/strixhalo support
+Subject: [PATCH 5/7] add gfx1150/51 strixpoint/strixhalo support
 
 - some tests will still need to be modified
   to add the support for gfx1150/51
@@ -287,5 +287,5 @@ index bc8591c31..10e010806 100644
      else
          return false;
 -- 
-2.43.0
+2.41.1
 

@@ -1,7 +1,7 @@
-From 900fe9090750ab7e84b796af1c58879ea512e537 Mon Sep 17 00:00:00 2001
+From 861474c220a0697af7d72e26e762a86ae250882f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 24 Nov 2024 22:48:12 -0800
-Subject: [PATCH 6/6] vega gpu improvements
+Subject: [PATCH 6/7] vega gpu improvements
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -23,5 +23,5 @@ index a330a3e52..2826d21b7 100644
          {"navi12", "gfx1011"},
          {"navi14", "gfx1012"},
 -- 
-2.43.0
+2.41.1
 

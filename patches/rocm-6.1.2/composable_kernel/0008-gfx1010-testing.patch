@@ -1,0 +1,31 @@
+From 54e3a7969543af12bd2621fcb1fb021a88c2ce99 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 24 Nov 2024 23:38:26 -0800
+Subject: [PATCH 8/8] gfx1010 testing
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/ck/ck.hpp | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
+index 20ea304f3..b3f7be491 100644
+--- a/include/ck/ck.hpp
++++ b/include/ck/ck.hpp
+@@ -153,8 +153,13 @@
+ // set stochastic rounding as default for f8 conversions
+ #define CK_USE_SR_F8_CONVERSION 1
+ 
++#if defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__)
++// block synchronization only s_wait lgkmcnt(0), not vmcnt(0)
++#define CK_EXPERIMENTAL_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM 0
++#else
+ // block synchronization only s_wait lgkmcnt(0), not vmcnt(0)
+ #define CK_EXPERIMENTAL_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM 1
++#endif
+ 
+ // experimental feature: multi index implemented as array
+ #define CK_EXPERIMENTAL_USE_DYNAMICALLY_INDEXED_MULTI_INDEX 0
+-- 
+2.41.1
+

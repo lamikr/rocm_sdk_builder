@@ -1,7 +1,7 @@
-From f5675cf16ae39f02401cd22d2319dc66696faa0e Mon Sep 17 00:00:00 2001
+From c2da8b52f6933dd66a61b7ea2926fb97d6f51ea5 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 18 Aug 2024 14:40:19 -0700
-Subject: [PATCH 3/7] gfx1010/11/12/31/32/35/36 and gfx1103 support
+Subject: [PATCH 3/8] gfx1010/11/12/31/32/35/36 and gfx1103 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -683,5 +683,5 @@ index 856f9fd15..347cb65f6 100644
          {
              // on navi3x only support for 3d is implemented
 -- 
-2.43.0
+2.41.1
 

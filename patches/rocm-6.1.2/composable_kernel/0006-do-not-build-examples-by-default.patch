@@ -1,7 +1,7 @@
-From 6b63fa055aebee9af13bb83e2f5ea14edc62a176 Mon Sep 17 00:00:00 2001
+From d8f4af7fc9059afb81ac75077cc98901a541b858 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 01:02:20 -0700
-Subject: [PATCH 6/7] do not build examples by default
+Subject: [PATCH 6/8] do not build examples by default
 
 speeds up the build considerably
 
@@ -26,5 +26,5 @@ index 3f5afed74..1abf2d170 100644
                    add_subdirectory(test)
             endif()
 -- 
-2.43.0
+2.41.1
 

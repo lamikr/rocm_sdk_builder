@@ -1,0 +1,55 @@
+From 0335b4df26accf8e88e7606a4347772dccb28e97 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 24 Nov 2024 23:43:04 -0800
+Subject: [PATCH 7/7] gfx1010 testing
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../composable_kernel/include/utility/config.hpp    | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/src/composable_kernel/composable_kernel/include/utility/config.hpp b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+index 7bf52a738..63f7ebd51 100644
+--- a/src/composable_kernel/composable_kernel/include/utility/config.hpp
++++ b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+@@ -53,6 +53,8 @@
+ // FMA instruction
+ #if defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900)
+ #define CK_USE_AMD_V_MAC_F32
++#elif defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__)
++#define CK_USE_AMD_V_FMAC_F32
+ #elif defined(CK_AMD_GPU_GFX906) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90a) ||  \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) ||    \
+     defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || \
+@@ -62,10 +64,6 @@
+ #define CK_USE_AMD_V_DOT4_I32_I8
+ #endif
+ 
+-#if defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1011) || defined(CK_AMD_GPU_GFX1012)
+-    #define CK_USE_AMD_V_FMAC_F32
+-#endif
+-
+ // multi index
+ #define CK_USE_DYNAMICALLY_INDEXED_MULTI_INDEX 0
+ 
+@@ -94,10 +92,17 @@
+ #define CK_USE_AMD_XDLOPS 0
+ #endif
+ 
++#if defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__)
++// block synchronization only s_wait lgkmcnt(0), not vmcnt(0)
++#ifndef CK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM
++#define CK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM 0
++#endif
++#else
+ // block synchronization only s_wait lgkmcnt(0), not vmcnt(0)
+ #ifndef CK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM
+ #define CK_BLOCK_SYNC_LDS_WITHOUT_SYNC_VMEM 1
+ #endif
++#endif
+ 
+ // experimental implementation
+ #ifndef CK_EXPERIMENTAL_USE_BUFFER_LOAD_OOB_CHECK_OFFSET_TRICK
+-- 
+2.41.1
+

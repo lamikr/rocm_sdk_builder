@@ -1,7 +1,7 @@
-From c70a16a872b5b02c5799d0cfd9dc4f5d7241fb22 Mon Sep 17 00:00:00 2001
+From 53be86bc2a04f69fc297c39fa24d090546fe16d7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 14:15:09 -0700
-Subject: [PATCH 2/6] fix libroctx64.so linking error
+Subject: [PATCH 2/7] fix libroctx64.so linking error
 
 search the library and if found link it from there
 instead of expecting it to be in the ld library path
@@ -31,5 +31,5 @@ index 0741a6023..ae4405eed 100644
  
  ############################################################
 -- 
-2.43.0
+2.41.1
 
