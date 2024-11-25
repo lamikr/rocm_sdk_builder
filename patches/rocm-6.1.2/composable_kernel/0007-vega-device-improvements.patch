@@ -1,0 +1,28 @@
+From c08af941ed9e2f575ae8d62e8dc6d7916066eac2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 24 Nov 2024 22:46:58 -0800
+Subject: [PATCH 7/7] vega device improvements
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/ck/host_utility/device_prop.hpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/ck/host_utility/device_prop.hpp b/include/ck/host_utility/device_prop.hpp
+index dfe75e620..b475ee07c 100644
+--- a/include/ck/host_utility/device_prop.hpp
++++ b/include/ck/host_utility/device_prop.hpp
+@@ -39,7 +39,10 @@ inline std::string get_device_name()
+         {"gfx802", "gfx803"},
+         {"gfx804", "gfx803"},
+         {"Vega10", "gfx900"},
++        {"vega10", "gfx900"},
+         {"gfx901", "gfx900"},
++        {"vega11", "gfx902"},
++        {"vega20", "gfx906"},
+         {"navi10", "gfx1010"},
+         {"navi12", "gfx1011"},
+         {"navi14", "gfx1012"},
+-- 
+2.43.0
+

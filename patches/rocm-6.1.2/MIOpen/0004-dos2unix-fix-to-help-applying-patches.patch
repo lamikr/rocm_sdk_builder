@@ -1,7 +1,7 @@
-From bc7fac43204b612ecf4b9d3cb92517453c2e04a2 Mon Sep 17 00:00:00 2001
+From 1fe39ffd715fd79627c010220557bf38513d0cfe Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 25 Oct 2024 16:51:05 -0700
-Subject: [PATCH 4/5] dos2unix fix to help applying patches
+Subject: [PATCH 4/6] dos2unix fix to help applying patches
 
 git am will fail applying patches to
 this file unless it's first modified
@@ -332,5 +332,5 @@ index 3a2667330..d3ebc3119 100644
 +
 +} // namespace miopen
 -- 
-2.41.1
+2.43.0
 
