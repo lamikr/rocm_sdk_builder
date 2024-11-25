@@ -1,0 +1,109 @@
+From 3a439a81b063867201bd0739afe065502d1f4ec0 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Tue, 14 May 2024 11:24:33 -0700
+Subject: [PATCH 2/2] ROCM_SDK_PRINT environment variables for messages
+
+- add support for rocm sdk specific environment variables
+  to print out trace messages:
+    ROCM_SDK_PRINTOUT_DEBUG_MESSAGES
+    ROCM_SDK_PRINTOUT_INFO_MESSAGES
+    ROCM_SDK_PRINTOUT_WARNING_MESSAGES
+- for example
+     export ROCM_SDK_PRINTOUT_DEBUG_MESSAGES=1
+  would enable the printing of debug, info and warning messages and
+     export ROCM_SDK_PRINTOUT_WARNING_MESSAGES=1
+  would enable only the printout of warnings
+- printout warning level message
+  if device architecture specific SO-file does
+  not have GPU device architecture specific co-data
+- printout for debug level message for succesfull
+  loading of gpu architecture specific co-data
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ hipamd/src/hip_fatbin.cpp | 24 ++++++++++++++++++++++--
+ hipamd/src/hip_fatbin.hpp |  6 ++++++
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/hipamd/src/hip_fatbin.cpp b/hipamd/src/hip_fatbin.cpp
+index 5d0d00ac9..b5f072719 100644
+--- a/hipamd/src/hip_fatbin.cpp
++++ b/hipamd/src/hip_fatbin.cpp
+@@ -39,7 +39,23 @@ FatBinaryDeviceInfo::~FatBinaryDeviceInfo() {
+ FatBinaryInfo::FatBinaryInfo(const char* fname, const void* image) : fdesc_(amd::Os::FDescInit()),
+                              fsize_(0), foffset_(0), image_(image), image_mapped_(false),
+                              uri_(std::string()) {
+-
++  if (getenv("ROCM_SDK_PRINTOUT_DEBUG_MESSAGES")) {
++	  // enable debug, info, warning and error printouts
++	  rocm_sdk_printout_level=ROCM_SDK_PRINTOUT_LEVEL_DEBUG;
++  }
++  else if (getenv("ROCM_SDK_PRINTOUT_INFO_MESSAGES")) {
++	  // enable info, warning and error printouts
++	  rocm_sdk_printout_level=ROCM_SDK_PRINTOUT_LEVEL_INFO;
++  }
++  else if (getenv("ROCM_SDK_PRINTOUT_WARNING_MESSAGES")) {
++	  // enable info and warning printouts
++	  rocm_sdk_printout_level=ROCM_SDK_PRINTOUT_LEVEL_WARNING;
++  }
++  else {
++	  // print only error printouts
++	  rocm_sdk_printout_level=ROCM_SDK_PRINTOUT_LEVEL_ERROR;
++  }
++  bool rocm_sdk_print_warn;
+   if (fname != nullptr) {
+     fname_ = std::string(fname);
+   } else {
+@@ -108,7 +124,7 @@ void ListAllDeviceWithNoCOFromBundle(const std::unordered_map<std::string,
+                                      std::pair<size_t, size_t>> unique_isa_names) {
+   LogError("Missing CO for these ISAs - ");
+   for (const auto& unique_isa : unique_isa_names) {
+-    if (unique_isa.second.first == 0) {
++    if (unique_isa.second.first == 0) {bool rocm_sdk_print_warn;
+       LogPrintfError("     %s", unique_isa.first.c_str());
+     }
+   }
+@@ -251,12 +267,16 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+       auto dev_it = unique_isa_names.find(device_name);
+       // If the size is 0, then COMGR API could not find the CO for this GPU device/ISA
+       if (dev_it->second.first == 0) {
++        if (rocm_sdk_printout_level >= ROCM_SDK_PRINTOUT_LEVEL_WARNING)
++          printf("hip_fatbin.cpp: Could not find the CO info file for device: %s, file: %s\n", device_name.c_str(), fname_.c_str());
+         LogPrintfError("Cannot find CO in the bundle %s for ISA: %s",
+                         fname_.c_str(), device_name.c_str());
+         hip_status = hipErrorNoBinaryForGpu;
+         ListAllDeviceWithNoCOFromBundle(unique_isa_names);
+         break;
+       }
++      if (rocm_sdk_printout_level >= ROCM_SDK_PRINTOUT_LEVEL_DEBUG)
++        printf("hip_fatbin.cpp: Found CO for device  %s, file: %s\n", device_name.c_str(), fname_.c_str());
+       guarantee(unique_isa_names.cend() != dev_it,
+                 "Cannot find the device name in the unique device name");
+       fatbin_dev_info_[device->deviceId()]
+diff --git a/hipamd/src/hip_fatbin.hpp b/hipamd/src/hip_fatbin.hpp
+index f9057a4b5..9b5e0b728 100644
+--- a/hipamd/src/hip_fatbin.hpp
++++ b/hipamd/src/hip_fatbin.hpp
+@@ -28,6 +28,11 @@ THE SOFTWARE.
+ #include "hip_internal.hpp"
+ #include "platform/program.hpp"
+ 
++#define ROCM_SDK_PRINTOUT_LEVEL_ERROR	0
++#define ROCM_SDK_PRINTOUT_LEVEL_WARNING	1
++#define ROCM_SDK_PRINTOUT_LEVEL_INFO	2
++#define ROCM_SDK_PRINTOUT_LEVEL_DEBUG	3
++
+ // Forward declaration for Unique FD
+ struct UniqueFD;
+ 
+@@ -97,6 +102,7 @@ private:
+   amd::Os::FileDesc fdesc_;  //!< File descriptor
+   size_t fsize_;             //!< Total file size
+   size_t foffset_;           //!< File Offset where the fat binary is present.
++  int rocm_sdk_printout_level;
+ 
+   // Even when file is passed image will be mmapped till ~desctructor.
+   const void* image_;        //!< Image
+-- 
+2.43.0
+

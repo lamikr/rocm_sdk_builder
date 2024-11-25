@@ -1,4 +1,4 @@
-From 622e20ac564c7886599e15978100be2ff563db76 Mon Sep 17 00:00:00 2001
+From 8ae7c142ad48ed1661bb1a883ca6a9e0b45e1948 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 20 Jan 2024 10:44:02 -0800
 Subject: [PATCH 1/2] disable precompiled hip headers
@@ -28,5 +28,5 @@ index ccfbceef6..8db396386 100755
  option(FILE_REORG_BACKWARD_COMPATIBILITY "Enable File Reorg with backward compatibility" OFF)
  
 -- 
-2.45.2
+2.43.0
 
