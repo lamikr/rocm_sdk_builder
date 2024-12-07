@@ -1,7 +1,7 @@
-From 0b351188a87f9ceb1342c8b70129e185bcc712d6 Mon Sep 17 00:00:00 2001
+From 259cbd8b18417664d0839e8fb842b7c2d98d77fc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Wed, 15 May 2024 15:53:49 -0700
-Subject: [PATCH 2/2] remove failing sum test until reason found
+Subject: [PATCH 2/3] remove failing sum test until reason found
 
 - install fails until these tests are passing.
 - TODO:  needs more investigation.
@@ -40,5 +40,5 @@ index ce0f5c430..7c375dc43 100644
  OBJS_EXT+=$(DIR_EXT)/test_samin.o $(DIR_EXT)/test_damin.o $(DIR_EXT)/test_scamin.o $(DIR_EXT)/test_dzamin.o $(DIR_EXT)/test_scamax.o $(DIR_EXT)/test_dzamax.o
  OBJS_EXT+=$(DIR_EXT)/test_drotmg.o $(DIR_EXT)/test_srotmg.o $(DIR_EXT)/test_zrotg.o $(DIR_EXT)/test_crotg.o $(DIR_EXT)/test_crot.o $(DIR_EXT)/test_zrot.o
 -- 
-2.41.0
+2.43.0
 

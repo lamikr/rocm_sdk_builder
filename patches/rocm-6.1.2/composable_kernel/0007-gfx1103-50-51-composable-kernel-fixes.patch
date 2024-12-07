@@ -1,0 +1,162 @@
+From da193b87e00bcb7f0138ffcec518d8ce54fd649d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 7 Dec 2024 11:55:30 -0800
+Subject: [PATCH 7/7] gfx1103/50/51 composable kernel fixes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                                   |   1 -
+ example/01_gemm/CMakeLists.txt                   |   2 +-
+ example/02_gemm_bilinear/CMakeLists.txt          |   2 +-
+ .../20_grouped_conv_bwd_weight/CMakeLists.txt    |   2 +-
+ .../CMakeLists.txt                               |   2 +-
+ .../CMakeLists.txt                               |   2 +-
+ .../CMakeLists.txt                               |   2 +-
+ .../gridwise_gemm_multiple_d_wmma_cshuffle.hpp   |   6 ++++--
+ .../__pycache__/file_templates.cpython-311.pyc   | Bin 0 -> 3771 bytes
+ profiler/src/profile_contraction_                |   0
+ 10 files changed, 10 insertions(+), 9 deletions(-)
+ create mode 100644 library/src/jit_library/util/__pycache__/file_templates.cpython-311.pyc
+ create mode 100644 profiler/src/profile_contraction_
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1abf2d170..922c526aa 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -29,7 +29,6 @@ include(CTest)
+ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+ 
+ if (DTYPES)
+-    add_definitions(-DDTYPES)
+     if (DTYPES MATCHES "int8")
+         add_definitions(-DCK_ENABLE_INT8)
+         set(CK_ENABLE_INT8 "ON")
+diff --git a/example/01_gemm/CMakeLists.txt b/example/01_gemm/CMakeLists.txt
+index 5b71cd154..0c792477d 100644
+--- a/example/01_gemm/CMakeLists.txt
++++ b/example/01_gemm/CMakeLists.txt
+@@ -27,7 +27,7 @@ add_example_dependencies(example_gemm_xdl example_gemm_xdl_wavelet_fp16)
+ 
+ add_example_executable(example_gemm_xdl_skip_b_lds_fp16 gemm_xdl_skip_b_lds_fp16.cpp)
+ add_example_dependencies(example_gemm_xdl example_gemm_xdl_skip_b_lds_fp16)
+-if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102")
++if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102" OR GPU_TARGETS MATCHES "gfx1103" OR GPU_TARGETS MATCHES "gfx1150" OR GPU_TARGETS MATCHES "gfx1151")
+     add_custom_target(example_gemm_wmma)
+     add_example_executable(example_gemm_wmma_fp16 gemm_wmma_fp16.cpp)
+     add_example_dependencies(example_gemm_wmma example_gemm_wmma_fp16)
+diff --git a/example/02_gemm_bilinear/CMakeLists.txt b/example/02_gemm_bilinear/CMakeLists.txt
+index 97508532c..0e2f68ae0 100644
+--- a/example/02_gemm_bilinear/CMakeLists.txt
++++ b/example/02_gemm_bilinear/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-list(APPEND gpu_list1 gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list1 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ list(APPEND gpu_list2 gfx908 gfx90a gfx940 gfx941 gfx942)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+diff --git a/example/20_grouped_conv_bwd_weight/CMakeLists.txt b/example/20_grouped_conv_bwd_weight/CMakeLists.txt
+index c28fca6fa..98166f51a 100644
+--- a/example/20_grouped_conv_bwd_weight/CMakeLists.txt
++++ b/example/20_grouped_conv_bwd_weight/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
+diff --git a/example/29_batched_gemm_bias_e_permute/CMakeLists.txt b/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
+index 32a87dd20..c2286653a 100644
+--- a/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
++++ b/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ add_example_executable(example_batched_gemm_bias_e_permute_xdl_fp16 batched_gemm_bias_e_permute_xdl_fp16.cpp)
+ 
+-if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102")
++if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102" OR GPU_TARGETS MATCHES "gfx1103" OR GPU_TARGETS MATCHES "gfx1150" OR GPU_TARGETS MATCHES "gfx1151")
+     add_example_executable(example_batched_gemm_bias_e_permute_wmma_fp16 batched_gemm_bias_e_permute_wmma_fp16.cpp)
+ endif()
+diff --git a/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt b/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
+index 3a8c2ef52..4c23145a9 100644
+--- a/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
++++ b/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list1 gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list2 gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list2 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ 
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+diff --git a/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt b/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
+index 1ae179e95..3dd525282 100644
+--- a/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
++++ b/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
+diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+index c4a1b0c7a..149ed778f 100644
+--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+@@ -152,7 +152,8 @@ __global__ void
+ {
+ #if(!defined(__HIP_DEVICE_COMPILE__) || \
+     defined(__gfx1100__) || defined(__gfx1101__) || \
+-    defined(__gfx1102__) || defined(__gfx1103__))
++    defined(__gfx1102__) || defined(__gfx1103__) || \
++    defined(__gfx1150__) || defined(__gfx1151__))
+     // printf("entry kernel launch");
+     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
+ 
+@@ -249,7 +250,8 @@ __global__ void
+ {
+ #if(!defined(__HIP_DEVICE_COMPILE__) || \
+     defined(__gfx1100__) || defined(__gfx1101__) || \
+-    defined(__gfx1102__) || defined(__gfx1103__))
++    defined(__gfx1102__) || defined(__gfx1103__) || \
++    defined(__gfx1150__) || defined(__gfx1151__))
+     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
+ 
+     GridwiseOp::template Run<HasMainKBlockLoop>(p_a_grid,
+diff --git a/library/src/jit_library/util/__pycache__/file_templates.cpython-311.pyc b/library/src/jit_library/util/__pycache__/file_templates.cpython-311.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..719ecc8b21727c2cda5368394affd8c07b617019
+GIT binary patch
+literal 3771
+zcmeHK-A~*`5MLk1mpRfNNk~)LvgM=VM8I%LtCUbG)Vxq7QB^86;>9xda_3-suj@4*
+z#V6&V|3M!jRjSmdR8jiJRCx)y*Zu<+(Y)lTv+MJ6UqBJ`t(I=QJ2U>x?99&2-tWW1
+zI)dldU%oBvjUe=wn52)^7#zJ1gQv(r8_3Z%G$->D+Q>LPKzp3*Ix6&9<$i<=1FwH`
+z@6p_S*Cs(o=GGh%aCgfkYzaSD`%VY>SG2Ov+)|n28M}as3yXK=iVMZ!ExhXNSb<F(
+z{J^yt#rMb#fP}a3T42xPRnNons}M6161GE}d0n5ZFstNSn8J53a|7Fp9D<kakUO5c
+zxzfbiAvUM1nd1|mvi%iZ4=kUA70V{r-o^(9P4hAhc`L^aLN2@%Ts`D0vO$4XOo34~
+zQ)#G!7{dd~+_kYAcy2&o<}58Gjx5VD0JuSE1s~YdGa21YU@-ndehe5&ppdIlRIT3C
+z&uu^$k$$!t5Q2*u5Z-rPK`OWm16@}j3|z(v+<@PaKwX#7BE9HZ6j;{<wMZ|;RGNd1
+z>`POr^wLb7ysCehD=Xp@mk3wsP_E6`6e<vJQtII!A`1?eA4wst7Ey8HVT4C4P;&ew
+zK2R||PVSQYEcv3Hs=AXAyW6O_mXd4nv1R{V*vI4eo#~@eJ>AES6ko{46fN0Kr~25U
+zdbW?37e`@O1qYw$qf$NH$3}-S%fxaBn>lIcO~8JWt*D_`olvmy<gQjRbV3onr0=BL
+zTW=SL2Gqf{w{>eh^MA8#wBmC&+cer?XE#)$?rm1pywW>y3&0LYZVC-6Y6CR4?IyhD
+z?Q$aMf4;A5xc;f<8jO12ceDZIDdI|i&~NFru!)CIjAAX$#658~?v4B6{&*lBjP-aZ
+z&c(y=mH3_b-8lb;_6%&iP<G(zn0feoq}JcKMAdSl6h-xl@~Gw0nF?p3kk)IWAZASp
+z&4*4cpU&D8juFzM;#eWy(JpGEEv#;;3h-F9)vp9Kbw@5QQB7IxsHtOZs;#J3T92AS
+zrgoJ^+}v_KV(z-UY|1uS>)WEtw>T3C4Mp_ZTOP)5e>Te0Cx&PF?lv>%ZeTEK`$ouY
+zBXqWnXfq0URJ^@#Tk=idnVXU8!AWR-wpcVvTYHNOpDqY}v%=_OxN(PuP5lZDtxfP|
+zo3Ma*23*XU#r7raW0#xhJmRirNVhrhE1tzkIA7VXjf;DLBmWGTCF1+0A9>uZ0G=Zk
+z$!@}8o`_X_F9&a?P;UIy(Dcip>BDPdhc~AWKQg*dU`~E6L~V4eP@hJ*PhO*u-0a_i
+z)X_-q>=8gCJ1c18>4Uc{jujZ3r#PSh0Oy6mN(vy$1fvGYY(6z=gKEyMgB+5ZSIG@%
+zl3I2HB<uqqp}-J%W$(eD_HldULb}C$YcC0-h&02X_Y8jF9FQmI%>c@M_-bhK<<O*v
+z-B{spbR1}X5ap&`qpXMskUGlt&NA_T@L?g#M&ZrI1rdpmh|iIfN-y3HEc?`nJhH+j
+uKrYUWa1}_sN7J-==8<+I`zN|u=b4G?Fv!=x)}}PDpvZk~K+HRdH1Q7_GNKj$
+
+literal 0
+HcmV?d00001
+
+diff --git a/profiler/src/profile_contraction_ b/profiler/src/profile_contraction_
+new file mode 100644
+index 000000000..e69de29bb
+-- 
+2.43.0
+

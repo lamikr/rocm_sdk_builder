@@ -1,4 +1,4 @@
-From 9d33596d26468e6035316872183c63de8e2e10b6 Mon Sep 17 00:00:00 2001
+From 68b6e1b1538b69ca1f848a208dc85f8c9eaa38c9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 14:22:07 -0700
 Subject: [PATCH 3/4] add gfx1011/12/gfx1030/31/32/35/36 support
@@ -441,5 +441,5 @@ index 5728137..ef913a4 100644
      };
  
 -- 
-2.41.1
+2.43.0
 

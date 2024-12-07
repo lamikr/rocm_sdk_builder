@@ -1,0 +1,33 @@
+From d3669087a6e980e54eb941a5e46eef1bd5778b1e Mon Sep 17 00:00:00 2001
+From: Martin Kroeker <martin@ruby.chemie.uni-freiburg.de>
+Date: Tue, 8 Oct 2024 23:07:42 +0200
+Subject: [PATCH 3/3] Add preliminary cpu autodetection for Zen5/5c
+
+---
+ cpuid_x86.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/cpuid_x86.c b/cpuid_x86.c
+index 6cf4d6503..3e1b7abd7 100644
+--- a/cpuid_x86.c
++++ b/cpuid_x86.c
+@@ -1661,6 +1661,7 @@ int get_cpuname(void){
+ 	    return CPUTYPE_BARCELONA;
+         }
+       case 10: // Zen3/4
++      case 11: // Zen5
+ #ifndef NO_AVX512
+           if(support_avx512_bf16())
+             return CPUTYPE_COOPERLAKE;
+@@ -2436,7 +2437,7 @@ int get_coretype(void){
+ 	  }
+ 	  break;
+ 	}
+-      } else if (exfamily == 8 || exfamily == 10) {
++      } else if (exfamily == 8 || exfamily == 10 || exfamily == 11) {
+ 	switch (model) {
+ 	case 1:
+ 	  // AMD Ryzen
+-- 
+2.43.0
+
