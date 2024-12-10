@@ -1,0 +1,35 @@
+From 56674a2a82e028b00fdea211eaf6ddf932aff56b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 10 Dec 2024 12:46:28 -0800
+Subject: [PATCH 9/9] download esmi_ib_library from rocm_sdk_builder repo
+
+Originally the amdsmi cloned the esmi_ib_library from
+https://github.com/amd/esmi_ib_library.git and then
+copied the amd_hsmb.h from the kernel sources
+on github address
+https://git.kernel.org/pub/scm/linux/kernel/git/pdx86/platform-drivers-x86.git/plain/arch/x86/include/uapi/asm/amd_hsmp.h?h=review-ilpo
+but that has now started to fail.
+To solve the problem, rocm_sdk_builder project has now own esmi_ib_library
+which includes the missing file directly.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8c49ad3..de6979b 100755
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -118,7 +118,7 @@ if(ENABLE_ESMI_LIB)
+     if(NOT EXISTS ${PROJECT_SOURCE_DIR}/esmi_ib_library/src)
+         # TODO: use ExternalProject_Add instead or a submodule
+         # as of 2023.10.16 CI builds are broken with an updated submodule
+-        execute_process(COMMAND git clone --depth=1 -b esmi_pkg_ver-3.0.3 https://github.com/amd/esmi_ib_library.git ${PROJECT_SOURCE_DIR}/esmi_ib_library)
++        execute_process(COMMAND git clone --depth=1 -b esmi_pkg_ver-3.0.3 https://github.com/lamikr/esmi_ib_library ${PROJECT_SOURCE_DIR}/esmi_ib_library)
+     endif()
+     if(NOT EXISTS ${PROJECT_SOURCE_DIR}/esmi_ib_library/include/asm/amd_hsmp.h)
+         file(DOWNLOAD
+-- 
+2.43.0
+

@@ -1,7 +1,7 @@
-From 49936c7183afe2a8cff89475e9778c1ed401a60f Mon Sep 17 00:00:00 2001
+From be4e0c95322003e110f95afa27fb6157616c23b0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 13 Aug 2024 18:30:57 -0700
-Subject: [PATCH 3/8] fix double free corruption (!prev) error on pytorch 2.4.0
+Subject: [PATCH 3/9] fix double free corruption (!prev) error on pytorch 2.4.0
  exit
 
 Even simple pytorch hello world type application
@@ -83,5 +83,5 @@ index d9547eb..8f4e171 100755
                                  void *p_binary_data) {
    auto sysfs_path = path_;
 -- 
-2.41.1
+2.43.0
 

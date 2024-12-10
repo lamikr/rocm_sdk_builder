@@ -1,7 +1,7 @@
-From 6693be7b111d57dcf7fb7d4150bc67206aac9ca1 Mon Sep 17 00:00:00 2001
+From 0c71a7f7437798245943e58822c009fd8deba550 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 13 Jul 2024 20:06:14 -0400
-Subject: [PATCH 1/8] fedora40 buildbreak fix for assignment to readonly object
+Subject: [PATCH 1/9] fedora40 buildbreak fix for assignment to readonly object
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -22,5 +22,5 @@ index 67d9d8b..e492978 100755
      release_ = rhs.release_;
      rhs.dismiss_ = true;
 -- 
-2.41.1
+2.43.0
 

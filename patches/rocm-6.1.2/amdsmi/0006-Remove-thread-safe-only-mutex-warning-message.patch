@@ -1,7 +1,7 @@
-From c2d0277558e4374f72ed8bfe2e7944b184b0e53f Mon Sep 17 00:00:00 2001
+From 038d72c15d6da617aa0af7284d6b46f4dc5b5877 Mon Sep 17 00:00:00 2001
 From: "Bill(Shuzhou) Liu" <shuzhou.liu@amd.com>
 Date: Thu, 2 May 2024 11:09:57 -0500
-Subject: [PATCH 6/8] Remove thread safe only mutex warning message
+Subject: [PATCH 6/9] Remove thread safe only mutex warning message
 
 In multiple GPUs environment, too many warning messages generated,
 and then need to be removed.
@@ -17,11 +17,12 @@ index d9aa1a2..414faa1 100755
 +++ b/third_party/shared_mutex/shared_mutex.cc
 @@ -141,7 +141,6 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
    amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
-
+ 
    if (GetEnvVarUInteger(THREAD_ONLY_ENV_VAR) == 1 || smi.is_thread_only_mutex()) {
 -    fprintf(stderr, "rocm-smi: using thread safe only mutex\n");
      return init_thread_safe_only(name);
    }
+ 
+-- 
+2.43.0
 
---
-2.41.1

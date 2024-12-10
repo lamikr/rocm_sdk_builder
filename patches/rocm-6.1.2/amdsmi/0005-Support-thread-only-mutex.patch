@@ -1,7 +1,7 @@
-From 8c3ba3fd2293c3df2e2fc931500ddc234a5acd3a Mon Sep 17 00:00:00 2001
+From 00a33814b4092422eba4b8678fa915bb7809fc22 Mon Sep 17 00:00:00 2001
 From: "Bill(Shuzhou) Liu" <shuzhou.liu@amd.com>
 Date: Fri, 19 Apr 2024 13:16:29 -0500
-Subject: [PATCH 5/8] Support thread only mutex
+Subject: [PATCH 5/9] Support thread only mutex
 
 The environment variable RSMI_MUTEX_THREAD_ONLY=1 to enable thread only mutex.
 The RSMI_INIT_FLAG_THRAD_ONLY_MUTEX can also be pass to rsmi_init()
@@ -25,28 +25,28 @@ index 0fafa31..a62e156 100755
 +  RSMI_INIT_FLAG_THRAD_ONLY_MUTEX = 0x400000000000000,   //!< The mutex limit to thread
    RSMI_INIT_FLAG_RESRV_TEST1 = 0x800000000000000,  //!< Reserved for test
  } rsmi_init_flags_t;
-
+ 
 diff --git a/rocm_smi/include/rocm_smi/rocm_smi_main.h b/rocm_smi/include/rocm_smi/rocm_smi_main.h
 index c957f51..0a66ea2 100755
 --- a/rocm_smi/include/rocm_smi/rocm_smi_main.h
 +++ b/rocm_smi/include/rocm_smi/rocm_smi_main.h
 @@ -88,6 +88,9 @@ class RocmSMI {
-
+ 
      void set_init_options(uint64_t options) {init_options_ = options;}
      uint64_t init_options() const {return init_options_;}
 +    uint64_t is_thread_only_mutex() const {
 +      return init_options_ & RSMI_INIT_FLAG_THRAD_ONLY_MUTEX;
 +    }
-
+ 
      uint32_t euid() const {return euid_;}
-
+ 
 diff --git a/third_party/shared_mutex/shared_mutex.cc b/third_party/shared_mutex/shared_mutex.cc
 index ed66124..d9aa1a2 100755
 --- a/third_party/shared_mutex/shared_mutex.cc
 +++ b/third_party/shared_mutex/shared_mutex.cc
 @@ -41,6 +41,22 @@ THE SOFTWARE.
  #include <vector>
-
+ 
  #include "rocm_smi/rocm_smi_exception.h"
 +#include "rocm_smi/rocm_smi_main.h"
 +
@@ -64,13 +64,13 @@ index ed66124..d9aa1a2 100755
 +
 +  return -1;
 +}
-
+ 
  // find which processes are using the file by searching /proc/*/fd
  static std::vector<std::string> lsof(const char* filename) {
 @@ -81,10 +97,54 @@ static std::vector<std::string> lsof(const char* filename) {
    return matched_process;
  }
-
+ 
 +// RSMI_MUTEX_THREAD_ONLY = 1 to enable thread safe mutex
 +shared_mutex_t init_thread_safe_only(const char *name) {
 +  shared_mutex_t mutex = {nullptr, 0, nullptr, 0};
@@ -112,7 +112,7 @@ index ed66124..d9aa1a2 100755
 -  shared_mutex_t mutex = {NULL, 0, NULL, 0};
 +  shared_mutex_t mutex = {nullptr, 0, nullptr, 0};
    errno = 0;
-
+ 
 +  amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
 +
 +  if (GetEnvVarUInteger(THREAD_ONLY_ENV_VAR) == 1 || smi.is_thread_only_mutex()) {
@@ -124,7 +124,7 @@ index ed66124..d9aa1a2 100755
    // Two separate calls are needed here, to mark fact of creation
    // for later initialization of pthread mutex.
 @@ -112,7 +172,7 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
-
+ 
    // Map pthread mutex into the shared memory.
    void *addr = mmap(
 -    NULL,
@@ -140,10 +140,10 @@ index ed66124..d9aa1a2 100755
 +  int time_out = GetEnvVarUInteger(MUTEX_TIME_OUT_ENV_VAR);
 +  time_out = time_out < DEFAULT_MUTEX_TIMEOUT_SECONDS ? DEFAULT_MUTEX_TIMEOUT_SECONDS: time_out;
 +  expireTime.tv_sec += time_out;
-
+ 
 +  pid_t cur_pid = getpid();
    int ret;
-
+ 
 +  // also need to set the attribute when retried as the mutex is re-initialized.
 +  if (mutex.created || retried) {
 +    pthread_mutexattr_t attr;
@@ -173,13 +173,13 @@ index ed66124..d9aa1a2 100755
    ret = pthread_mutex_timedlock(mutex_ptr, &expireTime);
 -  pid_t cur_pid = getpid();
 +
-
+ 
    if (ret == EOWNERDEAD) {
      ret = pthread_mutex_consistent(mutex_ptr);
 @@ -154,13 +243,14 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
        return mutex;
      }
-
+ 
 -    fprintf(stderr, "%s: %d detected dead process, and make mutex consistent.\n", name, cur_pid);
 +    fprintf(stderr, "%d detected dead process, and making mutex %s consistent.\n",
 +              cur_pid, name);
@@ -191,7 +191,7 @@ index ed66124..d9aa1a2 100755
 -                     reinterpret_cast<shared_mutex_t *>(addr)->ptr == NULL)) {
 +                     reinterpret_cast<shared_mutex_t *>(addr)->ptr == nullptr)) {
      // Something is out of sync.
-
+ 
      // When process crash before unlock the mutex, the mutex is in bad status.
 @@ -168,7 +258,8 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
      if (!retried) {
@@ -214,7 +214,7 @@ index ed66124..d9aa1a2 100755
 +      fprintf(stderr, "%d init_mutex %s: unlock timed lock, ret: %d\n", cur_pid, name, ret);
      }
    }
-
+ 
 -  // also need to set the attribute when retried as the mutex is re-initialized.
 -  if (mutex.created || retried) {
 -    pthread_mutexattr_t attr;
@@ -226,7 +226,7 @@ index ed66124..d9aa1a2 100755
 -      perror("pthread_mutexattr_setpshared");
 -      return mutex;
 -    }
-
+ 
 -    if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE)) {
 -      perror("pthread_mutexattr_settype");
 -      return mutex;
@@ -240,12 +240,12 @@ index ed66124..d9aa1a2 100755
 -      return mutex;
 -    }
 -  }
-
+ 
    mutex.ptr = mutex_ptr;
    mutex.name = reinterpret_cast<char *>(malloc(NAME_MAX+1));
 @@ -225,12 +294,17 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
  }
-
+ 
  int shared_mutex_close(shared_mutex_t mutex) {
 -  if (munmap(reinterpret_cast<void *>(mutex.ptr), sizeof(pthread_mutex_t))) {
 +  amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
@@ -266,7 +266,7 @@ index ed66124..d9aa1a2 100755
    }
 @@ -241,21 +315,26 @@ int shared_mutex_close(shared_mutex_t mutex) {
  }
-
+ 
  int shared_mutex_destroy(shared_mutex_t mutex) {
 +  amd::smi::RocmSMI& smi = amd::smi::RocmSMI::getInstance();
 +  const bool is_thread_only = GetEnvVarUInteger(THREAD_ONLY_ENV_VAR) == 1 ||
@@ -295,5 +295,6 @@ index ed66124..d9aa1a2 100755
      perror("shm_unlink");
      return -1;
    }
---
-2.41.1
+-- 
+2.43.0
+

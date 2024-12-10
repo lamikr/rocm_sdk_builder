@@ -1,7 +1,7 @@
-From 104b3491cbb527518125ae7b3e097909da0b4dd4 Mon Sep 17 00:00:00 2001
+From 78434ac38573b9a55de7e3d23a121b1487df516b Mon Sep 17 00:00:00 2001
 From: "Bill(Shuzhou) Liu" <shuzhou.liu@amd.com>
 Date: Thu, 21 Mar 2024 15:25:35 -0500
-Subject: [PATCH 4/8] Unlock the mutex when process is dead
+Subject: [PATCH 4/9] Unlock the mutex when process is dead
 
 After the dead process is detected, pthread_mutex_consistent() will
 be called. After that, the pthread_mutex_unlock() should also be
@@ -20,7 +20,7 @@ index cc61042..ed66124 100755
 @@ -48,10 +48,13 @@ static std::vector<std::string> lsof(const char* filename) {
    DIR *dp = nullptr;
    std::vector<std::string> process_id;
-
+ 
 +  pid_t cur_pid = getpid();
    dp = opendir("/proc");
    if (dp != nullptr) {
@@ -33,10 +33,10 @@ index cc61042..ed66124 100755
          process_id.push_back(entry->d_name);
 @@ -132,6 +135,7 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
    int ret;
-
+ 
    ret = pthread_mutex_timedlock(mutex_ptr, &expireTime);
 +  pid_t cur_pid = getpid();
-
+ 
    if (ret == EOWNERDEAD) {
      ret = pthread_mutex_consistent(mutex_ptr);
 @@ -149,6 +153,12 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
@@ -63,12 +63,13 @@ index cc61042..ed66124 100755
 @@ -181,7 +192,8 @@ shared_mutex_t shared_mutex_init(const char *name, mode_t mode, bool retried) {
      }
    }
-
+ 
 -  if (mutex.created) {
 +  // also need to set the attribute when retried as the mutex is re-initialized.
 +  if (mutex.created || retried) {
      pthread_mutexattr_t attr;
      if (pthread_mutexattr_init(&attr)) {
        perror("pthread_mutexattr_init");
---
-2.41.1
+-- 
+2.43.0
+

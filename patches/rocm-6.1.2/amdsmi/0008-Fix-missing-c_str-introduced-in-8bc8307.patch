@@ -1,7 +1,7 @@
-From 0b6a828ef37946ad0d38dda8dcc6870b06c477bd Mon Sep 17 00:00:00 2001
+From 6d0b5bed9dc20d29060932ee670427a3150857c1 Mon Sep 17 00:00:00 2001
 From: "Galantsev, Dmitrii" <dmitrii.galantsev@amd.com>
 Date: Fri, 19 Jul 2024 14:03:53 -0500
-Subject: [PATCH 8/8] Fix missing c_str() introduced in 8bc8307
+Subject: [PATCH 8/9] Fix missing c_str() introduced in 8bc8307
 
 Change-Id: Ife778276aaebd109a413efb3db703de36b730613
 Signed-off-by: Galantsev, Dmitrii <dmitrii.galantsev@amd.com>
@@ -22,5 +22,6 @@ index 59504ee..54b0584 100755
          memset(mutex_ptr, 0, sizeof(pthread_mutex_t));
          // Set mutex.created == 1 so that it can be initialized latter.
          mutex.created = 1;
---
-2.41.1
+-- 
+2.43.0
+
