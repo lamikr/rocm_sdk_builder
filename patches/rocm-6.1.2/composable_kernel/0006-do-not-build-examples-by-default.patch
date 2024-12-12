@@ -1,9 +1,14 @@
-From 393cea3ba5db9bb6be8bee181ca875242caaec97 Mon Sep 17 00:00:00 2001
+From d8326da7a7721cbe51572478fa7d6559fa3dd740 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 01:02:20 -0700
-Subject: [PATCH 6/7] do not build examples by default
+Subject: [PATCH 6/6] do not build examples by default
 
-speeds up the build considerably
+speed up the build by not building the
+example applications by default with the
+rocm sdk builder.
+
+To enable the building of examples the
+-DBUILD_EXAMPLES=1 must be defined
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -11,10 +16,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3f5afed74..1abf2d170 100644
+index bbf0670df..922c526aa 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -475,7 +475,9 @@ if (NOT CK_BUILD_JIT_LIB)
+@@ -474,7 +474,9 @@ if (NOT CK_BUILD_JIT_LIB)
                          LIBRARY_NAME composablekernel
                          PACKAGE_NAME examples
             )
@@ -26,5 +31,5 @@ index 3f5afed74..1abf2d170 100644
                    add_subdirectory(test)
             endif()
 -- 
-2.43.0
+2.41.1
 

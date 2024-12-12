@@ -1,11 +1,17 @@
-From bbe1b5534bf495f8d0588de407b52541dd08ade4 Mon Sep 17 00:00:00 2001
+From 54901bd4cabc101628a63864f178be44f711a74e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 15:27:25 -0700
-Subject: [PATCH 4/7] initial strix point/strix halo gfx1150/51 support
+Subject: [PATCH 4/6] initial strix point/strix halo gfx1150/51 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- CMakeLists.txt                                |  6 +++---
+ CMakeLists.txt                                |  7 +++----
+ example/01_gemm/CMakeLists.txt                |  2 +-
+ example/02_gemm_bilinear/CMakeLists.txt       |  2 +-
+ .../20_grouped_conv_bwd_weight/CMakeLists.txt |  2 +-
+ .../CMakeLists.txt                            |  2 +-
+ .../CMakeLists.txt                            |  2 +-
+ .../CMakeLists.txt                            |  2 +-
  include/ck/ck.hpp                             |  9 ++++++---
  include/ck/host_utility/device_prop.hpp       |  2 ++
  ...d_contraction_multiple_d_wmma_cshuffle.hpp |  3 ++-
@@ -24,20 +30,28 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  ...uped_conv_fwd_multiple_d_wmma_cshuffle.hpp |  5 +++--
  .../device_grouped_gemm_multiple_d_dl.hpp     |  1 +
  .../gpu/grid/gridwise_gemm_dpp.hpp            |  3 ++-
- ...gridwise_gemm_multiple_d_wmma_cshuffle.hpp |  3 ++-
+ ...gridwise_gemm_multiple_d_wmma_cshuffle.hpp |  9 ++++++---
  .../gpu/grid/gridwise_gemm_wmma.hpp           |  3 ++-
  .../gpu/grid/gridwise_tensor_rearrange.hpp    |  1 +
  include/ck/utility/amd_wmma.hpp               | 20 +++++++++----------
  test/grouped_convnd_bwd_data/CMakeLists.txt   |  2 +-
  test/grouped_convnd_bwd_weight/CMakeLists.txt |  2 +-
  .../test_grouped_convnd_bwd_weight.cpp        |  4 +++-
- 26 files changed, 66 insertions(+), 36 deletions(-)
+ 32 files changed, 76 insertions(+), 45 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index c38e44ec3..3f5afed74 100644
+index c38e44ec3..bbf0670df 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -113,7 +113,7 @@ message("checking which targets are supported")
+@@ -29,7 +29,6 @@ include(CTest)
+ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+ 
+ if (DTYPES)
+-    add_definitions(-DDTYPES)
+     if (DTYPES MATCHES "int8")
+         add_definitions(-DCK_ENABLE_INT8)
+         set(CK_ENABLE_INT8 "ON")
+@@ -113,7 +112,7 @@ message("checking which targets are supported")
  #Setting GPU_TARGETS on command line will override this list
  if(NOT PROFILER_ONLY)
      rocm_check_target_ids(DEFAULT_GPU_TARGETS
@@ -46,7 +60,7 @@ index c38e44ec3..3f5afed74 100644
  else()
      add_definitions(-DPROFILER_ONLY)
      set(GPU_TARGETS "" CACHE STRING "" FORCE)
-@@ -121,13 +121,13 @@ else()
+@@ -121,13 +120,13 @@ else()
          message(FATAL_ERROR "For PROFILE_ONLY build, please do not set GPU_TARGETS, use GPU_ARCH = gfx90, gfx94, gfx10, or gfx11")
      endif()
      if(GPU_ARCH MATCHES "gfx90")
@@ -62,6 +76,73 @@ index c38e44ec3..3f5afed74 100644
      else()
          message(FATAL_ERROR "For PROFILE_ONLY build, please specify GPU_ARCH as gfx90, gfx94, gfx10, or gfx11")
      endif()
+diff --git a/example/01_gemm/CMakeLists.txt b/example/01_gemm/CMakeLists.txt
+index 5b71cd154..0c792477d 100644
+--- a/example/01_gemm/CMakeLists.txt
++++ b/example/01_gemm/CMakeLists.txt
+@@ -27,7 +27,7 @@ add_example_dependencies(example_gemm_xdl example_gemm_xdl_wavelet_fp16)
+ 
+ add_example_executable(example_gemm_xdl_skip_b_lds_fp16 gemm_xdl_skip_b_lds_fp16.cpp)
+ add_example_dependencies(example_gemm_xdl example_gemm_xdl_skip_b_lds_fp16)
+-if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102")
++if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102" OR GPU_TARGETS MATCHES "gfx1103" OR GPU_TARGETS MATCHES "gfx1150" OR GPU_TARGETS MATCHES "gfx1151")
+     add_custom_target(example_gemm_wmma)
+     add_example_executable(example_gemm_wmma_fp16 gemm_wmma_fp16.cpp)
+     add_example_dependencies(example_gemm_wmma example_gemm_wmma_fp16)
+diff --git a/example/02_gemm_bilinear/CMakeLists.txt b/example/02_gemm_bilinear/CMakeLists.txt
+index d82c42d5a..aa1061370 100644
+--- a/example/02_gemm_bilinear/CMakeLists.txt
++++ b/example/02_gemm_bilinear/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-list(APPEND gpu_list1 gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list1 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ list(APPEND gpu_list2 gfx908 gfx90a gfx940 gfx941 gfx942)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+diff --git a/example/20_grouped_conv_bwd_weight/CMakeLists.txt b/example/20_grouped_conv_bwd_weight/CMakeLists.txt
+index c28fca6fa..98166f51a 100644
+--- a/example/20_grouped_conv_bwd_weight/CMakeLists.txt
++++ b/example/20_grouped_conv_bwd_weight/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
+diff --git a/example/29_batched_gemm_bias_e_permute/CMakeLists.txt b/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
+index 32a87dd20..c2286653a 100644
+--- a/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
++++ b/example/29_batched_gemm_bias_e_permute/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ add_example_executable(example_batched_gemm_bias_e_permute_xdl_fp16 batched_gemm_bias_e_permute_xdl_fp16.cpp)
+ 
+-if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102")
++if(GPU_TARGETS MATCHES "gfx1100" OR GPU_TARGETS MATCHES "gfx1101" OR GPU_TARGETS MATCHES "gfx1102" OR GPU_TARGETS MATCHES "gfx1103" OR GPU_TARGETS MATCHES "gfx1150" OR GPU_TARGETS MATCHES "gfx1151")
+     add_example_executable(example_batched_gemm_bias_e_permute_wmma_fp16 batched_gemm_bias_e_permute_wmma_fp16.cpp)
+ endif()
+diff --git a/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt b/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
+index 3a8c2ef52..4c23145a9 100644
+--- a/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
++++ b/example/30_grouped_conv_fwd_multiple_d/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list1 gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list2 gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list2 gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ 
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+diff --git a/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt b/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
+index 1ae179e95..3dd525282 100644
+--- a/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
++++ b/example/38_grouped_conv_bwd_data_multiple_d/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
+-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103 gfx1150 gfx1151)
+ set(target 0)
+ foreach(gpu IN LISTS GPU_TARGETS)
+     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
 diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
 index 21f377f1c..20ea304f3 100644
 --- a/include/ck/ck.hpp
@@ -364,7 +445,7 @@ index 8188a18c9..31c7d290b 100644
  
      const auto a_grid_desc_ak0_m_ak1 = amd_wave_read_first_lane(
 diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
-index 4cee092c5..c4a1b0c7a 100644
+index 4cee092c5..149ed778f 100644
 --- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
 +++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
 @@ -56,7 +56,8 @@ __global__ void
@@ -377,6 +458,26 @@ index 4cee092c5..c4a1b0c7a 100644
      // offset base pointer for each work-group
      const index_t num_blocks_per_batch =
          __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
+@@ -151,7 +152,8 @@ __global__ void
+ {
+ #if(!defined(__HIP_DEVICE_COMPILE__) || \
+     defined(__gfx1100__) || defined(__gfx1101__) || \
+-    defined(__gfx1102__) || defined(__gfx1103__))
++    defined(__gfx1102__) || defined(__gfx1103__) || \
++    defined(__gfx1150__) || defined(__gfx1151__))
+     // printf("entry kernel launch");
+     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
+ 
+@@ -248,7 +250,8 @@ __global__ void
+ {
+ #if(!defined(__HIP_DEVICE_COMPILE__) || \
+     defined(__gfx1100__) || defined(__gfx1101__) || \
+-    defined(__gfx1102__) || defined(__gfx1103__))
++    defined(__gfx1102__) || defined(__gfx1103__) || \
++    defined(__gfx1150__) || defined(__gfx1151__))
+     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
+ 
+     GridwiseOp::template Run<HasMainKBlockLoop>(p_a_grid,
 diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
 index d530c0fd8..d626d3432 100644
 --- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
@@ -535,5 +636,5 @@ index 347cb65f6..9097242a8 100644
          {
              // on navi3x only support for 3d is implemented
 -- 
-2.43.0
+2.41.1
 

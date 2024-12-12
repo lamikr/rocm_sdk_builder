@@ -1,10 +1,10 @@
-From e2f143bf6584062972df05590ea203979cea5b4b Mon Sep 17 00:00:00 2001
+From 680473856c29599c3ea70af42e967704d7fe3b16 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 01:00:13 -0700
-Subject: [PATCH 5/7] fix target already added error
+Subject: [PATCH 5/6] build error fix for target already added error
 
-error could happen if tried to
-build simulataneously for more than 1 gpu at the same time
+fix build error which can happen when there is more
+than one target enabled at the same time.
 (gfx1100, gfx1101)
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/example/02_gemm_bilinear/CMakeLists.txt b/example/02_gemm_bilinear/CMakeLists.txt
-index d82c42d5a..97508532c 100644
+index aa1061370..0e2f68ae0 100644
 --- a/example/02_gemm_bilinear/CMakeLists.txt
 +++ b/example/02_gemm_bilinear/CMakeLists.txt
 @@ -5,9 +5,7 @@ foreach(gpu IN LISTS GPU_TARGETS)
@@ -28,5 +28,5 @@ index d82c42d5a..97508532c 100644
  endforeach()
  
 -- 
-2.43.0
+2.41.1
 
