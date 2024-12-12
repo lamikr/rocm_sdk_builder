@@ -1,0 +1,29 @@
+# This file is an example how to override the default build
+# settings. You can enable them in following way
+#
+# 1) copy this file to envsetup_user.sh with command:
+#
+#    cp envsetup_user.sh_template envsetup_user.sh
+#
+# 2) Remove '#'-character from the beginning of the export lines that
+#    you want to change to override the default values used by the build system
+
+# ROCM SDK Builder install directory
+#export INSTALL_DIR_PREFIX_SDK_ROOT=~/rocm/rocm_sdk_612
+
+# Default directory used by some apps to download ml model files
+#export INSTALL_DIR_PREFIX_SDK_AI_MODELS=~/rocm/rocm_sdk_models
+
+# Three variables used by different apps to specify amount of CPUs used by the build
+#export BUILD_CPU_COUNT_DEFAULT=8
+#export BUILD_CPU_COUNT_MODERATE=8
+#export BUILD_CPU_COUNT_SAFE=8
+
+# Build type is by default Release.
+# Warning: CMAKE_BUILD_TYPE_DEFAULT=Debug 
+# will significantly increase the build time and memory and space required by the build.
+# It's recommended to enable Debug or RelWithDebInfo only a temporarily
+# for individual apps and libraries that you want to debug with gdb.
+#export CMAKE_BUILD_TYPE_DEBUG=Debug
+#export CMAKE_BUILD_TYPE_RELEASE=Release
+#export CMAKE_BUILD_TYPE_RELWITHDEBINFO=RelWithDebInfo
