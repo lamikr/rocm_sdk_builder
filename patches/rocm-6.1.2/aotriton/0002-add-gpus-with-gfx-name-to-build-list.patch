@@ -1,7 +1,7 @@
-From 14ee5733a7cd612f48f619368604211fc046a7e9 Mon Sep 17 00:00:00 2001
+From 3199757072a6291dd3276e315084a6fc32f07529 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jul 2024 12:48:47 -0700
-Subject: [PATCH 2/6] add gpus with gfx-name to build list
+Subject: [PATCH 2/7] add gpus with gfx-name to build list
 
 add all rocm sdk gpu's to build list
 and use the gfx* name for them instead

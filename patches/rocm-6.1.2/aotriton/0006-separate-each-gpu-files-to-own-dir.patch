@@ -1,7 +1,7 @@
-From 881bd78a4ab1f9152fe7a236db35bf62a59c5e84 Mon Sep 17 00:00:00 2001
+From a68395374e6c9d1b127e6cbaaa6321fee971a594 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Tue, 5 Nov 2024 00:13:12 -0800
-Subject: [PATCH 6/6] separate each gpu files to own dir
+Subject: [PATCH 6/7] separate each gpu files to own dir
 
 - should help to avoid errors on situations
   where there are too many files in single

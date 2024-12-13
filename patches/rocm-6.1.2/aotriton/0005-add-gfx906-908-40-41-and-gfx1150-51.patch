@@ -1,7 +1,7 @@
-From 52875cc24094f3ac04d899789e1984f9612d0fe0 Mon Sep 17 00:00:00 2001
+From cd140c9489c60d3e1aba275c363e33f14aa5e30d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 21:55:34 -0700
-Subject: [PATCH 5/6] add gfx906/908/40/41 and gfx1150/51
+Subject: [PATCH 5/7] add gfx906/908/40/41 and gfx1150/51
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
