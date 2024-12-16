@@ -6,15 +6,14 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/rocBLAS.git
 #use default git tag
 #BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-5.7.1
 
-# execution of tensile is very slow and errorprone. It should work with these settings
-# with special tensile version where I have added some error checking to places which could crash.
-# I also did not manage build with hip-clang but building with hcc worked.
-# (in the end of tensile commands happens som errors)
-# If tensile is disabled from the build, rocBLAS libraries were missing some functionality needed other libs/tensorflow build afterwards
+# rocBLAS can be build either with or without Tensile.
+# If rocBLAS is however build without Tensile, then libraries would miss some features needed by other apps like Tensorflow.
+# Tensile specific parameters are however very error-prone causing easily build failures and other problems,
+# so be careufull if changing these paramters.
+# I have had also problem of buildng by using the hip-clang , while hcc has worked ok.
+# Some functionality in client/test/benchmars apps seems to also require linking againsts blis instead of rocBLAS.
 
 CFG_TEMP1=-DAMDGPU_TARGETS="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
-#CFG_TEMP2=-DTensile_ARCHITECTURE="${SPACE_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
-#CFG_TEMP2=-DTensile_ARCHITECTURE="navi21;rembrandt"
 
 BINFO_APP_CMAKE_CFG="-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_PREFIX_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake;${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake"
@@ -26,33 +25,31 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DROCM_PATH=${INSTALL_DIR_PREFIX_SDK
 #BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DLINK_BLIS=ON"
 #BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBLIS_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DOPENBLAS_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_CODE_OBJECT_VERSION=V5"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_LOGIC=asm_full"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_SEPARATE_ARCHITECTURES=ON"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_LAZY_LIBRARY_LOADING=ON"
+#
+# Warning!
+# -DTensile_CODE_OBJECT_VERSION=V5
+# causes pytorch benchmarks to fail on gfx906 (tested on rocm sdk builder 6.1.2)
+#
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_CODE_OBJECT_VERSION=default"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_MERGE_FILES=ON"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_LIBRARY_FORMAT=msgpack"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_CPU_THREADS=${BUILD_CPU_COUNT_MODERATE}"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=ON"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTensile_TEST_LOCAL_PATH=${SDK_SRC_ROOT_DIR}/Tensile"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DTENSILE_VERSION=4.40.0"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_C_COMPILER=${SDK_C_COMPILER_DEFAULT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_CXX_COMPILER=${SDK_CXX_COMPILER_DEFAULT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DRUN_HEADER_TESTING=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_BUILD_TYPE=Release"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_BENCHMARKS=ON"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_BENCHMARKS=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_SAMPLES=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_CLIENTS_TESTS=OFF"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
-
-##BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DHIP_CLANG_INCLUDE_PATH=${INSTALL_DIR_PREFIX_HIP_LLVM}/include"
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -Damd_comgr_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake/amd_comgr"
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_WITH_TENSILE=ON"
-##BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DBUILD_WITH_TENSILE_HOST=ON"
-#BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
 
 BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocblas.h ]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocblas/rocblas.h ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocblas.h; fi"
     "if [ ! -e ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/internal ]; then ln -s ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/rocblas/internal ${INSTALL_DIR_PREFIX_SDK_ROOT}/include/internal; fi"
 )
-#"unset LDFLAGS"
