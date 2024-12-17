@@ -1,7 +1,7 @@
-From 0ee1ae6e9887f1bbfbff35322b27159f5cf55f66 Mon Sep 17 00:00:00 2001
+From 657deb08c79e2ccad1cc7e77ebe26a7d9dde5b2a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 20:34:13 -0700
-Subject: [PATCH 1/4] Tensile fix fallback arch build
+Subject: [PATCH 1/5] Tensile fix fallback arch build
 
 fixes build error which happens if only the rx 5700 is enabled
 (only GPU_BUILD_AMD_NAVI10_GFX1010=1 enabled in rocm_sdk_builder envsetup.sh)
