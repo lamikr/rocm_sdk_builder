@@ -1,0 +1,337 @@
+From 8382c3b930bb1bbd9d83cc4bdd29a9be32a2be39 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Thu, 12 Dec 2024 17:35:50 -0800
+Subject: [PATCH] clr debug
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ hipamd/src/hip_code_object.cpp    | 11 ++++++++--
+ hipamd/src/hip_fatbin.cpp         | 34 +++++++++++++++++++++----------
+ hipamd/src/hip_module.cpp         |  1 +
+ hipamd/src/hip_platform.cpp       |  1 +
+ rocclr/device/device.cpp          | 27 +++++++++++++++++++-----
+ rocclr/device/rocm/rocprogram.cpp |  2 ++
+ rocclr/platform/program.cpp       |  5 +++++
+ 7 files changed, 63 insertions(+), 18 deletions(-)
+
+diff --git a/hipamd/src/hip_code_object.cpp b/hipamd/src/hip_code_object.cpp
+index 6b3a6d08f..3d23000e2 100644
+--- a/hipamd/src/hip_code_object.cpp
++++ b/hipamd/src/hip_code_object.cpp
+@@ -141,7 +141,7 @@ static bool getProcName(uint32_t EFlags, std::string& proc_name, bool& xnackSupp
+       break;
+     case EF_AMDGPU_MACH_AMDGCN_GFX906:
+       xnackSupported = true;
+-      sramEccSupported = true;
++      sramEccSupported = false;
+       proc_name = "gfx906";
+       break;
+     case EF_AMDGPU_MACH_AMDGCN_GFX908:
+@@ -300,12 +300,14 @@ static bool getTripleTargetIDFromCodeObject(const void* code_object, std::string
+ 
+     case ELFABIVERSION_AMDGPU_HSA_V3: {
+       LogPrintfInfo("[Code Object V3, target id:%s]", target_id.c_str());
++      #if 1
+       if (isSramEccSupported) {
+         if (ehdr->e_flags & EF_AMDGPU_FEATURE_SRAMECC_V3)
+           target_id += ":sramecc+";
+         else
+           target_id += ":sramecc-";
+       }
++      #endif
+       if (isXnackSupported) {
+         if (ehdr->e_flags & EF_AMDGPU_FEATURE_XNACK_V3)
+           target_id += ":xnack+";
+@@ -322,12 +324,13 @@ static bool getTripleTargetIDFromCodeObject(const void* code_object, std::string
+       } else {
+         LogPrintfInfo("[Code Object V5, target id:%s]", target_id.c_str());
+       }
++      #if 1
+       unsigned co_sram_value = (ehdr->e_flags) & EF_AMDGPU_FEATURE_SRAMECC_V4;
+       if (co_sram_value == EF_AMDGPU_FEATURE_SRAMECC_OFF_V4)
+         target_id += ":sramecc-";
+       else if (co_sram_value == EF_AMDGPU_FEATURE_SRAMECC_ON_V4)
+         target_id += ":sramecc+";
+-
++      #endif
+       unsigned co_xnack_value = (ehdr->e_flags) & EF_AMDGPU_FEATURE_XNACK_V4;
+       if (co_xnack_value == EF_AMDGPU_FEATURE_XNACK_OFF_V4)
+         target_id += ":xnack-";
+@@ -483,6 +486,7 @@ hipError_t CodeObject::ExtractCodeObjectFromMemory(
+ hipError_t CodeObject::extractCodeObjectFromFatBinary(
+     const void* data, const std::vector<std::string>& agent_triple_target_ids,
+     std::vector<std::pair<const void*, size_t>>& code_objs) {
++  printf("extractCodeObjectFromFatBinary started\n");
+   std::string magic((const char*)data, kOffloadBundleMagicStrSize);
+   if (magic.compare(kOffloadBundleMagicStr)) {
+     return hipErrorInvalidKernelFile;
+@@ -512,6 +516,7 @@ hipError_t CodeObject::extractCodeObjectFromFatBinary(
+     if (!getTripleTargetID(bundleEntryId, image, co_triple_target_id)) continue;
+ 
+     for (size_t dev = 0; dev < agent_triple_target_ids.size(); ++dev) {
++      printf("device_id: %s\n", agent_triple_target_ids[dev].c_str());
+       if (code_objs[dev].first) continue;
+       if (isCodeObjectCompatibleWithDevice(co_triple_target_id, agent_triple_target_ids[dev])) {
+         code_objs[dev] = std::make_pair(image, image_size);
+@@ -556,6 +561,7 @@ hipError_t CodeObject::extractCodeObjectFromFatBinary(
+ 
+ hipError_t DynCO::loadCodeObject(const char* fname, const void* image) {
+   amd::ScopedLock lock(dclock_);
++  printf("loadCodeObject started\n");
+ 
+   // Number of devices = 1 in dynamic code object
+   fb_info_ = new FatBinaryInfo(fname, image);
+@@ -570,6 +576,7 @@ hipError_t DynCO::loadCodeObject(const char* fname, const void* image) {
+ 
+   // Define Global functions
+   IHIP_RETURN_ONFAIL(populateDynGlobalFuncs());
++  printf("loadCodeObject done\n");
+ 
+   return hipSuccess;
+ }
+diff --git a/hipamd/src/hip_fatbin.cpp b/hipamd/src/hip_fatbin.cpp
+index b5f072719..9b4878d90 100644
+--- a/hipamd/src/hip_fatbin.cpp
++++ b/hipamd/src/hip_fatbin.cpp
+@@ -136,9 +136,11 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+   hipError_t hip_status = hipSuccess;
+   amd_comgr_code_object_info_t* query_list_array = nullptr;
+ 
++  printf("ExtractFatBinaryUsingCOMGR started\n");
+   // If image was passed as a pointer to our hipMod* api, we can try to extract the file name
+   // if it was mapped by the app. Otherwise use the COMGR data API.
+   if (fname_.size() == 0) {
++    printf("ExtractFatBinaryUsingCOMGR 1\n");
+     if (image_ == nullptr) {
+       LogError("Both Filename and image cannot be null");
+       return hipErrorInvalidValue;
+@@ -153,6 +155,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+   // If file name & path are available (or it is passed to you), then get the file desc to use
+   // COMGR file slice APIs.
+   if (fname_.size() > 0) {
++    printf("ExtractFatBinaryUsingCOMGR 2\n");
+     // Get File Handle & size of the file.
+     ufd_ = PlatformState::instance().GetUniqueFileHandle(fname_.c_str());
+     if (ufd_ == nullptr) {
+@@ -180,14 +183,18 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+                                 fname_.c_str());
+ 
+   do {
+-
++    printf("ExtractFatBinaryUsingCOMGR 3\n");
+     // If the image ptr is not clang offload bundle then just directly point the image.
+     if (!CodeObject::IsClangOffloadMagicBundle(image_)) {
++      printf("ExtractFatBinaryUsingCOMGR 3.1, ClangOffloadMagicBundle = false\n");
+       for (size_t dev_idx=0; dev_idx < devices.size(); ++dev_idx) {
+-        fatbin_dev_info_[devices[dev_idx]->deviceId()]
+-          = new FatBinaryDeviceInfo(image_, CodeObject::ElfSize(image_), 0);
+-        fatbin_dev_info_[devices[dev_idx]->deviceId()]->program_
+-          = new amd::Program(*devices[dev_idx]->asContext());
++        printf("ExtractFatBinaryUsingCOMGR 3.2\n");
++        auto device = devices[dev_idx];
++        int dev_count = device->devices().size();
++        std::string device_name = device->devices()[0]->isa().isaName();
++        printf("3.3 device_count: %d, device_name[0]: %s\n", dev_count, device_name.c_str());
++        fatbin_dev_info_[devices[dev_idx]->deviceId()] = new FatBinaryDeviceInfo(image_, CodeObject::ElfSize(image_), 0);
++        fatbin_dev_info_[devices[dev_idx]->deviceId()]->program_ = new amd::Program(*devices[dev_idx]->asContext());
+         if (fatbin_dev_info_[devices[dev_idx]->deviceId()]->program_ == nullptr) {
+           hip_status = hipErrorOutOfMemory;
+           break;
+@@ -195,6 +202,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+       }
+       break;
+     }
++    printf("ExtractFatBinaryUsingCOMGR 4\n");
+ 
+     // Create a data object, if it fails return error
+     if ((comgr_status = amd_comgr_create_data(AMD_COMGR_DATA_KIND_FATBIN, &data_object))
+@@ -207,6 +215,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+ #if !defined(_WIN32)
+     // Using the file descriptor and file size, map the data object.
+     if (amd::Os::isValidFileDesc(fdesc_)) {
++      printf("ExtractFatBinaryUsingCOMGR 5\n");
+       guarantee(fsize_ > 0, "Cannot have a file size of 0, fdesc: %d fname: %s",
+                              fdesc_, fname_.c_str());
+       if ((comgr_status = amd_comgr_set_data_from_file_slice(data_object, fdesc_, foffset_,
+@@ -218,6 +227,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+     } else
+ #endif
+     if (image_ != nullptr) {
++      printf("ExtractFatBinaryUsingCOMGR 6\n");
+       // Using the image ptr, map the data object.
+       if ((comgr_status = amd_comgr_set_data(data_object, 4096,
+                           reinterpret_cast<const char*>(image_))) != AMD_COMGR_STATUS_SUCCESS) {
+@@ -226,6 +236,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+         break;
+       }
+     } else {
++      printf("ExtractFatBinaryUsingCOMGR 7\n");
+       guarantee(false, "Cannot have both fname_ and image_ as nullptr");
+     }
+ 
+@@ -233,13 +244,14 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+     std::unordered_map<std::string, std::pair<size_t, size_t>> unique_isa_names;
+     for (auto device : devices) {
+       std::string device_name = device->devices()[0]->isa().isaName();
++      printf("unique isa_names.device_name: %s\n", device_name.c_str());
+       unique_isa_names.insert({device_name, std::make_pair<size_t, size_t>(0,0)});
+     }
+-
+     // Create a query list using COMGR info for unique ISAs.
+     std::vector<amd_comgr_code_object_info_t> query_list_array;
+     query_list_array.reserve(unique_isa_names.size());
+     for (const auto &isa_name : unique_isa_names) {
++      printf("ExtractFatBinaryUsingCOMGR 8\n");
+       auto &item = query_list_array.emplace_back();
+       item.isa = isa_name.first.c_str();
+       item.size = 0;
+@@ -263,6 +275,7 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+     }
+ 
+     for (auto device : devices) {
++      printf("ExtractFatBinaryUsingCOMGR 9\n");
+       std::string device_name = device->devices()[0]->isa().isaName();
+       auto dev_it = unique_isa_names.find(device_name);
+       // If the size is 0, then COMGR API could not find the CO for this GPU device/ISA
+@@ -276,18 +289,17 @@ hipError_t FatBinaryInfo::ExtractFatBinaryUsingCOMGR(const std::vector<hip::Devi
+         break;
+       }
+       if (rocm_sdk_printout_level >= ROCM_SDK_PRINTOUT_LEVEL_DEBUG)
+-        printf("hip_fatbin.cpp: Found CO for device  %s, file: %s\n", device_name.c_str(), fname_.c_str());
++        printf("hip_fatbin.cpp: Found CO for device: %s, file: %s\n", device_name.c_str(), fname_.c_str());
+       guarantee(unique_isa_names.cend() != dev_it,
+                 "Cannot find the device name in the unique device name");
+-      fatbin_dev_info_[device->deviceId()]
+-        = new FatBinaryDeviceInfo(reinterpret_cast<address>(const_cast<void*>(image_))
++      fatbin_dev_info_[device->deviceId()] = new FatBinaryDeviceInfo(reinterpret_cast<address>(const_cast<void*>(image_))
+                                   + dev_it->second.second, dev_it->second.first,
+                                                            dev_it->second.second);
+-      fatbin_dev_info_[device->deviceId()]->program_
+-        = new amd::Program(*(device->asContext()));
++      fatbin_dev_info_[device->deviceId()]->program_ = new amd::Program(*(device->asContext()));
+     }
+   } while(0);
+ 
++  printf("ExtractFatBinaryUsingCOMGR 10\n");
+   // Clean up file and memory resouces if hip_status failed for some reason.
+   if (hip_status != hipSuccess && hip_status != hipErrorInvalidKernelFile) {
+     if (image_mapped_) {
+diff --git a/hipamd/src/hip_module.cpp b/hipamd/src/hip_module.cpp
+index 2bd64fbd9..c15b997fd 100644
+--- a/hipamd/src/hip_module.cpp
++++ b/hipamd/src/hip_module.cpp
+@@ -55,6 +55,7 @@ hipError_t hipModuleLoad(hipModule_t* module, const char* fname) {
+ }
+ 
+ hipError_t hipModuleLoadData(hipModule_t* module, const void* image) {
++  printf("hipModuleLoadData started\n");
+   HIP_INIT_API(hipModuleLoadData, module, image);
+   HIP_RETURN(PlatformState::instance().loadModule(module, 0, image));
+ }
+diff --git a/hipamd/src/hip_platform.cpp b/hipamd/src/hip_platform.cpp
+index 614cf23d3..4369c9b61 100644
+--- a/hipamd/src/hip_platform.cpp
++++ b/hipamd/src/hip_platform.cpp
+@@ -718,6 +718,7 @@ hipError_t PlatformState::loadModule(hipModule_t* module, const char* fname, con
+   if (module == nullptr) {
+     return hipErrorInvalidValue;
+   }
++  printf("loadModule started, fname: %s\n", fname);
+ 
+   hip::DynCO* dynCo = new hip::DynCO();
+   hipError_t hip_error = dynCo->loadCodeObject(fname, image);
+diff --git a/rocclr/device/device.cpp b/rocclr/device/device.cpp
+index 0249f31d6..2690fd756 100644
+--- a/rocclr/device/device.cpp
++++ b/rocclr/device/device.cpp
+@@ -257,21 +257,31 @@ bool Isa::isCompatible(const Isa &codeObjectIsa, const Isa &agentIsa) {
+ }
+ 
+ const Isa* Isa::findIsa(const char *isaName) {
++  printf("findIsa started, name: %s\n", isaName);
+   if (!isaName)
+     return nullptr;
+-  const char* prefix = std::strstr(isaName, hsaIsaNamePrefix);
+-  if (prefix != isaName)
++  char *isaName2 = "amdgcn-amd-amdhsa--gfx906:sramecc+:xnack-";
++  const char* prefix = std::strstr(isaName2, hsaIsaNamePrefix);
++  if (prefix != isaName2)
+     return nullptr;
+-  const char *targetId = isaName + std::strlen(hsaIsaNamePrefix);
++  const char *targetId = isaName2 + std::strlen(hsaIsaNamePrefix);
+   auto supportedIsas_ = supportedIsas();
+   auto isaIter = std::find_if(supportedIsas_.first, supportedIsas_.second, [&](const Isa& isa) {
+     return std::strcmp(targetId, isa.targetId_) == 0;
+   });
+-  return isaIter == supportedIsas_.second ? nullptr : isaIter;
++  if (isaIter == supportedIsas_.second) {
++	printf("findIsa, return null\n");
++	return nullptr;
++  }
++  else {
++	printf("findIsa, return isaIter\n");
++    return isaIter;
++  }
+ }
+ 
+ const Isa* Isa::findIsa(uint32_t versionMajor, uint32_t versionMinor, uint32_t versionStepping,
+                         Isa::Feature sramecc, Isa::Feature xnack) {
++  printf("findIsa started\n");
+   auto supportedIsas_ = supportedIsas();
+   auto isaIter = std::find_if(supportedIsas_.first, supportedIsas_.second, [&](const Isa& isa) {
+     return versionMajor == isa.versionMajor_ && versionMinor == isa.versionMinor_ &&
+@@ -279,7 +289,14 @@ const Isa* Isa::findIsa(uint32_t versionMajor, uint32_t versionMinor, uint32_t v
+         (isa.sramecc_ == amd::Isa::Feature::Unsupported || isa.sramecc_ == sramecc) &&
+         (isa.xnack_ == amd::Isa::Feature::Unsupported || isa.xnack_ == xnack);
+   });
+-  return isaIter == supportedIsas_.second ? nullptr : isaIter;
++  if (isaIter == supportedIsas_.second) {
++	printf("findIsa, return null\n");
++	return nullptr;
++  }
++  else {
++	printf("findIsa, return isaIter\n");
++    return isaIter;
++  }
+ }
+ 
+ const Isa* Isa::begin() {
+diff --git a/rocclr/device/rocm/rocprogram.cpp b/rocclr/device/rocm/rocprogram.cpp
+index 580803fde..43d826d10 100644
+--- a/rocclr/device/rocm/rocprogram.cpp
++++ b/rocclr/device/rocm/rocprogram.cpp
+@@ -263,6 +263,7 @@ bool LightningProgram::saveBinaryAndSetType(type_t type, void* rawBinary, size_t
+ bool LightningProgram::createKernels(void* binary, size_t binSize, bool useUniformWorkGroupSize,
+                                      bool internalKernel) {
+   // Find the size of global variables from the binary
++  printf("createKernels started\n");
+   if (!FindGlobalVarSize(binary, binSize)) {
+     buildLog_ += "Error: Cannot Find Global Var Sizes\n";
+     return false;
+@@ -280,6 +281,7 @@ bool LightningProgram::createKernels(void* binary, size_t binSize, bool useUnifo
+     aKernel->setInternalKernelFlag(internalKernel);
+     kernels()[kernelName] = aKernel;
+   }
++  printf("createKernels return true\n");
+   return true;
+ }
+ 
+diff --git a/rocclr/platform/program.cpp b/rocclr/platform/program.cpp
+index e36e16c9b..a152fd1a6 100644
+--- a/rocclr/platform/program.cpp
++++ b/rocclr/platform/program.cpp
+@@ -103,6 +103,11 @@ const Symbol* Program::findSymbol(const char* kernelName) const {
+   if (symbolTable_ == NULL) {
+     return NULL;
+   }
++  std::cout << "size: " << symbolTable_->size() << std::endl;
++  std::unordered_map<std::string, Symbol> sy = (std::unordered_map<std::string, Symbol>)*symbolTable_;
++  for(auto kv : sy) {
++    std::cout << "key: " << kv.first << std::endl;
++  }
+ 
+   const auto it = symbolTable_->find(kernelName);
+   return (it == symbolTable_->cend()) ? NULL : &it->second;
+-- 
+2.41.1
+

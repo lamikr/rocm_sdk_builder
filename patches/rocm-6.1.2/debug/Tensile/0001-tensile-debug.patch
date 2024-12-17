@@ -1,0 +1,48 @@
+From e34943ce1eb38aca3ecccab00e08e13877cc2f56 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 15 Dec 2024 18:17:33 -0800
+Subject: [PATCH 1/2] tensile debug
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Tensile/Source/lib/source/hip/HipHardware.cpp        | 1 +
+ Tensile/Source/lib/source/hip/HipSolutionAdapter.cpp | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/Tensile/Source/lib/source/hip/HipHardware.cpp b/Tensile/Source/lib/source/hip/HipHardware.cpp
+index 411d7c57..6d942348 100644
+--- a/Tensile/Source/lib/source/hip/HipHardware.cpp
++++ b/Tensile/Source/lib/source/hip/HipHardware.cpp
+@@ -50,6 +50,7 @@ namespace Tensile
+         {
+             int deviceId = 0;
+             HIP_CHECK_EXC(hipGetDevice(&deviceId));
++            printf("HipHardware.cpp, deviceId: %d, name: %s, arch: %s\n", deviceId);
+             return GetDevice(deviceId);
+         }
+ 
+diff --git a/Tensile/Source/lib/source/hip/HipSolutionAdapter.cpp b/Tensile/Source/lib/source/hip/HipSolutionAdapter.cpp
+index 8c033aa2..f30c7204 100644
+--- a/Tensile/Source/lib/source/hip/HipSolutionAdapter.cpp
++++ b/Tensile/Source/lib/source/hip/HipSolutionAdapter.cpp
+@@ -48,7 +48,8 @@ namespace Tensile
+         SolutionAdapter::SolutionAdapter(bool debug)
+             : m_debug(debug)
+         {
+-            m_debug = debug || Debug::Instance().printKernelArguments();
++            //m_debug = debug || Debug::Instance().printKernelArguments();
++            m_debug = true;
+         }
+ 
+         SolutionAdapter::SolutionAdapter(bool debug, std::string const& name)
+@@ -82,6 +83,7 @@ namespace Tensile
+ 
+             // hipModuleLoad holds the file descriptor/handle which can result in a process
+             // running out of descriptors/handles. Use hipModuleLoadData as a workaround
++            printf("loadCodeObjectFile started, name: %s\n", path.c_str());
+             if(coFile)
+             {
+                 coFile.seekg(0, coFile.end);
+-- 
+2.41.1
+

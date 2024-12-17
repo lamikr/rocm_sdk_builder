@@ -1,0 +1,77 @@
+From 6842daa10b472dae1301e0e76a206923a3fcb75c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 15 Dec 2024 18:14:37 -0800
+Subject: [PATCH 14/14] rocblas debug
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ library/src/tensile_host.cpp | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
+
+diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
+index 2259ab50..c397f86d 100644
+--- a/library/src/tensile_host.cpp
++++ b/library/src/tensile_host.cpp
+@@ -193,11 +193,11 @@ namespace
+     {
+         switch(metric)
+         {
+-        case rocblas_cu_efficiency_performance_metric:
+-            return Tensile::PerformanceMetric::CUEfficiency;
+-        case rocblas_device_efficiency_performance_metric:
+-        default:
+-            return Tensile::PerformanceMetric::DeviceEfficiency;
++            case rocblas_cu_efficiency_performance_metric:
++                return Tensile::PerformanceMetric::CUEfficiency;
++            case rocblas_device_efficiency_performance_metric:
++            default:
++                return Tensile::PerformanceMetric::DeviceEfficiency;
+         }
+     }
+ 
+@@ -696,6 +696,7 @@ namespace
+             // Get current xnack mode
+             std::string xnack = rocblas_internal_get_xnack_mode();
+ 
++            printf("%s, initialize, processor: %s, xnack: %s\n", __FILE__, processor.c_str(), xnack.c_str());
+             // If xnack mode is set, skip loading kernels for the opposite mode
+             std::string skip_xnack;
+             if(xnack == "xnack+")
+@@ -853,6 +854,7 @@ namespace
+                 auto dir = path + "/*" + processor + "*co";
+ 
+                 bool no_match = false;
++                printf("%s, co_file_path: %s\n", __FILE__, dir.c_str());
+ #ifdef WIN32
+                 std::replace(dir.begin(), dir.end(), '/', '\\');
+                 WIN32_FIND_DATAA finddata;
+@@ -884,10 +886,15 @@ namespace
+                     for(size_t i = 0; i < glob_result.gl_pathc; ++i)
+                     {
+                         std::string cofile = glob_result.gl_pathv[i];
+-                        if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos)
++                        if(!skip_xnack.empty() && cofile.find(skip_xnack) != std::string::npos) {
++                            printf("%s, initialize.skip: %s\n", __FILE__, cofile.c_str());
+                             continue;
+-                        if(cofile.find("Experimental") != std::string::npos)
++                        }
++                        if(cofile.find("Experimental") != std::string::npos) {
++                            printf("%s, initialize.skip2: %s\n", __FILE__, cofile.c_str());
+                             continue;
++                        }
++                        printf("%s, initialize.loadCodeObjectFile: %s\n", __FILE__, cofile.c_str());
+                         adapter.loadCodeObjectFile(cofile);
+                     }
+                 }
+@@ -1056,7 +1063,7 @@ namespace
+ 
+ inline bool fallbackTensileProblem(Tensile::ContractionProblem& tensile_prob)
+ {
+-    //fall back to use fp32 kernel when using xf32 xdl math op but no Tensile sulution found.
++    //fall back to use fp32 kernel when using xf32 xdl math op but no Tensile solution found.
+     if(tensile_prob.f32XdlMathOp() != Tensile::DataType::Float)
+     {
+         rocblas_internal_ostream msg;
+-- 
+2.41.1
+
