@@ -1,7 +1,7 @@
-From 469ca24c3cffde07d3d055c302c5238f3d076368 Mon Sep 17 00:00:00 2001
+From d18c70c418db1ad17ccfad1d744779219bbe46f0 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 9 Nov 2024 14:51:17 -0800
-Subject: [PATCH 4/4] add gfx902 vega11
+Subject: [PATCH 4/5] add gfx902 vega11
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

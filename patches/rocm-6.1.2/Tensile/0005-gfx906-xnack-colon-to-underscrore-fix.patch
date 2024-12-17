@@ -1,0 +1,75 @@
+From c157881e6fce23695cef3560f4aaeafd7d7bdf61 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Tue, 17 Dec 2024 02:54:38 -0800
+Subject: [PATCH 5/5] gfx906:xnack- colon to underscrore fix
+
+- do not generate lazy_gfx906:xnack-.dat file
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ Tensile/TensileCreateLibrary.py | 38 +++++++++++++++++++++------------
+ 1 file changed, 24 insertions(+), 14 deletions(-)
+
+diff --git a/Tensile/TensileCreateLibrary.py b/Tensile/TensileCreateLibrary.py
+index 9e37b4b0..c6ee9c10 100644
+--- a/Tensile/TensileCreateLibrary.py
++++ b/Tensile/TensileCreateLibrary.py
+@@ -822,12 +822,17 @@ def buildObjectFilePaths(prefixDir, solutionFiles, sourceKernelFiles, asmKernelF
+   #Use set because of duplicate fallback libraries
+   newMetadataPaths = set()
+   for arch, lib in masterLibraries.items():
+-    if globalParameters["LazyLibraryLoading"]:
+-      newMetadataPaths.add(os.path.join(libDir, "TensileLibrary_lazy_"+arch+libraryExt))
++    arch_no_colon=arch
++    if (':' in arch_no_colon):
++      arch_no_colon=arch_no_colon.replace(':', '_')
++      print("skipping arch: " + arch_no_colon)
+     else:
+-      newMetadataPaths.add(os.path.join(libDir, "TensileLibrary_"+arch+libraryExt))
+-    for name, placeholder in lib.lazyLibraries.items():
+-      newMetadataPaths.add(os.path.join(libDir, name+libraryExt))
++      if globalParameters["LazyLibraryLoading"]:
++        newMetadataPaths.add(os.path.join(libDir, "TensileLibrary_lazy_" + arch_no_colon + libraryExt))
++      else:
++        newMetadataPaths.add(os.path.join(libDir, "TensileLibrary_" + arch_no_colon + libraryExt))
++      for name, placeholder in lib.lazyLibraries.items():
++        newMetadataPaths.add(os.path.join(libDir, name+libraryExt))
+ 
+   libMetadataPaths += list(newMetadataPaths)
+ 
+@@ -1290,18 +1295,23 @@ def TensileCreateLibrary():
+   elif globalParameters["SeparateArchitectures"] or globalParameters["LazyLibraryLoading"]:
+     for archName, newMasterLibrary in masterLibraries.items():
+       if archName in archs:
+-        if globalParameters["LazyLibraryLoading"]:
+-          masterFile = os.path.join(newLibraryDir, "TensileLibrary_lazy_"+archName)
++        arch_no_colon=archName
++        if (':' in arch_no_colon):
++          arch_no_colon=arch_no_colon.replace(':', '_')
++          print("skipping arch: " + arch_no_colon)
+         else:
+-          masterFile = os.path.join(newLibraryDir, "TensileLibrary_"+archName)
+-        newMasterLibrary.applyNaming(kernelMinNaming)
+-        LibraryIO.write(masterFile, Utils.state(newMasterLibrary), args.LibraryFormat)
++          if globalParameters["LazyLibraryLoading"]:
++            masterFile = os.path.join(newLibraryDir, "TensileLibrary_lazy_" + arch_no_colon)
++          else:
++            masterFile = os.path.join(newLibraryDir, "TensileLibrary_" + arch_no_colon)
++          newMasterLibrary.applyNaming(kernelMinNaming)
++          LibraryIO.write(masterFile, Utils.state(newMasterLibrary), args.LibraryFormat)
+ 
+         #Write placeholder libraries
+-        for name, lib in newMasterLibrary.lazyLibraries.items():
+-          filename = os.path.join(newLibraryDir, name)
+-          lib.applyNaming(kernelMinNaming) #@TODO Check to see if kernelMinNaming is correct
+-          LibraryIO.write(filename, Utils.state(lib), args.LibraryFormat)
++          for name, lib in newMasterLibrary.lazyLibraries.items():
++            filename = os.path.join(newLibraryDir, name)
++            lib.applyNaming(kernelMinNaming) #@TODO Check to see if kernelMinNaming is correct
++            LibraryIO.write(filename, Utils.state(lib), args.LibraryFormat)
+ 
+   else:
+     masterFile = os.path.join(newLibraryDir, "TensileLibrary")
+-- 
+2.41.1
+
