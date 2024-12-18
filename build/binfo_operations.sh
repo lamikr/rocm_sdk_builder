@@ -325,46 +325,50 @@ func_babs_checkout_by_binfo_once() {
 
             if [ "x${CUR_APP_SRC_CLONE_DIR}" != "x" ]; then
                 if [ -d ${CUR_APP_SRC_CLONE_DIR} ]; then
-                    echo ""
-                    echo "[$jj]: Repository Base Version Checkout"
-                    echo "Repository name: ${BINFO_APP_NAME}"
-                    echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                    echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
-                    echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-                    sleep 0.1
-                    cd "${CUR_APP_SRC_CLONE_DIR}"
-                    git reset --hard
-                    git clean -fdx
-                    git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-                    if [ $? -ne 0 ]; then
+                    if [ "x${BINFO_APP_UPSTREAM_REPO_URL}" != "x" ]; then
                         echo ""
-                        echo "[${jj}]: Error, failed to checkout repository base version22"
+                        echo "[$jj]: Repository Base Version Checkout"
                         echo "Repository name: ${BINFO_APP_NAME}"
                         echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
                         echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
                         echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-                        echo ""
-                        return 2
-                    else
-                        echo ""
-                        echo "[${jj}]: Checked out repository base version"
-                        echo "Repository name: ${BINFO_APP_NAME}"
-                        echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
-                        echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
-                        echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
-                        echo ""
-                        func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
-                        cur_res=$?
-                        if [ ${cur_res} == "1" ]; then
-                            git submodule foreach git reset --hard
-                            git submodule foreach git clean -fdx
-                            git submodule deinit --all
-                            git submodule update --init --recursive
+                        sleep 0.1
+                        cd "${CUR_APP_SRC_CLONE_DIR}"
+                        git reset --hard
+                        git clean -fdx
+                        git checkout "${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                        if [ $? -ne 0 ]; then
+                            echo ""
+                            echo "[${jj}]: Error, failed to checkout repository base version22"
+                            echo "Repository name: ${BINFO_APP_NAME}"
+                            echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
+                            echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
+                            echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                            echo ""
+                            return 2
+                        else
+                            echo ""
+                            echo "[${jj}]: Checked out repository base version"
+                            echo "Repository name: ${BINFO_APP_NAME}"
+                            echo "Repository URL: ${BINFO_APP_UPSTREAM_REPO_URL}"
+                            echo "Source directory: ${CUR_APP_SRC_CLONE_DIR}"
+                            echo "VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}"
+                            echo ""
+                            func_is_current_dir_a_git_submodule_dir #From build/git_utils.sh
+                            cur_res=$?
+                            if [ ${cur_res} == "1" ]; then
+                                git submodule foreach git reset --hard
+                                git submodule foreach git clean -fdx
+                                git submodule deinit --all
+                                git submodule update --init --recursive
+                            fi
                         fi
+                    else
+                        echo "No need to checkout: ${BINFO_APP_NAME}, URL not defined"
                     fi
-                else
+		else
                     # if this is a new repository do only the checkout without applying patches
-                    func_babs_init_and_fetch_by_binfo $1 ${jj} 1
+                   func_babs_init_and_fetch_by_binfo $1 ${jj} 1
                 fi
             else
                 echo "Error, source directory for fetching the repository is not specified"
