@@ -47,9 +47,19 @@ BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
     "./preconfig_rocm.sh"
 )
 
+# aotriton has been patched to check MAX_JOBS environment variable
+# in aotriton v2src/CMakeLists.txt and use that for limiting the
+# amount of python processes allowed to build and compress hsaco files. 
+# This fixes the out of memory problem on cases where computer has lot of
+# CPUs compared to amount of memory.
+# Note that this fix only works when using Ninja.
+# (cmake's limitation for add_custom_jobs command)
+export MAX_JOBS=${BUILD_CPU_COUNT_DEFAULT}
+
 BINFO_APP_CMAKE_CFG="-DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_PREFIX_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/cmake;${INSTALL_DIR_PREFIX_SDK_ROOT}/lib/cmake"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP1}"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -GNinja"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_C_COMPILER=${SDK_C_COMPILER_HIPCC}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_CXX_COMPILER=${SDK_CXX_COMPILER_HIPCC}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}"
@@ -65,3 +75,14 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DAMDGCN_ENABLE_DUMP=1"
 # separate build needed to do a backend mode as if this is enabled, other part of build is skipped???
 #BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DHIP_BACKEND_MODE=1"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
+
+BINFO_APP_BUILD_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "ninja"
+)
+
+BINFO_APP_INSTALL_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "ninja install"
+)
+
