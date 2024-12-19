@@ -1,7 +1,7 @@
-From cd140c9489c60d3e1aba275c363e33f14aa5e30d Mon Sep 17 00:00:00 2001
+From 74b1c111ca07cbc02791ff63b6cf4ef20db9b52e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 21:55:34 -0700
-Subject: [PATCH 5/7] add gfx906/908/40/41 and gfx1150/51
+Subject: [PATCH 5/8] add gfx906/908/40/41 and gfx1150/51
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -156,5 +156,5 @@ index 2a6128b..e54614a 100644
  
  GpuArch
 -- 
-2.41.1
+2.43.0
 
