@@ -1,7 +1,7 @@
-From d95a6c6f73c06cb5e9abbe9240f43b8e564bfc31 Mon Sep 17 00:00:00 2001
+From e544d6b10c482745934203cfc085474cb1847ea1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Thu, 12 Dec 2024 16:14:24 -0800
-Subject: [PATCH 7/7] add preconfig_rocm.sh script
+Subject: [PATCH 7/8] add preconfig_rocm.sh script
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
@@ -29,5 +29,5 @@ index 0000000..aa630ef
 +    fi
 +fi
 -- 
-2.41.1
+2.43.0
 

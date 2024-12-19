@@ -1,7 +1,7 @@
-From d9d6a93e0c5f131130bd8cae6bfd455b331bdf09 Mon Sep 17 00:00:00 2001
+From 0d30e41b904e1027e559ebd54640467bd0226163 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jul 2024 00:01:32 -0700
-Subject: [PATCH 1/7] pass extra build options
+Subject: [PATCH 1/8] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -227,5 +227,5 @@ index ca7a4b5..5c7d2a2 100644
    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
  )
 -- 
-2.41.1
+2.43.0
 
