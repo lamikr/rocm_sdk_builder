@@ -1,4 +1,4 @@
-From 3eae4b17ec61e6858ca119d9e2c1faa2c40a89ba Mon Sep 17 00:00:00 2001
+From 642ae6722cf9dfe0a7157c07e5de22e0d47a0887 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:12:33 -0700
 Subject: [PATCH 2/4] add rocm sdk supported gpus
@@ -9,7 +9,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b2fa72d4..cd74d66c 100644
+index b2fa72d4..026faff5 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -37,7 +37,7 @@ set(PYTHON_SUPPORTED_VERSIONS "3.8" "3.9" "3.10" "3.11" "3.12")
@@ -17,10 +17,10 @@ index b2fa72d4..cd74d66c 100644
  
  # Supported AMD GPU architectures.
 -set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1100")
-+set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1011;;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1011;;gfx1012;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151")
  
  #
  # Supported/expected torch versions for CUDA/ROCm.
 -- 
-2.41.1
+2.46.2
 

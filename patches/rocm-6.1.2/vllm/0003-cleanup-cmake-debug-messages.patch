@@ -1,11 +1,10 @@
-From d038fee165336969eac3093be5eafaafdb36ffda Mon Sep 17 00:00:00 2001
+From b4edc5907ec9a6cc8c6868704551a6f87263fc81 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:13:59 -0700
-Subject: [PATCH 4/4] cleanup cmake debug messages
+Subject: [PATCH 3/4] cleanup cmake debug messages
 
-- rocm builds expected to find pytorch 2.5.0 version
-  which is not even released. Change to 2.3.1 version that
-  is used by the rocm sdk builder.
+- Change default pytorch version to to 2.4.1
+  which is used by the rocm sdk builder.
 - printout rocm base release used for build
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
@@ -14,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index cd74d66c..a79c8eea 100644
+index 026faff5..ef8dcebe 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -50,7 +50,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
@@ -35,5 +34,5 @@ index cd74d66c..a79c8eea 100644
  
    # Importing torch recognizes and sets up some HIP/ROCm configuration but does
 -- 
-2.41.1
+2.46.2
 
