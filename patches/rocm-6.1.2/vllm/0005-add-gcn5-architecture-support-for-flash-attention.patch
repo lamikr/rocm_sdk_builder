@@ -1,4 +1,4 @@
-From 557f7bd541663a6ef512ed3e21e4d874bebe0d90 Mon Sep 17 00:00:00 2001
+From e1d23d913366243cc5929a431eef2b71aedd62a4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 20 Dec 2024 21:18:35 -0800
 Subject: [PATCH 5/5] add gcn5 architecture support for flash attention

@@ -1,4 +1,4 @@
-From 85ced02cc5e0a7ac54e5bd586d74ac97e7a05d7d Mon Sep 17 00:00:00 2001
+From fd881c2b3d142a41927252ffacfec3be3d9b141b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 20 Dec 2024 18:27:45 -0800
 Subject: [PATCH 2/2] add gcn5 architecture check
