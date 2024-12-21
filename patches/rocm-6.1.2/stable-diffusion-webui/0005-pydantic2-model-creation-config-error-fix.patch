@@ -1,7 +1,7 @@
-From ed402d1483d697834ba13fa38bee27813afff88d Mon Sep 17 00:00:00 2001
+From 768d010bb699dc6d26186bf5f23ffbc63e76fde1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 31 Jul 2024 19:01:01 -0700
-Subject: [PATCH 5/5] pydantic2 model creation config error fix
+Subject: [PATCH 5/6] pydantic2 model creation config error fix
 
 fixes following error:
 
@@ -42,5 +42,5 @@ index 79c4cbbb..26af758b 100644
  from inflection import underscore
  from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
 -- 
-2.45.2
+2.41.1
 

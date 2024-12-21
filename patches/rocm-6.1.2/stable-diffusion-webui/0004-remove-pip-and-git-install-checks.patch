@@ -1,7 +1,7 @@
-From f28ef1e5f051c9bbcb44d80ee711ca7621c6955b Mon Sep 17 00:00:00 2001
+From 0a81a809f659a95a77e97364a09a9f4fccf89ecb Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 31 Jul 2024 16:03:17 -0700
-Subject: [PATCH 4/5] remove pip and git install checks
+Subject: [PATCH 4/6] remove pip and git install checks
 
 - rocm sdk installer handles the install of tested
   python modules. This avoids installing wrong version
@@ -98,5 +98,5 @@ index 20c7dc12..e10fdce2 100644
          run_extensions_installers(settings_file=args.ui_settings_file)
  
 -- 
-2.45.2
+2.41.1
 
