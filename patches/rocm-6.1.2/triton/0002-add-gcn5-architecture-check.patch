@@ -1,0 +1,41 @@
+From 85ced02cc5e0a7ac54e5bd586d74ac97e7a05d7d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 20 Dec 2024 18:27:45 -0800
+Subject: [PATCH 2/2] add gcn5 architecture check
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h | 1 +
+ third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp   | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h b/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
+index a49e442d3..1da652ff3 100644
+--- a/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
++++ b/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
+@@ -8,6 +8,7 @@ namespace mlir::triton::AMD {
+ // A list of ISA families we care about.
+ enum class ISAFamily {
+   Unknown,
++  GCN5,
+   CDNA1,
+   CDNA2,
+   CDNA3,
+diff --git a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
+index 63fb972f7..ced97fa5f 100644
+--- a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
++++ b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
+@@ -11,6 +11,10 @@ ISAFamily deduceISAFamily(llvm::StringRef arch) {
+ 
+   // CDNA ISA cases
+   switch (kind) {
++  case llvm::AMDGPU::GK_GFX900:
++  case llvm::AMDGPU::GK_GFX902:
++  case llvm::AMDGPU::GK_GFX906:
++    return ISAFamily::GCN5;
+   case llvm::AMDGPU::GK_GFX942:
+   case llvm::AMDGPU::GK_GFX941:
+   case llvm::AMDGPU::GK_GFX940:
+-- 
+2.41.1
+

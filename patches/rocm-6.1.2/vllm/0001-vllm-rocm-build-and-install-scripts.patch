@@ -1,7 +1,7 @@
-From bad920b7a94ef8e79a1f18fd2b1125561e5b3a0c Mon Sep 17 00:00:00 2001
+From 36104c70cbc02a06d0d4eb365f1dac8079d3679c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 11:32:09 -0700
-Subject: [PATCH 1/4] vllm rocm build and install scripts
+Subject: [PATCH 1/5] vllm rocm build and install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -87,5 +87,5 @@ index 00000000..70a3f052
 +    fi
 +fi
 -- 
-2.46.2
+2.41.1
 

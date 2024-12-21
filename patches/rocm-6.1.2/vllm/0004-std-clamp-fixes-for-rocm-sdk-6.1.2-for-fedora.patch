@@ -1,7 +1,7 @@
-From b7e884652753e18c3ac2f703edbf1bcabbbecc81 Mon Sep 17 00:00:00 2001
+From 3119d3e915de8a1521a6b5e4a53cf8ae5d2483fa Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 4 Oct 2024 10:57:22 -0700
-Subject: [PATCH 4/4] std::clamp fixes for rocm sdk 6.1.2 for fedora
+Subject: [PATCH 4/5] std::clamp fixes for rocm sdk 6.1.2 for fedora
 
 - std::clamp will trigger the assert error on
   fedora 40. Replace the clamp call with
@@ -53,5 +53,5 @@ index aec9fa00..1846915d 100644
  #else
    // CUDA path
 -- 
-2.46.2
+2.41.1
 
