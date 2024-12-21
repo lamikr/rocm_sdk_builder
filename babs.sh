@@ -54,6 +54,10 @@ func_user_help_print() {
     echo "                         Checkout of fetched source code to versioins specified in binfo files needs to be performed"
     echo "                         separately with '-ca' or '-co' command."
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-rs or --reset:          Re-apply patches and clean build directory"
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-rb or --reset_build:    Re-apply patches, clean build directory and start build"
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
     echo "-up or --update:         Update ROCM SDK Builder source code to latest version and then check"
     echo "                         project specific binfo and patch directories for updates."
     echo "                         Do the source code checkout, apply patches and clean commands for all changed projects."
@@ -195,6 +199,24 @@ func_handle_user_command_args() {
             -i | --init)
                 func_is_git_configured
                 func_babs_handle_repository_init ${ARG__USER_CMD_PARAM1} #From binfo_operations.sh
+                exit 0
+                ;;
+            -rs | --reset)
+                local CUR_DIR=$(pwd)
+                func_is_git_configured
+                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
+                cd $CUR_DIR
+                func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                exit 0
+                ;;
+            -rb | --reset_build)
+                local CUR_DIR=$(pwd)
+                func_is_git_configured
+                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
+                cd $CUR_DIR
+                func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                cd $CUR_DIR
+		func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0
                 ;;
             -s | --sync)
