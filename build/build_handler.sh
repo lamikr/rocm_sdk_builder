@@ -226,9 +226,15 @@ func_babs_handle_update() {
         git checkout "$1"
         RES_CODE=$?
         if [ $RES_CODE != 0 ]; then
-            echo "Error, could not checkout to git branch $1"
-            echo "Aborting ./babs.sh --update command"
-            exit 1
+            # git branch could not found, try to fetch and then try again
+            git fetch
+            git checkout "$1"
+            RES_CODE=$?
+            if [ $RES_CODE != 0 ]; then
+                echo "Error, could not checkout to git branch $1"
+                echo "Aborting ./babs.sh --update command"
+                exit 1
+            fi
         fi
     fi
     # update rocm sdk builder source code to latest version in this git repo if it's not already done above
