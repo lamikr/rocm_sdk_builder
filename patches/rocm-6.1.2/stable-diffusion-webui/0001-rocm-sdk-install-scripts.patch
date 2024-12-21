@@ -1,7 +1,7 @@
-From 259c6114b7af43f5b8ae5a4a8eb47fbf089572d7 Mon Sep 17 00:00:00 2001
+From be1a40d19c3e09e26d0ec635d23b6da67100dd05 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 31 Jul 2024 14:03:48 -0700
-Subject: [PATCH 1/5] rocm sdk install scripts
+Subject: [PATCH 1/6] rocm sdk install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -104,7 +104,7 @@ index 00000000..5f8bd4bb
 +tar -cvf ${app_build_dir}/stable_diffusion.tar CHANGELOG.md CITATION.cff CODEOWNERS configs embeddings environment-wsl2.yaml .eslintignore .eslintrc.js extensions extensions-builtin html javascript launch.py LICENSE.txt localizations models modules .pylintrc pyproject.toml README.md requirement*.txt screenshot.png script.js scripts style.css test textual_inversion_templates webui.py repositories webui.sh --transform 's,^,stable-diffusion-webui/,'
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 00000000..73b503b9
+index 00000000..9acbd822
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,35 @@
@@ -170,5 +170,5 @@ index 00000000..75c4d390
 +    exit 1
 +fi
 -- 
-2.45.2
+2.41.1
 

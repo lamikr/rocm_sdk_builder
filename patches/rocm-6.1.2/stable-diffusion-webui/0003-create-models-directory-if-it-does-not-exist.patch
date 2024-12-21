@@ -1,7 +1,7 @@
-From b0d9dc05603faffb1771d445aabfdbbe65a344cd Mon Sep 17 00:00:00 2001
+From 8cf50a55fc48f1acb39dcca4f22de0fd64fb3d04 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 31 Jul 2024 16:01:00 -0700
-Subject: [PATCH 3/5] create models directory if it does not exist
+Subject: [PATCH 3/6] create models directory if it does not exist
 
 - fixes error where the models are tried
   to download to non-existing directory
@@ -28,5 +28,5 @@ index 55bd9ca5..22787567 100644
  
  checkpoints_list = {}
 -- 
-2.45.2
+2.41.1
 
