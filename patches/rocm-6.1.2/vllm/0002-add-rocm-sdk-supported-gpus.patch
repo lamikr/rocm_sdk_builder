@@ -1,4 +1,4 @@
-From 4378056f3be721a5a57b722ec074e416fb4539a3 Mon Sep 17 00:00:00 2001
+From 62df812392c7f58c1c9f8380bb88c46501e42bbb Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:12:33 -0700
 Subject: [PATCH 2/5] add rocm sdk supported gpus

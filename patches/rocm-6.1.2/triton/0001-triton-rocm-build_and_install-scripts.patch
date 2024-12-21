@@ -1,4 +1,4 @@
-From d1718f64d488ecacb1435003c9fb18796dde6f8b Mon Sep 17 00:00:00 2001
+From d77aeaabdae5678e14436ee96324255fb1e5358d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 28 Jun 2024 02:58:51 -0700
 Subject: [PATCH 1/2] triton rocm build_and_install scripts
@@ -25,7 +25,7 @@ index 000000000..216108218
 +python setup.py bdist_wheel -vvv
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 000000000..d01868063
+index 000000000..99d679dc0
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -43,7 +43,7 @@ index 000000000..d01868063
 +    echo "installing $latest_wheel_file"
 +    # do not use "pip install --force-reinstall because it can uninstall
 +    # own build other packages and then re-install incorrect onew from internet
-+    pip uninstall --yes "$latest_wheel_file"
++    pip uninstall --yes triton
 +    pip install "$latest_wheel_file"
 +    if [ ! -z "$backup_dir_python_wheel" ]; then
 +        if [ ! -d "$backup_dir_python_wheel" ]; then
