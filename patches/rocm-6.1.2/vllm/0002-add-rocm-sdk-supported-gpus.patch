@@ -1,7 +1,7 @@
-From 642ae6722cf9dfe0a7157c07e5de22e0d47a0887 Mon Sep 17 00:00:00 2001
+From 4378056f3be721a5a57b722ec074e416fb4539a3 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 30 Jul 2024 12:12:33 -0700
-Subject: [PATCH 2/4] add rocm sdk supported gpus
+Subject: [PATCH 2/5] add rocm sdk supported gpus
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -22,5 +22,5 @@ index b2fa72d4..026faff5 100644
  #
  # Supported/expected torch versions for CUDA/ROCm.
 -- 
-2.46.2
+2.41.1
 

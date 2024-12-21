@@ -1,0 +1,40 @@
+From 557f7bd541663a6ef512ed3e21e4d874bebe0d90 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 20 Dec 2024 21:18:35 -0800
+Subject: [PATCH 5/5] add gcn5 architecture support for flash attention
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ vllm/attention/backends/rocm_flash_attn.py | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/vllm/attention/backends/rocm_flash_attn.py b/vllm/attention/backends/rocm_flash_attn.py
+index 5560f44b..069e9b43 100644
+--- a/vllm/attention/backends/rocm_flash_attn.py
++++ b/vllm/attention/backends/rocm_flash_attn.py
+@@ -21,8 +21,11 @@ if TYPE_CHECKING:
+ logger = init_logger(__name__)
+ 
+ _PARTITION_SIZE_ROCM = 512
+-_ON_NAVI = "gfx1" in torch.cuda.get_device_properties("cuda").gcnArchName
+-
++torch_arch = torch.cuda.get_device_properties("cuda").gcnArchName
++_ON_NAVI = "gfx1" in torch_arch
++gcn_matches = ["gfx900", "gfx902", "gfx906"]
++_ON_GCN5 = any(gcn_matches in torch_arch for gcn_matches in torch_arch)
++print("_ON_GCN5: " + str(_ON_GCN5))
+ 
+ class ROCmFlashAttentionBackend(AttentionBackend):
+ 
+@@ -643,7 +646,7 @@ def _use_rocm_custom_paged_attention(qtype: torch.dtype, head_size: int,
+                                      block_size: int, gqa_ratio: int,
+                                      max_seq_len: int) -> bool:
+     # rocm custom page attention not support on navi (gfx1*)
+-    return (not _ON_NAVI and (qtype == torch.half or qtype == torch.bfloat16)
++    return (not _ON_NAVI and not _ON_GCN5 and (qtype == torch.half or qtype == torch.bfloat16)
+             and (head_size == 64 or head_size == 128)
+             and (block_size == 16 or block_size == 32)
+             and (gqa_ratio >= 1 and gqa_ratio <= 16) and max_seq_len <= 32768)
+-- 
+2.41.1
+
