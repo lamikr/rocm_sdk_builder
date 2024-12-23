@@ -4,7 +4,7 @@ BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/rocmnavi/aotriton.git
 #use default git tag
-BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rsb_612_aotriton_20241022
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rsb_612_aotriton_20241222
 
 func_filter_gfx_array() {
 	#local gpu_list_str=$1
