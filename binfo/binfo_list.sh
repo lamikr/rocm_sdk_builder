@@ -93,6 +93,7 @@ LIST_BINFO_FILE_BASENAME=(
     "core/039_07_triton.binfo"
     "core/040_01_onnxruntime_rocm_training.binfo"
     "core/040_02_onnxruntime_deepspeed.binfo"
+    "core/042_python_apps_extra.binfo"
 )
 
 # non-used/deprecated
