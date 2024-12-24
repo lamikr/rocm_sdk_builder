@@ -1,7 +1,7 @@
-From 9202ac674a47ae404480bd2745a37d010dbac9f6 Mon Sep 17 00:00:00 2001
+From cccc62be40012a158bd771a82370e81e145aba98 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 19:23:26 -0700
-Subject: [PATCH 11/12] fix GOTPCRELX linking error by using dynamic lib
+Subject: [PATCH 11/40] fix GOTPCRELX linking error by using dynamic lib
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

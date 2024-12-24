@@ -1,0 +1,47 @@
+From 7d2a292f836c8c9fb600a22e39e22542e649e900 Mon Sep 17 00:00:00 2001
+From: Sriram Kumar <skishore@amd.com>
+Date: Tue, 5 Nov 2024 23:54:46 +0530
+Subject: [PATCH 27/40] Fix 491578 issue - socket_power metric AMDSMI and
+ clockrate function using correct dictionary key (#1673)
+
+Fixes 491578
+makes test_clock_speed and test_power_draw subtests in test_cuda PASS
+
+---------
+
+Co-authored-by: Jack Taylor <108682042+jataylo@users.noreply.github.com>
+Co-authored-by: fpadmin <fpadmin@aus-navi3x-01.amd.com>
+---
+ torch/cuda/__init__.py | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/torch/cuda/__init__.py b/torch/cuda/__init__.py
+index 3a849f774de..eb6f53b9351 100644
+--- a/torch/cuda/__init__.py
++++ b/torch/cuda/__init__.py
+@@ -1055,12 +1055,20 @@ def _get_amdsmi_temperature(device: Optional[Union[Device, int]] = None) -> int:
+ 
+ def _get_amdsmi_power_draw(device: Optional[Union[Device, int]] = None) -> int:
+     handle = _get_amdsmi_handler(device)
+-    return amdsmi.amdsmi_get_power_info(handle)["current_socket_power"]
++    socket_power = amdsmi.amdsmi_get_power_info(handle)["average_socket_power"]
++    if socket_power != "N/A":
++        return socket_power
++    else:
++        return amdsmi.amdsmi_get_power_info(handle)["current_socket_power"]
+ 
+ 
+ def _get_amdsmi_clock_rate(device: Optional[Union[Device, int]] = None) -> int:
+     handle = _get_amdsmi_handler(device)
+-    return amdsmi.amdsmi_get_clock_info(handle, amdsmi.AmdSmiClkType.GFX)["cur_clk"]
++    clock_info = amdsmi.amdsmi_get_clock_info(handle, amdsmi.AmdSmiClkType.GFX)
++    if "cur_clk" in clock_info:  # ROCm 6.2 deprecation
++        return clock_info["cur_clk"]
++    else:
++        return clock_info["clk"]
+ 
+ 
+ def memory_usage(device: Optional[Union[Device, int]] = None) -> int:
+-- 
+2.43.0
+

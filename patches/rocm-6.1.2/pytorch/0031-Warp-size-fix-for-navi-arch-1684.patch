@@ -1,0 +1,59 @@
+From 7dd523668770dd34aff21957e6a37035e7d9315d Mon Sep 17 00:00:00 2001
+From: iupaikov-amd <Iurii.Paikov@amd.com>
+Date: Fri, 8 Nov 2024 18:45:37 +0100
+Subject: [PATCH 31/40] Warp size fix for navi arch (#1684)
+
+Added warp size to device properties, removed 64 warpsize hardcode in
+codegen
+---
+ torch/_C/__init__.pyi.in                         | 1 +
+ torch/_inductor/codegen/codegen_device_driver.py | 8 +++++---
+ torch/csrc/cuda/Module.cpp                       | 1 +
+ 3 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/torch/_C/__init__.pyi.in b/torch/_C/__init__.pyi.in
+index 4326cd3c71d..4ebe765298e 100644
+--- a/torch/_C/__init__.pyi.in
++++ b/torch/_C/__init__.pyi.in
+@@ -1911,6 +1911,7 @@ class _CudaDeviceProperties:
+     is_multi_gpu_board: _int
+     max_threads_per_multi_processor: _int
+     gcnArchName: str
++    warp_size: _int
+ 
+ # Functions related to SDPA
+ class _SDPAParams:
+diff --git a/torch/_inductor/codegen/codegen_device_driver.py b/torch/_inductor/codegen/codegen_device_driver.py
+index 73fcb7afd52..f11188e1927 100644
+--- a/torch/_inductor/codegen/codegen_device_driver.py
++++ b/torch/_inductor/codegen/codegen_device_driver.py
+@@ -73,9 +73,11 @@ def cuda_kernel_driver() -> str:
+             }
+     """
+     if torch.version.hip is not None:
+-        # Replace the warp size from 32 (cuLaunchKernel) to 64 (hipModuleLaunchKernel)
+-        # The warp size on NV GPU is 32, while the wavefront size on AMD GPU is 64
+-        source_codes = source_codes.replace("32*numWarps", "64*numWarps")
++        # Adjusting the warp size to GPU supported wavefront size on AMD GPU
++        prop = torch.cuda.get_device_properties(torch.cuda.current_device())
++        source_codes = source_codes.replace(
++            "32*numWarps", str(prop.warp_size) + "*numWarps"
++        )
+     return source_codes
+ 
+ 
+diff --git a/torch/csrc/cuda/Module.cpp b/torch/csrc/cuda/Module.cpp
+index 4197c2aa5e8..fc31bdd7044 100644
+--- a/torch/csrc/cuda/Module.cpp
++++ b/torch/csrc/cuda/Module.cpp
+@@ -922,6 +922,7 @@ static void registerCudaDeviceProperties(PyObject* module) {
+       .def_readonly(
+           "max_threads_per_multi_processor",
+           &cudaDeviceProp::maxThreadsPerMultiProcessor)
++      .def_readonly("warp_size", &cudaDeviceProp::warpSize)
+ #if !USE_ROCM
+       // NVIDA only property
+       .def_readonly(
+-- 
+2.43.0
+

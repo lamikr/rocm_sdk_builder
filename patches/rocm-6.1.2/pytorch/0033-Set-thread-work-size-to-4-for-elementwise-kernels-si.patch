@@ -1,0 +1,44 @@
+From 4a044e766e97b2b2babf7dc0b4862ccf9f40e553 Mon Sep 17 00:00:00 2001
+From: Pruthvi Madugundu <pruthvigithub@gmail.com>
+Date: Wed, 13 Nov 2024 23:24:12 -0600
+Subject: [PATCH 33/40] Set thread work size to 4 for elementwise kernels
+ similar to cuda
+
+---
+ aten/src/ATen/native/cuda/DistributionTemplates.h | 4 ----
+ aten/src/ATen/native/cuda/thread_constants.h      | 4 ----
+ 2 files changed, 8 deletions(-)
+
+diff --git a/aten/src/ATen/native/cuda/DistributionTemplates.h b/aten/src/ATen/native/cuda/DistributionTemplates.h
+index 6c5f35f7cfc..8f8860f04ad 100644
+--- a/aten/src/ATen/native/cuda/DistributionTemplates.h
++++ b/aten/src/ATen/native/cuda/DistributionTemplates.h
+@@ -34,11 +34,7 @@ const uint32_t block_size_bound = 256;
+ const uint32_t grid_size_bound = 4;
+ // number of randoms given by distributions like curand_uniform4, curand_uniform2_double
+ // used in calculating philox offset.
+-#if defined(USE_ROCM)
+-const uint32_t curand4_engine_calls = 8;
+-#else
+ const uint32_t curand4_engine_calls = 4;
+-#endif
+ 
+ // utility function that calculates proper philox_offset
+ // for distributions utilizing TensorIterator. For distributions using
+diff --git a/aten/src/ATen/native/cuda/thread_constants.h b/aten/src/ATen/native/cuda/thread_constants.h
+index 2711e8e2517..651053d663e 100644
+--- a/aten/src/ATen/native/cuda/thread_constants.h
++++ b/aten/src/ATen/native/cuda/thread_constants.h
+@@ -18,9 +18,5 @@ constexpr uint32_t num_threads() {
+ }
+ #endif
+ 
+-#if defined(USE_ROCM)
+-constexpr int thread_work_size() { return 8; }
+-#else
+ constexpr int thread_work_size() { return 4; }
+-#endif
+ constexpr int block_work_size() { return thread_work_size() * num_threads(); }
+-- 
+2.43.0
+

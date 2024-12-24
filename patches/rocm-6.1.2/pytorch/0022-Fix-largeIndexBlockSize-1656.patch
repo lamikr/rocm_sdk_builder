@@ -1,0 +1,85 @@
+From c656a07a1afe38b5e87f5148d27787945c6712e4 Mon Sep 17 00:00:00 2001
+From: Prachi Gupta <pracgupt@amd.com>
+Date: Wed, 30 Oct 2024 11:21:48 -0500
+Subject: [PATCH 22/40] Fix largeIndexBlockSize (#1656)
+
+On ROCm, hipification converts std::min to ::min, but ::min is not
+returning the right result. This impacts index_add_ operation on a large
+tensor, we end up picking the large values instead of max supported
+block size (128). This leads to GPU accessing memory out of bounds.
+
+While we wait for ::min to be fixed, we can use < operator to compare
+instead of relying on ::min.
+
+Example Code w/ failure:
+```
+D=6144
+hidden_states = torch.zeros([16384, 6144],           device="cuda:0", dtype=torch.bfloat16)
+index         = torch.randint(0, 16384, (1, 32, 16384), device="cuda:0", dtype=torch.int64)
+output        = torch.empty([1, 32, 16384, 6144],    device="cuda:0", dtype=torch.bfloat16)
+hidden_states.index_add_(0, index.view(-1), output.view(-1, D))
+```
+
+```
+Traceback (most recent call last):
+RuntimeError: HIP error: invalid configuration argument
+```
+
+(cherry picked from commit c0266dbfa44c6904a6d504c911f121fe774db184)
+---
+ aten/src/ATen/native/cuda/Indexing.cu | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/aten/src/ATen/native/cuda/Indexing.cu b/aten/src/ATen/native/cuda/Indexing.cu
+index e549a997591..2905d0ad76b 100644
+--- a/aten/src/ATen/native/cuda/Indexing.cu
++++ b/aten/src/ATen/native/cuda/Indexing.cu
+@@ -46,6 +46,15 @@
+ #include <c10/macros/Macros.h>
+ 
+ namespace {
++constexpr uint64_t getDefaultMaxThreadsPerBlock() {
++#ifndef USE_ROCM
++  return 128;
++#else
++  // bigger default
++  return 512;
++#endif
++}
++
+ template <typename scalar_t, int SZ>
+ __global__ void indexing_backward_kernel(
+   const int64_t* sorted_indices, const int64_t* indices, const scalar_t* grad_output, scalar_t* grad_weight,
+@@ -909,11 +918,13 @@ void index_add_cuda_impl(const Tensor& self, int64_t dim, const Tensor& index, c
+       selfAddDimSize, selfNumel, reduce_add, alpha_value);                  \
+   C10_CUDA_KERNEL_LAUNCH_CHECK();
+ 
++  uint64_t defaultMaxBlockThreads = getDefaultMaxThreadsPerBlock();
+   const dim3 smallIndexGrid(std::min(ceil_div(sliceSize, (uint64_t)128), (uint64_t)(mpc * 8)));
+   const dim3 smallIndexBlock(std::min(sliceSize, (uint64_t)128));
+ 
+   const dim3 largeIndexGrid(std::min(ceil_div(sourceTotalSize, (uint64_t)128), (uint64_t)(mpc * 8)));
+-  const dim3 largeIndexBlock(std::min(sourceTotalSize, (uint64_t)128));
++  //On ROCm, std::min -> ::min did not work as expected on when outTotalSize>=2147483648
++  dim3 largeIndexBlock( (sourceTotalSize < defaultMaxBlockThreads) ? sourceTotalSize : defaultMaxBlockThreads );
+ 
+   if (cuda::detail::canUse32BitIndexMath(result) &&
+       cuda::detail::canUse32BitIndexMath(source) &&
+@@ -1082,11 +1093,13 @@ void index_reduce_func_cuda_impl(
+       selfReduceDimSize, selfNumel, reduce_func, alpha_value);                           \
+   C10_CUDA_KERNEL_LAUNCH_CHECK();
+ 
++  uint64_t defaultMaxBlockThreads = getDefaultMaxThreadsPerBlock();
+   dim3 smallIndexGrid(std::min(ceil_div(sliceSize, (uint64_t)128), (uint64_t)(mpc * 8)));
+   dim3 smallIndexBlock(std::min(sliceSize, (uint64_t)128));
+ 
+   dim3 largeIndexGrid(std::min(ceil_div(sourceTotalSize, (uint64_t)128), (uint64_t)(mpc * 8)));
+-  dim3 largeIndexBlock(std::min(sourceTotalSize, (uint64_t)128));
++  //On ROCm, std::min -> ::min did not work as expected on when outTotalSize>=2147483648
++  dim3 largeIndexBlock( (sourceTotalSize < defaultMaxBlockThreads) ? sourceTotalSize : defaultMaxBlockThreads );
+ 
+   if (cuda::detail::canUse32BitIndexMath(result) &&
+       cuda::detail::canUse32BitIndexMath(source) &&
+-- 
+2.43.0
+

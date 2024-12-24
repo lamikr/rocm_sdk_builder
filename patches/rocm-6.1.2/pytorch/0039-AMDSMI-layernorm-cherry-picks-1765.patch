@@ -1,0 +1,46 @@
+From 4ad12476256017aa9f1ca1a1c75cdf1c7dc635d9 Mon Sep 17 00:00:00 2001
+From: Jack Taylor <108682042+jataylo@users.noreply.github.com>
+Date: Fri, 6 Dec 2024 05:57:11 +0000
+Subject: [PATCH 39/40] AMDSMI/layernorm cherry picks (#1765)
+
+Cherry pick amdsmi fix:
+https://github.com/pytorch/pytorch/commit/04f569a5246850b57748a86fd16a5bae02bd9d72
+Cherry pick layer_norm accuracy fix:
+https://github.com/pytorch/pytorch/commit/001f7366a71cd19e4b460624ab76053225c8676e
+---
+ aten/src/ATen/native/cuda/layer_norm_kernel.cu | 4 ++--
+ torch/cuda/__init__.py                         | 3 ++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/aten/src/ATen/native/cuda/layer_norm_kernel.cu b/aten/src/ATen/native/cuda/layer_norm_kernel.cu
+index f06b247ef32..b0e0483fe35 100644
+--- a/aten/src/ATen/native/cuda/layer_norm_kernel.cu
++++ b/aten/src/ATen/native/cuda/layer_norm_kernel.cu
+@@ -840,8 +840,8 @@ void cuLoadWriteStridedInputs(
+ {
+   int i1 = i1_block+thr_load_row_off;
+   if (i1 < i1_end) {
+-    T curr_mean = mean[i1];
+-    T curr_rstd = rstd[i1];
++    T_ACC curr_mean = mean[i1];
++    T_ACC curr_rstd = rstd[i1];
+     for (int k = 0;  k < blockDim.y;  ++k) {
+       int i2 = i2_off + k;
+       int load_idx = i1*N+i2;
+diff --git a/torch/cuda/__init__.py b/torch/cuda/__init__.py
+index eb6f53b9351..e98f0b5eeb8 100644
+--- a/torch/cuda/__init__.py
++++ b/torch/cuda/__init__.py
+@@ -1034,7 +1034,8 @@ def _get_amdsmi_device_index(device: Optional[Union[int, Device]]) -> int:
+ def _get_amdsmi_memory_usage(device: Optional[Union[Device, int]] = None) -> int:
+     handle = _get_amdsmi_handler()
+     device = _get_amdsmi_device_index(device)
+-    return amdsmi.amdsmi_get_gpu_vram_usage(handle)["vram_used"]
++    handle = amdsmi.amdsmi_get_processor_handles()[device]
++    return amdsmi.amdsmi_get_gpu_activity(handle)["umc_activity"]
+ 
+ 
+ def _get_amdsmi_utilization(device: Optional[Union[Device, int]] = None) -> int:
+-- 
+2.43.0
+

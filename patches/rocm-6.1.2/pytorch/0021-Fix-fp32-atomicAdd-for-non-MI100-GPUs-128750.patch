@@ -1,0 +1,47 @@
+From bd756eef372c367ac7dec81f174bb67b79c2e7f2 Mon Sep 17 00:00:00 2001
+From: Jerry Mannil <65309407+jerrymannil@users.noreply.github.com>
+Date: Wed, 19 Jun 2024 03:56:20 +0000
+Subject: [PATCH 21/40] Fix fp32 atomicAdd for non-MI100 GPUs (#128750)
+
+Current implementation is very specific to MI100.
+This is causing performance degradation for other GPUs.
+
+Fixes #128631
+
+Benchmarking on MI300X:
+```
+Before:  1918.5126953125 ms
+After: 0.8285150527954102 ms
+```
+
+Co-authored-by: Jeff Daily <jeff.daily@amd.com>
+Pull Request resolved: https://github.com/pytorch/pytorch/pull/128750
+Approved by: https://github.com/xw285cornell
+
+(cherry picked from commit 1f0a68b57290afff9691d823829fda6ba4f73cbb)
+---
+ aten/src/ATen/cuda/Atomic.cuh | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/aten/src/ATen/cuda/Atomic.cuh b/aten/src/ATen/cuda/Atomic.cuh
+index 56ee8f87e25..c8f5e91d3ff 100644
+--- a/aten/src/ATen/cuda/Atomic.cuh
++++ b/aten/src/ATen/cuda/Atomic.cuh
+@@ -334,7 +334,13 @@ static inline __device__ void gpuAtomicAddNoReturn(double *address, double val)
+ 
+ /* Special case fp32 atomic. */
+ #if defined(USE_ROCM)
+-static inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { atomicAddNoRet(address, val); }
++static inline __device__ void gpuAtomicAddNoReturn(float *address, float val) {
++#if defined(__gfx908__)
++  atomicAddNoRet(address, val);
++#else
++  (void)unsafeAtomicAdd(address, val);
++#endif
++}
+ #else
+ static inline __device__ void gpuAtomicAddNoReturn(float *address, float val) { gpuAtomicAdd(address, val); }
+ #endif
+-- 
+2.43.0
+

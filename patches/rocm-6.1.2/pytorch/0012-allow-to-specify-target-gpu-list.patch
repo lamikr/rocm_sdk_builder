@@ -1,7 +1,7 @@
-From 6b5d01ecb95b5cbdd23dd853259682a67e83a59d Mon Sep 17 00:00:00 2001
+From d5de25087152d9e08441b8d211bc601b5e8fa73c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 7 Nov 2024 22:24:08 -0800
-Subject: [PATCH 12/12] allow to specify target gpu list
+Subject: [PATCH 12/40] allow to specify target gpu list
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

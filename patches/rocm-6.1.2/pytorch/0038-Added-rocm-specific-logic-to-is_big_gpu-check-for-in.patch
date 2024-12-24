@@ -1,0 +1,39 @@
+From c5103fd4612b252a5c38073c6b515d7b4d2b57cc Mon Sep 17 00:00:00 2001
+From: iupaikov-amd <Iurii.Paikov@amd.com>
+Date: Wed, 27 Nov 2024 17:37:25 +0100
+Subject: [PATCH 38/40] Added rocm specific logic to is_big_gpu check for
+ inductor (#1751)
+
+---
+ torch/_inductor/utils.py | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/torch/_inductor/utils.py b/torch/_inductor/utils.py
+index c7757645126..89e5e0e6fcd 100644
+--- a/torch/_inductor/utils.py
++++ b/torch/_inductor/utils.py
+@@ -971,8 +971,20 @@ class DeferredLineBase:
+ 
+ @functools.lru_cache(None)
+ def is_big_gpu(index) -> bool:
++    prop = torch.cuda.get_device_properties(index)
++
++    # SM logic is not relevant to ROCm gpus
++    # Arbitrarily skipping the older models
++    if torch.version.hip is not None:
++        if prop.major < 9 or prop.major == 10:
++            log.warning(
++                "GPU arch does not support max_autotune_gemm mode usage"
++            )
++            return False
++        return True
++
+     min_sms = 68  # 3080
+-    avail_sms = torch.cuda.get_device_properties(index).multi_processor_count
++    avail_sms = prop.multi_processor_count
+     if avail_sms < min_sms:
+         log.warning(
+             "Not enough SMs to use max_autotune_gemm mode",
+-- 
+2.43.0
+

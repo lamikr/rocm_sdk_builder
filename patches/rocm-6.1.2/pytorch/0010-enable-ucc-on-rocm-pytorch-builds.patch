@@ -1,7 +1,7 @@
-From d604b888d08b80d776fbade5502949b1425a4490 Mon Sep 17 00:00:00 2001
+From 7cfc10ea4788648c4eeaf9374ccbdc79fb7cf2e6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 17 Oct 2024 22:51:26 -0700
-Subject: [PATCH 10/12] enable ucc on rocm pytorch builds
+Subject: [PATCH 10/40] enable ucc on rocm pytorch builds
 
 - enable UCC and UCX by using environment variables
 - add 2 missing method calls used by ROCM to cuda version of

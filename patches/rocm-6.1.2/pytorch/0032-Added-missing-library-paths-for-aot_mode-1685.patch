@@ -1,0 +1,25 @@
+From d7d799ac8293def5e162280ca804e7391ac8451d Mon Sep 17 00:00:00 2001
+From: iupaikov-amd <Iurii.Paikov@amd.com>
+Date: Fri, 8 Nov 2024 18:46:08 +0100
+Subject: [PATCH 32/40] Added missing library paths for aot_mode (#1685)
+
+PR for reference: https://github.com/pytorch/pytorch/pull/131791
+---
+ torch/_inductor/codecache.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/torch/_inductor/codecache.py b/torch/_inductor/codecache.py
+index 976082c8190..ac4d625b685 100644
+--- a/torch/_inductor/codecache.py
++++ b/torch/_inductor/codecache.py
+@@ -1821,6 +1821,7 @@ def get_include_and_linking_paths(
+         # like aoti_torch_grad_mode_set_enabled
+         if aot_mode and sys.platform == "linux" and not config.is_fbcode():
+             libs += ["torch", "torch_cpu"]
++            lpaths += [cpp_extension.TORCH_LIB_PATH]
+ 
+     # Unconditionally import c10 for non-abi-compatible mode to use TORCH_CHECK - See PyTorch #108690
+     if not config.abi_compatible:
+-- 
+2.43.0
+

@@ -1,0 +1,83 @@
+From dc64c50588db3fccc8fa5d54f1ff111a550e1818 Mon Sep 17 00:00:00 2001
+From: "Nichols A. Romero" <165712832+naromero77amd@users.noreply.github.com>
+Date: Thu, 14 Nov 2024 20:33:23 -0600
+Subject: [PATCH 34/40] TunableOp fix for batched MM with views. (#1723)
+
+Fixes https://github.com/pytorch/pytorch/issues/140278
+
+Based on PR:
+https://github.com/pytorch/pytorch/pull/140673
+
+Note in test/linalg.py that I had to include Case #4 from upstream in
+addition to Case #5 to resolve the merge conflict from the cherry-pick
+of the upstream commit.
+
+Verified manually that test_bmm_tunableop_rocm UT passes.
+
+cc: @jeffdaily
+---
+ aten/src/ATen/cuda/tunable/GemmCommon.h |  6 +++---
+ test/test_linalg.py                     | 20 ++++++++++++++++++++
+ 2 files changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/aten/src/ATen/cuda/tunable/GemmCommon.h b/aten/src/ATen/cuda/tunable/GemmCommon.h
+index 03d03870eee..18858290644 100644
+--- a/aten/src/ATen/cuda/tunable/GemmCommon.h
++++ b/aten/src/ATen/cuda/tunable/GemmCommon.h
+@@ -177,19 +177,19 @@ struct GemmStridedBatchedParams : OpParams {
+   }
+ 
+   size_t GetSizeA() const {
+-    size_t size_stride = std::min(lda, stride_a) * ((transa == 'n' || transa == 'N') ? k : m) * batch;
++    size_t size_stride = stride_a * batch;
+     size_t size_dense = m * k * batch;
+     return sizeof(T) * (size_stride > size_dense ? size_stride : size_dense);
+   }
+ 
+   size_t GetSizeB() const {
+-    size_t size_stride = std::min(ldb, stride_b) * ((transb == 'n' || transb == 'N') ? n : k) * batch;
++    size_t size_stride = stride_b * batch;
+     size_t size_dense = k * n * batch;
+     return sizeof(T) * (size_stride > size_dense ? size_stride : size_dense);
+   }
+ 
+   size_t GetSizeC() const {
+-    size_t size_stride = std::min(ldc, stride_c) * n * batch;
++    size_t size_stride = stride_c * batch;
+     size_t size_dense = m * n * batch;
+     return sizeof(T) * (size_stride > size_dense ? size_stride : size_dense);
+   }
+diff --git a/test/test_linalg.py b/test/test_linalg.py
+index 9876e978b33..6302c8dea0c 100644
+--- a/test/test_linalg.py
++++ b/test/test_linalg.py
+@@ -4577,6 +4577,26 @@ class TestLinalg(TestCase):
+         i2 = torch.randn((M, B, K), device=device, dtype=dtype)
+         i2 = torch.permute(i2, (1, 2, 0))
+         out = torch.bmm(i1, i2)
++        # case 4
++        input_tensor = torch.rand((1920, 1, 100), device=device, dtype=dtype)
++        input_tensor = torch.as_strided(
++            input_tensor, size=(1920, 1, 100), stride=(100, 100, 1)
++        )
++        batch1_tensor = torch.rand((1920, 256, 512), device=device, dtype=dtype)
++        batch1_tensor = torch.as_strided(
++            batch1_tensor, size=(1920, 256, 512), stride=(512, 983040, 1)
++        )
++        batch2_tensor = torch.rand((1920, 512, 100), device=device, dtype=dtype)
++        batch2_tensor = torch.as_strided(
++            batch2_tensor, size=(1920, 512, 100), stride=(51200, 100, 1)
++        )
++        out = torch.baddbmm(input_tensor, batch1_tensor, batch2_tensor)
++        # case 5
++        q = torch.randn([16, 16, 1024, 64], device=device, dtype=dtype)
++        k = torch.randn([16, 16, 1024, 64], device=device, dtype=dtype)
++        q_chunks = q.split(512, dim=-2)
++        k_chunks = k.split(64, dim=-2)
++        C = torch.matmul(q_chunks[0], k_chunks[0])
+         # clean up, remove any file that was generated
+         try:
+             import os
+-- 
+2.43.0
+

@@ -1,0 +1,50 @@
+From 8cd35498d72c71a87082de75e5d7501a1a8c1ead Mon Sep 17 00:00:00 2001
+From: Jagadish Krishnamoorthy <jagadish.krishnamoorthy@amd.com>
+Date: Thu, 24 Oct 2024 15:13:54 -0700
+Subject: [PATCH 19/40] Fix torch cuda device to consider CUDA_VISIBLE_DEVICES
+ (#1650)
+
+Port the patch (only torch/cuda/__init__.py) from Pytorch upstream
+e1b426b345c6fe7a349c41b88a44398cda6773c9
+[ROCm] CUDA_VISIBLE_DEVICES fallback option for device_count
+
+Fixes https://ontrack-internal.amd.com/browse/SWDEV-491112
+
+Signed-off-by: Jagadish Krishnamoorthy <jagadish.krishnamoorthy@amd.com>
+---
+ torch/cuda/__init__.py | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/torch/cuda/__init__.py b/torch/cuda/__init__.py
+index 974993927a6..3a849f774de 100644
+--- a/torch/cuda/__init__.py
++++ b/torch/cuda/__init__.py
+@@ -584,9 +584,13 @@ def set_stream(stream: Stream):
+ 
+ def _parse_visible_devices() -> Union[List[int], List[str]]:
+     r"""Parse CUDA_VISIBLE_DEVICES environment variable."""
+-    var = os.getenv(
+-        "CUDA_VISIBLE_DEVICES" if not torch.version.hip else "HIP_VISIBLE_DEVICES"
+-    )
++    var = os.getenv("CUDA_VISIBLE_DEVICES")
++
++    if torch.version.hip:
++        hip_devices = os.getenv("HIP_VISIBLE_DEVICES")
++        if hip_devices is not None:
++            var = hip_devices
++
+     if var is None:
+         return list(range(64))
+ 
+@@ -1014,7 +1018,7 @@ def _get_amdsmi_handler(device: Optional[Union[Device, int]] = None):
+ 
+ 
+ def _get_amdsmi_device_index(device: Optional[Union[int, Device]]) -> int:
+-    r"""Return the amdsmi index of the device, taking HIP_VISIBLE_DEVICES into account."""
++    r"""Return the amdsmi index of the device, taking visible_devices into account."""
+     idx = _get_device_index(device, optional=True)
+     visible_devices = _parse_visible_devices()
+     if type(visible_devices[0]) is str:
+-- 
+2.43.0
+

@@ -1,0 +1,333 @@
+From 4de2b56aa0eed5caec4a3cb33d6feb5e75141a5c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 23 Dec 2024 16:48:57 -0800
+Subject: [PATCH 13/40] flashattention 0.7.3b pytorch 2.4 support backport
+
+- original patch from xinyazhang/aotriton0.7b-rocmrelease2.4
+  on
+  https://github.com/ROCm/pytorch/pull/1587
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../native/transformers/cuda/attention.cu     | 29 ++++++++++++----
+ .../transformers/cuda/attention_backward.cu   |  9 +++--
+ .../native/transformers/cuda/sdp_utils.cpp    |  8 +++++
+ .../transformers/hip/aotriton_adapter.h       | 12 +++++++
+ .../transformers/hip/flash_attn/flash_api.hip | 34 ++++++++++++++-----
+ test/test_native_mha.py                       |  7 ++--
+ test/test_transformers.py                     |  5 ++-
+ 7 files changed, 83 insertions(+), 21 deletions(-)
+
+diff --git a/aten/src/ATen/native/transformers/cuda/attention.cu b/aten/src/ATen/native/transformers/cuda/attention.cu
+index 1a5dbe3a691..0f9356a7f30 100644
+--- a/aten/src/ATen/native/transformers/cuda/attention.cu
++++ b/aten/src/ATen/native/transformers/cuda/attention.cu
+@@ -1058,10 +1058,13 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
+       offset_t = at::empty({}, at::dtype(at::kLong).device(device));
+     } else {
+       auto [seed, offset] = at::cuda::philox::unpack(philox_state);
+-      seed_t = at::scalar_tensor(
+-          at::Scalar(static_cast<int64_t>(seed)), at::dtype(at::kLong));
+-      offset_t = at::scalar_tensor(
+-          at::Scalar(static_cast<int64_t>(offset)), at::dtype(at::kLong));
++#ifdef USE_ROCM
++      const auto options = at::dtype(at::kLong).device(at::kCUDA);
++#else
++      const auto options = at::dtype(at::kLong);
++#endif
++      seed_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(seed)), options);
++      offset_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(offset)), options);
+     }
+   } else {
+     // Not using dropout
+@@ -1074,7 +1077,8 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
+   auto ret = aotriton::v2::flash::check_gpu(stream);
+   if (hipSuccess != ret) {
+       TORCH_CHECK(false,
+-                  "[AOTriton] Accelerated SDPA only supports MI200/MI300X GPUs (gfx90a:sramecc+:xnack- or gfx94a:sramecc+:xnack-)")
++                  "[AOTriton] Accelerated SDPA only supports MI200/MI300X/Navi31 GPUs"
++                  " (gfx90a:sramecc+:xnack-/gfx942:sramecc+:xnack-/gfx1100)")
+   }
+ 
+   // AOTriton may accept aligned on logsumexp tensor in the future for better
+@@ -1103,8 +1107,16 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
+ 
+   using aotriton::v2::flash::attn_fwd;
+   using sdp::aotriton_adapter::mk_aotensor;
++  using sdp::aotriton_adapter::mk_aoscalartensor;
++  using sdp::aotriton_adapter::mk_philoxtensor;
+   aotriton::TensorView<4> empty_t4(0, {0, 0, 0, 0}, {0, 0, 0, 0}, aotriton::DType::kFloat16);
+   at::Tensor softmax_fa_t = at::empty({ 0, 0, 0, 0 }, query.options());
++  const bool use_philox_state = in_capture_stream;
++  auto seed = use_philox_state ? mk_philoxtensor(philox_state.seed_.ptr) : mk_aoscalartensor(seed_t);
++  auto offset1 = use_philox_state ? mk_philoxtensor(philox_state.offset_.ptr) : mk_aoscalartensor(offset_t);
++  auto offset2 = use_philox_state ? philox_state.offset_intragraph_ : 0;
++  auto seed_output = use_philox_state ? mk_philoxtensor(seed_t.data_ptr<int64_t>()) : mk_philoxtensor(nullptr);
++  auto offset_output = use_philox_state ? mk_philoxtensor(offset_t.data_ptr<int64_t>()) : mk_philoxtensor(nullptr);
+   hipError_t err; // TODO: Error handling
+   err = attn_fwd(mk_aotensor(q_t, "q"),
+                  mk_aotensor(k_t, "k"),
+@@ -1114,8 +1126,11 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
+                  mk_aotensor<2>(softmax_lse, "M"),
+                  mk_aotensor(output_t, "Out"),
+                  dropout_p,
+-                 use_dropout ? *seed_t.data_ptr<int64_t>() : 0,
+-                 use_dropout ? *offset_t.data_ptr<int64_t>() : 0,
++                 seed,
++                 offset1,
++                 offset2,
++                 seed_output,
++                 offset_output,
+                  mk_aotensor(softmax_fa_t, "encoded_softmax"),
+                  is_causal,
+                  stream);
+diff --git a/aten/src/ATen/native/transformers/cuda/attention_backward.cu b/aten/src/ATen/native/transformers/cuda/attention_backward.cu
+index af9da7b8835..e809f972657 100644
+--- a/aten/src/ATen/native/transformers/cuda/attention_backward.cu
++++ b/aten/src/ATen/native/transformers/cuda/attention_backward.cu
+@@ -383,7 +383,8 @@ _efficient_attention_backward(
+   auto ret = aotriton::v2::flash::check_gpu(stream);
+   if (hipSuccess != ret) {
+     TORCH_CHECK(false,
+-                "[AOTriton] Accelerated SDPA only supports MI200/MI300X GPUs (gfx90a:sramecc+:xnack- or gfx942:sramecc+:xnack-)")
++                "[AOTriton] Accelerated SDPA only supports MI200/MI300X/Navi31 GPUs"
++                " (gfx90a:sramecc+:xnack-/gfx942:sramecc+:xnack-/gfx1100)")
+   }
+   const auto softmax_scale = sdp::calculate_scale(query, scale).as_float_unchecked();
+   bool is_causal;
+@@ -408,6 +409,7 @@ _efficient_attention_backward(
+   hipError_t err;
+   using aotriton::v2::flash::attn_bwd;
+   using sdp::aotriton_adapter::mk_aotensor;
++  using sdp::aotriton_adapter::mk_aoscalartensor;
+   using sdp::aotriton_adapter::cast_dtype;
+   aotriton::TensorView<4> empty_t4(0, {0, 0, 0, 0}, {0, 0, 0, 0}, cast_dtype(query.dtype()));
+   err = attn_bwd(mk_aotensor(q_t, "q"),
+@@ -424,8 +426,9 @@ _efficient_attention_backward(
+                  mk_aotensor<2>(softmax_lse, "L"),
+                  mk_aotensor<2>(delta, "delta"),
+                  float(dropout_p),
+-                 rng_engine_inputs.seed_.val,
+-                 rng_engine_inputs.offset_.val,
++                 mk_aoscalartensor(philox_seed),
++                 mk_aoscalartensor(philox_offset),
++                 0,
+                  is_causal,
+                  stream);
+ #else
+diff --git a/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp b/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp
+index 53e5393257c..d61394c30ec 100644
+--- a/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp
++++ b/aten/src/ATen/native/transformers/cuda/sdp_utils.cpp
+@@ -184,6 +184,7 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
+   // Check that the gpu is capable of running flash attention
+   using sm80 = SMVersion<8, 0>;
+   using sm90 = SMVersion<9, 0>;
++  auto dprops = at::cuda::getCurrentDeviceProperties();
+ #if USE_ROCM
+   auto stream = at::cuda::getCurrentCUDAStream().stream();
+   if (hipSuccess != aotriton::v2::flash::check_gpu(stream)) {
+@@ -194,6 +195,7 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
+       }
+       return false;
+   }
++  c10::string_view arch(dprops->gcnArchName);
+ #else
+   auto dprops = at::cuda::getCurrentDeviceProperties();
+   if (!check_sm_version<sm80, sm90>(dprops)) {
+@@ -215,6 +217,7 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug)
+   // Mem Efficient attention supports hardware in the range [sm_50, sm_90]
+   using sm50 = SMVersion<5, 0>;
+   using sm90 = SMVersion<9, 0>;
++  auto dprops = at::cuda::getCurrentDeviceProperties();
+ #if USE_ROCM
+   auto stream = at::cuda::getCurrentCUDAStream().stream();
+   if (hipSuccess != aotriton::v2::flash::check_gpu(stream)) {
+@@ -585,6 +588,11 @@ bool can_use_flash_attention(sdp_params const& params, bool debug) {
+       }
+     }
+   }
++#if USE_ROCM
++  constexpr bool backend_supports_grouped_query_attention = false;
++#else
++  constexpr bool backend_supports_grouped_query_attention = true;
++#endif
+   if (has_only_dense_inputs(params)) {
+     constexpr auto dense_constraints = array_of<bool (*)(sdp_params const&, bool)>(
+         check_batch_size_and_num_heads_dense,
+diff --git a/aten/src/ATen/native/transformers/hip/aotriton_adapter.h b/aten/src/ATen/native/transformers/hip/aotriton_adapter.h
+index 1c238c751a0..57d5c344443 100644
+--- a/aten/src/ATen/native/transformers/hip/aotriton_adapter.h
++++ b/aten/src/ATen/native/transformers/hip/aotriton_adapter.h
+@@ -115,6 +115,18 @@ aotriton::TensorView<Rank> mk_aotensor(const at::Tensor& q, c10::string_view ten
+                                     cast_dtype(q.dtype()));
+ }
+ 
++inline aotriton::TensorView<0> mk_aoscalartensor(const at::Tensor& q)
++{
++  return aotriton::TensorView<0>(reinterpret_cast<intptr_t>(q.data_ptr()),
++                                 cast_dtype(q.dtype()));
++}
++
++inline aotriton::TensorView<0> mk_philoxtensor(const int64_t* ptr)
++{
++  return aotriton::TensorView<0>(reinterpret_cast<intptr_t>(ptr),
++                                 aotriton::DType::kUInt64);  // AOTriton excepts unsigned int64
++}
++
+ } // namespace aotriton_adapter
+ 
+ } // namespace sdp
+diff --git a/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip b/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
+index 7af480a7ae4..dc3c42c5395 100644
+--- a/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
++++ b/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
+@@ -72,7 +72,8 @@ void check_gpu_arch(hipStream_t stream) {
+   auto ret = aotriton::v2::flash::check_gpu(stream);
+   if (hipSuccess != ret) {
+       TORCH_CHECK(false,
+-                  "FlashAttention only supports MI200/MI300X GPUs (gfx90a:sramecc+:xnack- or gfx942:sramecc+:xnack-)")
++                  "[AOTriton] Accelerated SDPA only supports MI200/MI300X/Navi31 GPUs"
++                  " (gfx90a:sramecc+:xnack-/gfx942:sramecc+:xnack-/gfx1100)")
+   }
+ }
+ 
+@@ -164,6 +165,8 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+   auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(c10::nullopt, at::cuda::detail::getDefaultCUDAGenerator());
+   at::Tensor seed_t, offset_t;
+ 
++  at::PhiloxCudaState philox_state;
++  bool use_philox_state = false;
+   if (p_dropout > 0.0)  {
+     // number of times random will be generated per thread, to offset philox counter in thc random
+     // state
+@@ -171,12 +174,14 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+     int64_t counter_offset = batch_size * num_heads * 32;
+     // See Note [Acquire lock when using random generators]
+     std::lock_guard<std::mutex> lock(gen->mutex_);
+-    at::PhiloxCudaState philox_state = gen->philox_cuda_state(counter_offset);
++    philox_state = gen->philox_cuda_state(counter_offset);
+     if (at::cuda::currentStreamCaptureStatus() == at::cuda::CaptureStatus::None) {
+       auto [seed, offset] = at::cuda::philox::unpack(philox_state);
+       seed_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(seed)), at::dtype(at::kLong));
+       offset_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(offset)), at::dtype(at::kLong));
+     } else {
++      // See Note [CUDA Graph-safe RNG states] about the design
++      use_philox_state = true;
+       seed_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+       offset_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+     }
+@@ -185,8 +190,8 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+       seed_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+       offset_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+     } else {
+-      seed_t = at::empty({}, at::dtype(at::kLong));
+-      offset_t = at::empty({}, at::dtype(at::kLong));
++      seed_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
++      offset_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+     }
+   }
+ 
+@@ -219,9 +224,17 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+ 
+   hipError_t err; // TODO: Error handling
+   using aotriton::v2::flash::attn_fwd;
++  using aotriton::TensorView;
+   using sdp::aotriton_adapter::mk_aotensor;
++  using sdp::aotriton_adapter::mk_aoscalartensor;
++  using sdp::aotriton_adapter::mk_philoxtensor;
+   using sdp::aotriton_adapter::cast_dtype;
+   aotriton::TensorView<4> empty_bias(0, {0,0,0,0}, {0,0,0,0}, cast_dtype(q.dtype()));
++  auto seed = use_philox_state ? mk_philoxtensor(philox_state.seed_.ptr) : mk_aoscalartensor(seed_t);
++  auto offset1 = use_philox_state ? mk_philoxtensor(philox_state.offset_.ptr) : mk_aoscalartensor(offset_t);
++  auto offset2 = use_philox_state ? philox_state.offset_intragraph_ : 0;
++  auto seed_output = use_philox_state ? mk_philoxtensor(seed_t.data_ptr<int64_t>()) : mk_philoxtensor(nullptr);
++  auto offset_output = use_philox_state ? mk_philoxtensor(offset_t.data_ptr<int64_t>()) : mk_philoxtensor(nullptr);
+   err = attn_fwd(mk_aotensor(q_t, "q"),
+                  mk_aotensor(k_t, "k"),
+                  mk_aotensor(v_t, "v"),
+@@ -230,8 +243,11 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+                  mk_aotensor<2>(M, "M"),
+                  mk_aotensor(output_t, "Out"),
+                  p_dropout,
+-                 philox_args.seed_.val,
+-                 philox_args.offset_.val,
++                 seed,
++                 offset1,
++                 offset2,
++                 seed_output,
++                 offset_output,
+                  mk_aotensor(softmax_fa_t, "encoded_softmax"),
+                  is_causal,
+                  stream);
+@@ -419,6 +435,7 @@ mha_bwd(const at::Tensor &dout,  // batch_size x seqlen_q x num_heads, x head_si
+   {
+     using aotriton::v2::flash::attn_bwd;
+     using sdp::aotriton_adapter::mk_aotensor;
++    using sdp::aotriton_adapter::mk_aoscalartensor;
+     using sdp::aotriton_adapter::cast_dtype;
+     aotriton::TensorView<4> empty_bias(0, {0,0,0,0}, {0,0,0,0}, cast_dtype(q.dtype()));
+     err = attn_bwd(mk_aotensor(q_t, "q"),
+@@ -435,8 +452,9 @@ mha_bwd(const at::Tensor &dout,  // batch_size x seqlen_q x num_heads, x head_si
+                    mk_aotensor<2>(softmax_lse_cont, "L"),
+                    mk_aotensor<2>(delta, "delta"),
+                    p_dropout,
+-                   philox_args.seed_.val,
+-                   philox_args.offset_.val,
++                   mk_aoscalartensor(philox_seed),
++                   mk_aoscalartensor(philox_offset),
++                   0,
+                    is_causal,
+                    stream);
+   }
+diff --git a/test/test_native_mha.py b/test/test_native_mha.py
+index 9a07485cb2e..30711514785 100644
+--- a/test/test_native_mha.py
++++ b/test/test_native_mha.py
+@@ -276,8 +276,11 @@ class TestMHADeviceType(TestCase):
+     @torch.no_grad()
+     def test_native_multihead_self_attention(self, device, dtype, use_nt,
+                                              need_weights, average_attn_weights, use_padding, pad_all, fused):
+-        if TEST_WITH_ROCM and use_nt:
+-            self.skipTest("ROCM does not support nested tensors for Flash Attention for now.")
++        if TEST_WITH_ROCM:
++            if use_nt:
++                self.skipTest("ROCM does not support nested tensors for Flash Attention for now.")
++            if use_padding and not pad_all and fused:
++                self.skipTest("Large numerical errors on ROCM to investigate.")
+         for need_weights in (False, not pad_all):
+             with self.subTest(use_padding=use_padding, pad_all=pad_all,
+                               use_nt=use_nt, need_weights=need_weights,
+diff --git a/test/test_transformers.py b/test/test_transformers.py
+index 52cf6888282..29bb7c210f3 100644
+--- a/test/test_transformers.py
++++ b/test/test_transformers.py
+@@ -2623,6 +2623,8 @@ class TestSDPACudaOnly(NNTestCase):
+             return
+         if TEST_WITH_ROCM and seq_len_q * seq_len_k * head_dim * batch_size > 1024 * 1024 * 128:
+             torch.cuda.empty_cache()  # Prevent memory fragmentation
++        if TEST_WITH_ROCM and is_causal and seq_len_q != seq_len_k:
++            self.skipTest("ROCm does not accept is_casual when seq_len_q != seq_len_k")
+         seed = 42
+         scale = scale if scale is None else (1 / head_dim)
+         n_heads = 4
+@@ -2949,7 +2951,6 @@ class TestSDPACudaOnly(NNTestCase):
+         self.assertEqual(value.grad, value_ref.grad.to(value.grad.dtype),
+                          atol=grad_v_ref_atol, rtol=grad_v_ref_rtol)
+ 
+-    @skipIfRocm  # FIXME: "capturing stream has unjoined work"
+     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support SDPA or pre-SM80 hardware")
+     @parametrize("batch_size", [1, 8])
+     @parametrize("seq_len_q", [256, 512, 1024])
+@@ -2996,6 +2997,8 @@ class TestSDPACudaOnly(NNTestCase):
+ 
+         if fused_kernel == SDPBackend.FLASH_ATTENTION and is_causal and seq_len_q != seq_len_k:
+             self.skipTest("Flash V2 does not accept is_casual when seq_len_q != seq_len_k")
++        if TEST_WITH_ROCM and is_causal and seq_len_q != seq_len_k:
++            self.skipTest("ROCm does not accept is_casual when seq_len_q != seq_len_k")
+ 
+         seed = 42
+         scale = scale if scale is None else (1 / head_dim)
+-- 
+2.43.0
+

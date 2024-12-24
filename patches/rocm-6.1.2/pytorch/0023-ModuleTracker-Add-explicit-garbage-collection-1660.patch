@@ -1,0 +1,43 @@
+From 531ba79a8bb93595cf9d7d645e661684b60c5e7b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 23 Dec 2024 17:29:30 -0800
+Subject: [PATCH 23/40] ModuleTracker: Add explicit garbage collection (#1660)
+
+original patch from Prachi Gupta <pracgupt@amd.com>
+
+When running an FSDP model with FlopCounterMode, we are experiencing a
+memory leak. It is coming from ModuleTracker class. Even though
+ModuleTracker class is keeping weakrefrences of the operators, the
+tensors/operators are not being freed after the backward pass. To force
+free these tensors/operators after forward pass, I explicitly added
+garbage collection in the post forward hook
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ torch/utils/module_tracker.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/torch/utils/module_tracker.py b/torch/utils/module_tracker.py
+index 0e9bfaacf8a..baf7fa23ae9 100644
+--- a/torch/utils/module_tracker.py
++++ b/torch/utils/module_tracker.py
+@@ -11,7 +11,7 @@ from torch.nn.modules.module import (
+     register_module_forward_pre_hook,
+ )
+ from torch.utils._pytree import tree_flatten
+-
++import gc
+ 
+ logger = logging.getLogger(__name__)
+ 
+@@ -137,6 +137,7 @@ class ModuleTracker:
+         tensors = [a for a in args if isinstance(a, torch.Tensor) and a.requires_grad]
+         if tensors:
+             register_multi_grad_hook(tensors, self._get_append_fn(name, True))
++            gc.collect()
+ 
+     def __enter__(self):
+         self._fw_pre_handle = register_module_forward_pre_hook(self._fw_pre_hook)
+-- 
+2.43.0
+

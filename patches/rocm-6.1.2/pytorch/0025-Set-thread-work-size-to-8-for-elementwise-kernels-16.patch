@@ -1,0 +1,42 @@
+From e2907ea197b975b8e3668da6c558fd714adda4ec Mon Sep 17 00:00:00 2001
+From: Jerry Mannil <65309407+jerrymannil@users.noreply.github.com>
+Date: Mon, 4 Nov 2024 13:34:19 -0800
+Subject: [PATCH 25/40] Set thread work size to 8 for elementwise kernels
+ (#1670)
+
+thread work size = 8 performs better than 16 for 1D tensors.
+For 2D tensors, both 8 and 16 gives similar performance.
+---
+ aten/src/ATen/native/cuda/DistributionTemplates.h | 2 +-
+ aten/src/ATen/native/cuda/thread_constants.h      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/aten/src/ATen/native/cuda/DistributionTemplates.h b/aten/src/ATen/native/cuda/DistributionTemplates.h
+index f817d6daeaf..6c5f35f7cfc 100644
+--- a/aten/src/ATen/native/cuda/DistributionTemplates.h
++++ b/aten/src/ATen/native/cuda/DistributionTemplates.h
+@@ -35,7 +35,7 @@ const uint32_t grid_size_bound = 4;
+ // number of randoms given by distributions like curand_uniform4, curand_uniform2_double
+ // used in calculating philox offset.
+ #if defined(USE_ROCM)
+-const uint32_t curand4_engine_calls = 16;
++const uint32_t curand4_engine_calls = 8;
+ #else
+ const uint32_t curand4_engine_calls = 4;
+ #endif
+diff --git a/aten/src/ATen/native/cuda/thread_constants.h b/aten/src/ATen/native/cuda/thread_constants.h
+index dc03cd5dbff..2711e8e2517 100644
+--- a/aten/src/ATen/native/cuda/thread_constants.h
++++ b/aten/src/ATen/native/cuda/thread_constants.h
+@@ -19,7 +19,7 @@ constexpr uint32_t num_threads() {
+ #endif
+ 
+ #if defined(USE_ROCM)
+-constexpr int thread_work_size() { return 16; }
++constexpr int thread_work_size() { return 8; }
+ #else
+ constexpr int thread_work_size() { return 4; }
+ #endif
+-- 
+2.43.0
+

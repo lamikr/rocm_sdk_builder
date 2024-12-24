@@ -1,0 +1,35 @@
+From d8eb5138f41bc305874dd20153936bb28d649409 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 23 Dec 2024 17:06:54 -0800
+Subject: [PATCH 15/40] [PATCH] SWDEV-487470 : Move philox arguments to GPU and
+ properly enable ME attention (#1609)
+
+All Philox Tensors must be on the device, and
+`check_mem_efficient_hardware_support` should return true if test
+passed.
+
+Fixes #SWDEV-487470
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../src/ATen/native/transformers/hip/flash_attn/flash_api.hip | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip b/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
+index dc3c42c5395..9b0820a501b 100644
+--- a/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
++++ b/aten/src/ATen/native/transformers/hip/flash_attn/flash_api.hip
+@@ -177,8 +177,8 @@ mha_fwd(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x head
+     philox_state = gen->philox_cuda_state(counter_offset);
+     if (at::cuda::currentStreamCaptureStatus() == at::cuda::CaptureStatus::None) {
+       auto [seed, offset] = at::cuda::philox::unpack(philox_state);
+-      seed_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(seed)), at::dtype(at::kLong));
+-      offset_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(offset)), at::dtype(at::kLong));
++      seed_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(seed)), at::dtype(at::kLong).device(at::kCUDA));
++      offset_t = at::scalar_tensor(at::Scalar(static_cast<int64_t>(offset)), at::dtype(at::kLong).device(at::kCUDA));
+     } else {
+       // See Note [CUDA Graph-safe RNG states] about the design
+       use_philox_state = true;
+-- 
+2.43.0
+
