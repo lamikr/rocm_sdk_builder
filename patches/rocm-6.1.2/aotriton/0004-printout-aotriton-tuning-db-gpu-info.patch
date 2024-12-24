@@ -1,4 +1,4 @@
-From 3bbccabde1409bbd2334d08d80e4fcdb56e942fc Mon Sep 17 00:00:00 2001
+From a5dc1b379627c9704e5cd7318ca2dc725683950e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 6 Aug 2024 17:15:39 -0700
 Subject: [PATCH 4/8] printout aotriton tuning db gpu info

@@ -1,28 +1,27 @@
-From 0d30e41b904e1027e559ebd54640467bd0226163 Mon Sep 17 00:00:00 2001
+From 9ee0ea1740c8ebf3b4d3bce3161a929708b304f2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Mon, 29 Jul 2024 00:01:32 -0700
+Date: Mon, 23 Dec 2024 15:29:37 -0800
 Subject: [PATCH 1/8] pass extra build options
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- CMakeLists.txt                     | 26 +++++++++++++++++++++++---
+ CMakeLists.txt                     | 26 ++++++++++++++++++++++++--
  python/generate.py                 |  4 +++-
  third_party/triton/CMakeLists.txt  | 12 ++++++++++++
  third_party/triton/python/setup.py | 21 +++++++++++++++++++++
  v2python/compile.py                |  2 ++
  v2python/generate_compile.py       |  7 ++++++-
  v2src/CMakeLists.txt               |  3 ++-
- 7 files changed, 69 insertions(+), 6 deletions(-)
+ 7 files changed, 70 insertions(+), 5 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 5f167bd..08b27a8 100644
+index 783698e..fa826af 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -18,7 +18,27 @@ option(AOTRITON_ENABLE_ASAN "Enable Address Sanitizer. Implies -g" OFF)
- option(AOTRITON_BUILD_FOR_TUNING "Build all GPU kernels and set -DAOTRITON_BUILD_FOR_TUNING=1 (=0 otherwise)" OFF)
+@@ -20,6 +20,28 @@ option(AOTRITON_ENABLE_FP32_INPUTS "Enable FP32 support." ON)
  set(AOTRITON_GPU_BUILD_TIMEOUT "8.0" CACHE STRING "GPU kernel compiler times out after X minutes. 0 for indefinite. Highly recommended if AOTRITON_BUILD_FOR_TUNING=On.")
  set(TARGET_GPUS "MI200;MI300X;Navi31" CACHE STRING "Target Architecture (Note here uses Trade names)")
--set(AMDHSA_LD_PRELOAD "/opt/rocm/lib/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
+ 
 +if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so")
 +    set(AMDHSA_LD_PRELOAD "${CMAKE_INSTALL_PREFIX}/lib64/libhsa-runtime64.so" CACHE STRING "Workaround of libamdhip64.so.5: undefined symbol: hsa_amd_memory_async_copy_on_engine")
 +else()
@@ -44,10 +43,11 @@ index 5f167bd..08b27a8 100644
 +set(AMDGPU_TARGETS "${DEFAULT_AMDGPU_TARGETS}" CACHE STRING "List of specific machine types for library to target")
 +
 +message(STATUS "TRITON_USE_ROCM: ${TRITON_USE_ROCM} MLIR_ENABLE_DUMP: ${MLIR_ENABLE_DUMP} LLVM_IR_ENABLE_DUMP: ${LLVM_IR_ENABLE_DUMP} AMDGCN_ENABLE_DUMP: ${AMDGCN_ENABLE_DUMP} target GPUS: ${TARGET_GPUS}")
- 
++
  # GPU kernel compression related options
  option(AOTRITON_COMPRESS_KERNEL "Enable GPU kernel compression with zstd. Fail when zstd is unavailable. Only effective for AOTriton API V2" ON)
-@@ -59,7 +79,7 @@ if(AOTRITON_COMPRESS_KERNEL)
+ # option(AOTRITON_COMPRESS_KERNEL_STATIC_ZSTD "Use static zstd library to avoid potential zstd version conflict (e.g. pytorch)" OFF)
+@@ -58,7 +80,7 @@ if(AOTRITON_COMPRESS_KERNEL)
      endif()
  endif()
  
@@ -56,7 +56,7 @@ index 5f167bd..08b27a8 100644
  if(AOTRITON_ENABLE_ASAN)
      set(AOTRITON_EXTRA_COMPILER_OPTIONS "${AOTRITON_EXTRA_COMPILER_OPTIONS} -g -fsanitize=address -fno-omit-frame-pointer")
      set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${AOTRITON_EXTRA_COMPILER_OPTIONS}")
-@@ -97,7 +117,7 @@ set(AOTRITON_TRITON_EGGLINK "${VENV_SITE}/triton.egg-link")
+@@ -96,7 +118,7 @@ set(AOTRITON_TRITON_EGGLINK "${VENV_SITE}/triton.egg-link")
  message("AOTRITON_TRITON_EGGLINK ${AOTRITON_TRITON_EGGLINK}")
  
  add_custom_command(OUTPUT "${AOTRITON_TRITON_EGGLINK}"
@@ -206,7 +206,7 @@ index 1101382..aae98d8 100644
          per_kernel_targets = []
          for k in triton_kernels:
 diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
-index ca7a4b5..5c7d2a2 100644
+index 1253126..12eedff 100644
 --- a/v2src/CMakeLists.txt
 +++ b/v2src/CMakeLists.txt
 @@ -1,6 +1,7 @@
@@ -217,15 +217,15 @@ index ca7a4b5..5c7d2a2 100644
  message("CMAKE_SOURCE_DIR ${CMAKE_SOURCE_DIR}")
  message("CMAKE_CURRENT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}")
  cmake_path(GET CMAKE_CURRENT_SOURCE_DIR PARENT_PATH CMAKE_CURRENT_SOURCE_PARENT_DIR)
-@@ -31,7 +32,7 @@ else(AOTRITON_BUILD_FOR_TUNING)
-   set(GENERATE_OPTION "")
- endif()
- execute_process(
--  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --bare_mode ${GENERATE_OPTION}
-+  COMMAND ${CMAKE_COMMAND} -E env VIRTUAL_ENV=${VENV_DIR} "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --libhsa_runtime64 "${AMDHSA_LD_PRELOAD}" --llvm_prefix_path "${LLVM_PREFIX_PATH}" --bare_mode ${GENERATE_OPTION}
+@@ -41,7 +42,7 @@ execute_process(
+   COMMAND ${CMAKE_COMMAND}
+   -E env VIRTUAL_ENV=${VENV_DIR}
+   AOTRITON_ENABLE_FP32=${AOTRITON_ENABLE_FP32}
+-  "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --bare_mode ${GENERATE_OPTION}
++  "${VENV_DIR}/bin/python" -m v2python.generate_compile --target_gpus ${TARGET_GPUS} --build_dir "${AOTRITON_V2_BUILD_DIR}" --libhsa_runtime64 "${AMDHSA_LD_PRELOAD}" --llvm_prefix_path "${LLVM_PREFIX_PATH}" --bare_mode ${GENERATE_OPTION}
    COMMAND_ECHO STDOUT
    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
- )
+   COMMAND_ERROR_IS_FATAL ANY
 -- 
 2.43.0
 

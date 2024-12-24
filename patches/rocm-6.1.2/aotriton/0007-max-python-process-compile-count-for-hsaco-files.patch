@@ -1,7 +1,7 @@
-From 375ce42eb83856885f933bb5214be85efd0a2a88 Mon Sep 17 00:00:00 2001
+From 313cafd6dbe355d8b2d97baba3f5c417ad3d2317 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Wed, 18 Dec 2024 21:38:44 -0800
-Subject: [PATCH 8/8] max python process compile count for hsaco files
+Date: Mon, 23 Dec 2024 15:55:08 -0800
+Subject: [PATCH 7/8] max python process compile count for hsaco files
 
 use MAX_JOBS environment variable to
 limit the amount python processes to
@@ -15,15 +15,13 @@ This solves out of memory build problem in cases where
 computer has low amount of memory compared to amount
 of CPUs available.
 
-Fixes: https://github.com/lamikr/rocm_sdk_builder/issues/178
-
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  v2src/CMakeLists.txt | 23 ++++++++++++++---------
  1 file changed, 14 insertions(+), 9 deletions(-)
 
 diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
-index 5c7d2a2..9509a27 100644
+index 12eedff..3e0e498 100644
 --- a/v2src/CMakeLists.txt
 +++ b/v2src/CMakeLists.txt
 @@ -26,6 +26,17 @@ message("AOTRITON_COMPILER ${AOTRITON_COMPILER}")
@@ -44,15 +42,15 @@ index 5c7d2a2..9509a27 100644
  if(AOTRITON_BUILD_FOR_TUNING)
    set(GENERATE_OPTION "--build_for_tuning")
  else(AOTRITON_BUILD_FOR_TUNING)
-@@ -36,6 +47,7 @@ execute_process(
-   COMMAND_ECHO STDOUT
+@@ -47,6 +58,7 @@ execute_process(
    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_PARENT_DIR}"
+   COMMAND_ERROR_IS_FATAL ANY
  )
 +
  message("Bare.compile: ${AOTRITON_V2_BUILD_DIR}/Bare.compile")
  file(STRINGS "${AOTRITON_V2_BUILD_DIR}/Bare.compile" HSACO_RULES)
  set(ALL_HSACOS "")
-@@ -65,6 +77,7 @@ foreach(RULE IN LISTS HSACO_RULES)
+@@ -78,6 +90,7 @@ foreach(RULE IN LISTS HSACO_RULES)
        "--timeout" "${AOTRITON_GPU_BUILD_TIMEOUT}"
        COMMAND ${ZSTD_EXEC} "-q" "-f" ${HSACO}
        DEPENDS aotriton_venv_triton
@@ -60,7 +58,7 @@ index 5c7d2a2..9509a27 100644
      )
      list(APPEND ALL_HSACOS "${HSACO}.zst")
    else(AOTRITON_COMPRESS_KERNEL)
-@@ -82,21 +95,13 @@ foreach(RULE IN LISTS HSACO_RULES)
+@@ -97,21 +110,13 @@ foreach(RULE IN LISTS HSACO_RULES)
        "--signature" "${SIG}"
        "--timeout" "${AOTRITON_GPU_BUILD_TIMEOUT}"
        DEPENDS aotriton_venv_triton
