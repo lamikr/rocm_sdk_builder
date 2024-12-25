@@ -1,6 +1,6 @@
 # ROCM SDK Builder Briefly
 
-ROCM SDK Builder provides easy and convinient machine learning and GPU computing development environment by using single or multiple regular consumer level GPUs on PC and laptop environments.
+ROCM SDK Builder provides easy and convenient machine learning and GPU computing development environment by using single or multiple regular consumer level GPUs on PC and laptop environments.
 
 It builds and integrates AMD¨s ROCm machine learning stack and other common ML Tools and models to easy to use environment. It is especially targeting the consumer Level discrete and integrated GPUs available on desktops and laptops.
 
