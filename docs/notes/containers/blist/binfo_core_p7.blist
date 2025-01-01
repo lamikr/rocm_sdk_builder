@@ -1,7 +1,7 @@
-binfo/core/039_01_pytorch_dependencies.binfo
-binfo/core/039_02_pytorch.binfo
-binfo/core/039_03_pytorch_vision.binfo
-binfo/core/039_04_pytorch_audio.binfo
-binfo/core/039_05_torch_migraphx.binfo
-binfo/core/039_06_pytorch_bitsandbytes.binfo
-binfo/core/039_07_triton.binfo
+binfo/core/033_01_composable_kernel.binfo
+binfo/core/033_02_composable_kernel_jit.binfo
+binfo/core/033_03_hipTensor.binfo
+binfo/core/034_miopen.binfo
+binfo/core/035_AMDMIGraphX.binfo
+binfo/core/036_rocWMMA.binfo
+binfo/core/037_magma.binfo

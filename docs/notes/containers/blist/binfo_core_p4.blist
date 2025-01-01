@@ -1,5 +1,6 @@
-binfo/core/031_01_miopen_rocMLIR.binfo
-binfo/core/031_02_miopengem.binfo
-binfo/core/032_01_functionalplus.binfo
-binfo/core/032_02_eigen.binfo
-binfo/core/032_03_frugally_deep.binfo
+binfo/core/023_01_rocBLAS_Tensile.binfo
+binfo/core/023_02_rocBLAS.binfo
+binfo/core/023_03_rocSPARSE.binfo
+binfo/core/023_04_SuiteSparse.binfo
+binfo/core/024_01_rocSOLVER.binfo
+binfo/core/024_02_hipSOLVER.binfo

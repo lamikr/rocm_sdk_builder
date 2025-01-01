@@ -1,2 +1,3 @@
-binfo/extra/jaxlib_xla.binfo
-binfo/extra/jaxlib.binfo
+binfo/core/040_01_onnxruntime_rocm_training.binfo
+binfo/core/040_02_onnxruntime_deepspeed.binfo
+binfo/core/042_python_apps_extra.binfo
