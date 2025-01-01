@@ -5,10 +5,6 @@ binfo/core/012_02_rocgdb.binfo
 binfo/core/013_01_rocm_smi_lib.binfo
 binfo/core/013_02_amdsmi.binfo
 binfo/core/013_03_nvtop.binfo
-binfo/core/014_01_hwloc.binfo
-binfo/core/014_02_boost.binfo
-binfo/core/014_03_gtest.binfo
-binfo/core/014_04_half.binfo
 binfo/core/015_01_ucx_openmpi.binfo
 binfo/core/015_02_ucc_openmpi.binfo
 binfo/core/015_03_slurm.binfo

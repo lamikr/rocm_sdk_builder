@@ -6,8 +6,12 @@ binfo/core/002_04_ffmpeg7_devel.binfo
 binfo/core/003_llvm_project_llvm.binfo
 binfo/core/004_01_roct-thunk-interface_shared.binfo
 binfo/core/004_02_roct-thunk-interface_static.binfo
-binfo/core/005_rocm-cmake.binfo
-binfo/core/006_hip_clang_rocm-device-libs.binfo
+binfo/core/005_01_hwloc.binfo
+binfo/core/005_02_boost.binfo
+binfo/core/005_03_gtest.binfo
+binfo/core/005_04_half.binfo
+binfo/core/006_01_rocm-cmake.binfo
+binfo/core/006_02_hip_clang_rocm-device-libs.binfo
 binfo/core/007_01_rocr-runtime.binfo
 binfo/core/007_02_rocminfo.binfo
 binfo/core/008_01_aomp_extras.binfo
