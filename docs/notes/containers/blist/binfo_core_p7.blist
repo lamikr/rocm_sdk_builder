@@ -1,7 +1,3 @@
 binfo/core/033_01_composable_kernel.binfo
 binfo/core/033_02_composable_kernel_jit.binfo
 binfo/core/033_03_hipTensor.binfo
-binfo/core/034_miopen.binfo
-binfo/core/035_AMDMIGraphX.binfo
-binfo/core/036_rocWMMA.binfo
-binfo/core/037_magma.binfo

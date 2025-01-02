@@ -1,1 +1,4 @@
-binfo/core/038_aotriton.binfo
+binfo/core/034_miopen.binfo
+binfo/core/035_AMDMIGraphX.binfo
+binfo/core/036_rocWMMA.binfo
+binfo/core/037_magma.binfo
