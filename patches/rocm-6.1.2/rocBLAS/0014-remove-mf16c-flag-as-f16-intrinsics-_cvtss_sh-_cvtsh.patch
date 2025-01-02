@@ -1,0 +1,87 @@
+From 1cf23a17ec305b685cd070bc3dbff99b48a7b820 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 2 Jan 2025 00:29:08 -0800
+Subject: [PATCH 14/14] remove mf16c flag as f16 intrinsics _cvtss_sh,
+ _cvtsh_ss no longer used
+
+- fix for illegal instruction errors with various gpus
+  when using half instructin type and when rocBLAS
+  is compiled with the clang
+- pytorch benchmarks, ollama, llama.cpp
+- backport fix from rocblas 6.3.0 commit c6bc09073959a2881a701b88ae1ed9de469354f1
+- fixes: https://github.com/ROCm/rocBLAS/issues/1422
+- fixes: https://github.com/ROCm/Tensile/issues/2044
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/benchmarks/CMakeLists.txt | 8 --------
+ clients/gtest/CMakeLists.txt      | 5 -----
+ clients/samples/CMakeLists.txt    | 2 --
+ library/CMakeLists.txt            | 3 ---
+ 4 files changed, 18 deletions(-)
+
+diff --git a/clients/benchmarks/CMakeLists.txt b/clients/benchmarks/CMakeLists.txt
+index aba616c9..db007321 100644
+--- a/clients/benchmarks/CMakeLists.txt
++++ b/clients/benchmarks/CMakeLists.txt
+@@ -113,14 +113,6 @@ else( )
+   endif()
+ endif()
+ 
+-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+-  target_compile_options( rocblas-bench PRIVATE -mf16c )
+-  if( BUILD_WITH_TENSILE )
+-    target_compile_options( rocblas-gemm-tune PRIVATE -mf16c )
+-  endif()
+-endif()
+-
+ target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )
+ if( BUILD_WITH_TENSILE )
+   target_compile_definitions( rocblas-gemm-tune PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS ${TENSILE_DEFINES} )
+diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
+index 9f17fb28..768a198f 100644
+--- a/clients/gtest/CMakeLists.txt
++++ b/clients/gtest/CMakeLists.txt
+@@ -169,11 +169,6 @@ else( )
+   target_link_libraries( rocblas-test PRIVATE hip::host hip::device )
+ endif( )
+ 
+-if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-  # GCC or hip-clang needs specific flag to turn on f16c intrinsics
+-  target_compile_options( rocblas-test PRIVATE -mf16c )
+-endif( )
+-
+ target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API ROCBLAS_NO_DEPRECATED_WARNINGS )
+ 
+ target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
+diff --git a/clients/samples/CMakeLists.txt b/clients/samples/CMakeLists.txt
+index c39fe0e8..f72ddcde 100644
+--- a/clients/samples/CMakeLists.txt
++++ b/clients/samples/CMakeLists.txt
+@@ -113,8 +113,6 @@ foreach( exe ${sample_list_all} )
+       )
+ 
+   if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-    # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+-    target_compile_options( ${exe} PRIVATE -mf16c )
+     target_compile_definitions( ${exe} PRIVATE ROCBLAS_INTERNAL_API )
+   endif( )
+ 
+diff --git a/library/CMakeLists.txt b/library/CMakeLists.txt
+index 7c3c0a85..ee05ba12 100755
+--- a/library/CMakeLists.txt
++++ b/library/CMakeLists.txt
+@@ -60,9 +60,6 @@ function( rocblas_library_settings lib_target_ )
+     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+   )
+ 
+-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+-  target_compile_options( ${lib_target_} PRIVATE -mf16c )
+-
+   # Do not allow Variable Length Arrays (use unique_ptr instead)
+   target_compile_options( ${lib_target_} PRIVATE -Werror=vla )
+ 
+-- 
+2.43.0
+

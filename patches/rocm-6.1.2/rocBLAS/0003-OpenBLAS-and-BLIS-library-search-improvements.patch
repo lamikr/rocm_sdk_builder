@@ -1,7 +1,7 @@
-From 5526f9c8e28c96f88acd0879fe8f6a9b7325eb55 Mon Sep 17 00:00:00 2001
+From 9940f6570d762e018de230a8074d903a6546ec64 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:15:13 -0700
-Subject: [PATCH 03/13] OpenBLAS and BLIS library search improvements
+Subject: [PATCH 03/14] OpenBLAS and BLIS library search improvements
 
 - OpenBLAS and BLIS can now be found from
   rocm_sdk build by rocm sdk builder
@@ -50,5 +50,5 @@ index dc8040ea..704414b5 100755
    else() # WIN32
      set( BLAS_INCLUDE_DIR ${OPENBLAS_DIR}/include CACHE PATH "OpenBLAS library include path" )
 -- 
-2.41.1
+2.43.0
 

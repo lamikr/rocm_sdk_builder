@@ -1,7 +1,7 @@
-From 9907109b735570bba33d6a9094d363de360cb0b1 Mon Sep 17 00:00:00 2001
+From 0e3579ab6c1f240a7ecf24c438b003cf0bc58cfd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 30 Oct 2024 03:06:19 +0000
-Subject: [PATCH 12/13] navi10 and navi12 lite logic files
+Subject: [PATCH 12/14] navi10 and navi12 lite logic files
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -26016,5 +26016,5 @@ index 00000000..2b8e1ec6
 +    - [1, 5499.1]
 +- null
 -- 
-2.41.1
+2.43.0
 

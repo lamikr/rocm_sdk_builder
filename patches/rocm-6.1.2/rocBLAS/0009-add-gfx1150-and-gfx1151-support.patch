@@ -1,7 +1,7 @@
-From 05fd90f14b95425b73f61efefd3fbf4fb984b6b7 Mon Sep 17 00:00:00 2001
+From ef65611f070d52e42d03c774c6ef1b8a8f21ded6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 22 Oct 2024 13:14:13 -0700
-Subject: [PATCH 09/13] add gfx1150 and gfx1151 support
+Subject: [PATCH 09/14] add gfx1150 and gfx1151 support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -78,5 +78,5 @@ index 073bb244..06e4e468 100644
      }
  
 -- 
-2.41.1
+2.43.0
 

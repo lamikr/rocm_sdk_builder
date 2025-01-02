@@ -1,7 +1,7 @@
-From f4904b2eb6bc62d2fef7d26831aeea022b368e74 Mon Sep 17 00:00:00 2001
+From 9d509f2a01032de79491640dbb2d5a0f08ad34f8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 9 Nov 2024 14:55:12 -0800
-Subject: [PATCH 13/13] add gfx902 vega11 build support
+Subject: [PATCH 13/14] add gfx902 vega11 build support
 
 - logic files could propably be re-used
   from gfx900
@@ -79,5 +79,5 @@ index 06e4e468..2259ab50 100644
          {
              return Tensile::LazyLoadingInit::gfx906;
 -- 
-2.41.1
+2.43.0
 
