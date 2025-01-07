@@ -1,0 +1,13 @@
+BINFO_APP_NAME=amd_aie_llvm
+BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
+BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
+BINFO_APP_UPSTREAM_REPO_URL=https://github.com/Xilinx/llvm-aie
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=9d60f53582c18ab608aa11f3db415f5eb6a2f8ec
+
+# llvm-aie configure command documentation: https://github.com/Xilinx/llvm-aie/issues/218
+# using almost same except dropped ninja, added install prefix
+BINFO_APP_CONFIG_CMD_ARRAY=(
+    "cd ${BINFO_APP_BUILD_DIR}"
+    "cmake -C ${BINFO_APP_SRC_DIR}/clang/cmake/caches/Peano-AIE.cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}/apps/aie ${BINFO_APP_SRC_DIR}/llvm"
+)
+
