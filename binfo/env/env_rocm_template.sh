@@ -35,3 +35,12 @@ export PYTHONPATH=${ROCM_HOME}/lib64:${ROCM_HOME}/lib:$PYTHONPATH
 export TRITON_HIP_LLD_PATH=${ROCM_HOME}/bin/ld.lld
 
 export PATH=${ROCM_HOME}/bin:${PATH}
+
+# xdna xrt runtime env
+export XILINX_XRT=${ROCM_HOME}/apps/aie/xrt
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${XILINX_XRT}/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ROCM_HOME}/apps/aie/lib
+
+export PATH=${PATH}:${XILINX_XRT}/bin
+export PATH=${PATH}:${ROCM_HOME}/apps/aie/bin
