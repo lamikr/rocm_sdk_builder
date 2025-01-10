@@ -276,8 +276,8 @@ They can all utilize the AMD GPU's and can be build with the following commands.
 ```
 Note: It may take a while for the first run to download the model on first time to /opt/rocm_sdk_models/vllm directory and then to run the question/answer example.
 
-If you get a ``` ModuleNotFoundError: No module named 'vllm' ```
-First rebuild vllm individually (explained below). If it says ``` No files found to uninstall ``` and is still not working try forcing the reinstall with:
+If you encounter the error: ```ModuleNotFoundError: No module named 'vllm'```, please rebuild the vllm module individually as described below. 
+If the issue persists and you see the message No files found to uninstall, try forcing the reinstallation using the following command:
 ```
 # cd rocm_sdk_builder
 # pip install ./packages/whl/vllm+<version>.whl --force-reinstall --no-deps
