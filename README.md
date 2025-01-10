@@ -265,8 +265,8 @@ They can all utilize the AMD GPU's and can be build with the following commands.
 
 - Stable Diffusion WebUI will create server on address http://127.0.0.1:7860/
 - Launch your browser to access the server and test the image generation from text description: http://127.0.0.1:7860/
-
-Note: It may take a while from the stable-diffustion to download the model files to /opt/rocm_sdk_models directory and then to open ui on browserto test the picture generation:
+- On first launch the stable diffusion webui initialization and image generation takes some time, because it downloads the model file to /opt/rocm_sdk_models directory before initializing the web server for ui.
+- Try to set "Sampling steps" in UI to be first less than 20, for example to 5. I have seen errors to generate images on many GPU's if it is using 20 steps.
 
 ## Test VLLM
 
@@ -324,7 +324,10 @@ Reboot and check that amdxdna driver gets loaded
 dmesg | grep amdxdna
 ```
 
-If you see error that firmware file load failed, you may need to force the firmware files to get copied to initrd image. (Fedora 40 requires at least)
+If xdna driver worked and was able to load the firmware, you should see message like: "Initialized amdxdna_accel_driver"
+
+If xdna driver failed to find the firmware, you should see a this type of message from kernel dmesg: "npu.sbin failed with error -2".
+In case of error, you may need to force the firmware files to get copied to initrd image. At least of Fedora 40 that can be done with command:
 
 ```
 "dracut -f -i /lib/firmware /lib/firmware
