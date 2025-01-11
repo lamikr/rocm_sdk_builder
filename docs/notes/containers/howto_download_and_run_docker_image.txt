@@ -1,0 +1,46 @@
+1) Download Docker Image
+========================
+- Docker image for CDNA based GPUs
+  - https://drive.google.com/drive/folders/1XnoSvL41XhrKT_5NbBSrUZ_1LaVpQ-xb?usp=sharing
+  - GPU's selected as a build target
+    - gfx906 (MI50 tested, VII not tested)
+    - gfx908 (MI100 not tested)
+    - gfx90a (MI200 not tested)
+    - gfx942 (MI300 not tested)
+- Docker image for rdna1 and rdna2 cards
+  - todo
+- Docker image for rdna3 cards
+  - todo
+
+2) Import shared image with podman
+==================================
+$ xz -T8 -d rocm_sdk_builder_612_cdna_docker.tar.xz
+$ mkdir -p /opt/containers/tmp
+$ export TMPDIR=/opt/containers/tmp
+$ podman import --change CMD=/bin/bash --change ENTRYPOINT=/bin/bash rocm_sdk_builder_612_cdna_docker.tar rocm_sdk_612_cdna
+
+3) Launch the imported image with podman
+========================================
+$ sudo su
+$ podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups localhost/rocm_sdk_612_cdna bash
+
+4) Smoke Test the launched image
+================================
+$ sudo su
+$ podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups localhost/rocm_sdk_612_cdna bash
+$ root@1cbe841f5f4d:/# cd /opt/rocm_sdk_612/docs/examples/hipcc/hello_world/
+$ root@1cbe841f5f4d:/opt/rocm_sdk_612/docs/examples/hipcc/hello_world# ./build.sh 
+rm -f ./hello_world
+rm -f hello_world.o
+rm -f /opt/rocm_sdk_612/src/*.o
+/opt/rocm_sdk_612/bin/hipcc -g -fPIE   -c -o hello_world.o hello_world.cpp
+/opt/rocm_sdk_612/bin/hipcc hello_world.o -fPIE -o hello_world
+./hello_world
+ System minor: 0
+ System major: 9
+ Agent name: AMD Instinct MI60 / MI50
+Kernel input: GdkknVnqkc
+Expecting that kernel increases each character from input string by one
+Kernel output string: HelloWorld
+Output string matched with HelloWorld
+Test ok!

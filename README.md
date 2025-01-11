@@ -651,6 +651,14 @@ Binary and library search paths and other environment variables required to exec
 
 Note that this command needs to be executed only once for each bash terminal session.
 
+# Docker/Podman Images
+
+There exist now firstdocker/podman image for CDNA based cards for testing.
+[Download address for CDNA based GPU's (x906/908/90a/942)](https://drive.google.com/drive/folders/1XnoSvL41XhrKT_5NbBSrUZ_1LaVpQ-xb?usp=sharing).
+
+Instructions for download, import and usage
+[docs/notes/containers/howto_download_and_run_docker_image.txt](docs/notes/containers/howto_download_and_run_docker_image.txt)
+
 
 Copyright (C) 2024 by Mika Laitio <lamikr@gmail.com>
 Some of the files in this project are licensed with the LGPL 2.1 and some other with the COFFEEWARE license.  
