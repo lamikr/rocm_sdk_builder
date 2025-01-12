@@ -1,0 +1,27 @@
+From 4c0929901f7666bff51cc0d1b7f9264eb05ad6dc Mon Sep 17 00:00:00 2001
+From: Arlo Phoenix <aarlo.phoenix@gmail.com>
+Date: Tue, 6 Aug 2024 20:11:13 +0200
+Subject: [PATCH 2/9] Update ROCM Readme
+
+---
+ README_ROCM.md | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/README_ROCM.md b/README_ROCM.md
+index 71823b6c..d9fdc994 100644
+--- a/README_ROCM.md
++++ b/README_ROCM.md
+@@ -14,9 +14,8 @@ conda activate py_3.9
+ ```
+ 
+ ```bash
+-git clone https://github.com/arlo-phoenix/CTranslate2-rocm.git
++git clone https://github.com/arlo-phoenix/CTranslate2-rocm.git --recurse-submodules
+ cd CTranslate2-rocm
+-git checkout rocm
+ CLANG_CMAKE_CXX_COMPILER=clang++ CXX=clang++ HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)"     cmake -S . -B build -DWITH_MKL=OFF -DWITH_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx1030 -DBUILD_TESTS=ON -DWITH_CUDNN=ON
+ cmake --build build -- -j16
+ cd build
+-- 
+2.47.1
+

@@ -1,0 +1,26 @@
+From 4e0875a78c1893b5fb4c44f243f3fdf80f67438f Mon Sep 17 00:00:00 2001
+From: Arlo Phoenix <aarlo.phoenix@gmail.com>
+Date: Sat, 10 Aug 2024 15:44:25 +0200
+Subject: [PATCH 5/9] Update whisperX install instructions
+
+-U would probably also work, but just force reinstall torch to be safe
+---
+ README_ROCM.md | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/README_ROCM.md b/README_ROCM.md
+index e91be025..270dc55c 100644
+--- a/README_ROCM.md
++++ b/README_ROCM.md
+@@ -86,7 +86,7 @@ I'm getting around `10.9-11.0s` on my RX6800 (with model loading included `13.7-
+ System dependency is just ffmpeg. Either use your system package manager or with conda `conda install conda-forge::ffmpeg`
+ 
+ ```bash
+-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1
++pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1 --force-reinstall
+ pip3 install transformers pandas nltk pyannote.audio==3.1.1 faster_whisper==1.0.1 -U
+ pip3 install whisperX --no-deps
+ ```
+-- 
+2.47.1
+

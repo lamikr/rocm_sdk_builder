@@ -1,0 +1,47 @@
+From 7630aaaa9b25cb271e64a5dc1a657aa7be3ca785 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 12 Jan 2025 01:20:21 -0800
+Subject: [PATCH 8/9] rocm sdk builder hiprand link fix for hiprand
+
+libhiprand locates on lib64-directory on rocm sdk builder
+instead of being on lib-folder.
+For some reason the CMake however it's path to point
+to lib instead of lib64. Workaround by adding full
+path to library.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1ceee64f..26aeb700 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -608,10 +608,12 @@ if (WITH_HIP)
+   set_source_files_properties(${CUDA_SOURCES} PROPERTIES LANGUAGE HIP)
+   set_source_files_properties(${CPU_SOURCES} PROPERTIES LANGUAGE CXX)
+   link_directories(${ROCM_PATH}/lib)
++  link_directories(${ROCM_PATH}/lib64)
+ 
+   add_definitions(-DCT2_WITH_CUDA)
+   add_definitions(-DCT2_USE_HIP)
+ 
++  link_directories("${ROCM_PATH}/lib64")
+   add_library(${PROJECT_NAME}
+     ${SOURCES}
+     ${CUDA_SOURCES}
+@@ -620,7 +622,9 @@ if (WITH_HIP)
+   add_compile_definitions(__HIP_PLATFORM_AMD__)
+   add_compile_definitions(__HIP_PLATFORM_HCC__)
+   target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${ROCM_PATH}/include /include)
+-  target_link_libraries(${PROJECT_NAME} PRIVATE hiprand roc::hipblas roc::rocprim roc::rocthrust hip::hipcub)
++  target_link_libraries(${PROJECT_NAME} PRIVATE "${ROCM_PATH}/lib64/libhiprand.so")
++  #target_link_libraries(${PROJECT_NAME} PRIVATE hiprand)
++  target_link_libraries(${PROJECT_NAME} PRIVATE roc::hipblas roc::rocprim roc::rocthrust hip::hipcub)
+ 
+   if(WITH_CUDNN)
+     find_package(miopen)
+-- 
+2.47.1
+
