@@ -1,7 +1,7 @@
-From 23a0aa134b9ed35ff22d3bbd98dd86b0c823e71a Mon Sep 17 00:00:00 2001
+From 61c4b189bb93388e2157db4d948243190869e12e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 23 Jan 2024 07:59:04 -0800
-Subject: [PATCH] ubuntu fix to disable backteace build
+Subject: [PATCH 1/2] ubuntu fix to disable backteace build
 
 in ubuntu 39, the backtrace.h is found under gcc
 and this causes later error that backtrace.h not found
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 8714e11..14c41c2 100644
+index 0c15c4d..ee72c83 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -130,13 +130,15 @@ set_target_properties(util PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -34,5 +34,5 @@ index 8714e11..14c41c2 100644
    target_link_libraries(util PRIVATE ${BACKTRACE_LIB})
  endif()
 -- 
-2.40.1
+2.47.1
 
