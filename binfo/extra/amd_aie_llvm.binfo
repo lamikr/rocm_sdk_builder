@@ -2,7 +2,7 @@ BINFO_APP_NAME=amd_aie_llvm
 BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/Xilinx/llvm-aie
-BINFO_APP_UPSTREAM_REPO_VERSION_TAG=9d60f53582c18ab608aa11f3db415f5eb6a2f8ec
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=685e83f8f375b088517d80322ea7e78f1e0de56e
 
 # llvm-aie configure command documentation: https://github.com/Xilinx/llvm-aie/issues/218
 # using almost same except dropped ninja, added install prefix
