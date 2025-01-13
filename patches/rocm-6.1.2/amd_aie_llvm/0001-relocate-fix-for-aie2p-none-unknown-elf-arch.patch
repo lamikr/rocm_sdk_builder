@@ -1,0 +1,25 @@
+From 75a353c7c415c2fdbf07d55a206330018c0b7bef Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 13 Jan 2025 00:51:20 -0800
+Subject: [PATCH] relocate fix for aie2p-none-unknown-elf arch
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ lld/ELF/Arch/AIE.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lld/ELF/Arch/AIE.cpp b/lld/ELF/Arch/AIE.cpp
+index 378be130ce56..4002d8877551 100644
+--- a/lld/ELF/Arch/AIE.cpp
++++ b/lld/ELF/Arch/AIE.cpp
+@@ -370,6 +370,7 @@ void AIE::relocate(uint8_t *Loc, const Relocation &rel, uint64_t Val) const {
+     relocateAIE1(Loc, rel, Val);
+     break;
+   case 2:
++  case 3:
+     relocateAIE2(Loc, rel, Val);
+     break;
+   default:
+-- 
+2.47.1
+
