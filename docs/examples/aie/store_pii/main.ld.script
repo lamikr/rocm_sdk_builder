@@ -1,0 +1,39 @@
+MEMORY
+{
+   program (RX) : ORIGIN = 0, LENGTH = 0x0020000
+   data (!RX) : ORIGIN = 0x70404, LENGTH = 0xFBFC
+}
+ENTRY(_main_init)
+SECTIONS
+{
+  . = 0x0;
+  .text : {
+     *me_basic.o(.text)
+     . = 0x200;
+     _ctors_start = .;
+     _init_array_start = .;
+     KEEP(SORT(*.init_array))
+     _ctors_end = .;
+     _init_array_end = .;
+     _dtors_start = .;
+     _dtors_end = .;
+     *(.text)
+  } > program
+  .data : {
+     *(.data*);
+     *(.rodata*)
+  } > data
+. = 0x70000;
+_sp_start_value_DM_stack = .;
+. += 0x400; /* stack */
+. = 0x40000;
+. += 0x10000;
+. = 0x50000;
+. += 0x10000;
+. = 0x70400;
+_anonymous0 = .;
+. += 0x4;
+  .bss : { *(.bss) } > data
+  .bss.DMb.4 : { *(.bss.DMb.4) } > data
+}
+PROVIDE(_main = main);
