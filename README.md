@@ -283,6 +283,26 @@ If the issue persists and you see the message ``` No files found to uninstall ``
 # pip install ./packages/whl/vllm+<version>.whl --force-reinstall --no-deps
 ```
 
+## Test XDNA/XDNA2 NPU by building and running example application
+
+This is updated from the example on https://github.com/Xilinx/llvm-aie/wiki/E2E-Linux-Example
+
+Build application both for the xdna1 and xdna2 NPU if you have either of them.
+
+```
+# ./babs.sh -b binfo/extra/amd_aie.blist
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# cd /opt/rocm_sdk_612/docs/examples/aie/store_pii
+# ./build.sh
+```
+
+Then launch it for xdna1 or xdna2 NPU depending which one you have.
+
+```
+# cd /opt/rocm_sdk_612/docs/examples/aie/store_pii
+# ./load_fivepi_xdna1.sh  (or ./load_fivepi_xdna2.sh)
+```
+
 ## Run Full GPU Benchmarks
 
 External Benchmark originally made for NVIDIA cards is available here. Upstream does not seems to be anymore active so the benchmark is now available here.
@@ -346,7 +366,7 @@ Build userspace application
 # ./babs.sh -b binfo/extra/amd-aie.blist
 ```
 
-And tested with command
+And test with command
 
 ```
 # source /opt/rock_sdk_<version>/bin/env_rocm.sh
