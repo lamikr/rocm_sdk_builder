@@ -1,0 +1,21 @@
+From cc27b2446f7465336ec8e782df276ba54ab712ed Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 13 Jan 2025 07:26:11 -0800
+Subject: [PATCH] install script for ptototype_aie_toolchain
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ install_rocm.sh | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100755 install_rocm.sh
+
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 0000000..742253f
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1 @@
++pip install xaiepy==0.0.2 -f https://github.com/nod-ai/prototype-aie-toolchain/releases/expanded_assets/release
+-- 
+2.47.1
+

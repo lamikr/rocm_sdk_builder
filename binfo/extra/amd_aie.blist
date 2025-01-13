@@ -2,3 +2,4 @@ binfo/extra/amd_aie_llvm.binfo
 binfo/extra/xdna_driver_xrt.binfo
 binfo/extra/xdna_driver_xrt_plugin.binfo
 binfo/extra/xdna_driver_example.binfo
+binfo/extra/prototype_aie_toolchain.binfo
