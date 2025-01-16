@@ -15,3 +15,5 @@ jobs:
       uses: actions/checkout@v4
     - name: build_rocm_sdk_builder_src_image
       run: docker build docs/notes/containers/github/docker_build -t rsb_image_base:latest
+    - name: rsb_image_core_03
+      run: docker run --name rsb_image_core_03 rsb_image_base  bash -c "cd /rocm_sdk_builder && ./babs.sh -b binfo/core/003_llvm_project_llvm.binfo"
