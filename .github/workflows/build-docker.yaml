@@ -1,0 +1,17 @@
+name: rocm_sdk_builder_docker_image
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: 'Build the docker image'
+        required: true
+        default: 'true'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+    - name: build_rocm_sdk_builder_src_image
+      run: docker build docs/notes/containers/github/docker_build -t rsb_image_base:latest
