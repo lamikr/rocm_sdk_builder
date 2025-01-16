@@ -6,14 +6,31 @@ on:
         description: 'Build the docker image'
         required: true
         default: 'true'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  build-and-push-image:
     runs-on: ubuntu-24.04
     steps:
     - name: checkout
       uses: actions/checkout@v4
+
+    - name: 'Login to GitHub Container Registry'
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
+
     - name: build_rocm_sdk_builder_src_image
       run: docker build docs/notes/containers/github/docker_build -t rsb_image_base:latest
+
     - name: rsb_image_core_03
       run: docker run --name rsb_image_core_03 rsb_image_base  bash -c "cd /rocm_sdk_builder && ./babs.sh -b binfo/core/003_llvm_project_llvm.binfo"
+
+    - name: 'push_image'
+      run: |
+        docker tag rsb_image_core_03 ghcr.io/lamikr/store:latest
+        docker push ghcr.io/lamikr/store:latest
