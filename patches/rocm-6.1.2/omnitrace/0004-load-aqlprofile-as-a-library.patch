@@ -1,7 +1,7 @@
-From 53b5bb2deaa53f36f72ed890cdf80c0e7d82cf74 Mon Sep 17 00:00:00 2001
+From 5be594d374ed838126321c41a911d4757117c402 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 17 Sep 2024 23:48:32 -0700
-Subject: [PATCH 4/5] load aqlprofile as a library
+Subject: [PATCH 4/6] load aqlprofile as a library
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

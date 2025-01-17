@@ -1,7 +1,7 @@
-From 45d7913c3a2e89b1c9aa04b5c2961eb1e8007f48 Mon Sep 17 00:00:00 2001
+From cb7f6bfd5d8193cae29e61f7a7e7976c9dd8fbfc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sat, 21 Sep 2024 05:13:24 -0700
-Subject: [PATCH 5/5] use MPI_CXX_SKIP_MPICXX=true with new openmpis
+Subject: [PATCH 5/6] use MPI_CXX_SKIP_MPICXX=true with new openmpis
 
 - new openmpi versions does not offer anymore
   option to build the deprecated MPICXX interface

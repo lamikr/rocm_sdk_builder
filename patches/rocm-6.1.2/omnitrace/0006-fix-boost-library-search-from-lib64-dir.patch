@@ -1,0 +1,49 @@
+From 0ff22e61d498e7e72d0a02fece597b3b631559ba Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 17 Jan 2025 10:34:56 -0800
+Subject: [PATCH 6/6] fix boost library search from lib64 dir
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/Modules/FindBoost.cmake | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/cmake/Modules/FindBoost.cmake b/cmake/Modules/FindBoost.cmake
+index acf44b8..b6ecf7f 100644
+--- a/cmake/Modules/FindBoost.cmake
++++ b/cmake/Modules/FindBoost.cmake
+@@ -2116,19 +2116,19 @@ foreach(c DEBUG RELEASE)
+         endif()
+ 
+         if(BOOST_ROOT)
+-            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib
++            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib ${BOOST_ROOT}/lib64
+                  ${BOOST_ROOT}/stage/lib)
+             _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+                 _boost_LIBRARY_SEARCH_DIRS_${c} "${BOOST_ROOT}")
+         elseif(_ENV_BOOST_ROOT)
+-            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib
++            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib ${_ENV_BOOST_ROOT}/lib64
+                  ${_ENV_BOOST_ROOT}/stage/lib)
+             _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+                 _boost_LIBRARY_SEARCH_DIRS_${c} "${_ENV_BOOST_ROOT}")
+         endif()
+ 
+         list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${Boost_INCLUDE_DIR}/lib
+-             ${Boost_INCLUDE_DIR}/../lib ${Boost_INCLUDE_DIR}/stage/lib)
++             ${Boost_INCLUDE_DIR}/../lib ${Boost_INCLUDE_DIR}/../lib64 ${Boost_INCLUDE_DIR}/stage/lib)
+         _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+             _boost_LIBRARY_SEARCH_DIRS_${c} "${Boost_INCLUDE_DIR}/..")
+         _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+@@ -2553,6 +2553,8 @@ if(Boost_FOUND)
+ 
+         if(EXISTS "${_boost_LIB_DIR}/lib")
+             string(APPEND _boost_LIB_DIR /lib)
++        elseif(EXISTS "${_boost_LIB_DIR}/lib64")
++            string(APPEND _boost_LIB_DIR /lib64)
+         elseif(EXISTS "${_boost_LIB_DIR}/stage/lib")
+             string(APPEND _boost_LIB_DIR "/stage/lib")
+         else()
+-- 
+2.41.1
+

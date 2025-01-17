@@ -1,7 +1,7 @@
-From ea6ef86f5bb9e3b4497cd2f6a11bfab1d9844cb9 Mon Sep 17 00:00:00 2001
+From c14c05161fa4662f60436d185861cd107fc93c3f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 12 Sep 2024 15:34:22 -0700
-Subject: [PATCH 2/5] fix omnitrace-avail crash if config does not exist
+Subject: [PATCH 2/6] fix omnitrace-avail crash if config does not exist
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
