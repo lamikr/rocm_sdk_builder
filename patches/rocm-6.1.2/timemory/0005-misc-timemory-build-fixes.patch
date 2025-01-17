@@ -1,7 +1,7 @@
-From 93916bc4391864ff43defe1c03adbf5f0bb9263d Mon Sep 17 00:00:00 2001
+From f4978eee20881b45a7898a5eeba8a5ab8714b1d2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 10 Sep 2024 10:06:26 -0700
-Subject: [PATCH 5/7] misc timemory build fixes
+Subject: [PATCH 5/8] misc timemory build fixes
 
 - added std-namespace to couple of method calls
   and variable definitions causing errors on

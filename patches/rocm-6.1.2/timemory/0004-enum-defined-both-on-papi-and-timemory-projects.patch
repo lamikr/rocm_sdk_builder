@@ -1,7 +1,7 @@
-From 3a75fb9d27106766ed511ba4a5d9a5b684875a3b Mon Sep 17 00:00:00 2001
+From 233abd727b1795f99a8da29a9a9cfe1bce68b975 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 6 Sep 2024 19:17:16 -0700
-Subject: [PATCH 4/7] enum defined both on papi and timemory projects
+Subject: [PATCH 4/8] enum defined both on papi and timemory projects
 
 - same papi enum defined both in papi.hpp of timemory project
   and on papiStdEventDefs.h on papi project

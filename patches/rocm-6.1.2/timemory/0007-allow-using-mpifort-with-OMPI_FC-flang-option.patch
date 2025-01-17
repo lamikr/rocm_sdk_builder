@@ -1,7 +1,7 @@
-From af17b0169777c3013f5819eaf26b3f7e550e17fc Mon Sep 17 00:00:00 2001
+From 34a26bfa040a7c972ed34585a9fabf81a5953ccf Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sat, 21 Sep 2024 05:10:25 -0700
-Subject: [PATCH 7/7] allow using mpifort with OMPI_FC=flang option
+Subject: [PATCH 7/8] allow using mpifort with OMPI_FC=flang option
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---

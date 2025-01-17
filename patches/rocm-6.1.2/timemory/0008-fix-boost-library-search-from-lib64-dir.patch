@@ -1,0 +1,64 @@
+From cbd2ce4b1c56415d604c7e9aaa2f3bd6594167f1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 17 Jan 2025 01:22:14 -0800
+Subject: [PATCH 8/8] fix boost library search from lib64 dir
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/Modules/FindBoost.cmake | 8 +++++---
+ cmake/Modules/Packages.cmake  | 3 +--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/cmake/Modules/FindBoost.cmake b/cmake/Modules/FindBoost.cmake
+index acf44b8e..b6ecf7fa 100644
+--- a/cmake/Modules/FindBoost.cmake
++++ b/cmake/Modules/FindBoost.cmake
+@@ -2116,19 +2116,19 @@ foreach(c DEBUG RELEASE)
+         endif()
+ 
+         if(BOOST_ROOT)
+-            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib
++            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib ${BOOST_ROOT}/lib64
+                  ${BOOST_ROOT}/stage/lib)
+             _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+                 _boost_LIBRARY_SEARCH_DIRS_${c} "${BOOST_ROOT}")
+         elseif(_ENV_BOOST_ROOT)
+-            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib
++            list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib ${_ENV_BOOST_ROOT}/lib64
+                  ${_ENV_BOOST_ROOT}/stage/lib)
+             _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+                 _boost_LIBRARY_SEARCH_DIRS_${c} "${_ENV_BOOST_ROOT}")
+         endif()
+ 
+         list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${Boost_INCLUDE_DIR}/lib
+-             ${Boost_INCLUDE_DIR}/../lib ${Boost_INCLUDE_DIR}/stage/lib)
++             ${Boost_INCLUDE_DIR}/../lib ${Boost_INCLUDE_DIR}/../lib64 ${Boost_INCLUDE_DIR}/stage/lib)
+         _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+             _boost_LIBRARY_SEARCH_DIRS_${c} "${Boost_INCLUDE_DIR}/..")
+         _boost_update_windows_library_search_dirs_with_prebuilt_paths(
+@@ -2553,6 +2553,8 @@ if(Boost_FOUND)
+ 
+         if(EXISTS "${_boost_LIB_DIR}/lib")
+             string(APPEND _boost_LIB_DIR /lib)
++        elseif(EXISTS "${_boost_LIB_DIR}/lib64")
++            string(APPEND _boost_LIB_DIR /lib64)
+         elseif(EXISTS "${_boost_LIB_DIR}/stage/lib")
+             string(APPEND _boost_LIB_DIR "/stage/lib")
+         else()
+diff --git a/cmake/Modules/Packages.cmake b/cmake/Modules/Packages.cmake
+index a1cdbb47..58490d3e 100644
+--- a/cmake/Modules/Packages.cmake
++++ b/cmake/Modules/Packages.cmake
+@@ -1684,8 +1684,7 @@ if(TIMEMORY_USE_DYNINST AND NOT TIMEMORY_BUILD_DYNINST)
+             CACHE STRING "Boost components used by Dyninst in timemory")
+         if(Dyninst_FOUND)
+             set(Boost_NO_BOOST_CMAKE ON)
+-            find_package(Boost QUIET ${TIMEMORY_FIND_REQUIREMENT}
+-                         COMPONENTS ${TIMEMORY_BOOST_COMPONENTS})
++            find_package(Boost QUIET ${TIMEMORY_FIND_REQUIREMENT})
+         endif()
+     endif()
+     if(TARGET Dyninst::Dyninst)
+-- 
+2.41.1
+

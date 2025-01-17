@@ -1,7 +1,7 @@
-From 3874f3f77d0da77dd630a36ae79f9dbc75936294 Mon Sep 17 00:00:00 2001
+From 830f2d8903b7081109cd026a1f9fca59f046901c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 6 Sep 2024 18:35:30 -0700
-Subject: [PATCH 3/7] fix assertion error
+Subject: [PATCH 3/8] fix assertion error
 
 In file included from /opt/rocm_sdk_612/include/timemory/components/gotcha/components.hpp:513:
 /opt/rocm_sdk_612/include/timemory/components/gotcha/components.cpp:175:19: error: static assertion failed due to requirement '8UL < 3UL': Error! N must be less than Nt!

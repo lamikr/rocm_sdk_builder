@@ -1,7 +1,7 @@
-From f0ceead8e378c1f6d669a2e9d4e3a4f369a141ee Mon Sep 17 00:00:00 2001
+From 7036ba833bf4eef56238015990265ba75fb45bcd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 6 Sep 2024 18:26:48 -0700
-Subject: [PATCH 2/7] fix preprocessor define comparison
+Subject: [PATCH 2/8] fix preprocessor define comparison
 
 include/timemory/compat/macros.h:208:66: error: invalid token at start of a preprocessor expression
   208 |     (defined(TIMEMORY_USE_VISIBILITY) && TIMEMORY_USE_VISIBILITY > 0)
