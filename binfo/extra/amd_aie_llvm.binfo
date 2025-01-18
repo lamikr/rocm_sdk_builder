@@ -8,6 +8,6 @@ BINFO_APP_UPSTREAM_REPO_VERSION_TAG=685e83f8f375b088517d80322ea7e78f1e0de56e
 # using almost same except dropped ninja, added install prefix
 BINFO_APP_CONFIG_CMD_ARRAY=(
     "cd ${BINFO_APP_BUILD_DIR}"
-    "cmake -C ${BINFO_APP_SRC_DIR}/clang/cmake/caches/Peano-AIE.cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}/apps/aie ${BINFO_APP_SRC_DIR}/llvm"
+    "cmake -C ${BINFO_APP_SRC_DIR}/clang/cmake/caches/Peano-AIE.cmake -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR_PREFIX_SDK_ROOT}/apps/aie -DLIBPFM_HOME=${INSTALL_DIR_PREFIX_SDK_ROOT} ${BINFO_APP_SRC_DIR}/llvm"
 )
 

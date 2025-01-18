@@ -1,0 +1,38 @@
+From c6301d756171dea67426816f1c548569735f9057 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 17 Jan 2025 18:07:54 -0800
+Subject: [PATCH 2/2] add cmake define LIBPFM_HOME to fix build error
+
+- this fixes build error in situation where
+  libpfm is build first via amd_devel_tools.
+  In such situation the cmake finds the libpfm
+  and it is tried to use from c-code.
+  But this will fail because it's include and
+  library dirs are not found when the install
+  prefix is not same.
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ llvm/CMakeLists.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/llvm/CMakeLists.txt b/llvm/CMakeLists.txt
+index 8da57e643b57..5c86274543b0 100644
+--- a/llvm/CMakeLists.txt
++++ b/llvm/CMakeLists.txt
+@@ -1174,6 +1174,12 @@ endif()
+ set(CMAKE_INCLUDE_CURRENT_DIR ON)
+ 
+ include_directories( ${LLVM_INCLUDE_DIR} ${LLVM_MAIN_INCLUDE_DIR})
++if(DEFINED LIBPFM_HOME)
++  include_directories(${LIBPFM_HOME}/include)
++  link_directories(${LIBPFM_HOME}/lib)
++  link_directories(${LIBPFM_HOME}/lib64)
++  message(STATUS "LIBPFM_HOME: ${LIBPFM_HOME}")
++endif()
+ 
+ # when crosscompiling import the executable targets from a file
+ if(LLVM_USE_HOST_TOOLS)
+-- 
+2.41.1
+
