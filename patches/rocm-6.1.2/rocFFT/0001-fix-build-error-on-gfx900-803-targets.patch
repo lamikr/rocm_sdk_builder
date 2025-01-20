@@ -1,0 +1,32 @@
+From f446d64238ce91cfd6e49eb80332928819b21856 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 20 Jan 2025 10:46:06 -0800
+Subject: [PATCH] fix build error on gfx900/803 targets
+
+- do not remove gfx803 and 900 as an
+  AOT target list used to generate the
+  rocFFT db.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ library/src/CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/library/src/CMakeLists.txt b/library/src/CMakeLists.txt
+index 391fa867..a0f871ba 100644
+--- a/library/src/CMakeLists.txt
++++ b/library/src/CMakeLists.txt
+@@ -534,8 +534,8 @@ endif()
+ if ( ROCFFT_KERNEL_CACHE_ENABLE )
+ 
+   set( AMDGPU_TARGETS_AOT ${AMDGPU_TARGETS} )
+-  list( REMOVE_ITEM AMDGPU_TARGETS_AOT gfx803 )
+-  list( REMOVE_ITEM AMDGPU_TARGETS_AOT gfx900 )
++  #list( REMOVE_ITEM AMDGPU_TARGETS_AOT gfx803 )
++  #list( REMOVE_ITEM AMDGPU_TARGETS_AOT gfx900 )
+   # The binary will be having relative RUNPATH with respect to install directory
+   # Set LD_LIBRARY_PATH for executing the binary from build directory.
+   add_custom_command(
+-- 
+2.48.1
+
