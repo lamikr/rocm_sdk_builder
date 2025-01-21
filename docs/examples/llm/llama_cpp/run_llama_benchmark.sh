@@ -20,9 +20,9 @@ if [ -f $MODEL_FNAME ]; then
     PATH_TO_EXEC=$(which llama-cli)
     if [ -x "$PATH_TO_EXEC" ] ; then
 	echo ""
-        echo "llama-cli -ngl 0 -m $MODEL_FNAME -n 10 -f <(printf 'banana %0.s' {1..50})"
+        echo "llama-cli -no-cnv -ngl 0 -m $MODEL_FNAME -n 10 -f <(printf 'banana %0.s' {1..50})"
 	echo ""
-        llama-cli -ngl 0 -m $MODEL_FNAME -n 10 -f <(printf 'banana %0.s' {1..50}) -v 2>&1 | grep time
+        llama-cli -no-cnv -ngl 0 -m $MODEL_FNAME -n 10 -f <(printf 'banana %0.s' {1..50}) -v 2>&1 | grep time
     else
 	echo ""
 	echo "Could not find llama-cli"
