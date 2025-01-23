@@ -1,7 +1,7 @@
-From aa5640b02d86e0a3b0746ec03700d5a6be686e81 Mon Sep 17 00:00:00 2001
+From 360c95aa5370279b1be36db1fe76fd4af936c27b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 12 Jan 2025 03:54:50 -0800
-Subject: [PATCH 2/2] add ROCM_DISABLE_BACKTRACE_LIB option
+Subject: [PATCH 2/3] add ROCM_DISABLE_BACKTRACE_LIB option
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -32,5 +32,5 @@ index ee72c83..c41efbb 100644
  
  if(BACKTRACE_LIB)
 -- 
-2.47.1
+2.41.3
 

@@ -1,0 +1,30 @@
+From 9e39262eca2f1f7482ca99cd34014b3c92e7a974 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 22 Jan 2025 17:59:55 -0800
+Subject: [PATCH 3/3] add ROCM_DISABLE_TESTS cmake option
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index afa1e3b..f4f4909 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -61,8 +61,10 @@ endif()
+ add_subdirectory(src)
+ 
+ ## Build tests
+-if(${LIBRARY_TYPE} STREQUAL SHARED)
+-  add_subdirectory(test)
++if(NOT DEFINED ROCM_DISABLE_TESTS)
++  if(${LIBRARY_TYPE} STREQUAL SHARED)
++    add_subdirectory(test)
++  endif()
+ endif()
+ 
+ ## Build Plugins
+-- 
+2.41.3
+
