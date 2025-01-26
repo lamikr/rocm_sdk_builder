@@ -1,4 +1,4 @@
-From e60284af03f2b0086004fe60e947e009c70c01b9 Mon Sep 17 00:00:00 2001
+From 2d18cb6ea9ff90313777154d6e035c27a500ebd8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:16:19 -0700
 Subject: [PATCH 02/12] show error message if ROCM_SOURCE_DIR not defined
@@ -31,5 +31,5 @@ index c4661e39e18..6e7c87631f8 100644
    endif()
  
 -- 
-2.43.0
+2.48.1
 

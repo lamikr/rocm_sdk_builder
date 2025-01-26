@@ -1,7 +1,7 @@
-From c587f57b7e570d3937389f09d4295ec5503c7c2b Mon Sep 17 00:00:00 2001
+From 00e4efbe7a8fe419c7457aabe0438f9aaa5b90bf Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 31 Aug 2024 23:28:55 -0700
-Subject: [PATCH 09/12] add HSA_RUNTIME_64_LIB
+Subject: [PATCH 04/12] add HSA_RUNTIME_64_LIB
 
 - cmake library search works differently on ubuntu 24.04
   compared to other distros.and fails to
@@ -23,11 +23,11 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  3 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/build_rocm.sh b/build_rocm.sh
-index 5dedc9b9f8c..8215fbac041 100755
+index 464fe18bc4c..678d576e4bf 100755
 --- a/build_rocm.sh
 +++ b/build_rocm.sh
 @@ -20,4 +20,4 @@ unset LDFLAGS
- unset CFLAGS
+ export CFLAGS="-Wno-error=maybe-uninitialized"
  unset CPPFLAGS
  unset PKG_CONFIG_PATH
 -USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
@@ -66,5 +66,5 @@ index 8a7329ddab7..fba1921bbce 100644
  set_target_properties(torch_shm_manager PROPERTIES
    INSTALL_RPATH "${_rpath_portable_origin}/../lib")
 -- 
-2.43.0
+2.48.1
 

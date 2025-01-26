@@ -1,4 +1,4 @@
-From 0cb74040b58cda4042df1b4552a61ff71b73e825 Mon Sep 17 00:00:00 2001
+From 38451c19cfaf82deb0775e087229982c3badd7e7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
 Subject: [PATCH 01/12] pytorch_rocm preconfig, build and install scripts
@@ -22,7 +22,7 @@ Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
 
 diff --git a/build_rocm.sh b/build_rocm.sh
 new file mode 100755
-index 00000000000..5dedc9b9f8c
+index 00000000000..464fe18bc4c
 --- /dev/null
 +++ b/build_rocm.sh
 @@ -0,0 +1,23 @@
@@ -45,7 +45,7 @@ index 00000000000..5dedc9b9f8c
 +    echo "Using rocm version parameter: ${rocm_version_str}"
 +fi
 +unset LDFLAGS
-+unset CFLAGS
++export CFLAGS="-Wno-error=maybe-uninitialized"
 +unset CPPFLAGS
 +unset PKG_CONFIG_PATH
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
@@ -109,5 +109,5 @@ index 00000000000..7ad2528e9fe
 +fi
 +USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
 -- 
-2.43.0
+2.48.1
 
