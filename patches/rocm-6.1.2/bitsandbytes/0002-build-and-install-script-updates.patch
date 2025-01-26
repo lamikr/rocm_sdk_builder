@@ -1,7 +1,7 @@
-From c92cbf04147e13dfb979b458c25a14acf3467a7c Mon Sep 17 00:00:00 2001
+From 604daec6d70f2e5a6cf3e5cd122b28e39a043f1b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 4 Jul 2024 23:52:04 -0400
-Subject: [PATCH 2/2] build and install script updates
+Subject: [PATCH 2/3] build and install script updates
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -11,7 +11,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
 
 diff --git a/install_rocm.sh b/install_rocm.sh
 new file mode 100755
-index 0000000..aa91a98
+index 0000000..3729878
 --- /dev/null
 +++ b/install_rocm.sh
 @@ -0,0 +1,26 @@
@@ -42,5 +42,5 @@ index 0000000..aa91a98
 +    exit 1
 +fi
 -- 
-2.46.0
+2.48.1
 
