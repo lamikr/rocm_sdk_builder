@@ -27,7 +27,7 @@ func_user_help_print() {
     echo "usage:"
     echo "-c or --configure        Select AMD GPU's for which the machine learning library support and optimization is builded."
     echo "                         Note that each selected GPU will increase the build time."
-    echo "-b or --build:           Start or continue the building of rocm_sdk core applications."
+    echo "-b or --build:           Start a new build or continue to building rocm_sdk core applications from the next build step."
     echo "                         If source directory does not yet exist, it will first checkout source code and apply patches."
     echo "                         Build files are located under 'builddir' directory and install is done to"
     echo "                         '/opt/rocm_sdk_version' directory."
@@ -56,7 +56,11 @@ func_user_help_print() {
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
     echo "-rs or --reset:          Re-apply patches and clean build directory"
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
-    echo "-rb or --reset_build:    Re-apply patches, clean build directory and start build"
+    echo "-rb or --rebuild:        Clean build directory and do all build steps"
+    echo "                         (pre-config, config, build, install, post-install)"
+    echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
+    echo "-rsb or --reset_build:   Re-apply patches, clean build directory and do all build steps"
+    echo "                         (pre-config, config, build, install, post-install)"
     echo "                         Optional parameter: binfo/extra/my_apps_list.blist or binfo/extra/my_app.binfo"
     echo "-up or --update:         Update ROCM SDK Builder source code to latest version and then check"
     echo "                         project specific binfo and patch directories for updates."
@@ -209,14 +213,22 @@ func_handle_user_command_args() {
                 func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
                 exit 0
                 ;;
-            -rb | --reset_build)
+            -rb | --rebuild)
+                local CUR_DIR=$(pwd)
+                func_is_git_configured
+                func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                cd $CUR_DIR
+                func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
+                exit 0
+                ;;
+            -rsb | --reset_build)
                 local CUR_DIR=$(pwd)
                 func_is_git_configured
                 func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 cd $CUR_DIR
                 func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
                 cd $CUR_DIR
-		func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
+                func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0
                 ;;
             -s | --sync)

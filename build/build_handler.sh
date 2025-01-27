@@ -57,24 +57,25 @@ func_babs_handle_build_direcory_clean() {
                 func_clean_build_directories_blist $1
             fi
         else
-            # verify the clean of whole core build
-            read -p "Are you sure that you want to clean ROCM SDK Builder core build directories (y/n)? " -r
+            # verify that it's ok to clean build directories for all core applications 
+            echo "Warning, this will cause the build command to rebuild all core applications."
+            read -p "Are you sure that you want to clean build directories for all core applications (y/n)? " -r
             echo    # (optional) move to a new line
             if [[ $REPLY =~ ^[Yy]$ ]]
             then
                 func_clean_build_directories_core
             else
-                echo "ROCM SDK Builder core build directory clean canceled."
+                echo "Build directory clean for all core applications canceled."
                 echo ""
                 exit 1
             fi
         fi
         res=$?
         if [[ $res -eq 0 ]]; then
-            echo -e "\nROCM SDK Builder cleaned build directories succesfully."
+            echo -e "\Build directories cleaned succesfully for all core applications."
             echo ""
         else
-            echo -e "Failed to clean ROCM SDK Builder build directories."
+            echo -e "Failed to clean build directories for core applications."
             echo ""
         fi
     fi

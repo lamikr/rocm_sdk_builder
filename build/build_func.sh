@@ -149,10 +149,11 @@ func_upstream_remote_repo_add_by_binfo() {
         ii=1
     fi
 
+    #pwd
     echo "APP_INFO_FULL_NAME: ${APP_INFO_FULL_NAME}"
     #set build and install array commands that can be used for overriding default behavior to empty
     unset BINFO_APP_CMAKE_CFG
-	unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
+    unset BINFO_APP_PRE_CONFIG_CMD_ARRAY
     unset BINFO_APP_CONFIG_CMD_ARRAY
     unset BINFO_APP_POST_CONFIG_CMD_ARRAY
     unset BINFO_APP_BUILD_CMD_ARRAY
@@ -173,12 +174,13 @@ func_upstream_remote_repo_add_by_binfo() {
     unset BINFO_APP_POST_CONFIG_CMD_EXECUTE_ALWAYS
     unset BINFO_APP_POST_INSTALL_CMD_EXECUTE_ALWAYS
     unset BINFO_APP_UPSTREAM_REPO_VERSION_TAG
+    unset BINFO_APP_SRC_CLONE_DIR
 
     #read config and build commands
     source ${APP_INFO_FULL_NAME}
     res=$?
     if [ ! $res -eq 0 ]; then
-        echo "failed to execute build env script: ${APP_INFO_FULL_NAME}"
+        echo "Failed to execute build env script: ${APP_INFO_FULL_NAME}"
         exit 1
     fi
 
@@ -198,7 +200,9 @@ func_upstream_remote_repo_add_by_binfo() {
     else
         BINFO_APP_UPSTREAM_REPO_VERSION_TAG="${UPSTREAM_REPO_VERSION_TAG_DEFAULT}"
     fi
+    #echo "BINFO_APP_SRC_CLONE_DIR: ${BINFO_APP_SRC_CLONE_DIR}"
     if [ ! -d ${BINFO_APP_SRC_CLONE_DIR} ]; then
+        #echo "BINFO_APP_UPSTREAM_REPO_VERSION_TAG: ${BINFO_APP_UPSTREAM_REPO_VERSION_TAG}, ii: ${ii}"	
         func_upstream_remote_repo_add ${ii}
     fi
 }
