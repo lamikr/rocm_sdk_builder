@@ -208,9 +208,9 @@ func_handle_user_command_args() {
             -rs | --reset)
                 local CUR_DIR=$(pwd)
                 func_is_git_configured
-                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
-                cd $CUR_DIR
                 func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                cd $CUR_DIR
+                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0
                 ;;
             -rb | --rebuild)
@@ -224,9 +224,9 @@ func_handle_user_command_args() {
             -rsb | --reset_build)
                 local CUR_DIR=$(pwd)
                 func_is_git_configured
-                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
-                cd $CUR_DIR
                 func_babs_handle_build_direcory_clean ${ARG__USER_CMD_PARAM1} #From repo_management.sh
+                cd $CUR_DIR
+                func_babs_handle_checkout_and_apply_patches ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 cd $CUR_DIR
                 func_babs_handle_build ${ARG__USER_CMD_PARAM1} #From babs_handler.sh
                 exit 0

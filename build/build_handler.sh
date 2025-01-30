@@ -72,7 +72,7 @@ func_babs_handle_build_direcory_clean() {
         fi
         res=$?
         if [[ $res -eq 0 ]]; then
-            echo -e "\Build directories cleaned succesfully for all core applications."
+            echo -e "Build directories cleaned succesfully for all core applications."
             echo ""
         else
             echo -e "Failed to clean build directories for core applications."
