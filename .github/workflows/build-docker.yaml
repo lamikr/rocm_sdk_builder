@@ -32,5 +32,6 @@ jobs:
 
     - name: 'push_image'
       run: |
-        docker tag rsb_image_core_03 ghcr.io/lamikr/store:latest
+        # no need to use tag command: docker tag rsb_image_core_03 ghcr.io/lamikr/store:latest
+        docker commit rsb_image_core_03 ghcr.io/lamikr/store:latest
         docker push ghcr.io/lamikr/store:latest
