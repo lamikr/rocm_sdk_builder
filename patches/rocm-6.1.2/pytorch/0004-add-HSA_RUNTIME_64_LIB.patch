@@ -1,7 +1,7 @@
-From 00e4efbe7a8fe419c7457aabe0438f9aaa5b90bf Mon Sep 17 00:00:00 2001
+From 40ecf0f9f591402ec5bde0000693847ea85e9c51 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 31 Aug 2024 23:28:55 -0700
-Subject: [PATCH 04/12] add HSA_RUNTIME_64_LIB
+Subject: [PATCH 04/13] add HSA_RUNTIME_64_LIB
 
 - cmake library search works differently on ubuntu 24.04
   compared to other distros.and fails to
@@ -66,5 +66,5 @@ index 8a7329ddab7..fba1921bbce 100644
  set_target_properties(torch_shm_manager PROPERTIES
    INSTALL_RPATH "${_rpath_portable_origin}/../lib")
 -- 
-2.48.1
+2.39.5
 

@@ -1,7 +1,7 @@
-From c640a84b387fdc8effbddabe12ebd3b19e9fb89e Mon Sep 17 00:00:00 2001
+From 1ef5608571aaa4301554420982d3cce91f965ff6 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 25 Jan 2025 16:01:30 -0800
-Subject: [PATCH 12/12] bitsandbytes TypeError: must be called with a dataclass
+Subject: [PATCH 12/13] bitsandbytes TypeError: must be called with a dataclass
  type or instance
 
 bitsandbyte test in
@@ -75,5 +75,5 @@ index ba36f40a226..a64a519e2ee 100644
  # Define `instance_descriptor` function with clear conditional handling
  if attrs_descriptor_available:
 -- 
-2.48.1
+2.39.5
 

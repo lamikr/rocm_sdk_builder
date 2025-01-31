@@ -1,7 +1,7 @@
-From f1b12565107005f62c5ef0f47cd18a23cbcc0b1e Mon Sep 17 00:00:00 2001
+From 1d34f727313fa0e0614cb4c9b274642e3f298e8f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 7 Nov 2024 22:24:08 -0800
-Subject: [PATCH 11/12] allow to specify target gpu list
+Subject: [PATCH 11/13] allow to specify target gpu list
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -26,5 +26,5 @@ index 18c9cfaa046..86ac0cb005e 100755
  export CFLAGS="-Wno-error=maybe-uninitialized"
  unset CPPFLAGS
 -- 
-2.48.1
+2.39.5
 

@@ -1,7 +1,7 @@
-From ad76d338537ff206f111d05ce5455418bf9a9a6a Mon Sep 17 00:00:00 2001
+From df61e58851af495396bdf9a82296cd42c7f40942 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 30 Aug 2024 14:07:36 -0700
-Subject: [PATCH 08/12] disable mpitest due to ubuntu 22.04 linking failures
+Subject: [PATCH 08/13] disable mpitest due to ubuntu 22.04 linking failures
 
 - rocm-openmpi that is tried to link contains dependency
   to libpmix.so and on ubuntu 22.04 that is not linked
@@ -44,5 +44,5 @@ index 5c8974836de..5f920230086 100644
      install(TARGETS ProcessGroupMPITest DESTINATION bin)
    endif()
 -- 
-2.48.1
+2.39.5
 

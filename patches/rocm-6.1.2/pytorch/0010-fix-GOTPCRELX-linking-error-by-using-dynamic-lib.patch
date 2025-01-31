@@ -1,7 +1,7 @@
-From a64c4f19e14df9edc37b943679fc91efabdd79d3 Mon Sep 17 00:00:00 2001
+From f3639887d7c211eaa3fdf33474a79c4707a4827f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 28 Oct 2024 19:23:26 -0700
-Subject: [PATCH 10/12] fix GOTPCRELX linking error by using dynamic lib
+Subject: [PATCH 10/13] fix GOTPCRELX linking error by using dynamic lib
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -35,5 +35,5 @@ index ec6f09b6053..cb6080f5f7a 100644
    set(AOTRITON_FOUND TRUE)
  endif() # __AOTRITON_INCLUDED
 -- 
-2.48.1
+2.39.5
 
