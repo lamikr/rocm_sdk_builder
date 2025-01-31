@@ -4,7 +4,7 @@ BINFO_APP_SRC_TOPDIR_BASENAME=${BINFO_APP_NAME}
 BINFO_APP_SRC_DIR="${SDK_SRC_ROOT_DIR}/${BINFO_APP_SRC_TOPDIR_BASENAME}"
 BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ggerganov/llama.cpp.git
 #use rocm version specific default git tag
-BINFO_APP_UPSTREAM_REPO_VERSION_TAG=b4524
+BINFO_APP_UPSTREAM_REPO_VERSION_TAG=b4601
 
 CFG_TEMP1=-DAMDGPU_TARGETS="${SEMICOLON_SEPARATED_GPU_TARGET_LIST_DEFAULT}"
 
@@ -13,5 +13,12 @@ BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DCMAKE_PREFIX_PATH=${INSTALL_DIR_PR
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${CFG_TEMP1}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DROCM_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}"
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DHIPCC=${SDK_CXX_COMPILER_HIPCC}"
-BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DGGML_HIPBLAS=1"
+BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} -DGGML_HIP=ON"
+# TODO: We should add a new function
+#     is_only_apu_gpus_selected()
+# to checks whether only integrated GPU's have been selected as a build target
+# and then enable -DGGML_HIP_UMA=ON
+# This allows sharing the memory between CPU and IGPU and increase the performance.
+# Note that if there are discrete GPU's, then this should not be enabled as it would decrease the performance.
+#-DGGML_HIP_UMA=ON
 BINFO_APP_CMAKE_CFG="${BINFO_APP_CMAKE_CFG} ${BINFO_APP_SRC_DIR}"
