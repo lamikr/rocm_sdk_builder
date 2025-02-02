@@ -1,0 +1,76 @@
+From 68f9618299d3b7a2bddcd754d2f770e0c25bbad1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 2 Feb 2025 15:06:53 -0800
+Subject: [PATCH] rocm sdk builder build scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh     |  9 +++++++++
+ install_rocm.sh   | 25 +++++++++++++++++++++++++
+ preconfig_rocm.sh |  6 ++++++
+ 3 files changed, 40 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 0000000..a8698e2
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,9 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++export LLAMA_CPP_LIB=${install_dir_prefix_rocm}/lib64
++CMAKE_ARGS="-DGGML_HIP=ON -DLLAMA_BUILD=OFF" pip wheel -w dist .
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 0000000..555a0a9
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,25 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying pytorch vision python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes "$latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find llama-cpp-python whl file to install"
++    exit 1
++fi
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 0000000..aa68ad2
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,6 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh ]]; then
++    if [ -d ./dist ]; then
++        rm -rf ./dist
++    fi
++fi
+-- 
+2.43.0
+
