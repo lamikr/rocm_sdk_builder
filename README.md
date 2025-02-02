@@ -43,7 +43,7 @@ Some GPU's have been benchmarked after building the ROCM SDK Builder with the be
 
 ## Supported Linux Distributions
 
-Tested and officially supported Linux distributions:
+Tested and officially supported Linux distributions: (rocm sdk builder 6.1.2)
 
 - Fedora 40
 - Ubuntu 24.04
@@ -53,8 +53,9 @@ Tested and officially supported Linux distributions:
 - Manjaro Linux
 - Void Linux
 - Mint Linux 21
+- LMDE 6
 
-Thanks by the many users and developers who have contributed to ROCM SDK Builder, the list of supported Linux distros have increased signigicatly after the initial release. Manjaro and Arch Linux are rolling releases and therefore their status needs to be verified more often.
+Thanks by the many users and developers who have contributed to ROCM SDK Builder, the list of supported Linux distros have increased signigicatly since the rocm sdk builder 6.1.0 release. Manjaro and Arch Linux are rolling releases and therefore their status needs to be verified more often.
 
 
 # Build and Install
