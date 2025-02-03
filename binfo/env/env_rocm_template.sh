@@ -36,6 +36,9 @@ export TRITON_HIP_LLD_PATH=${ROCM_HOME}/bin/ld.lld
 
 export PATH=${ROCM_HOME}/bin:${PATH}
 
+# required by the llama-cpp-python to find libllama.so
+export LLAMA_CPP_LIB_PATH=${ROCM_HOME}/lib64
+
 # xdna xrt runtime env
 export XILINX_XRT=${ROCM_HOME}/apps/aie/xrt
 

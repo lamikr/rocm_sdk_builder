@@ -102,3 +102,4 @@ BINFO_APP_POST_INSTALL_CMD_ARRAY=(
     "echo $(git show -s --format=%h) > ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/rocm_sdk_builder_git_hash"
     "install -Dm660 ${SDK_ROOT_DIR}/build_cfg.user ${INSTALL_DIR_PREFIX_SDK_ROOT}/.info/build_cfg.user"
 )
+
