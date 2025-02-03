@@ -1,0 +1,12 @@
+note
+====
+instructlab has not added a binfo file as I have not found out how to build it by using existing llama_cpp and llama_cpp_python
+
+short build instructions
+========================
+# source /opt/rocm_sdk_612/bin/env_rocm.sh
+# mkdir src_projects
+# git clone https://github.com/instructlab/instructlab.git
+# cd instructlab
+# CMAKE_ARGS="-DCMAKE_INSTALL_PREFIX=/opt/rocm_sdk_612 -DCMAKE_PREFIX_PATH=/opt/rocm_sdk_612/lib64/cmake;/opt/rocm_sdk_612/lib/cmake -DAMDGPU_TARGETS=ALL -DCMAKE_C_COMPILER=/opt/rocm_sdk_612/bin/clang -DCMAKE_CXX_COMPILER=/opt/rocm_sdk_612/bin/clang++ -DCMAKE_CXX_FLAGS=-I/opt/rocm_sdk_612/include -DGGML_NATIVE=OFF -DGGML_HIPBLAS=ON -DGGML_HIP=ON" pip install 'instructlab[rocm]'
+
