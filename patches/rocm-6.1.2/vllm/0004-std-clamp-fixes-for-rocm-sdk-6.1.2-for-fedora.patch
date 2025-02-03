@@ -1,4 +1,4 @@
-From 2d46efb7a61432f925f63c3aaf982bcf44086fe2 Mon Sep 17 00:00:00 2001
+From d83e8612a2f3260e05f3e7eb3f5bd502161cd6e9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 4 Oct 2024 10:57:22 -0700
 Subject: [PATCH 4/5] std::clamp fixes for rocm sdk 6.1.2 for fedora
@@ -20,7 +20,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 13 insertions(+), 2 deletions(-)
 
 diff --git a/csrc/quantization/compressed_tensors/int8_quant_kernels.cu b/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
-index aec9fa00..1846915d 100644
+index e7978582..e29cfba7 100644
 --- a/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
 +++ b/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
 @@ -26,7 +26,16 @@ static inline __device__ int8_t float_to_int8_rn(float x) {
@@ -53,5 +53,5 @@ index aec9fa00..1846915d 100644
  #else
    // CUDA path
 -- 
-2.41.1
+2.41.3
 

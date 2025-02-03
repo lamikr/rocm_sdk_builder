@@ -1,31 +1,33 @@
-From 61819e441f27629c6729fe439e2b38a150fd1b52 Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@gmail.com>
-Date: Tue, 30 Jul 2024 12:13:59 -0700
-Subject: [PATCH 3/5] cleanup cmake debug messages
+From c23deaf0be153966464b53de6fd131db10c3e4e1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Sun, 2 Feb 2025 19:23:52 -0800
+Subject: [PATCH 3/5] build for pytorch version 2.4.1
 
 - Change default pytorch version to to 2.4.1
   which is used by the rocm sdk builder.
 - printout rocm base release used for build
 
-Signed-off-by: Mika Laitio <lamikr@gmail.com>
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
- CMakeLists.txt | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ CMakeLists.txt | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 026faff5..ef8dcebe 100644
+index f1a8ec5b..eaeb6927 100755
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -50,7 +50,7 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
+@@ -46,8 +46,8 @@ set(HIP_SUPPORTED_ARCHS "gfx906;gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx10
+ # requirements.txt files and should be kept consistent.  The ROCm torch
  # versions are derived from Dockerfile.rocm
  #
- set(TORCH_SUPPORTED_VERSION_CUDA "2.4.0")
--set(TORCH_SUPPORTED_VERSION_ROCM "2.5.0")
+-set(TORCH_SUPPORTED_VERSION_CUDA "2.5.1")
+-set(TORCH_SUPPORTED_VERSION_ROCM "2.5.1")
++set(TORCH_SUPPORTED_VERSION_CUDA "2.4.1")
 +set(TORCH_SUPPORTED_VERSION_ROCM "2.4.1")
  
  #
  # Try to find python package with an executable that exactly matches
-@@ -126,6 +126,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
+@@ -105,6 +105,7 @@ if (NOT HIP_FOUND AND CUDA_FOUND)
        "expected for CUDA build, saw ${Torch_VERSION} instead.")
    endif()
  elseif(HIP_FOUND)
@@ -34,5 +36,5 @@ index 026faff5..ef8dcebe 100644
  
    # Importing torch recognizes and sets up some HIP/ROCm configuration but does
 -- 
-2.41.1
+2.41.3
 
