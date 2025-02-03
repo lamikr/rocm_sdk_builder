@@ -22,7 +22,7 @@ elif [[ -e "/etc/centos-release" ]]; then
     ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
     VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 fi
-export ROCM_PYTHON_VERSION=v3.11.9
+export ROCM_PYTHON_VERSION=v3.11.11
 if [ ! -z ${ID+foo} ]; then
     case "${ID}" in
         mageia)
@@ -38,7 +38,7 @@ if [ ! -z ${ID+foo} ]; then
                 21.*|22.04)
                     # ubuntu 22.04 would fail on AMDMIGraphX with python 3.11 to error:
 		    # error: member access into incomplete type 'PyFrameObject' (aka '_frame')
-                    export ROCM_PYTHON_VERSION=v3.10.14
+                    export ROCM_PYTHON_VERSION=v3.10.16
 		    true
                     ;;
                 *)
