@@ -1,4 +1,4 @@
-From 2486646a268fb0bb1e4eb67279848fec40804847 Mon Sep 17 00:00:00 2001
+From d594b33656fb30b27153b89bbb1b6da9f5caddb1 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sun, 2 Feb 2025 19:21:03 -0800
 Subject: [PATCH 2/5] add rocm sdk supported gpus
@@ -22,5 +22,5 @@ index c823c9ff..f1a8ec5b 100755
  #
  # Supported/expected torch versions for CUDA/ROCm.
 -- 
-2.41.3
+2.48.1
 

@@ -1,4 +1,4 @@
-From d83e8612a2f3260e05f3e7eb3f5bd502161cd6e9 Mon Sep 17 00:00:00 2001
+From 9b7ace6d5fc006f8f2015cd93dca9050be9e80a9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 4 Oct 2024 10:57:22 -0700
 Subject: [PATCH 4/5] std::clamp fixes for rocm sdk 6.1.2 for fedora
@@ -17,7 +17,8 @@ vllm/build/temp.linux-x86_64-cpython-311/csrc/quantization/compressed_tensors/in
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
  .../compressed_tensors/int8_quant_kernels.cu      | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ .../fused_kernels/quant_conversions.cuh           |  8 +++++++-
+ 2 files changed, 20 insertions(+), 3 deletions(-)
 
 diff --git a/csrc/quantization/compressed_tensors/int8_quant_kernels.cu b/csrc/quantization/compressed_tensors/int8_quant_kernels.cu
 index e7978582..e29cfba7 100644
@@ -52,6 +53,25 @@ index e7978582..e29cfba7 100644
    return static_cast<int8_t>(dst);
  #else
    // CUDA path
+diff --git a/csrc/quantization/fused_kernels/quant_conversions.cuh b/csrc/quantization/fused_kernels/quant_conversions.cuh
+index f8a98722..3cda51b7 100644
+--- a/csrc/quantization/fused_kernels/quant_conversions.cuh
++++ b/csrc/quantization/fused_kernels/quant_conversions.cuh
+@@ -21,7 +21,13 @@ static __device__ __forceinline__ int8_t float_to_int8_rn(float const x) {
+   // round
+   float dst = std::nearbyint(x);
+   // saturate
+-  dst = std::clamp(dst, i8_min, i8_max);
++  // hip-clang std::clamp __glibcxx_assert_fail host function when building on Fedora40/gcc14.
++  // The following replaces std::clamp(qvalue, qmin, qmax) and is a viable solution for
++  // both CUDA and ROCm since std::clamp and this replacement generates the same PTX.
++  // Using #ifdef USE_ROCM to differentiate caused Windows build failures.
++  // The replacement should generate the same PTX as std::clamp. See https://godbolt.org/z/Wde9KW3v4
++  //dst = std::clamp(dst, i8_min, i8_max);
++  dst = (dst < i8_min) ? i8_min : (i8_max < dst) ? i8_max : dst;
+   return static_cast<int8_t>(dst);
+ #else
+   // CUDA path
 -- 
-2.41.3
+2.48.1
 

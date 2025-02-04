@@ -1,4 +1,4 @@
-From c23deaf0be153966464b53de6fd131db10c3e4e1 Mon Sep 17 00:00:00 2001
+From 15d1f931f930256591fb425aa69bceedb2a8da62 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sun, 2 Feb 2025 19:23:52 -0800
 Subject: [PATCH 3/5] build for pytorch version 2.4.1
@@ -36,5 +36,5 @@ index f1a8ec5b..eaeb6927 100755
  
    # Importing torch recognizes and sets up some HIP/ROCm configuration but does
 -- 
-2.41.3
+2.48.1
 
