@@ -25,7 +25,11 @@ func_install_packages()
 {
     case "${ID}" in
         mageia)
-            sudo urpmi cmake rpm-build gcc gcc-c++ gcc-c++-x86_64-linux-gnu lld golang libstdc++-static-devel openssl-devel zlib-devel gcc-gfortran make fftw-devel wget libdrm-devel glew-devel autoconf automake libtool icu bzip2-devel perl-base python-pip python-wheel python3-numpy python3-wheel python3-mock python3-future python3-pip python3-yaml python3-setuptools numa-devel libstdc++6 libstdc++-devel valgrind-devel lib64llvm-devel lib64boost_thread1.81.0 lib64boost_math1.81.0 lib64boost-devel lib64clang15.0 python3-ply python3-joblib python3-lit lib64msgpack-devel libffi-devel json-devel texinfo git git-lfs openpmix-devel bison flex byacc gettext xz-devel ninja-build texlive-dist opencl-devel protobuf-devel pybind11-devel lib64aio-devel gmp-devel mpfr-devel png-devel jpeg-devel lib64sox3 ncurses-devel systemd-devel expat-devel babeltrace-devel lmdb-devel opencv-devel zstd-devel dyninst-devel pfm-devel lib64va-devel cpio ocl-icd-devel uuid-devel systemtap-sdt-devel udev-devel
+            sudo urpmi cmake rpm-build gcc gcc-c++ gcc-c++-x86_64-linux-gnu lld golang libstdc++-static-devel openssl-devel zlib-devel gcc-gfortran make fftw-devel wget libdrm-devel glew-devel autoconf automake libtool icu bzip2-devel perl-base python-pip python-wheel python3-numpy python3-wheel python3-mock python3-future python3-pip python3-yaml python3-setuptools numa-devel libstdc++6 libstdc++-devel valgrind-devel lib64llvm-devel lib64boost_thread1.81.0 lib64boost_math1.81.0 lib64boost-devel lib64clang15.0 python3-ply python3-joblib python3-lit libffi-devel json-devel texinfo git git-lfs openpmix-devel bison flex byacc gettext xz-devel ninja-build texlive-dist opencl-devel protobuf-devel pybind11-devel lib64aio-devel gmp-devel mpfr-devel png-devel jpeg-devel lib64sox3 ncurses-devel systemd-devel expat-devel babeltrace-devel lmdb-devel opencv-devel zstd-devel dyninst-devel pfm-devel lib64va-devel cpio ocl-icd-devel uuid-devel systemtap-sdt-devel udev-devel
+            # mga 9
+            sudo urpmi lib64msgpack-devel
+            # mga 10
+            sudo urpmi msgpack-devel msgpack-cxx-devel
             pip3 install --user CppHeaderParser
             git-lfs install
             ;;
@@ -61,7 +65,8 @@ func_install_packages()
             ;;
         arch|manjaro)
             # elevate_if_not_root pacman -Syu
-            sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind openpmix flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx sox ncurses expat systemd cpio ocl-icd systemtap libudev
+            sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind openpmix flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx sox ncurses expat systemd cpio ocl-icd systemtap libudev0 python-msgpack
+            pip install --break-system-packages CppHeaderParser
             if pacman -Qs babeltrace > /dev/null ; then
                 echo "Babeltrace already installed."
             else
