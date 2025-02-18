@@ -1,35 +1,70 @@
-1) Download Docker Image
-========================
-- Docker image for CDNA based GPUs
-  - https://drive.google.com/drive/folders/1XnoSvL41XhrKT_5NbBSrUZ_1LaVpQ-xb?usp=sharing
-  - GPU's selected as a build target
+1) Supported GPUs with docker images.
+=====================================
+
+ROCM SDK Builder docker images are available for RDNA3, CDNA and RDNA1_RDNA2 GPUs on
+https://hub.docker.com/r/lamikr/rocm_sdk_builder/tags
+
+There are 3 docker images available and you need to download a correct one depending which GPU you have.
+
+Image for RDNA3 GPUs
+    - gfx1100 (AMD RX 7900/7900 XT/7900 XTX)
+    - gfx1101 (AMD RX 7800/7800 XT)
+    - gfx1102 (AMD 7700S/7600/7600 XT/7500 XT/7650)
+    - gfx1103 (AMD 780M iGPU)
+    - gfx1150 (AMD Strix Point iGPU)
+    - gfx1151 (AMD Strix Halo iGPU)
+Image for RDNA1 and RDNA2 GPUs
+    - gfx1010 (AMD RX5700/5700 XT)
+    - gfx1011 (AMD RX5600/5600 XT)
+    - gfx1030 (AMD RX6700/6700 XT/6800/6800 XT)
+    - gfx1031 (AMD RX6600/6600 XT)
+    - gfx1032 (AMD RX6500/6500 XT)
+    - gfx1035 (AMD 680M iGPU)
+Image for CDNA GPUs
     - gfx906 (MI50 tested, VII not tested)
     - gfx908 (MI100 not tested)
     - gfx90a (MI200 not tested)
     - gfx942 (MI300 not tested)
-- Docker image for rdna1 and rdna2 cards
-  - todo
-- Docker image for rdna3 cards
-  - todo
 
-2) Import shared image with podman
-==================================
-$ xz -T8 -d rocm_sdk_builder_612_cdna_docker.tar.xz
-$ mkdir -p /opt/containers/tmp
-$ export TMPDIR=/opt/containers/tmp
-$ podman import --change CMD=/bin/bash --change ENTRYPOINT=/bin/bash rocm_sdk_builder_612_cdna_docker.tar rocm_sdk_612_cdna
+2) Docker Image Download
+========================
 
-3) Launch the imported image with podman
-========================================
-$ sudo su
-$ podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups localhost/rocm_sdk_612_cdna bash
+Install RDNA3 GPU docker image either with docker or podman
+    - sudo su
+    - docker pull lamikr/rocm_sdk_builder:612_01_rdna3
+    - podman pull docker.io/lamikr/rocm_sdk_builder:612_01_rdna3
+Start RDNA3 GPU docker image after download either with docker or podman
+    - sudo su
+    - docker run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_rdna3 bash
+    - podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_rdna3 bash
+Install CDNA GPU docker image either with docker or podman
+    - sudo su
+    - docker pull lamikr/rocm_sdk_builder:612_01_cdna
+    - podman pull docker.io/lamikr/rocm_sdk_builder:612_01_cdna
+Start CDNA GPU docker image after download either with docker or podman
+    - sudo su
+    - docker run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_cdna bash
+    - podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_cdna bash
+Install RDNA1 and RDNA2 docker image either with docker or podman
+    - sudo su
+    - docker pull lamikr/rocm_sdk_builder:612_01_rdna1_rdna2
+    - podman pull docker.io/lamikr/rocm_sdk_builder:612_01_rdna1_rdna2
+Start RDNA1 and RDNA2 docker image after download either with docker or podman
+    - sudo su
+    - docker run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_rdna1_rdna2 bash
+    - podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_rdna1_rdna2 bash
 
-4) Smoke Test the launched image
-================================
-$ sudo su
-$ podman run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups localhost/rocm_sdk_612_cdna bash
+3) Test the launched docker image
+=================================
+
+Simple test application can be build and launched inside the docker image
+with a following commands
+
 $ root@1cbe841f5f4d:/# cd /opt/rocm_sdk_612/docs/examples/hipcc/hello_world/
 $ root@1cbe841f5f4d:/opt/rocm_sdk_612/docs/examples/hipcc/hello_world# ./build.sh 
+
+This command should print out a followng output
+------------
 rm -f ./hello_world
 rm -f hello_world.o
 rm -f /opt/rocm_sdk_612/src/*.o
@@ -44,3 +79,11 @@ Expecting that kernel increases each character from input string by one
 Kernel output string: HelloWorld
 Output string matched with HelloWorld
 Test ok!
+------------
+
+4) Old instructions how to import a previously exported image with podman (not needed anymore)
+=========================================================================
+$ xz -T8 -d rocm_sdk_builder_612_cdna_docker.tar.xz
+$ mkdir -p /opt/containers/tmp
+$ export TMPDIR=/opt/containers/tmp
+$ podman import --change CMD=/bin/bash --change ENTRYPOINT=/bin/bash rocm_sdk_builder_612_cdna_docker.tar rocm_sdk_612_cdna

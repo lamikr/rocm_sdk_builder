@@ -1,0 +1,7 @@
+- cd docs/notes/containers/docker_build$
+- sudo su
+- build_rocm_sdk_container_rdna3.sh
+  or
+  build_rocm_sdk_container_rdna1_rdna2.sh
+  or
+  build_rocm_sdk_container_cdna.sh

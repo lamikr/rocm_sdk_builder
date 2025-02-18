@@ -1,4 +1,7 @@
-export TMPFS=/opt/run
-export TMPDIR=/opt/run
+#!/bin/bash
+
+export PODMAN_IMG_NAME=rocm_sdk_builder_rdna3
 export ENV_VAR__TARGET_GPU_CFG_FILE_SELECTED=docs/notes/containers/config/build_cfg_rdna3.user
-podman build -t rocm_sdk_builder_rdna3 --build-arg ENV_VAR__TARGET_GPU_CFG_FILE_SELECTED .
+
+source ./rocman_common_parts_build_util.sh
+func_build_rocm_container_image

@@ -15,11 +15,11 @@ RUN git clone --recursive https://github.com/lamikr/rocm_sdk_builder.git
 RUN cd rocm_sdk_builder && git checkout master
 
 # example how to apply updates to image during the build time
-# RUN cd /rocm_sdk_builder && git reset --hard HEAD~1 && ./babs.sh -up
+# RUN cd rocm_sdk_builder && git reset --hard HEAD~1 && ./babs.sh -up
 RUN cd rocm_sdk_builder && ./docs/notes/containers/docker_build/scripts/preconfig_ubuntu.sh
-RUN cd rocm_sdk_builder && ./docs/notes/containers/docker_build/scripts/select_target_gpus.sh ${ENV_VAR__TARGET_GPU_CFG_FILE_ALL}
-RUN cd rocm_sdk_builder && ./babs.sh -b binfo/core/001_rocm_core.binfo
-RUN cd rocm_sdk_builder && ./babs.sh -b binfo/core/002_01_cmake_backport.binfo
-RUN cd rocm_sdk_builder && ./babs.sh -b binfo/core/002_02_zstd_backport.binfo
-RUN cd rocm_sdk_builder && ./babs.sh -b binfo/core/002_03_python_backport.binfo
-RUN cd rocm_sdk_builder && ./babs.sh -b binfo/core/002_04_ffmpeg7_devel.binfo
+
+# build first rocm adk builder base libs for all possible GPU's. 
+# Each target gpu increases build time significantly, so it's slow operation
+RUN cd rocm_sdk_builder && ./docs/notes/containers/docker_build/scripts/select_target_gpus.sh ${ENV_VAR__TARGET_GPU_CFG_FILE_SELECTED}
+
+# generated commands starts from here
