@@ -57,14 +57,12 @@ Tested and officially supported Linux distributions: (rocm sdk builder 6.1.2)
 
 Thanks by the many users and developers who have contributed to ROCM SDK Builder, the list of supported Linux distros have increased signigicatly since the rocm sdk builder 6.1.0 release. Manjaro and Arch Linux are rolling releases and therefore their status needs to be verified more often.
 
-# Docker Images for testing
+# Docker Images for Testing
 
 If you do not want to build the rocm sdk builder your self, you can download and install the docker image.
 There exist 3 docker images and you need to select a correct one depending which GPU you have:
 
-```
 https://hub.docker.com/r/lamikr/rocm_sdk_builder/tags
-```
 
 Install and test Docker image for RDNA3 GPUs for example with commands 
 
@@ -74,8 +72,9 @@ Install and test Docker image for RDNA3 GPUs for example with commands
 # docker run -it --device=/dev/kfd --device=/dev/dri --group-add keep-groups docker.io/lamikr/rocm_sdk_builder:612_01_rdna3 bash
 ```
 
-Detailed instructions for docker image download and usage:
-[docs/notes/containers/howto_download_and_run_docker_image.txt](docs/notes/containers/howto_download_and_run_docker_image.txt)
+Detailed instructions for docker image download and usage available on file:
+
+[docs/notes/containers/howto_install_and_run_docker_image.txt](docs/notes/containers/howto_install_and_run_docker_image.txt)
 
 # Build and Install
 
