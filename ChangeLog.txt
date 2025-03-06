@@ -1,12 +1,93 @@
-ROCM SDK Builder 6.1.2-1 (not yet released)
+# ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------
-- updated the rocm base components from 6.1.1 to 6.1.2
-- rebased the patches and dropped the one applied to upstream
-- changes
-	- env_rocm.sh
-		- better check for whether bashscript is sourced (daniandtheweb)
-	- onnxruntime
-		- better patch for broken test (Jeroen Mostert)
+
+- ROCM SDK Builder 6.1.2 is based on to ROCM 6.1.2, Python 3.11 and Pytorch 2.4.1 and 
+- pre-built docker images available for testing
+  https://hub.docker.com/r/lamikr/rocm_sdk_builder/tags
+  Full installation and usage instructions are provided on the ROCM SDK Builders github page.
+- expanded list of supported GPUs tested
+  - community around the ROCM SDK builder has helped to test a broad range of AMD consumer GPUs
+  - RDNA1/RDNA2/RDNA3 discrete GPUs (AMD 5600 - 7900 XTX)
+  - CDNA based GPUs (AMD Radeon VII and MI50)
+  - RX 7700S discrete GPU on Framework laptop (gfx1102)
+  - iGPUs like AMD 680M/780M/880M/Strix Point/Strix Halo
+- build support for never enterprice level GPUs exist but they have not yet been tested by the ROCM SDK Builder project
+  - MI100, MI210, MI250 and MI300  
+- improved ML model performance with many GPUs
+    GPU specific tuning has been added for many older GPUs in projects like rocBLAS and Aotriton to increase their performance. 
+    (Thank you for the upstream ROCM Projects for providing a mechanism to add tuning data for additional GPUs)
+- various new example and test applications for different ML applications
+  - small test and example applications for various tools can be found from
+    /opt/rocm/docs/examples folder
+  - bigger example applications to show the usage of LLAMA, stable diffusion, pytorch audio and LLM models
+- extended Linux distribution support: The list of supported Linux distributions for building the project has significantly expanded.
+- improved benchmarking
+  - simple benchmark to compare the CPU and GPU performance
+    /opt/rocm_sdk_612/benchmark to allow executing
+  - pytorch gpu benchmark to compare different GPU models
+    https://github.com/lamikr/pytorch-gpu-benchmark
+    It will also allow generating graph diagrams to compare benchmark results between selected GPUs.
+    (source code needs to be edited in current version to select which GPU result filed are compared)
+- support for third party machine learning applications via new Extra-applicatioins layer 
+    Applications are now divided to mandatory Core applications and non-mandatory Extra applications.
+    Lot of applications have been now added to the list of supported optional extra applications.
+    Extra applications are not build by default but can be build easily after the ROCM SDK Builder
+    has finished building the mandatory core applications.
+  - Core Applications (built by default)
+    - Includes AMD ROCm stack, and base machine learning tools like PyTorch, ONNX Runtime, and DeepSeed.
+  - Extra Applications (can be built separately)  
+    - `ai_tools`: Llama.cpp, vLLM, Stable Diffusion (web UI), CTranslate2, etc.
+    - `google-tools`: JAX
+    - `amd-media-tools`: rocDecode, RPP, MIVisionX
+    - `amd_devel_tools`: rocProfiler, OmniTracer, and their dependencies
+    - `amd-aie`: LLVM for XDNA/XDNA2 NPU (integrates the aie-llvm toolchain to /opt/rocm_sdk_612/apps/aie subdirectory)
+- configure options under rocm_sdk/etc to allow rocm sdk specific versions of some tools to have separate configuration options
+  compared to distro versions of same applications
+   - slurm: /opt/rocm_sdk_xyz/etc/slurm folder (contains also configure examples for running nodes either on 1 or 2 computers)
+   - OpenCL: OpenCL Vendor specific amdocl.icd and xilinx.icd are installed and configured to be searched from /opt/rocm_sdk_xyz/etc/OpenCL
+- LLVM for XDNA and XDNA2 NPUs:
+  The ROCM SDK Builder can now be used to build an LLVM compiler for AMD's VLIW instruction-based XDNA and XDNA2 NPUs.
+  Simple test application with instructions for building and executing it is included.
+- fixes and new features in babs.sh build tool
+  - re-organization and language fixes, thank you for the contributions
+  - added lot of new commands and improved the functionality to allow updating the system more easily by re-building only the changed applications
+- build process fixes for many applications
+  - `rocorofiler` and `rocTracer` dependencies are now built only once separately instead of building them as a part of these tools own build process.
+     (for example timemory) 
+  - onnxruntime and deepspeed:
+    Allow configuring the target GPU list without requirement to really have the GPU on the build machine.
+    (Target GPU can be given as a parameter instead of build system checking what GPUs are present)
+  - AOTriton 
+    GPU specific files generated and build will now be stored for own dedicatd directory for each GPUs.
+    This fixes inode resource problems breaking the build if too manyGPUs are selected as a build target simultaneously.
+  - stable-diffusion-webui
+    Disabled the automatic update mechanism possibly fetching the source code to newer version during the build time. 
+  - VLLM
+    flash attention support added for MI50/Radeon VII (never AMD GPUs already supported by default)
+- Stats
+  - 100 pull request, over 80 closed bugs
+
+## Known Issues
+-  RDNA1 based RX 5700 and V520 GPU (gfx1010 and gfx1011) can randomly hang when executing ML tasks
+  - problem can be triggered by executing pytorch gpu benchmark: 
+       https://github.com/lamikr/pytorch-gpu-benchmark
+  - work-around patch exist for the kernel which disables the workque disable and resume triggered by the
+    MMU events for the kernel when new task is loaded. Real fix seems to require patching the firmware
+    https://lore.kernel.org/lkml/20241127114638.11216-1-lamikr@gmail.com/T/#mb4da09bc8b7c87eb56796631e3d0b08063e73347
+  - only way to recovery fully requires the power on/power of cycle for the PC. (PC reboot usually hangs)
+-  RDNA3 based gfx1103 M680 iGPU can randomly crash while executing ML tasks
+  - this problem can be triggered with example application available on 
+    https://github.com/lamikr/rocm_sdk_builder/issues/141#issuecomment-2344985438
+  - work-around patch exist for the kernel which disables the workque disable and resume triggered by the
+    MMU events for the kernel when new task is loaded. Real fix seems to require patching the firmware
+    https://lore.kernel.org/lkml/20241127114638.11216-1-lamikr@gmail.com/T/#mb4da09bc8b7c87eb56796631e3d0b08063e73347
+  - unlike the RX 5700 crash, this failure does not require a full reboot
+- it is possible to build the release on Windows WSL2 environment but it's unclear is it possible to get the
+  reguired AMD GPU Windows driver to work with the version build on that way
+
+## Plans for the Next Release
+- Update many applications to newer versions: The next release will update many applications to newer versions.
+- Add support for new Extra applications: InstructLab and Shark will requires newer ROCM base before they can be integrated to ROCM SDK build
 
 ROCM SDK Builder 6.1.1-2 (2024-06-14)
 -------------------------------------
@@ -36,7 +117,7 @@ ROCM SDK Builder 6.1.1-2 (2024-06-14)
     - AMD RX 6800
     - AMD RX 7800 XT
     - AMD RX 7900 XTX
-    - AMD 680i Mobile / gfx1035
+    - AMD 680i iGPU / gfx1035
     - gfx 1036?
 - Packages updated to never releases
     - python 3.9.19
@@ -66,6 +147,6 @@ ROCM SDK Builder 6.1.1-2 (2024-06-14)
     - pytorch gpu benchmark tests execution improvements in
       https://github.com/lamikr/pytorch-gpu-benchmark
   
-ROCM SDK Builder 6.1.1-1 (2024-05-25)
+ROCM SDK Builder 6.1.1-0 (2024-05-25)
 ------------------------
 - first version publicly announced and mentioned in https://www.phoronix.com/news/Making-ROCm-Build-Easier

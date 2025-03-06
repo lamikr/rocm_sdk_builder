@@ -3,6 +3,9 @@ builddir
 envsetup_pre.cfg
 envsetup_post.cfg
 build_cfg.user
+packages
+envsetup_user.sh
+node_modules
 .vscode
 docs/examples/hipcc/hello_world/hello_world
 docs/examples/hipcc/hello_world/hello_world.o
@@ -12,7 +15,5 @@ docs/examples/openmpi/mpi_rank_printout/mpi_rank_printout
 docs/examples/pytorch/audio/microphone_rec.wav
 docs/examples/pytorch/audio/speech_resave.wav
 docs/examples/openmpi/mpi_msg_ping/mpi_msg_ping
-packages
-envsetup_user.sh
-node_modules
 docs/examples/llm/vllm/sys
+docs/notes/containers/docker_build/Dockerfile
