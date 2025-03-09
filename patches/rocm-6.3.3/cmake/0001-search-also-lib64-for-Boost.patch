@@ -1,0 +1,46 @@
+From 87b2a70424a3a445ef09a246ad69a8ea8391f5fc Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 19 Jan 2025 20:33:01 -0800
+Subject: [PATCH] search also lib64 for Boost
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Modules/FindBoost.cmake | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/Modules/FindBoost.cmake b/Modules/FindBoost.cmake
+index 72a9a4c192..356129372a 100644
+--- a/Modules/FindBoost.cmake
++++ b/Modules/FindBoost.cmake
+@@ -2036,16 +2036,17 @@ foreach(c DEBUG RELEASE)
+     endif()
+ 
+     if(BOOST_ROOT)
+-      list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib ${BOOST_ROOT}/stage/lib)
++      list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${BOOST_ROOT}/lib ${BOOST_ROOT}/lib64 ${BOOST_ROOT}/stage/lib)
+       _Boost_UPDATE_WINDOWS_LIBRARY_SEARCH_DIRS_WITH_PREBUILT_PATHS(_boost_LIBRARY_SEARCH_DIRS_${c} "${BOOST_ROOT}")
+     elseif(_ENV_BOOST_ROOT)
+-      list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib ${_ENV_BOOST_ROOT}/stage/lib)
++      list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c} ${_ENV_BOOST_ROOT}/lib ${_ENV_BOOST_ROOT}/lib64 ${_ENV_BOOST_ROOT}/stage/lib)
+       _Boost_UPDATE_WINDOWS_LIBRARY_SEARCH_DIRS_WITH_PREBUILT_PATHS(_boost_LIBRARY_SEARCH_DIRS_${c} "${_ENV_BOOST_ROOT}")
+     endif()
+ 
+     list(APPEND _boost_LIBRARY_SEARCH_DIRS_${c}
+       ${Boost_INCLUDE_DIR}/lib
+       ${Boost_INCLUDE_DIR}/../lib
++      ${Boost_INCLUDE_DIR}/../lib64
+       ${Boost_INCLUDE_DIR}/stage/lib
+       )
+     _Boost_UPDATE_WINDOWS_LIBRARY_SEARCH_DIRS_WITH_PREBUILT_PATHS(_boost_LIBRARY_SEARCH_DIRS_${c} "${Boost_INCLUDE_DIR}/..")
+@@ -2400,6 +2401,8 @@ if(Boost_FOUND)
+ 
+     if(EXISTS "${_boost_LIB_DIR}/lib")
+       string(APPEND _boost_LIB_DIR /lib)
++    elseif(EXISTS "${_boost_LIB_DIR}/lib64")
++      string(APPEND _boost_LIB_DIR /lib64)
+     elseif(EXISTS "${_boost_LIB_DIR}/stage/lib")
+       string(APPEND _boost_LIB_DIR "/stage/lib")
+     else()
+-- 
+2.48.1
+

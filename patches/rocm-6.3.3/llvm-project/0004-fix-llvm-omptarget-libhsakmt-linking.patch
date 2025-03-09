@@ -1,0 +1,37 @@
+From 230fa51fc51c447551c19ec5276d73790218d6e9 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 8 Mar 2025 23:26:47 -0800
+Subject: [PATCH 4/4] fix llvm omptarget libhsakmt linking
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt b/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+index 1f0a2a5aaba0..69e2db879ffc 100644
+--- a/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
++++ b/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+@@ -19,6 +19,11 @@ if (NOT LIBOMPTARGET_BUILD_AMDGPU_PLUGIN)
+   return()
+ endif()
+ 
++# libhsakmt.a and libhsakmt.so
++find_library ( HSAKMT_LIB libhsakmt.a REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
++get_filename_component ( HSAKMT_LIB_PATH ${HSAKMT_LIB} DIRECTORY )
++link_directories (${HSAKMT_LIB_PATH})
++
+ # If we are bootstrapping hsa via external project we need to use find_library
+ # as it will not be installed.
+ if(DEFINED LIBOMPTARGET_EXTERNAL_PROJECT_HSA_PATH)
+@@ -103,6 +108,7 @@ if (LIBOMP_HAVE_VERSION_SCRIPT_FLAG)
+   target_link_libraries(
+     omptarget.rtl.amdgpu
+     PRIVATE
++    "-lm ${HSAKMT_LIB_PATH}/libhsakmt.so"
+     "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports")
+ endif()
+ 
+-- 
+2.48.1
+

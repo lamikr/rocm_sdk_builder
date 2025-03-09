@@ -1,0 +1,37 @@
+From 0deaa4e70f46c732b89600dcf32c412c2b44f5e0 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 8 Mar 2025 23:08:45 -0800
+Subject: [PATCH] add version-dev file
+
+at least onnxruntime uses version-dev file
+instead of version file for checking rocm-version
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index afb0f75..b9a9837 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -139,13 +139,16 @@ endif()
+ #Add the libpatch version if available to the version file
+ if( DEFINED VERSION_POINT )
+   file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_POINT}-${BUILD_ID}\n" )
++  file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version-dev" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_POINT}-${BUILD_ID}\n" )
+ else()
+   file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${BUILD_ID}\n" )
++  file ( WRITE "${CMAKE_CURRENT_BINARY_DIR}/version-dev" "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}-${BUILD_ID}\n" )
+ endif()
+ 
+ ## Support for Static and Shared Target Packaging
+ if(BUILD_SHARED_LIBS)
+   install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/version DESTINATION .info COMPONENT CORE_RUNTIME )
++  install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/version-dev DESTINATION .info COMPONENT CORE_RUNTIME )
+ 
+   # Target Library needs to installed/packaged to same destination
+   # in both ASAN and nonASAN Shared library builds
+-- 
+2.48.1
+

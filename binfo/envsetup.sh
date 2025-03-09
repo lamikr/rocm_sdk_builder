@@ -22,7 +22,7 @@ elif [[ -e "/etc/centos-release" ]]; then
     ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
     VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 fi
-export ROCM_PYTHON_VERSION=v3.11.11
+export ROCM_PYTHON_VERSION=v3.12.8
 if [ ! -z ${ID+foo} ]; then
     case "${ID}" in
         mageia)
