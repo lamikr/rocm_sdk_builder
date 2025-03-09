@@ -10,8 +10,8 @@
 #
 # In addition content of /opt/rocm_sdk_xyz/.info/version is bases on to these numbers
 export ROCM_MAJOR_VERSION=6
-export ROCM_MINOR_VERSION=1
-export ROCM_PATCH_VERSION=2
+export ROCM_MINOR_VERSION=3
+export ROCM_PATCH_VERSION=3
 export ROCM_SDK_RELEASE_VERSION=1
 
 # Set BABS version information

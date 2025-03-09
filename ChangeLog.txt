@@ -1,3 +1,9 @@
+# ROCM SDK Builder 6.3.3 (devel)
+--------------------------------
+
+- removed roct-thunk-interface (deprecated since rocm-6.2)
+- removed clang-ocl (deprecated since rocm 6.1.2)
+
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------
 
