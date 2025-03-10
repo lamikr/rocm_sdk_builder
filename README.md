@@ -36,7 +36,7 @@ This project has been so far tested with the following AMD Radeon GPUs:
 - MI300A/MI300X CDNA (gfx940, gfx941, gfx942) / (Experimental support)
 - AMD XDNA/XDNA2 NPU (experimental support, requires also xdna drivers to be patched to kernel)
 
-Older GPUs having 8GB of memory or less may not be able to run the memory extensive benchmarks and applications but there are many application where they will still work well compared to CPU based opeations.
+Older GPUs having 8GB of memory or less may not be able to run the memory extensive benchmarks and applications but there are many application where they will still work well compared to CPU based operations.
 
 Some GPU's have been benchmarked after building the ROCM SDK Builder with the benchmark available at https://github.com/lamikr/pytorch-gpu-benchmark/
 
