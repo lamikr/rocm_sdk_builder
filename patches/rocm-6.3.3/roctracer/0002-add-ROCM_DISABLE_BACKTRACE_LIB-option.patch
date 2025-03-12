@@ -1,0 +1,36 @@
+From 360c95aa5370279b1be36db1fe76fd4af936c27b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 12 Jan 2025 03:54:50 -0800
+Subject: [PATCH 2/3] add ROCM_DISABLE_BACKTRACE_LIB option
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/CMakeLists.txt | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index ee72c83..c41efbb 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -130,11 +130,13 @@ set_target_properties(util PROPERTIES POSITION_INDEPENDENT_CODE ON)
+ target_include_directories(util
+   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/util)
+ 
+-#check_include_file(backtrace.h BACKTRACE_H)
+-if(BACKTRACE_H)
+-  message(STATUS "backtrace_h found: ${BACKTRACE_H}")
+-  target_compile_definitions(util PRIVATE HAVE_BACKTRACE_H)
+-  find_library(BACKTRACE_LIB "backtrace" ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES})
++if(NOT DEFINED ROCM_DISABLE_BACKTRACE_LIB)
++  #check_include_file(backtrace.h BACKTRACE_H)
++  if(BACKTRACE_H)
++    message(STATUS "backtrace_h found: ${BACKTRACE_H}")
++    target_compile_definitions(util PRIVATE HAVE_BACKTRACE_H)
++    find_library(BACKTRACE_LIB "backtrace" ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES})
++  endif()
+ endif()
+ 
+ if(BACKTRACE_LIB)
+-- 
+2.41.3
+

@@ -1,7 +1,7 @@
-From 230fa51fc51c447551c19ec5276d73790218d6e9 Mon Sep 17 00:00:00 2001
+From 1c64c4ac39d04c13bace3b2724997013e0861ad7 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 8 Mar 2025 23:26:47 -0800
-Subject: [PATCH 4/4] fix llvm omptarget libhsakmt linking
+Subject: [PATCH 4/5] fix llvm omptarget libhsakmt linking
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

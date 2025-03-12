@@ -6,7 +6,7 @@ BINFO_APP_UPSTREAM_REPO_URL=https://github.com/ROCm/HIP
 #use rocm version specific default git tag
 #BINFO_APP_UPSTREAM_REPO_VERSION_TAG=rocm-5.7.1
 
-# config,build,install handled by rocBLAS
+# no need for this anymore
 BINFO_APP_NO_PRECONFIG=1
 BINFO_APP_NO_CONFIG=1
 BINFO_APP_NO_BUILD=1

@@ -1,0 +1,159 @@
+From 3616319156b7e9518d816e7be7383c46c5812b4a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 11 Mar 2025 20:28:40 -0700
+Subject: [PATCH 2/2] fix clang++ error for variable usage in array init
+
+error: variable length arrays in C++ are a Clang extension
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/core/hsa_interceptor.h     |  9 ++++++---
+ src/util/hsa_rsrc_factory.cpp  | 27 +++++++++++++++------------
+ test/app/test.cpp              | 27 +++++++++++++++++++++------
+ test/util/hsa_rsrc_factory.cpp | 15 ++++++++++-----
+ 4 files changed, 52 insertions(+), 26 deletions(-)
+
+diff --git a/src/core/hsa_interceptor.h b/src/core/hsa_interceptor.h
+index abad9b9..554bd05 100644
+--- a/src/core/hsa_interceptor.h
++++ b/src/core/hsa_interceptor.h
+@@ -436,9 +436,12 @@ class HsaInterceptor {
+       HSA_RT(hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_KERNEL_OBJECT, &obj));
+       if (free_flag == 0) {
+         HSA_RT(hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME_LENGTH, &len));
+-        char sym_name[len + 1];
+-        HSA_RT(hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, sym_name));
+-        name = cpp_demangle(sym_name);
++        char *sym_name = (char *)malloc(len + 1);
++        if (sym_name) {
++          HSA_RT(hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, sym_name));
++          name = cpp_demangle(sym_name);
++          free(sym_name);
++        }
+       }
+ 
+       rocprofiler_hsa_callback_data_t data{};
+diff --git a/src/util/hsa_rsrc_factory.cpp b/src/util/hsa_rsrc_factory.cpp
+index 6d60882..836c301 100644
+--- a/src/util/hsa_rsrc_factory.cpp
++++ b/src/util/hsa_rsrc_factory.cpp
+@@ -753,19 +753,22 @@ hsa_status_t HsaRsrcFactory::executable_symbols_cb(hsa_executable_t exec, hsa_ex
+     CHECK_STATUS("Error in getting kernel object", status);
+     status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME_LENGTH, &len);
+     CHECK_STATUS("Error in getting name len", status);
+-    char symname[len + 1];
+-    status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, symname);
+-    CHECK_STATUS("Error in getting kernel name", status);
+-    symname[len] = 0;
+-    if (data == NULL) {
+-      const char* name = cpp_demangle(symname);
+-      auto ret = symbols_map_->insert({addr, name});
+-      if (ret.second == false) {
+-        delete[] ret.first->second;
+-        ret.first->second = name;
++    char *symname = (char *)malloc((len + 1) * sizeof(char));
++    if (symname != NULL) {
++      status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, symname);
++      CHECK_STATUS("Error in getting kernel name", status);
++      symname[len] = 0;
++      if (data == NULL) {
++        const char* name = cpp_demangle(symname);
++        auto ret = symbols_map_->insert({addr, name});
++        if (ret.second == false) {
++          delete[] ret.first->second;
++          ret.first->second = name;
++        }
++      } else {
++        symbols_map_->erase(addr);
+       }
+-    } else {
+-      symbols_map_->erase(addr);
++      free(symname);
+     }
+   }
+   return HSA_STATUS_SUCCESS;
+diff --git a/test/app/test.cpp b/test/app/test.cpp
+index e54bec8..0b69f9c 100644
+--- a/test/app/test.cpp
++++ b/test/app/test.cpp
+@@ -32,17 +32,25 @@ THE SOFTWARE.
+ #include "simple_convolution/simple_convolution.h"
+ 
+ void thread_fun(const int kiter, const int diter, const uint32_t agents_number) {
+-  const AgentInfo* agent_info[agents_number];
+-  hsa_queue_t* queue[agents_number];
++  const AgentInfo *agent_info_arr;
++  const AgentInfo *agent_info2;
++  hsa_queue_t *queue_arr;
++  hsa_queue_t *queue_item;
+   HsaRsrcFactory* rsrc = &HsaRsrcFactory::Instance();
+ 
++  agent_info_arr = (const AgentInfo *)malloc(agents_number * sizeof(AgentInfo));
++  if (agent_info_arr != NULL) {
++  queue_arr = (hsa_queue_t *)malloc(agents_number * sizeof(hsa_queue_t));
++  if (queue_arr != NULL) {
+   for (uint32_t n = 0; n < agents_number; ++n) {
+     uint32_t agent_id = n % rsrc->GetCountOfGpuAgents();
+-    if (rsrc->GetGpuAgentInfo(agent_id, &agent_info[n]) == false) {
++    agent_info2 = &agent_info_arr[n];
++    if (rsrc->GetGpuAgentInfo(agent_id, &agent_info2) == false) {
+       fprintf(stderr, "AgentInfo failed\n");
+       abort();
+     }
+-    if (rsrc->CreateQueue(agent_info[n], 128, &queue[n]) == false) {
++    queue_item = &queue_arr[n];
++    if (rsrc->CreateQueue(agent_info2, 128, &queue_item) == false) {
+       fprintf(stderr, "CreateQueue failed\n");
+       abort();
+     }
+@@ -51,12 +59,19 @@ void thread_fun(const int kiter, const int diter, const uint32_t agents_number)
+   for (int i = 0; i < kiter; ++i) {
+     for (uint32_t n = 0; n < agents_number; ++n) {
+       // RunKernel<DummyKernel, TestAql>(0, NULL, agent_info[n], queue[n], diter);
+-      RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info[n], queue[n], diter);
++      agent_info2 = &agent_info_arr[n];
++      queue_item = &queue_arr[n];
++      RunKernel<SimpleConvolution, TestAql>(0, NULL, agent_info2, queue_item, diter);
+     }
+   }
+ 
+   for (uint32_t n = 0; n < agents_number; ++n) {
+-    hsa_queue_destroy(queue[n]);
++    queue_item = &queue_arr[n];
++    hsa_queue_destroy(queue_item);
++  }
++  free(queue_arr);
++  }
++  free(((void *)agent_info_arr));
+   }
+ }
+ 
+diff --git a/test/util/hsa_rsrc_factory.cpp b/test/util/hsa_rsrc_factory.cpp
+index f20e66f..9339614 100644
+--- a/test/util/hsa_rsrc_factory.cpp
++++ b/test/util/hsa_rsrc_factory.cpp
+@@ -726,11 +726,16 @@ hsa_status_t HsaRsrcFactory::executable_symbols_cb(hsa_executable_t exec, hsa_ex
+       uint32_t len = 0;
+       status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME_LENGTH, &len);
+       CHECK_STATUS("Error in getting name len", status);
+-      char sym_name[len + 1];
+-      status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, sym_name);
+-      CHECK_STATUS("Error in getting kernel name", status);
+-      sym_name[len] = 0;
+-      name = cpp_demangle(sym_name);
++      char *sym_name;
++
++      sym_name = (char *)malloc(len + 1);
++      if (sym_name != NULL) {
++          status = hsa_api_.hsa_executable_symbol_get_info(symbol, HSA_EXECUTABLE_SYMBOL_INFO_NAME, sym_name);
++          CHECK_STATUS("Error in getting kernel name", status);
++          sym_name[len] = 0;
++          name = cpp_demangle(sym_name);
++          free(sym_name);
++      }
+     }
+ 
+     SetKernelNameRef(addr, name, to_free);
+-- 
+2.48.1
+

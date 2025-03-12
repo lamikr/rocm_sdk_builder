@@ -5,6 +5,9 @@
 - removed clang-ocl (deprecated since rocm 6.1.2)
 - cpython, update from 3.11.11 to 3.12.8
 - llvm-project, drop patches 0004, 0005 and 0006
+- rocprofiler: fix clang++ error related to using variables in array-definitions
+- rocm_smi_lib, drop patch, already upstreamed
+- amdsmi: drop patches
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------

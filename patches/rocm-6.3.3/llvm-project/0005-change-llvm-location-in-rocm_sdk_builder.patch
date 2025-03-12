@@ -1,0 +1,43 @@
+From 7aa5878649da8bfd62c861505fcef7252051f6a5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 10 Mar 2025 11:51:27 -0700
+Subject: [PATCH 5/5] change llvm location in rocm_sdk_builder
+
+- llvm used by hipcc is in ROCM_PATH/bin in rocm_sdk_builder
+  instead of ROCM_PATH/llvm/bin
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ amd/hipcc/bin/hipvars.pm   | 2 +-
+ amd/hipcc/src/hipBin_amd.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/amd/hipcc/bin/hipvars.pm b/amd/hipcc/bin/hipvars.pm
+index 93fba75fa338..f66ea2972b1c 100644
+--- a/amd/hipcc/bin/hipvars.pm
++++ b/amd/hipcc/bin/hipvars.pm
+@@ -96,7 +96,7 @@ if ($isWindows and defined $ENV{'CUDA_PATH'}) {
+ if ($isWindows or -e "$HIP_PATH/bin/clang") {
+     $HIP_CLANG_PATH=$ENV{'HIP_CLANG_PATH'} // "$HIP_PATH/bin";
+ } else {
+-    $HIP_CLANG_PATH=$ENV{'HIP_CLANG_PATH'} // "$ROCM_PATH/lib/llvm/bin";
++    $HIP_CLANG_PATH=$ENV{'HIP_CLANG_PATH'} // "$ROCM_PATH/bin";
+ }
+ # HIP_ROCCLR_HOME is used by Windows builds
+ $HIP_ROCCLR_HOME=$ENV{'HIP_ROCCLR_HOME'};
+diff --git a/amd/hipcc/src/hipBin_amd.h b/amd/hipcc/src/hipBin_amd.h
+index 57d009804cfe..f53ee4a4be9e 100644
+--- a/amd/hipcc/src/hipBin_amd.h
++++ b/amd/hipcc/src/hipBin_amd.h
+@@ -209,7 +209,7 @@ void HipBinAmd::constructCompilerPath() {
+     } else {
+       compilerPath = getRoccmPath();
+       hipClangPath = compilerPath;
+-      hipClangPath /= "lib/llvm/bin";
++      hipClangPath /= "bin";
+     }
+ 
+     compilerPath = hipClangPath.string();
+-- 
+2.48.1
+

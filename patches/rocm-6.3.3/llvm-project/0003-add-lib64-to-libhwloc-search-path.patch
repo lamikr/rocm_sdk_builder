@@ -1,7 +1,7 @@
-From 2671cd5a50057a582d07ff19d519c9e555b464b7 Mon Sep 17 00:00:00 2001
+From f9105d78c92558a3b9d40fae2dd12032f5fbd50a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 29 Jan 2024 20:51:12 -0800
-Subject: [PATCH 3/4] add lib64 to libhwloc search path
+Subject: [PATCH 3/5] add lib64 to libhwloc search path
 
 cmake on ubuntu23.10 finds library only from
 lib, not from lib64w
