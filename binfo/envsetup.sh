@@ -22,7 +22,7 @@ elif [[ -e "/etc/centos-release" ]]; then
     ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
     VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 fi
-export ROCM_PYTHON_VERSION=v3.12.8
+export ROCM_PYTHON_VERSION=v3.11.11
 if [ ! -z ${ID+foo} ]; then
     case "${ID}" in
         mageia)
@@ -361,6 +361,7 @@ export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin:${PATH}
 
 # TRITON_HIP_LLD_PATH is needed by upstream triton in compiler.py
 export TRITON_HIP_LLD_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/ld.lld
+export TENSILE_ROCM_ASSEMBLER_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin/clang
 
 # pythonpath is required at least by AMDMIGraphX pytorch module
 # but if it is set, then the Tensile virtual env creation fails on rocBLAS

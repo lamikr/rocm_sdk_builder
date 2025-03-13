@@ -1,0 +1,101 @@
+From 5bb2a55ed55c32532446db13c6d80c9269af3935 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 14 Mar 2025 22:45:23 -0700
+Subject: [PATCH 03/11] admclang to clang changes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/build-options.cmake                             | 4 ++--
+ cmake/toolchain-options.cmake                         | 4 ++--
+ header_compilation_tests.sh                           | 2 +-
+ scripts/utilities/check_for_pretuned_sizes_c/Makefile | 4 ++--
+ toolchain-linux.cmake                                 | 4 ++--
+ 5 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/cmake/build-options.cmake b/cmake/build-options.cmake
+index e9de4691..a9509702 100644
+--- a/cmake/build-options.cmake
++++ b/cmake/build-options.cmake
+@@ -75,13 +75,13 @@ if( BUILD_WITH_TENSILE )
+   if (WIN32)
+     set( Tensile_COMPILER "clang++" CACHE STRING "Tensile compiler")
+   else()
+-    set( Tensile_COMPILER "amdclang++" CACHE STRING "Tensile compiler")
++    set( Tensile_COMPILER "clang++" CACHE STRING "Tensile compiler")
+   endif()
+   set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
+ 
+   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
+   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS default V4 V5 )
+-  set_property( CACHE Tensile_COMPILER PROPERTY STRINGS amdclang++ hipcc clang++)
++  set_property( CACHE Tensile_COMPILER PROPERTY STRINGS clang++ hipcc)
+   set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
+ 
+   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
+diff --git a/cmake/toolchain-options.cmake b/cmake/toolchain-options.cmake
+index 42587a34..a2c44bbf 100644
+--- a/cmake/toolchain-options.cmake
++++ b/cmake/toolchain-options.cmake
+@@ -47,10 +47,10 @@ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+ endif()
+ 
+ if( CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+-  message( STATUS "Use amdclang to build for amdgpu backend" )
++  message( STATUS "Use clang to build for amdgpu backend" )
+ 
+   if( CMAKE_CXX_COMPILER MATCHES ".*hipcc.*" )
+-    message( STATUS "WARNING: hipcc compiler use is deprecated. Use amdclang++ directly." )
++    message( STATUS "WARNING: hipcc compiler use is deprecated. Use clang++ directly." )
+   endif()
+ 
+   # set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
+diff --git a/header_compilation_tests.sh b/header_compilation_tests.sh
+index d1860f07..ecea578f 100755
+--- a/header_compilation_tests.sh
++++ b/header_compilation_tests.sh
+@@ -44,7 +44,7 @@ if ! [ -z ${ROCM_PATH+x} ]; then
+     rocm_path=${ROCM_PATH}
+ fi
+ 
+-AMDCLANG_CXX=${rocm_path}/bin/amdclang++
++AMDCLANG_CXX=${rocm_path}/bin/clang++
+ AMDCLANG_CXX_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath $BUILD_DIR/include/rocblas) -I$(realpath $BUILD_DIR/include/rocblas/internal) -I$(realpath library/include) -I$(realpath library/src/include)  -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
+ 
+ GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -fno-gpu-rdc -Werror"
+diff --git a/scripts/utilities/check_for_pretuned_sizes_c/Makefile b/scripts/utilities/check_for_pretuned_sizes_c/Makefile
+index 48b0a933..18740a1d 100644
+--- a/scripts/utilities/check_for_pretuned_sizes_c/Makefile
++++ b/scripts/utilities/check_for_pretuned_sizes_c/Makefile
+@@ -7,9 +7,9 @@ ROCBLAS_LIB_PATH=$(ROCBLAS_INSTALL_DIR)/lib
+ HIP_INCLUDE=$(ROCM_INSTALL_DIR)/include
+ 
+ CXX_FLAGS=-I$(ROCBLAS_INCLUDE) -I$(HIP_INCLUDE) -std=c++17 -DROCM_USE_FLOAT16
+-CXX=$(ROCM_INSTALL_DIR)/bin/amdclang++
++CXX=$(ROCM_INSTALL_DIR)/bin/clang++
+ LD_FLAGS=-L$(ROCBLAS_LIB_PATH) -lrocblas
+-LD=$(ROCM_INSTALL_DIR)/bin/amdclang++
++LD=$(ROCM_INSTALL_DIR)/bin/clang++
+ 
+ OBJ=check-for-pretuned-sizes.o
+ EXE=check-for-pretuned-sizes
+diff --git a/toolchain-linux.cmake b/toolchain-linux.cmake
+index 0ce0c2c0..d590dd5b 100644
+--- a/toolchain-linux.cmake
++++ b/toolchain-linux.cmake
+@@ -11,11 +11,11 @@ endif()
+ 
+ # relying on env and path for backward compatibility with external recipes
+ if (NOT DEFINED ENV{CXX} AND NOT CMAKE_CXX_COMPILER)
+-  set(CMAKE_CXX_COMPILER "${rocm_bin}/amdclang++")
++  set(CMAKE_CXX_COMPILER "${rocm_bin}/clang++")
+ endif()
+ 
+ if (NOT DEFINED ENV{CC} AND NOT CMAKE_C_COMPILER)
+-  set(CMAKE_C_COMPILER "${rocm_bin}/amdclang")
++  set(CMAKE_C_COMPILER "${rocm_bin}/clang")
+ endif()
+ 
+ if (NOT DEFINED ENV{FC} AND NOT CMAKE_Fortran_COMPILER)
+-- 
+2.48.1
+

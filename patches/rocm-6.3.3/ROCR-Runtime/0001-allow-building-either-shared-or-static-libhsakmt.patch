@@ -1,0 +1,46 @@
+From 06ad2099be0e772754d45dedeb9070ca4e9a253b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 15 Mar 2025 00:26:21 -0700
+Subject: [PATCH] allow building either shared or static libhsakmt
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ libhsakmt/CMakeLists.txt | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/libhsakmt/CMakeLists.txt b/libhsakmt/CMakeLists.txt
+index 0539f468..c922831b 100644
+--- a/libhsakmt/CMakeLists.txt
++++ b/libhsakmt/CMakeLists.txt
+@@ -137,7 +137,11 @@ set ( HSAKMT_SRC "src/debug.c"
+                  "src/pc_sampling.c")
+ 
+ ## Declare the library target name
+-add_library (${HSAKMT_TARGET} STATIC "")
++if ( BUILD_SHARED_HSAKMT_LIB )
++  add_library (${HSAKMT_TARGET} "")
++else()
++  add_library (${HSAKMT_TARGET} STATIC "")
++endif()
+ 
+ ## Add sources
+ target_sources ( ${HSAKMT_TARGET} PRIVATE ${HSAKMT_SRC} )
+@@ -280,6 +284,7 @@ configure_file ( libhsakmt.pc.in libhsakmt.pc @ONLY )
+ install ( FILES ${CMAKE_CURRENT_BINARY_DIR}/libhsakmt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig COMPONENT dev)
+ 
+ if ( NOT BUILD_SHARED_LIBS)
++  #message(FATAL_ERROR "NOT BUILD_SHARED_LIBS")
+   ## Create separate target file for static builds
+   ## In static builds, libdrm and libdrm_amdgpu need to be linked statically
+   add_library (${HSAKMT_STATIC_DRM_TARGET}  STATIC "")
+@@ -321,6 +326,7 @@ if ( NOT BUILD_SHARED_LIBS)
+ 
+   add_library( ${HSAKMT_STATIC_DRM_TARGET}::${HSAKMT_STATIC_DRM_TARGET} ALIAS ${HSAKMT_STATIC_DRM_TARGET} )
+ endif()
++#message(FATAL_ERROR "BUILD_SHARED_LIBS")
+ 
+ ###########################
+ # Packaging directives
+-- 
+2.48.1
+

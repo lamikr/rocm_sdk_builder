@@ -1,0 +1,236 @@
+From 5b506ee9b0430413d32aa7d583f22758d413536a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 15 Mar 2025 02:21:50 -0700
+Subject: [PATCH 2/3] amdclang to clang rocm sdk builder fix
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Tensile/Common.py                          | 10 +++---
+ Tensile/KernelWriterSource.py              |  2 +-
+ Tensile/Tensile.py                         |  4 +--
+ Tensile/TensileCreateLib/ParseArguments.py |  4 +--
+ Tensile/TensileCreateLibrary.py            | 38 ++++++++++++++++++----
+ tasks.py                                   |  2 +-
+ 6 files changed, 43 insertions(+), 17 deletions(-)
+
+diff --git a/Tensile/Common.py b/Tensile/Common.py
+index 45d82fa9..82952924 100644
+--- a/Tensile/Common.py
++++ b/Tensile/Common.py
+@@ -288,8 +288,8 @@ else:
+   globalParameters["RuntimeLanguage"] = "HIP"
+ 
+ globalParameters["CodeObjectVersion"] = "default"
+-globalParameters["CxxCompiler"] = "amdclang++" if os.name != "nt" else "clang++"
+-globalParameters["CCompiler"] = "amdclang" if os.name != "nt" else "clang"
++globalParameters["CxxCompiler"] = "clang++" if os.name != "nt" else "clang++"
++globalParameters["CCompiler"] = "clang" if os.name != "nt" else "clang"
+ globalParameters["Architecture"] = "all"
+ 
+ # might be deprecated
+@@ -371,7 +371,7 @@ def supportedCompiler(compiler: str) -> bool:
+   if os.name == "nt": 
+     isSupported = (isSupported or compiler == "clang++")
+   else:
+-    isSupported = (isSupported or compiler == "amdclang++")
++    isSupported = (isSupported or compiler == "clang++")
+   
+   if not isSupported: printWarning(f"{compiler} is unsupported for os {os.name}")
+   
+@@ -2421,7 +2421,7 @@ def assignGlobalParameters( config ):
+        globalParameters["CCompiler"] = "hipcc"
+     else:
+         if supportedCompiler(globalParameters["CxxCompiler"]):
+-          globalParameters["CCompiler"] = "clang" if os.name == "nt" else "amdclang"
++          globalParameters["CCompiler"] = "clang" if os.name == "nt" else "clang"
+         else: # unkown c++ compiler so set c compile rto be the same
+           globalParameters["CCompiler"] = globalParameters["CxxCompiler"]
+ 
+@@ -2435,7 +2435,7 @@ def assignGlobalParameters( config ):
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+       bin_path = "bin" if globalParameters["CxxCompiler"] == "hipcc" else "bin"
+-      compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "amdclang++"
++      compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "clang++"
+       globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], bin_path), compiler)
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+diff --git a/Tensile/KernelWriterSource.py b/Tensile/KernelWriterSource.py
+index 2330df7e..ec39e412 100644
+--- a/Tensile/KernelWriterSource.py
++++ b/Tensile/KernelWriterSource.py
+@@ -466,7 +466,7 @@ class KernelWriterSource(KernelWriter):
+         kStr += "  } while (assumed != old);%s" % (self.endLine)
+         kStr += "}%s" % (self.endLine)
+         """
+-        if globalParameters["CxxCompiler"] == "hipcc" or globalParameters["CxxCompiler"] == "amdclang++":
++        if globalParameters["CxxCompiler"] == "hipcc" or globalParameters["CxxCompiler"] == "clang++":
+           kStr += self.endLine
+           kStr += "__device__ inline int atomicAddType(int *fPtr, int operand)%s" % (self.endLine)
+           kStr += "{%s" % (self.endLine)
+diff --git a/Tensile/Tensile.py b/Tensile/Tensile.py
+index 1a0658bb..42e79edb 100644
+--- a/Tensile/Tensile.py
++++ b/Tensile/Tensile.py
+@@ -122,8 +122,8 @@ def addCommonArguments(argParser):
+         help="use serial kernel and solution names")
+     argParser.add_argument("--no-merge-files", dest="noMergeFiles", action="store_true", \
+         help="kernels and solutions written to individual files")
+-    argParser.add_argument("--cxx-compiler", dest="CxxCompiler", choices=["hipcc", 'amdclang++'], \
+-        action="store", default="amdclang++", help="select which compiler to use")
++    argParser.add_argument("--cxx-compiler", dest="CxxCompiler", choices=["hipcc", 'clang++'], \
++        action="store", default="clang++", help="select which compiler to use")
+     argParser.add_argument("--library-format", dest="LibraryFormat", choices=["yaml", "msgpack"], \
+         action="store", help="select which library format to use")
+     argParser.add_argument("--client-build-path", default=None)
+diff --git a/Tensile/TensileCreateLib/ParseArguments.py b/Tensile/TensileCreateLib/ParseArguments.py
+index 6970caba..65865121 100644
+--- a/Tensile/TensileCreateLib/ParseArguments.py
++++ b/Tensile/TensileCreateLib/ParseArguments.py
+@@ -71,7 +71,7 @@ def parseArguments(input: Optional[List[str]] = None) -> Dict[str, Any]:
+     )
+ 
+     # Optional arguments
+-    compilerChoices = ["amdclang++", "hipcc"] if os.name != "nt" else ["clang++", "hipcc"]
++    compilerChoices = ["clang++", "hipcc"] if os.name != "nt" else ["clang++", "hipcc"]
+     parser.add_argument(
+         "--cxx-compiler",
+         dest="CxxCompiler",
+@@ -79,7 +79,7 @@ def parseArguments(input: Optional[List[str]] = None) -> Dict[str, Any]:
+         default=compilerChoices[0],
+         type=str,
+         help="C++ compiler used when generating binaries."
+-        " On linux, amdclang++ (default) or hipcc. On Windows clang++ (default) or hipcc.",
++        " On linux, clang++ (default) or hipcc. On Windows clang++ (default) or hipcc.",
+     )
+     parser.add_argument(
+         "--architecture",
+diff --git a/Tensile/TensileCreateLibrary.py b/Tensile/TensileCreateLibrary.py
+index a1644606..eb878dcd 100644
+--- a/Tensile/TensileCreateLibrary.py
++++ b/Tensile/TensileCreateLibrary.py
+@@ -225,6 +225,7 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+     (_, filename) = os.path.split(kernelFile)
+     (base, _) = os.path.splitext(filename)
+ 
++    #sys.exit("buildSourceCodeObjectFile0000")
+     if "CmakeCxxCompiler" in globalParameters and globalParameters["CmakeCxxCompiler"] is not None:
+         os.environ["CMAKE_CXX_COMPILER"] = globalParameters["CmakeCxxCompiler"]
+ 
+@@ -232,7 +233,6 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+     soFilename = base + ".so"
+ 
+     coFilenames = []
+-
+     if supportedCompiler(CxxCompiler):
+         archs, cmdlineArchs = splitArchs()
+ 
+@@ -243,7 +243,7 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+         hipFlags += (
+             ["--genco"] if CxxCompiler == "hipcc" else ["--cuda-device-only", "-x", "hip", "-O3"]
+         )
+-        # if CxxCompiler == "amdclang++":
++        # if CxxCompiler == "clang++":
+         # hipFlags += ["-mllvm", "-amdgpu-early-inline-all=true", "-mllvm", "-amdgpu-function-calls=false"]
+         hipFlags += ["-I", outputPath]
+ 
+@@ -281,7 +281,8 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+                 + [kernelFile, "-c", "-o", os.path.join(buildPath, objectFilename)]
+             )
+ 
+-        tPrint(2, "hipcc:" + " ".join(compileArgs))
++        print('hipcc:', ' '.join(compileArgs))
++        #tPrint(2, "hipcc:" + " ".join(compileArgs))
+         # change to use  check_output to force windows cmd block util command finish
+         try:
+             out = subprocess.check_output(compileArgs, stderr=subprocess.STDOUT)
+@@ -334,6 +335,8 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+ 
+                     # Compilation
+                     if outfile:
++                        #print("outfile: " + outfile)
++                        #sys.exit("buildSourceCodeObjectFile2")
+                         coFilenames.append(os.path.split(outfile)[1])
+                         # bundlerArgs = [bundler, "-type=o", "-targets=%s" % target, "-inputs=%s" % infile, "-outputs=%s" % outfile, "-unbundle"]
+                         bundlerArgs = [
+@@ -384,7 +387,15 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+ 
+ 
+ def buildSourceCodeObjectFiles(CxxCompiler, kernelFiles, outputPath):
++    #print("buildSourceCodeObjectFiles, CxxCompiler: " + CxxCompiler);
++    #print("buildSourceCodeObjectFiles, outputPath: " + outputPath);
++    #for item in kernelFiles:
++    #    print(item)
+     args = zip(itertools.repeat(CxxCompiler), itertools.repeat(outputPath), kernelFiles)
++    #print("args next")
++    #for arg_tuple in args:
++    #    for item in arg_tuple:
++    #        print(item)
+     coFiles = Common.ParallelMap(buildSourceCodeObjectFile, args, "Compiling source kernels")
+ 
+     return itertools.chain.from_iterable(coFiles)
+@@ -797,9 +808,9 @@ def writeKernels(
+             kernelSourceFile.close()
+         if kernelHeaderFile:
+             kernelHeaderFile.close()
+-
+     if not globalParameters["GenerateSourcesAndExit"]:
+         codeObjectFiles += buildSourceCodeObjectFiles(cxxCompiler, kernelFiles, outputPath)
++        #sys.exit("writeKernels4")
+         codeObjectFiles += getAssemblyCodeObjectFiles(
+             kernelsToBuild, kernelWriterAssembly, outputPath
+         )
+@@ -1243,7 +1254,7 @@ def addFallback(masterLibraries: Dict[str, MasterSolutionLibrary]) -> None:
+     for archName in archs:
+         archName = archName.split("-", 1)[0]
+         if archName not in masterLibraries:
+-            tPrint(1, "Using fallback for arch: " + archName)
++            print("Using fallback for arch: " + archName)
+             masterLibraries[archName] = deepcopy(masterLibraries["fallback"])
+ 
+     masterLibraries.pop("fallback")
+@@ -1530,12 +1541,27 @@ def sanityCheck(
+             f"{[p.name for p in extraCodeObjects]}"
+         )
+ 
++    for item in srcLibPaths:
++        print("srcLibPaths.item: " + item)
++
++    for item in asmLibPaths:
++        print("asmLibPaths.item: " + item)
++
++    for item in libPaths:
++        print("libPaths.item: " + item.name)
++
++    for item in coPaths:
++        print("coPaths.item: " + item.name)
++
++    #for item in extraLibs:
++        #print("extraLibs.item: " + item.name)
++
+     if not genSourcesAndExit:
+         extraLibs = libPaths - coPaths
+         if extraLibs:
+             raise ValueError(
+                 f"Sanity check failed; missing expected code object files: "
+-                f"{[p.name for p  in extraLibs]}"
++                f"{[p.name for p in extraLibs]}"
+             )
+ 
+ 
+diff --git a/tasks.py b/tasks.py
+index 7d48c454..81583707 100644
+--- a/tasks.py
++++ b/tasks.py
+@@ -13,7 +13,7 @@ def hostlibtest(c, clean=False, configure=False, build=False, run=False):
+             f"-B `pwd`/{dir} "
+             "-S `pwd`/HostLibraryTests "
+             "-DCMAKE_BUILD_TYPE=Debug "
+-            "-DCMAKE_CXX_COMPILER=amdclang++ "
++            "-DCMAKE_CXX_COMPILER=clang++ "
+             '-DCMAKE_CXX_FLAGS="-D__HIP_HCC_COMPAT_MODE__=1" '
+             "-DTensile_CPU_THREADS=8 "
+             "-DTensile_ROOT=`pwd`/Tensile "
+-- 
+2.48.1
+

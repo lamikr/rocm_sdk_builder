@@ -1,0 +1,180 @@
+From ae93e16b57e1a2b852a120eea554b0e708565494 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 12 Mar 2025 23:45:21 -0700
+Subject: [PATCH 02/11] add rocm sdk builder supported gpus
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                 |  2 +-
+ library/src/handle.cpp         | 32 +++++++++++++++++++++++++
+ library/src/include/handle.hpp |  4 ++++
+ library/src/tensile_host.cpp   | 44 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 81 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2cb3b303..b27cfa46 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -112,7 +112,7 @@ if (NOT BUILD_ADDRESS_SANITIZER)
+   set( TARGET_LIST_ROCM_5.6 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+   set( TARGET_LIST_ROCM_5.7 "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+   set( TARGET_LIST_ROCM_6.0 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx940;gfx941;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102")
+-  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1012;gfx1030;gfx1100;gfx1101;gfx1102;gfx1151;gfx1200;gfx1201")
++  set( TARGET_LIST_ROCM_6.3 "gfx900;gfx902;gfx906;gfx906:xnack-;gfx908:xnack-;gfx90a;gfx942;gfx1010;gfx1011,gfx1012;gfx1030;gfx1031;gfx1032;gfx1034;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201")
+ else()
+   set( TARGET_LIST_ROCM_5.6 "gfx908:xnack+;gfx90a:xnack+")
+   set( TARGET_LIST_ROCM_5.7 "gfx908:xnack+;gfx90a:xnack+;gfx942:xnack+")
+diff --git a/library/src/handle.cpp b/library/src/handle.cpp
+index ea1fa1a7..f949cd8f 100644
+--- a/library/src/handle.cpp
++++ b/library/src/handle.cpp
+@@ -94,6 +94,10 @@ static Processor getActiveArch(int deviceId)
+     {
+         return Processor::gfx900;
+     }
++    else if(deviceString.find("gfx902") != std::string::npos)
++    {
++        return Processor::gfx902;
++    }
+     else if(deviceString.find("gfx906") != std::string::npos)
+     {
+         return Processor::gfx906;
+@@ -134,6 +138,26 @@ static Processor getActiveArch(int deviceId)
+     {
+         return Processor::gfx1030;
+     }
++    else if(deviceString.find("gfx1031") != std::string::npos)
++    {
++        return Processor::gfx1031;
++    }
++    else if(deviceString.find("gfx1032") != std::string::npos)
++    {
++        return Processor::gfx1032;
++    }
++    else if(deviceString.find("gfx1034") != std::string::npos)
++    {
++        return Processor::gfx1034;
++    }
++    else if(deviceString.find("gfx1035") != std::string::npos)
++    {
++        return Processor::gfx1035;
++    }
++    else if(deviceString.find("gfx1036") != std::string::npos)
++    {
++        return Processor::gfx1036;
++    }
+     else if(deviceString.find("gfx1100") != std::string::npos)
+     {
+         return Processor::gfx1100;
+@@ -146,6 +170,14 @@ static Processor getActiveArch(int deviceId)
+     {
+         return Processor::gfx1102;
+     }
++    else if(deviceString.find("gfx1103") != std::string::npos)
++    {
++        return Processor::gfx1103;
++    }
++    else if(deviceString.find("gfx1150") != std::string::npos)
++    {
++        return Processor::gfx1150;
++    }
+     else if(deviceString.find("gfx1151") != std::string::npos)
+     {
+         return Processor::gfx1151;
+diff --git a/library/src/include/handle.hpp b/library/src/include/handle.hpp
+index 70844136..02231c7c 100644
+--- a/library/src/include/handle.hpp
++++ b/library/src/include/handle.hpp
+@@ -79,6 +79,7 @@ enum class Processor : int
+     // only including supported types
+     gfx803  = 803,
+     gfx900  = 900,
++    gfx902  = 902,
+     gfx906  = 906,
+     gfx908  = 908,
+     gfx90a  = 910,
+@@ -93,9 +94,12 @@ enum class Processor : int
+     gfx1032 = 1032,
+     gfx1034 = 1034,
+     gfx1035 = 1035,
++    gfx1036 = 1036,
+     gfx1100 = 1100,
+     gfx1101 = 1101,
+     gfx1102 = 1102,
++    gfx1103 = 1103,
++    gfx1150 = 1150,
+     gfx1151 = 1151,
+     gfx1200 = 1200,
+     gfx1201 = 1201
+diff --git a/library/src/tensile_host.cpp b/library/src/tensile_host.cpp
+index f7d4bdb1..db6db9a2 100644
+--- a/library/src/tensile_host.cpp
++++ b/library/src/tensile_host.cpp
+@@ -259,6 +259,10 @@ namespace
+         {
+             return Tensile::LazyLoadingInit::gfx900;
+         }
++        else if(deviceString.find("gfx902") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx902;
++        }
+         else if(deviceString.find("gfx906") != std::string::npos)
+         {
+             return Tensile::LazyLoadingInit::gfx906;
+@@ -299,6 +303,26 @@ namespace
+         {
+             return Tensile::LazyLoadingInit::gfx1030;
+         }
++        else if(deviceString.find("gfx1031") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1031;
++        }
++        else if(deviceString.find("gfx1032") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1032;
++        }
++        else if(deviceString.find("gfx1034") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1034;
++        }
++        else if(deviceString.find("gfx1035") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1035;
++        }
++        else if(deviceString.find("gfx1036") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1036;
++        }
+         else if(deviceString.find("gfx1100") != std::string::npos)
+         {
+             return Tensile::LazyLoadingInit::gfx1100;
+@@ -311,6 +335,26 @@ namespace
+         {
+             return Tensile::LazyLoadingInit::gfx1102;
+         }
++        else if(deviceString.find("gfx1103") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1103;
++        }
++        else if(deviceString.find("gfx1150") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1150;
++        }
++        else if(deviceString.find("gfx1151") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1151;
++        }
++        else if(deviceString.find("gfx1200") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1200;
++        }
++        else if(deviceString.find("gfx1201") != std::string::npos)
++        {
++            return Tensile::LazyLoadingInit::gfx1201;
++        }
+         return Tensile::LazyLoadingInit::None;
+     }
+ 
+-- 
+2.48.1
+

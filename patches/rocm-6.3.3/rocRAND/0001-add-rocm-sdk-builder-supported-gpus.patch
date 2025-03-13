@@ -1,0 +1,56 @@
+From a3eaf14d6ca73fd237bb0597fc90ff8a2c62bed3 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 15 Mar 2025 02:47:00 -0700
+Subject: [PATCH] add rocm sdk builder supported gpus
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                           |  2 +-
+ library/include/rocrand/rocrand_common.h | 18 +++++++++++++++++-
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aa0e93d..12e40c7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -101,7 +101,7 @@ if(GPU_TARGETS STREQUAL "all")
+     )
+   else()
+     rocm_check_target_ids(DEFAULT_AMDGPU_TARGETS
+-      TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx942;gfx1030;gfx1100;gfx1101;gfx1102;gfx1200;gfx1201;gfx1151"
++      TARGETS "gfx803;gfx900:xnack-;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack-;gfx90a:xnack+;gfx900;gfx902;gfx906;gfx908;gfx90a;gfx942;gfx1010;gfx1011;gfx1012;gfx1030;gfx1031;gfx1032;gfx1034;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103;gfx1150;gfx1151;gfx1200;gfx1201"
+     )
+   endif()
+ 
+diff --git a/library/include/rocrand/rocrand_common.h b/library/include/rocrand/rocrand_common.h
+index 2f16c6e..0701f18 100644
+--- a/library/include/rocrand/rocrand_common.h
++++ b/library/include/rocrand/rocrand_common.h
+@@ -103,7 +103,23 @@ namespace detail {
+       defined(__gfx906__) || \
+       defined(__gfx908__) || \
+       defined(__gfx909__) || \
+-      defined(__gfx1030__) )
++      defined(__gfx1010__) || \
++      defined(__gfx1011__) || \
++      defined(__gfx1012__) || \
++      defined(__gfx1030__) || \
++      defined(__gfx1031__) || \
++      defined(__gfx1032__) || \
++      defined(__gfx1034__) || \
++      defined(__gfx1035__) || \
++      defined(__gfx1036__) || \
++      defined(__gfx1100__) || \
++      defined(__gfx1101__) || \
++      defined(__gfx1102__) || \
++      defined(__gfx1103__) || \
++      defined(__gfx1150__) || \
++      defined(__gfx1151__) || \
++      defined(__gfx1200__) || \
++      defined(__gfx1201__) )
+   #if !defined(ROCRAND_ENABLE_INLINE_ASM)
+     #define ROCRAND_ENABLE_INLINE_ASM
+   #endif
+-- 
+2.48.1
+
