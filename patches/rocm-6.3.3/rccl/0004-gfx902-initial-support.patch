@@ -1,0 +1,174 @@
+From 587ad05aa4e25cc2505d7011413a097c73726f97 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Mon, 11 Nov 2024 21:03:18 -0800
+Subject: [PATCH 4/5] gfx902 initial support
+
+- kernel transfer still hangs for unknown reason
+- only way to reboot is
+  (normal "reboot now" command will just timeout)
+  - echo s >/proc/sysrq-trigger
+  - echo b >/proc/sysrq-trigger
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ src/clique/CliqueManager.cc       |  4 +++-
+ src/collectives/device/common.h   |  4 ++--
+ src/collectives/device/prims_ll.h | 32 +++++++++++++++++++++++++++++--
+ src/collectives/device/sendrecv.h |  4 ++--
+ src/init.cc                       |  2 ++
+ src/misc/archinfo.cc              |  2 ++
+ 6 files changed, 41 insertions(+), 7 deletions(-)
+
+diff --git a/src/clique/CliqueManager.cc b/src/clique/CliqueManager.cc
+index 7abfc67..e4d87c3 100644
+--- a/src/clique/CliqueManager.cc
++++ b/src/clique/CliqueManager.cc
+@@ -266,7 +266,9 @@ void CliqueManager::SetByteLimits()
+   m_allReduceByteLimit = rcclParamAllReduceCliqueByteLimit();
+   if (m_allReduceByteLimit == 0)
+   {
+-    if (IsArchMatch(m_gcnArchName, "gfx906"))
++    if (IsArchMatch(m_gcnArchName, "gfx902"))
++      m_allReduceByteLimit = 4194304;
++    else if (IsArchMatch(m_gcnArchName, "gfx906"))
+       m_allReduceByteLimit = 16777216;
+     else if (IsArchMatch(m_gcnArchName, "gfx908"))
+       m_allReduceByteLimit = 8388608;
+diff --git a/src/collectives/device/common.h b/src/collectives/device/common.h
+index ef70a5a..a92e527 100644
+--- a/src/collectives/device/common.h
++++ b/src/collectives/device/common.h
+@@ -12,7 +12,7 @@
+ #include "devcomm.h"
+ #include "device_table.h"
+ 
+-#if defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
++#if defined(__gfx902__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
+ #define COLL_UNROLL 2
+ #else
+ #define COLL_UNROLL 4
+@@ -25,7 +25,7 @@
+ #define __synclds() \
+   asm volatile("s_waitcnt lgkmcnt(0) \n s_barrier");
+ 
+-#ifdef __GFX9__
++#if defined(__GFX9__)
+ #define STORE(DST, SRC) \
+   { __atomic_store_n((DST), (SRC), __ATOMIC_RELAXED); }
+ #else
+diff --git a/src/collectives/device/prims_ll.h b/src/collectives/device/prims_ll.h
+index 09bb7e1..651cd09 100644
+--- a/src/collectives/device/prims_ll.h
++++ b/src/collectives/device/prims_ll.h
+@@ -161,16 +161,30 @@ private:
+ #endif
+ 
+ #if defined(__HIP_PLATFORM_HCC__) || defined(__HCC__) || defined(__HIPCC__)
++  #if defined(__gfx902__)
++    using Vec = uint32_t __attribute__((ext_vector_type(4)));
++    Vec i4;
++    do {
++      asm volatile ("flat_load_dwordx4 %0, %1, glc\n"
++        "s_waitcnt vmcnt(0)\n"
++	"buffer_wbinvl1_vol\n" : "=v"(i4) : "v"(src));
++  #else
+     union ncclLLFifoLine i4;
+     do {
+       i4.v[0] = LL_LOAD(src->v);
+       i4.v[1] = LL_LOAD(src->v+1);
+-#if defined(ENABLE_NPKIT) && (defined(ENABLE_NPKIT_EVENT_PRIM_LL_DATA_PROCESS_ENTRY) && defined(ENABLE_NPKIT_EVENT_PRIM_LL_DATA_PROCESS_EXIT) || defined(ENABLE_NPKIT_PRIM_COLLECT_DATA_PROCESS_TIME))
++  #endif
++  #if defined(ENABLE_NPKIT) && (defined(ENABLE_NPKIT_EVENT_PRIM_LL_DATA_PROCESS_ENTRY) && defined(ENABLE_NPKIT_EVENT_PRIM_LL_DATA_PROCESS_EXIT) || defined(ENABLE_NPKIT_PRIM_COLLECT_DATA_PROCESS_TIME))
+       npkitWaitRecvSpins++;
+-#endif
++  #endif
+       if (checkAbort(spins, 0)) break;
++  #if defined(__gfx902__)
++    } while ((i4[1] != flag) || (i4[3] != flag));
++    uint64_t val64 = (uint64_t)(i4[0]) + (((uint64_t)i4[2]) << 32);
++  #else
+     } while ((i4.flag1 != flag) || (i4.flag2 != flag));
+     uint64_t val64 = (uint64_t)(i4.data1) + (((uint64_t)i4.data2) << 32);
++  #endif
+ #else
+     do {
+       asm("ld.volatile.global.v4.u32 {%0,%1,%2,%3}, [%4];" : "=r"(data1), "=r"(flag1), "=r"(data2), "=r"(flag2) : "l"(&src->i4));
+@@ -245,13 +259,27 @@ private:
+ 
+   __device__ void storeLL(union ncclLLFifoLine* dst, uint64_t val, uint32_t flag) {
+ #if defined(__HIP_PLATFORM_HCC__) || defined(__HCC__) || defined(__HIPCC__)
++  #if defined(__gfx902__)
++    using Vec = uint32_t __attribute__((ext_vector_type(4)));
++    Vec i4;
++    i4[0] = val & 0xffffffff;
++    i4[1] = flag;
++    i4[2] = (val >> 32);
++    i4[3] = flag;
++
++    asm volatile ("flat_store_dwordx4 %0, %1, glc\n"
++      "s_waitcnt vmcnt(0)\n"
++      "buffer_wbinvl1_vol\n" : : "v"(dst), "v"(i4));
++  #else
+     union ncclLLFifoLine i4;
+     i4.data1 = val & 0xffffffff;
+     i4.flag1 = flag;
+     i4.data2 = (val >> 32);
+     i4.flag2 = flag;
++
+     LL_STORE(i4.v[0], dst->v);
+     LL_STORE(i4.v[1], dst->v+1);
++  #endif
+ #else
+     asm volatile("st.volatile.global.v4.u32 [%0], {%1,%2,%3,%4};" :: "l"(&dst->i4), "r"((uint32_t)val), "r"(flag), "r"((uint32_t)(val >> 32)), "r"(flag));
+ #endif
+diff --git a/src/collectives/device/sendrecv.h b/src/collectives/device/sendrecv.h
+index 7e3cff2..3886636 100644
+--- a/src/collectives/device/sendrecv.h
++++ b/src/collectives/device/sendrecv.h
+@@ -210,7 +210,7 @@ struct RunWork<ncclFuncSendRecv, T, RedOp, NCCL_ALGO_RING, NCCL_PROTO_SIMPLE> {
+       } else {
+ #if defined(__gfx90a__)
+         runRecv<ProtoSimple<1,1,8>>(tid, nthreads, group, args);
+-#elif defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
++#elif defined(__gfx902__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
+         runRecv<ProtoSimple<1,1,4>>(tid, nthreads, group, args);
+ #else
+         runRecv<ProtoSimple<1,1>>(tid, nthreads, group, args);
+@@ -222,7 +222,7 @@ struct RunWork<ncclFuncSendRecv, T, RedOp, NCCL_ALGO_RING, NCCL_PROTO_SIMPLE> {
+       } else {
+ #if defined(__gfx90a__)
+         runSend<ProtoSimple<1,1,8>>(tid, nthreads, group, args);
+-#elif defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
++#elif defined(__gfx902__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
+         runSend<ProtoSimple<1,1,4>>(tid, nthreads, group, args);
+ #else
+         runSend<ProtoSimple<1,1>>(tid, nthreads, group, args);
+diff --git a/src/init.cc b/src/init.cc
+index 1ca100b..f076521 100644
+--- a/src/init.cc
++++ b/src/init.cc
+@@ -1216,6 +1216,8 @@ static ncclResult_t initTransportsRank(struct ncclComm* comm, struct ncclComm* p
+   if (comm->topo->nodes[GPU].count == comm->topo->nRanks &&
+        IsArchMatch(comm->topo->nodes[GPU].nodes[idx].gpu.gcn, "gfx906") && allXgmi)
+     allGather3Data[rank].nc = 4;
++  if (IsArchMatch(comm->topo->nodes[GPU].nodes[idx].gpu.gcn, "gfx902"))
++    allGather3Data[rank].nc = 1;
+   if (IsArchMatch(comm->topo->nodes[GPU].nodes[idx].gpu.gcn, "gfx908"))
+     allGather3Data[rank].nc = std::max(4/ringGraph.nChannels, 2);
+   if (comm->topo->nodes[GPU].count == comm->topo->nRanks &&
+diff --git a/src/misc/archinfo.cc b/src/misc/archinfo.cc
+index 3cdb5df..7265308 100644
+--- a/src/misc/archinfo.cc
++++ b/src/misc/archinfo.cc
+@@ -36,6 +36,8 @@ void convertGcnArchToGcnArchName(const char* gcnArch, const char** gcnArchName)
+   // gcnArch is deprecated and we should instead use gcnArchName; however, some data files still have
+   // the older gcnArch value.  There's only a handful of architectures that were coded prior to deprecation,
+   // so we handle those cases here.
++  if (strcmp(gcnArch, "902") == 0)
++    *gcnArchName = "gfx902";
+   if (strcmp(gcnArch, "906") == 0)
+     *gcnArchName = "gfx906";
+   else if (strcmp(gcnArch, "908") == 0)
+-- 
+2.41.1
+

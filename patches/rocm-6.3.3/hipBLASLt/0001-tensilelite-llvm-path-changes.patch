@@ -1,0 +1,64 @@
+From 27e76aae0626825a1a93d13b954abfe2a9da551d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 13 Mar 2025 00:03:49 -0700
+Subject: [PATCH 1/5] tensilelite llvm path changes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ tensilelite/Tensile/Common.py           | 8 ++++----
+ tensilelite/Tensile/Ops/gen_assembly.sh | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
+index 6b5cdc81..a0a89f3f 100644
+--- a/tensilelite/Tensile/Common.py
++++ b/tensilelite/Tensile/Common.py
+@@ -229,7 +229,7 @@ globalParameters["LibraryUpdateComment"] = False                  # Include solu
+ globalParameters["CurrentISA"] = (0,0,0)
+ globalParameters["ROCmAgentEnumeratorPath"] = None      # /opt/rocm/bin/rocm_agent_enumerator
+ globalParameters["ROCmSMIPath"] = None                  # /opt/rocm/bin/rocm-smi
+-globalParameters["AssemblerPath"] = None                # /opt/rocm/llvm/bin/clang++
++globalParameters["AssemblerPath"] = None                # /opt/rocm/bin/clang++
+ globalParameters["WorkingPath"] = os.getcwd()           # path where tensile called from
+ globalParameters["IndexChars"] =  "IJKLMNOPQRSTUVWXYZ"  # which characters to use for C[ij]=Sum[k] A[ik]*B[jk]
+ globalParameters["ScriptPath"] = os.path.dirname(os.path.realpath(__file__))            # path to Tensile/Tensile.py
+@@ -1598,12 +1598,12 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+-      bin_path = "llvm/bin" if globalParameters["CxxCompiler"] == "hipcc" else "bin"
++      bin_path = "bin" if globalParameters["CxxCompiler"] == "hipcc" else "bin"
+       compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "amdclang++"
+       globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], bin_path), compiler)
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+-  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "ld.lld")
++  globalParameters["ROCmLdPath"]  = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "ld.lld")
+ 
+   globalParameters["ExtractKernelPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "hip/bin"), "extractkernel")
+ 
+@@ -1613,7 +1613,7 @@ def assignGlobalParameters( config ):
+     if os.name == "nt":
+       globalParameters["ClangOffloadBundlerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang-offload-bundler.exe")
+     else:
+-      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "llvm/bin"), "clang-offload-bundler")
++      globalParameters["ClangOffloadBundlerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], "bin"), "clang-offload-bundler")
+ 
+   if "ROCmAgentEnumeratorPath" in config:
+     globalParameters["ROCmAgentEnumeratorPath"] = config["ROCmAgentEnumeratorPath"]
+diff --git a/tensilelite/Tensile/Ops/gen_assembly.sh b/tensilelite/Tensile/Ops/gen_assembly.sh
+index 0b21b6c6..2bc399ff 100755
+--- a/tensilelite/Tensile/Ops/gen_assembly.sh
++++ b/tensilelite/Tensile/Ops/gen_assembly.sh
+@@ -33,7 +33,7 @@ if ! [ -z ${ROCM_PATH+x} ]; then
+     rocm_path=${ROCM_PATH}
+ fi
+ 
+-toolchain=${rocm_path}/llvm/bin/clang++
++toolchain=${rocm_path}/bin/clang++
+ 
+ . ${venv}/bin/activate
+ 
+-- 
+2.48.1
+

@@ -1,0 +1,53 @@
+From badd3f46bc39747d7e162410d2195facfdeb63e5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 29 Oct 2024 03:45:28 -0700
+Subject: [PATCH 3/5] use compile and link count parameters with cmake
+
+- allow defining LLVM_PARALLEL_COMPILE_JOBS
+  and LLVM_PARALLEL_LINK_JOBS parameters
+  to avoid out of memory errors during the link time
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f9a4d7f..26cfee7 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -587,7 +587,14 @@ if(${hipcc_version_string} VERSION_GREATER_EQUAL "6.1.33591")
+ endif()
+ 
+ ## Set RCCL compile options
+-target_compile_options(rccl PRIVATE -parallel-jobs=12)
++if(DEFINED LLVM_PARALLEL_COMPILE_JOBS)
++    message(STATUS "LLVM_PARALLEL_COMPILE_JOBS: ${LLVM_PARALLEL_COMPILE_JOBS}")
++    target_compile_options(rccl PRIVATE -parallel-jobs=${LLVM_PARALLEL_COMPILE_JOBS})
++else()
++    message(STATUS "LLVM_PARALLEL_COMPILE_JOBS not set, using 12")
++    target_compile_options(rccl PRIVATE -parallel-jobs=12)
++endif()
++
+ target_compile_options(rccl PRIVATE -Wno-format-nonliteral)
+ target_compile_options(rccl PRIVATE -fgpu-rdc)               # Generate relocatable device code (required for extern __shared__)
+ target_compile_options(rccl PRIVATE -fvisibility=hidden)     # Set symbol visibility to hidden by default
+@@ -620,7 +627,14 @@ endif()
+ target_link_libraries(rccl PRIVATE -fgpu-rdc)             # Required when linking relocatable device code
+ 
+ ## Set RCCL link options
+-target_link_options(rccl PRIVATE -parallel-jobs=16)       # Use multiple threads to link
++if(DEFINED LLVM_PARALLEL_LINK_JOBS)
++    message(STATUS "LLVM_PARALLEL_LINK_JOBS: ${LLVM_PARALLEL_LINK_JOBS}")
++    target_link_options(rccl PRIVATE -parallel-jobs=${LLVM_PARALLEL_LINK_JOBS})
++else()
++    message(STATUS "LLVM_PARALLEL_LINK_JOBS not set, using 12")
++    target_link_options(rccl PRIVATE -parallel-jobs=12)       # Use multiple threads to link
++endif()
++
+ if(BUILD_ADDRESS_SANITIZER)
+   target_link_options(rccl PRIVATE -fuse-ld=lld)
+ endif()
+-- 
+2.41.1
+

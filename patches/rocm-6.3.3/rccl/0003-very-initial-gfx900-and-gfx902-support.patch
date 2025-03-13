@@ -1,0 +1,75 @@
+From a53dc3ef0a5be543cc05f285334672a633556881 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 12 Mar 2025 19:38:53 -0700
+Subject: [PATCH 3/3] very initial gfx900 and gfx902 support
+
+- did not have time to check this now fully
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/clique/CliqueManager.cc | 14 ++++++++++++--
+ src/device/onerank.cu       |  2 +-
+ src/device/prims_ll128.h    |  2 +-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/src/clique/CliqueManager.cc b/src/clique/CliqueManager.cc
+index 368d99a7..b3d05693 100644
+--- a/src/clique/CliqueManager.cc
++++ b/src/clique/CliqueManager.cc
+@@ -266,7 +266,11 @@ void CliqueManager::SetByteLimits()
+   m_allReduceByteLimit = rcclParamAllReduceCliqueByteLimit();
+   if (m_allReduceByteLimit == 0)
+   {
+-    if (IsArchMatch(m_gcnArchName, "gfx906"))
++    if (IsArchMatch(m_gcnArchName, "gfx900"))
++      m_allReduceByteLimit = 8388608;
++    else if (IsArchMatch(m_gcnArchName, "gfx902"))
++      m_allReduceByteLimit = 4194304;
++    else if (IsArchMatch(m_gcnArchName, "gfx906"))
+       m_allReduceByteLimit = 16777216;
+     else if (IsArchMatch(m_gcnArchName, "gfx908"))
+       m_allReduceByteLimit = 8388608;
+@@ -368,7 +372,13 @@ ncclResult_t CliqueManager::GetNumChannelsToUse(ncclFunc_t const coll,
+     {
+       // NOTE: These are currently based on collected data and not necessarily ideal for all hardware
+       int numChannels;
+-      if (IsArchMatch(m_gcnArchName, "gfx906")) {
++      if (IsArchMatch(m_gcnArchName, "gfx900")) {
++        if      (totalBytes <=  131072) numChannels =  2;
++        else                            numChannels =  4;
++      } else if (IsArchMatch(m_gcnArchName, "gfx902")) {
++        if      (totalBytes <=   16384) numChannels =  1;
++        else                            numChannels =  2;
++      } else if (IsArchMatch(m_gcnArchName, "gfx906")) {
+         if      (totalBytes <=   16384) numChannels =  1;
+         else                            numChannels =  2;
+       } else if (IsArchMatch(m_gcnArchName, "gfx908")) {
+diff --git a/src/device/onerank.cu b/src/device/onerank.cu
+index 770ecba1..ec6dcd5b 100644
+--- a/src/device/onerank.cu
++++ b/src/device/onerank.cu
+@@ -11,7 +11,7 @@
+ #include "common.h"
+ #include <cuda_runtime.h>
+ 
+-#if defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
++#if defined(__gfx900__) || defined(__gfx902__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)
+ #define COLL_UNROLL 2
+ #else
+ #define COLL_UNROLL 4
+diff --git a/src/device/prims_ll128.h b/src/device/prims_ll128.h
+index 8b72b357..06df0587 100644
+--- a/src/device/prims_ll128.h
++++ b/src/device/prims_ll128.h
+@@ -13,7 +13,7 @@
+ #define NCCL_LL128_FLAGTHREAD (NCCL_LL128_LINEELEMS-1)
+ 
+ #ifndef RCCL_USE_WBINVL1_VOL
+-#if defined(__GFX8__) || defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__)
++#if defined(__GFX8__) || defined(__gfx900__) || defined(__gfx902__) || defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__)
+ #define RCCL_USE_WBINVL1_VOL 1
+ #else
+ #define RCCL_USE_WBINVL1_VOL 0
+-- 
+2.48.1
+

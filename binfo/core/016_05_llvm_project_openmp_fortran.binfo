@@ -39,7 +39,7 @@ BINFO_APP_PRE_CONFIG_CMD_ARRAY=(
 )
 
 BINFO_APP_POST_INSTALL_CMD_ARRAY=(
-    "if [[ ! -e ${INSTALL_DIR_PREFIX_HIP_LLVM}/lib/clang/17/include/omp.h && -e ${INSTALL_DIR_PREFIX_HIP_LLVM}/include/omp.h ]]; then ln -s ${INSTALL_DIR_PREFIX_HIP_LLVM}/include/omp.h ${INSTALL_DIR_PREFIX_HIP_LLVM}/lib/clang/17/include/omp.h; fi"
+    "if [[ ! -e ${INSTALL_DIR_PREFIX_HIP_LLVM}/lib/clang/18/include/omp.h && -e ${INSTALL_DIR_PREFIX_HIP_LLVM}/include/omp.h ]]; then ln -s ${INSTALL_DIR_PREFIX_HIP_LLVM}/include/omp.h ${INSTALL_DIR_PREFIX_HIP_LLVM}/lib/clang/18/include/omp.h; fi"
     "unset LDFLAGS"
 )
 

@@ -1,0 +1,51 @@
+From f9522e293c3b08c9ad2f447107f462e179c160ea Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 25 Jul 2024 14:36:23 -0700
+Subject: [PATCH 2/5] s_getreg_b32 HW_REG_HW_ID not suppored fix
+
+- this command is not suppored in newer radeon gpus
+  and can not be used for tracing
+- add gfx1103, gfx1150, gfx1151
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/collectives/device/common.h | 4 ++--
+ tools/JitterBench/Common.hpp    | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/collectives/device/common.h b/src/collectives/device/common.h
+index 093a26c..ef70a5a 100644
+--- a/src/collectives/device/common.h
++++ b/src/collectives/device/common.h
+@@ -43,7 +43,7 @@ class ncclFunction {
+ #endif
+ };
+ 
+-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || defined(__gfx1150__) || defined(__gfx1151__)
+ #define __trace_hwreg()
+ #else
+ #define __trace_hwreg() \
+@@ -393,4 +393,4 @@ __device__  __attribute__((noinline)) void NCCL_FUNC_NAME(func, algo, proto, dev
+ 
+ #define NCCL_NVLS_ENABLED (__CUDA_ARCH__ >= 900 && NCCL_NVLS_SUPPORTS(NCCL_TYPE, NCCL_OP))
+ 
+-#endif
+\ No newline at end of file
++#endif
+diff --git a/tools/JitterBench/Common.hpp b/tools/JitterBench/Common.hpp
+index 8fad0ac..9961993 100644
+--- a/tools/JitterBench/Common.hpp
++++ b/tools/JitterBench/Common.hpp
+@@ -43,7 +43,7 @@ THE SOFTWARE.
+ #endif
+ 
+ // Macro for collecting HW_REG_HW_ID
+-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__NVCC__)
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || defined(__gfx1150__) || defined(__gfx1151__) || defined(__NVCC__)
+ #define GetHwId(val) \
+   val = 0
+ #else
+-- 
+2.41.1
+

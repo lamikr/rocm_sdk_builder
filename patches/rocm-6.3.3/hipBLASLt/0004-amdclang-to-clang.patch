@@ -1,0 +1,186 @@
+From 25aca7a4fc580e1e4b779f27e3638e5d75403aa6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 13 Mar 2025 08:34:35 -0700
+Subject: [PATCH 4/5] amdclang++ to clang++
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                                     | 14 +++++++-------
+ install.sh                                         |  6 +++---
+ .../rocblaslt/src/kernels/compile_code_object.sh   |  4 ++--
+ tensilelite/Tensile/Common.py                      | 10 +++++-----
+ tensilelite/Tensile/Tensile.py                     |  4 ++--
+ tensilelite/Tensile/TensileCreateLibrary.py        |  4 ++--
+ 6 files changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 68880a9b..e6181903 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -62,11 +62,11 @@ else()
+ endif()
+ 
+ if (NOT DEFINED ENV{CXX} AND NOT CMAKE_CXX_COMPILER)
+-  set(CMAKE_CXX_COMPILER "${rocm_bin}/amdclang++")
++  set(CMAKE_CXX_COMPILER "${rocm_bin}/clang++")
+ endif()
+ 
+ if (NOT DEFINED ENV{CC} AND NOT CMAKE_C_COMPILER)
+-  set(CMAKE_C_COMPILER "${rocm_bin}/amdclang")
++  set(CMAKE_C_COMPILER "${rocm_bin}/clang")
+ endif()
+ 
+ # TODO: move FC and CXX and CC compiler vars above to new toolchain-linux.cmake (Fortran for clients)
+@@ -127,11 +127,11 @@ if(BUILD_ADDRESS_SANITIZER)
+ endif()
+ 
+ if(NOT BUILD_CUDA)
+-    # Determine if CXX Compiler is amdclang
++    # Determine if CXX Compiler is clang
+     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+-        message(STATUS "Using amdclang to build for amdgpu backend")
++        message(STATUS "Using clang to build for amdgpu backend")
+         if( CMAKE_CXX_COMPILER MATCHES ".*hipcc.*" )
+-          message( STATUS "WARNING: hipcc compiler use is deprecated. Use amdclang++ directly." )
++          message( STATUS "WARNING: hipcc compiler use is deprecated. Use clang++ directly." )
+         endif()
+         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
+         if (CMAKE_BUILD_TYPE MATCHES "Debug" AND NOT WIN32)
+@@ -141,7 +141,7 @@ if(NOT BUILD_CUDA)
+             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3" )
+         endif()
+     else()
+-        message(FATAL_ERROR "'amdclang' compiler required to compile for ROCm software.")
++        message(FATAL_ERROR "'clang' compiler required to compile for ROCm software.")
+     endif()
+ endif()
+ 
+@@ -193,7 +193,7 @@ else()
+ 
+     set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+     set( Tensile_CODE_OBJECT_VERSION "default" CACHE STRING "Tensile code_object_version")
+-    set( Tensile_COMPILER "amdclang++" CACHE STRING "Tensile compiler")
++    set( Tensile_COMPILER "clang++" CACHE STRING "Tensile compiler")
+     set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
+     set( Tensile_CPU_THREADS "" CACHE STRING "Number of threads for Tensile parallel build")
+ 
+diff --git a/install.sh b/install.sh
+index 687f713e..ad82e926 100755
+--- a/install.sh
++++ b/install.sh
+@@ -42,7 +42,7 @@ function display_help()
+   echo "    [-r]--relocatable] create a package to support relocatable ROCm"
+   echo "    [-g|--debug] -DCMAKE_BUILD_TYPE=Debug (default is =Release)"
+   echo "    [-k|--relwithdebinfo] -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+-  echo "    [--hip-clang] build library for amdgpu backend using amdclang"
++  echo "    [--hip-clang] build library for amdgpu backend using clang"
+   echo "    [--static] build static library"
+   echo "    [--address-sanitizer] build with address sanitizer"
+   echo "    [--codecoverage] build with code coverage profiling enabled"
+@@ -763,9 +763,9 @@ pushd .
+   echo $cmake_common_options
+   cmake_common_options="${cmake_common_options} ${tensile_opt}"
+ 
+-  compiler="amdclang++"
++  compiler="clang++"
+   if [[ "${build_hip_clang}" == true ]]; then
+-    compiler="${rocm_path}/bin/amdclang++"
++    compiler="${rocm_path}/bin/clang++"
+   fi
+ 
+   if [[ "${build_clients}" == false ]]; then
+diff --git a/library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh b/library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh
+index 4ff71ea0..9a510c96 100644
+--- a/library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh
++++ b/library/src/amd_detail/rocblaslt/src/kernels/compile_code_object.sh
+@@ -34,5 +34,5 @@ elif [ "$build_type" = "Debug" ]; then
+ fi
+ 
+ rocm_path="${ROCM_PATH:-/opt/rocm}"
+-clang_path="${rocm_path}/bin/amdclang++"
+-$clang_path -x hip "$sources" --offload-arch="${archs}" -c --offload-device-only -Xoffload-linker --build-id=$build_id_kind $additional_options -o "$dest"
+\ No newline at end of file
++clang_path="${rocm_path}/bin/clang++"
++$clang_path -x hip "$sources" --offload-arch="${archs}" -c --offload-device-only -Xoffload-linker --build-id=$build_id_kind $additional_options -o "$dest"
+diff --git a/tensilelite/Tensile/Common.py b/tensilelite/Tensile/Common.py
+index a0a89f3f..7e134390 100644
+--- a/tensilelite/Tensile/Common.py
++++ b/tensilelite/Tensile/Common.py
+@@ -243,8 +243,8 @@ else:
+   globalParameters["RuntimeLanguage"] = "HIP"
+ 
+ globalParameters["CodeObjectVersion"] = "default"
+-globalParameters["CxxCompiler"] = "amdclang++" if os.name != "nt" else "clang++"
+-globalParameters["CCompiler"] = "amdclang" if os.name != "nt" else "clang"
++globalParameters["CxxCompiler"] = "clang++" if os.name != "nt" else "clang++"
++globalParameters["CCompiler"] = "clang" if os.name != "nt" else "clang"
+ globalParameters["Architecture"] = "all"
+ 
+ # might be deprecated
+@@ -346,7 +346,7 @@ def supportedCompiler(compiler: str) -> bool:
+   if os.name == "nt":
+     isSupported = (isSupported or compiler == "clang++")
+   else:
+-    isSupported = (isSupported or compiler == "amdclang++")
++    isSupported = (isSupported or compiler == "clang++")
+ 
+   if not isSupported: printWarning(f"{compiler} is unsupported for os {os.name}")
+ 
+@@ -1585,7 +1585,7 @@ def assignGlobalParameters( config ):
+        globalParameters["CCompiler"] = "hipcc"
+     else:
+         if supportedCompiler(globalParameters["CxxCompiler"]):
+-          globalParameters["CCompiler"] = "clang" if os.name == "nt" else "amdclang"
++          globalParameters["CCompiler"] = "clang" if os.name == "nt" else "clang"
+         else: # unkown c++ compiler so set c compile rto be the same
+           globalParameters["CCompiler"] = globalParameters["CxxCompiler"]
+ 
+@@ -1599,7 +1599,7 @@ def assignGlobalParameters( config ):
+       globalParameters["AssemblerPath"] = locateExe(globalParameters["ROCmBinPath"], "clang++.exe")
+     else:
+       bin_path = "bin" if globalParameters["CxxCompiler"] == "hipcc" else "bin"
+-      compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "amdclang++"
++      compiler = "clang++" if globalParameters["CxxCompiler"] == "hipcc" else "clang++"
+       globalParameters["AssemblerPath"] = locateExe(os.path.join(globalParameters["ROCmPath"], bin_path), compiler)
+ 
+   globalParameters["ROCmSMIPath"] = locateExe(globalParameters["ROCmBinPath"], "rocm-smi")
+diff --git a/tensilelite/Tensile/Tensile.py b/tensilelite/Tensile/Tensile.py
+index f5de9e68..05fd5359 100644
+--- a/tensilelite/Tensile/Tensile.py
++++ b/tensilelite/Tensile/Tensile.py
+@@ -120,8 +120,8 @@ def addCommonArguments(argParser):
+         help="use serial kernel and solution names")
+     argParser.add_argument("--no-merge-files", dest="noMergeFiles", action="store_true", \
+         help="kernels and solutions written to individual files")
+-    argParser.add_argument("--cxx-compiler", dest="CxxCompiler", choices=["hipcc", 'amdclang++'], \
+-        action="store", default="amdclang++", help="select which compiler to use")
++    argParser.add_argument("--cxx-compiler", dest="CxxCompiler", choices=["hipcc", 'clang++'], \
++        action="store", default="clang++", help="select which compiler to use")
+     argParser.add_argument("--logic-format", dest="LogicFormat", choices=["yaml", "json"], \
+         action="store", default="yaml", help="select which logic format to use")
+     argParser.add_argument("--library-format", dest="LibraryFormat", choices=["yaml", "msgpack"], \
+diff --git a/tensilelite/Tensile/TensileCreateLibrary.py b/tensilelite/Tensile/TensileCreateLibrary.py
+index 331aed27..4378c400 100644
+--- a/tensilelite/Tensile/TensileCreateLibrary.py
++++ b/tensilelite/Tensile/TensileCreateLibrary.py
+@@ -248,7 +248,7 @@ def buildSourceCodeObjectFile(CxxCompiler, outputPath, kernelFile):
+       hipFlags += (
+           ["--genco"] if CxxCompiler == "hipcc" else ["--cuda-device-only", "-x", "hip", "-O3"]
+       )
+-      # if CxxCompiler == "amdclang++":
++      # if CxxCompiler == "clang++":
+       # hipFlags += ["-mllvm", "-amdgpu-early-inline-all=true", "-mllvm", "-amdgpu-function-calls=false"]
+ 
+       hipFlags += ['-I', outputPath]
+@@ -1252,7 +1252,7 @@ def TensileCreateLibrary():
+   argParser.add_argument("LogicPath",       help="Path to LibraryLogic.yaml files.")
+   argParser.add_argument("OutputPath",      help="Where to write library files?")
+   argParser.add_argument("RuntimeLanguage", help="Which runtime language?", choices=["OCL", "HIP", "HSA"])
+-  argParser.add_argument("--cxx-compiler",           dest="CxxCompiler",       choices=["hipcc", "amdclang++"], action="store", default="amdclang++")
++  argParser.add_argument("--cxx-compiler",           dest="CxxCompiler",       choices=["hipcc", "clang++"], action="store", default="clang++")
+   argParser.add_argument("--cmake-cxx-compiler",     dest="CmakeCxxCompiler",  action="store")
+   argParser.add_argument("--code-object-version",    dest="CodeObjectVersion", choices=["default", "V4", "V5"], action="store")
+   argParser.add_argument("--architecture",           dest="Architecture",      type=str, action="store", default="all", help="Supported archs: " + " ".join(architectureMap.keys()))
+-- 
+2.48.1
+

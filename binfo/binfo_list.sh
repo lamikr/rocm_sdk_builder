@@ -39,7 +39,6 @@ LIST_BINFO_FILE_BASENAME=(
     "core/016_01_flang_libpgmath.binfo"
     "core/016_02_flang.binfo"
     "core/016_03_llvm_project_openmp.binfo"
-    "core/016_04_flang_runtime.binfo"
     "core/016_05_llvm_project_openmp_fortran.binfo"
     "core/017_hipify.binfo"
     "core/018_rccl.binfo"
@@ -53,14 +52,15 @@ LIST_BINFO_FILE_BASENAME=(
     "core/022_03_blis.binfo"
     "core/022_04_OpenBLAS.binfo"
     "core/022_05_libflame.binfo"
-    "core/023_01_rocBLAS_Tensile.binfo"
-    "core/023_02_rocBLAS.binfo"
+    "core/023_01_hipBLAS-common.binfo"
+    "core/023_02_hipBLASLt.binfo"
+    "core/023_03_rocBLAS_Tensile.binfo"
+    "core/023_04_rocBLAS.binfo"
     "core/023_03_rocSPARSE.binfo"
     "core/023_04_SuiteSparse.binfo"
     "core/024_01_rocSOLVER.binfo"
     "core/024_02_hipSOLVER.binfo"
     "core/025_01_hipBLAS.binfo"
-    "core/025_02_hipBLASLt.binfo"
     "core/025_03_blaze.binfo"    
     "core/026_01_hiprand_rocrand.binfo"
     "core/026_02_hiprand_hiprand.binfo"
@@ -93,6 +93,9 @@ LIST_BINFO_FILE_BASENAME=(
     "core/040_02_onnxruntime_deepspeed.binfo"
     "core/042_python_apps_extra.binfo"
 )
+
+#    "core/016_04_flang_runtime.binfo"
+
 
 # non-used/deprecated
 #"core/050_tensorflow_r11_hip_hcc.binfo"

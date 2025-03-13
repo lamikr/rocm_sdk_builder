@@ -1,0 +1,42 @@
+From 047aaa5e400491452aa9895f401e4c53cfe0fdd3 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 12 Mar 2025 21:39:36 -0700
+Subject: [PATCH] add rocm sdk builder gpu targets
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a03758e..caa3320 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -163,12 +163,24 @@ if(NOT DEFINED AMDGPU_TARGETS)
+   # Query for compiler support of GPU archs
+   rocm_check_target_ids(OPTIONAL_AMDGPU_TARGETS
+     TARGETS
++      gfx902
++      gfx906
++      gfx908
+       gfx90a:xnack-
+       gfx90a:xnack+
++      gfx940
++      gfx941
+       gfx942
++      gfx1011
++      gfx1012
++      gfx1031
++      gfx1032
++      gfx1036
+       gfx1100
+       gfx1101
+       gfx1102
++      gfx1103
++      gfx1150
+       gfx1151
+       gfx1200
+       gfx1201
+-- 
+2.48.1
+

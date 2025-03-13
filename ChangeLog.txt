@@ -8,6 +8,15 @@
 - rocprofiler: fix clang++ error related to using variables in array-definitions
 - rocm_smi_lib, drop patch, already upstreamed
 - amdsmi: drop patches
+- drop fortran runtime compile for now:
+  (need to find out flang version which will support this)
+- rccl: patches partially done, gfx900/902 patch half-done and not tested
+- fmt: update to 11.1.4
+- lapack: update from 3.12.0 to 3.12.1
+- blis: use latest from 1.x branch instead of 1.0 release. Drop upstreamed patches
+- openblas: update from v3.27 to v3.29
+- Tensile: adapt patches
+- rocBLAS: adapt patches, todo: logic files for gfx1200 needed. todo: check strixpoint and strixhalo logic file naming match (strixpoint vs gfx1150)
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------
