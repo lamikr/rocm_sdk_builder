@@ -1,0 +1,291 @@
+From 15f7f9f4efd00429760728b63e64f9769bccc04b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 25 Oct 2024 16:38:41 -0700
+Subject: [PATCH 5/6] add gfx1150/51 strixpoint/strixhalo support
+
+- some tests will still need to be modified
+  to add the support for gfx1150/51
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../composable_kernel/include/utility/config.hpp          | 6 ++++--
+ src/include/miopen/solver/ck_utility_common.hpp           | 8 +++++++-
+ src/solver/batchnorm/backward_per_activation.cpp          | 2 +-
+ src/solver/batchnorm/backward_per_activation_fused.cpp    | 2 +-
+ src/solver/batchnorm/backward_spatial_multiple.cpp        | 2 +-
+ src/solver/batchnorm/backward_spatial_single.cpp          | 2 +-
+ src/solver/batchnorm/forward_inference.cpp                | 2 +-
+ src/solver/batchnorm/forward_per_activation.cpp           | 2 +-
+ src/solver/batchnorm/forward_per_activation_fused.cpp     | 2 +-
+ src/solver/batchnorm/forward_spatial_multiple.cpp         | 2 +-
+ src/solver/batchnorm/forward_spatial_single.cpp           | 2 +-
+ src/solver/conv_wino_fury_RxS.cpp                         | 3 ++-
+ src/target_properties.cpp                                 | 2 ++
+ test/CMakeLists.txt                                       | 8 +++++++-
+ test/gtest/conv_trans.cpp                                 | 2 +-
+ test/gtest/gtest_common.hpp                               | 2 +-
+ test/gtest/miopen_conv.cpp                                | 2 +-
+ 17 files changed, 34 insertions(+), 17 deletions(-)
+
+diff --git a/src/composable_kernel/composable_kernel/include/utility/config.hpp b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+index eb078508f..7bf52a738 100644
+--- a/src/composable_kernel/composable_kernel/include/utility/config.hpp
++++ b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+@@ -19,7 +19,8 @@
+       defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1011) || defined(CK_AMD_GPU_GFX1012) \
+       defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || \
+       defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036) || \
+-      defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103))
++      defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103) || \
++      defined(CK_AMD_GPU_GFX1150) || defined(CK_AMD_GPU_GFX1151))
+ #error Need to define (only) one GPU target
+ #endif
+ 
+@@ -41,7 +42,8 @@
+       defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || \
+       defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
+-#elif defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103)
++#elif defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103) || \
++      defined(CK_AMD_GPU_GFX1150) || defined(CK_AMD_GPU_GFX1151)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
+ #endif
+ 
+diff --git a/src/include/miopen/solver/ck_utility_common.hpp b/src/include/miopen/solver/ck_utility_common.hpp
+index ddc415277..e8c11f1f6 100644
+--- a/src/include/miopen/solver/ck_utility_common.hpp
++++ b/src/include/miopen/solver/ck_utility_common.hpp
+@@ -68,7 +68,9 @@ static inline bool is_ck_supported_hardware(const Handle& handle)
+            StartsWith(handle.GetDeviceName(), "gfx1100") ||
+            StartsWith(handle.GetDeviceName(), "gfx1101") ||
+            StartsWith(handle.GetDeviceName(), "gfx1102") ||
+-           StartsWith(handle.GetDeviceName(), "gfx1103");
++           StartsWith(handle.GetDeviceName(), "gfx1103") ||
++           StartsWith(handle.GetDeviceName(), "gfx1150") ||
++           StartsWith(handle.GetDeviceName(), "gfx1151");
+ }
+ 
+ // MI100 : gfx908
+@@ -142,6 +144,10 @@ static inline auto get_ck_common_compiler_flag(const Handle& handle)
+         compiler_flag << " -DCK_AMD_GPU_GFX1102";
+     else if(StartsWith(device_name, "gfx1103"))
+         compiler_flag << " -DCK_AMD_GPU_GFX1103";
++    else if(StartsWith(device_name, "gfx1150"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1150";
++    else if(StartsWith(device_name, "gfx1151"))
++        compiler_flag << " -DCK_AMD_GPU_GFX1151";
+     // NOLINTEND(*-braces-around-statements)
+ 
+     // buffer atomic-fadd
+diff --git a/src/solver/batchnorm/backward_per_activation.cpp b/src/solver/batchnorm/backward_per_activation.cpp
+index 73b80d85c..8914ad917 100644
+--- a/src/solver/batchnorm/backward_per_activation.cpp
++++ b/src/solver/batchnorm/backward_per_activation.cpp
+@@ -112,7 +112,7 @@ BnBwdTrainingPerActivation::GetSolution(const ExecutionContext& context,
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+         };
+ 
+diff --git a/src/solver/batchnorm/backward_per_activation_fused.cpp b/src/solver/batchnorm/backward_per_activation_fused.cpp
+index e2e1a98e9..b17a3e9eb 100644
+--- a/src/solver/batchnorm/backward_per_activation_fused.cpp
++++ b/src/solver/batchnorm/backward_per_activation_fused.cpp
+@@ -167,7 +167,7 @@ ConvSolution BnBwdTrgActivationFused::GetSolution(const FusionContext& context,
+             {"MIO_BN_USESAVED", static_cast<int>(true)},
+             {"MIO_BN_VARIANT", static_cast<int>(variant)},
+             {"MIO_BN_GFX103X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx103"))},
+-            {"MIO_BN_GFX110X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx110"))},
++            {"MIO_BN_GFX110X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx11"))},
+             {"MIO_BN_CBA_WRITE_INTERMEDIATE", static_cast<int>(0)},
+             {"MIOPEN_YES_ACTIV", static_cast<int>(1)},
+             {"MIOPEN_NRN_OP_ID", static_cast<int>(activ_op.activMode)},
+diff --git a/src/solver/batchnorm/backward_spatial_multiple.cpp b/src/solver/batchnorm/backward_spatial_multiple.cpp
+index b2266cda0..9278791a2 100644
+--- a/src/solver/batchnorm/backward_spatial_multiple.cpp
++++ b/src/solver/batchnorm/backward_spatial_multiple.cpp
+@@ -222,7 +222,7 @@ ConvSolution BnBwdTrainingSpatialMultiple::GetSolution(
+             {"MIO_BN_GRP2", zlocalsize},
+             {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+         };
+ 
+diff --git a/src/solver/batchnorm/backward_spatial_single.cpp b/src/solver/batchnorm/backward_spatial_single.cpp
+index 101e38510..4609ecc85 100644
+--- a/src/solver/batchnorm/backward_spatial_single.cpp
++++ b/src/solver/batchnorm/backward_spatial_single.cpp
+@@ -257,7 +257,7 @@ BnBwdTrainingSpatialSingle::GetSolution(const ExecutionContext& context,
+             kernel.kernel_name = "MIOpenBatchNormBwdSpatial";
+ 
+             build_params << KernelBuildParameters{
+-                {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++                {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+                 {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+                 {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             };
+diff --git a/src/solver/batchnorm/forward_inference.cpp b/src/solver/batchnorm/forward_inference.cpp
+index d3ebc3119..502bfe60a 100644
+--- a/src/solver/batchnorm/forward_inference.cpp
++++ b/src/solver/batchnorm/forward_inference.cpp
+@@ -106,7 +106,7 @@ ConvSolution BnFwdInference::GetSolution(const ExecutionContext& context,
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+         };
+ 
+diff --git a/src/solver/batchnorm/forward_per_activation.cpp b/src/solver/batchnorm/forward_per_activation.cpp
+index ac29580bf..e128ae832 100644
+--- a/src/solver/batchnorm/forward_per_activation.cpp
++++ b/src/solver/batchnorm/forward_per_activation.cpp
+@@ -104,7 +104,7 @@ BnFwdTrainingPerActivation::GetSolution(const ExecutionContext& context,
+             {"MIO_BN_GRP0", xlocalsize},
+             {"MIO_BN_GRP1", ylocalsize},
+             {"MIO_BN_GRP2", zlocalsize},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+         };
+ 
+diff --git a/src/solver/batchnorm/forward_per_activation_fused.cpp b/src/solver/batchnorm/forward_per_activation_fused.cpp
+index 9b5c3f97c..62748d053 100644
+--- a/src/solver/batchnorm/forward_per_activation_fused.cpp
++++ b/src/solver/batchnorm/forward_per_activation_fused.cpp
+@@ -169,7 +169,7 @@ ConvSolution BnFwdTrgActivationFused::GetSolution(const FusionContext& context,
+             {"MIO_RUNNING_RESULT", static_cast<int>(savePopStats)},
+             {"MIO_BN_VARIANT", static_cast<int>(variant)},
+             {"MIO_BN_GFX103X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx103"))},
+-            {"MIO_BN_GFX110X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx110"))},
++            {"MIO_BN_GFX110X", static_cast<int>(StartsWith(handle.GetDeviceName(), "gfx11"))},
+             {"MIOPEN_YES_ACTIV", static_cast<int>(1)},
+             {"MIOPEN_NRN_OP_ID", static_cast<int>(activ_op.activMode)},
+             {"MIOPEN_USE_FP16", static_cast<int>(input_desc.GetType() == miopenHalf)},
+diff --git a/src/solver/batchnorm/forward_spatial_multiple.cpp b/src/solver/batchnorm/forward_spatial_multiple.cpp
+index a50fdd3e6..f82cfb351 100644
+--- a/src/solver/batchnorm/forward_spatial_multiple.cpp
++++ b/src/solver/batchnorm/forward_spatial_multiple.cpp
+@@ -178,7 +178,7 @@ ConvSolution BnFwdTrainingSpatialMultiple::GetSolution(
+             {"MIO_BN_GRP2", zlocalsize},
+             {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+         };
+ 
+diff --git a/src/solver/batchnorm/forward_spatial_single.cpp b/src/solver/batchnorm/forward_spatial_single.cpp
+index feaae6870..a87ffb86d 100644
+--- a/src/solver/batchnorm/forward_spatial_single.cpp
++++ b/src/solver/batchnorm/forward_spatial_single.cpp
+@@ -212,7 +212,7 @@ BnFwdTrainingSpatialSingle::GetSolution(const ExecutionContext& context,
+             {"MIO_BN_GRP2", zlocalsize},
+             {"MIO_BN_GFX101X", (StartsWith(handle.GetDeviceName(), "gfx101") ? "1" : "0")},
+             {"MIO_BN_GFX103X", (StartsWith(handle.GetDeviceName(), "gfx103") ? "1" : "0")},
+-            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx110") ? "1" : "0")},
++            {"MIO_BN_GFX110X", (StartsWith(handle.GetDeviceName(), "gfx11") ? "1" : "0")},
+             {"MIO_LAYOUT_NHWC", static_cast<int>(problem.IsLayoutNHWC())},
+         };
+ 
+diff --git a/src/solver/conv_wino_fury_RxS.cpp b/src/solver/conv_wino_fury_RxS.cpp
+index 148573621..da0136e3b 100644
+--- a/src/solver/conv_wino_fury_RxS.cpp
++++ b/src/solver/conv_wino_fury_RxS.cpp
+@@ -196,7 +196,8 @@ bool ConvWinoFuryRxS<Winodata, Winofilter>::IsApplicable(const ExecutionContext&
+         return false;
+ 
+     const auto name = ctx.GetStream().GetDeviceName();
+-    if(!(name == "gfx1100" || name == "gfx1101"))
++    // gfx1100/01/02/03/50/51
++    if(!(StartsWith(name, "gfx11")))
+         return false;
+ 
+     auto n_groups = ctx.GetStream().GetMaxHardwareComputeUnits();
+diff --git a/src/target_properties.cpp b/src/target_properties.cpp
+index 34ae8c219..a330a3e52 100644
+--- a/src/target_properties.cpp
++++ b/src/target_properties.cpp
+@@ -65,6 +65,8 @@ static std::string GetDeviceNameFromMap(const std::string& in)
+         {"navi32", "gfx1101"},
+         {"navi33", "gfx1102"},
+         {"phoenix", "gfx1103"},
++        {"strixpoint", "gfx1150"},
++        {"strixhalo", "gfx1151"},
+     };
+ 
+     const auto& dev_str = miopen::GetStringEnv(ENV(MIOPEN_DEBUG_ENFORCE_DEVICE));
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index c6f3adb8e..f24e6ab65 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -62,7 +62,7 @@ option( MIOPEN_TEST_GFX94X "Test on MI300 (gfx940/1/2)" OFF )
+ option( MIOPEN_TEST_GFX900 "Test on Vega10 (gfx900)" OFF )
+ option( MIOPEN_TEST_GFX906 "Test on Vega20 (gfx906)" OFF )
+ option( MIOPEN_TEST_GFX103X "Test on Navi21/22 (gfx1030/31)" OFF )
+-option( MIOPEN_TEST_GFX110X "Test on Navi31/32 (gfx1100/02)" OFF )
++option( MIOPEN_TEST_GFX110X "Test on Navi3x and StrixPoint (gfx11)" OFF )
+ option( MIOPEN_TEST_GPU_XNACK_ENABLED "Test as if XNACK mode is enabled" OFF )
+ option( MIOPEN_TEST_CONV "" OFF)
+ option( MIOPEN_TEST_DEEPBENCH "" OFF)
+@@ -130,6 +130,12 @@ if(NOT (MIOPEN_TEST_GFX900 OR MIOPEN_TEST_GFX906 OR MIOPEN_TEST_GFX908 OR MIOPEN
+             set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx1102")
+             set(MIOPEN_TEST_GFX110X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1103")
++            set(MIOPEN_TEST_GFX110X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1150")
++            set(MIOPEN_TEST_GFX110X ON)
++        elseif(ROCMINFO_OUTPUT MATCHES "gfx1151")
++            set(MIOPEN_TEST_GFX110X ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx900")
+             set(MIOPEN_TEST_GFX900 ON)
+         elseif(ROCMINFO_OUTPUT MATCHES "gfx906")
+diff --git a/test/gtest/conv_trans.cpp b/test/gtest/conv_trans.cpp
+index 9a715e8c6..2eafe2fb6 100644
+--- a/test/gtest/conv_trans.cpp
++++ b/test/gtest/conv_trans.cpp
+@@ -90,7 +90,7 @@ bool IsTestSupportedForDevice(const miopen::Handle& handle)
+     std::string devName = handle.GetDeviceName();
+     if(devName == "gfx900" || devName == "gfx906" || devName == "gfx908" || devName == "gfx90a" ||
+        miopen::StartsWith(devName, "gfx94") || miopen::StartsWith(devName, "gfx103") ||
+-       miopen::StartsWith(devName, "gfx110"))
++       miopen::StartsWith(devName, "gfx11"))
+         return true;
+     else
+         return false;
+diff --git a/test/gtest/gtest_common.hpp b/test/gtest/gtest_common.hpp
+index 3a52e4cfe..b0c3e5b60 100644
+--- a/test/gtest/gtest_common.hpp
++++ b/test/gtest/gtest_common.hpp
+@@ -109,7 +109,7 @@ bool IsTestSupportedForDevMask()
+     if constexpr(test(Gpu::gfx103X))
+         res = res || (miopen::StartsWith(dev, "gfx103"));
+     if constexpr(test(Gpu::gfx110X))
+-        res = res || (miopen::StartsWith(dev, "gfx110"));
++        res = res || (miopen::StartsWith(dev, "gfx11"));
+ 
+     return res;
+ }
+diff --git a/test/gtest/miopen_conv.cpp b/test/gtest/miopen_conv.cpp
+index bc8591c31..10e010806 100644
+--- a/test/gtest/miopen_conv.cpp
++++ b/test/gtest/miopen_conv.cpp
+@@ -92,7 +92,7 @@ bool IsTestSupportedForDevice(const miopen::Handle& handle)
+     std::string devName = handle.GetDeviceName();
+     if(devName == "gfx900" || devName == "gfx906" || devName == "gfx908" || devName == "gfx90a" ||
+        miopen::StartsWith(devName, "gfx94") || miopen::StartsWith(devName, "gfx103") ||
+-       miopen::StartsWith(devName, "gfx110"))
++       miopen::StartsWith(devName, "gfx11"))
+         return true;
+     else
+         return false;
+-- 
+2.43.0
+

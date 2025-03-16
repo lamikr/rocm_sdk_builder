@@ -23,6 +23,12 @@
 - hipSPARSELt
     - add hipSPARSE_Lt_Tensilelite because hipSPARSE 6.3.x requires different version of tensilelite than hipBLASLt
     - todo: check gpu filtering in binfo
+- rocMLIR: drop patch, could not find anymore a way to set the CU count for each GPU in code
+- MIOpen
+    - drop some patches
+- composable kernel
+    - first attempt to update patches, needs lot of testing with different gpus
+
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------

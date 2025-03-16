@@ -1,4 +1,4 @@
-From 15fcd305f75faa7c1a7a303de7faaf6d5e5766bb Mon Sep 17 00:00:00 2001
+From 9008da7659ca2154de9eb7e832cd7c108c25813c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 15 Mar 2025 13:34:19 -0700
 Subject: [PATCH 6/6] add rocm sdk builder supported gpus
@@ -14,8 +14,8 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  .../include/Tensile/PlaceholderLibrary.hpp    | 15 +++++
  .../Tensile/Serialization/Predicates.hpp      |  9 +++
  .../Source/lib/source/ocl/OclUtils.cpp        | 36 +++++++++++
- tensilelite/Tensile/Source/memory_gfx.h       |  7 ++-
- 10 files changed, 138 insertions(+), 9 deletions(-)
+ tensilelite/Tensile/Source/memory_gfx.h       |  9 ++-
+ 10 files changed, 139 insertions(+), 10 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index e6181903..3236c73c 100644
@@ -363,10 +363,16 @@ index 4e86c8c9..e141b866 100644
              {
                  return AMDGPU::Processor::gfx1200;
 diff --git a/tensilelite/Tensile/Source/memory_gfx.h b/tensilelite/Tensile/Source/memory_gfx.h
-index 8d29db18..262dde8d 100644
+index 8d29db18..6165e43b 100644
 --- a/tensilelite/Tensile/Source/memory_gfx.h
 +++ b/tensilelite/Tensile/Source/memory_gfx.h
-@@ -44,10 +44,13 @@
+@@ -39,15 +39,18 @@
+ #define INLINEDEVICE inline
+ #endif
+ 
+-#if defined(__gfx803__) || defined(__gfx900__) || defined(__gfx906__) || defined(__gfx908__) \
++#if defined(__gfx803__) || defined(__gfx900__) || defined(__gfx902__) || defined(__gfx906__) || defined(__gfx908__) \
+     || defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__)                     \
      || defined(__gfx942__) // test device
  #define USE_GFX_BUFFER_INTRINSIC
  #define BUFFER_RESOURCE_3RD_DWORD 0x00020000
