@@ -1,7 +1,7 @@
-From 2f4b5e5e72f16210ce1ec33aa508c34367aabaef Mon Sep 17 00:00:00 2001
+From 056fbdb7d8493321ec7a89421dcb435fc70f4825 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 18:34:49 -0700
-Subject: [PATCH 1/3] add OpenBLAS link support for client apps
+Subject: [PATCH 1/4] add OpenBLAS link support for client apps
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
-index 4a6e5c8..0240293 100644
+index 7cad5e1..f5c51b6 100644
 --- a/clients/CMakeLists.txt
 +++ b/clients/CMakeLists.txt
 @@ -44,6 +44,16 @@ function( get_cblas cblas_libs cblas_inc )
@@ -49,5 +49,5 @@ index 4a6e5c8..0240293 100644
    endif()
    set( ${cblas_libs} ${libs} PARENT_SCOPE )
 -- 
-2.45.2
+2.48.1
 

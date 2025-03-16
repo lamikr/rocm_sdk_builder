@@ -1,7 +1,7 @@
 From 3587f7dd100c9602da3627993d612bffcf7a3d4a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 13 Mar 2025 00:07:44 -0700
-Subject: [PATCH 2/5] OpenBLAS and BLIS library search improvements
+Subject: [PATCH 2/6] OpenBLAS and BLIS library search improvements
 
 - works now with the libraries installed by the
   rocm sdk builder

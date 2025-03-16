@@ -1,7 +1,7 @@
 From 27e76aae0626825a1a93d13b954abfe2a9da551d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 13 Mar 2025 00:03:49 -0700
-Subject: [PATCH 1/5] tensilelite llvm path changes
+Subject: [PATCH 1/6] tensilelite llvm path changes
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

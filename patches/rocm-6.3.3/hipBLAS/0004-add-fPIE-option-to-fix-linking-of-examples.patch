@@ -1,0 +1,44 @@
+From 4656e2bb8701f9f6fbd3c0b292337db169de4662 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 15 Mar 2025 10:45:54 -0700
+Subject: [PATCH 4/4] add -fPIE option to fix linking of examples
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/samples/CMakeLists.txt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/clients/samples/CMakeLists.txt b/clients/samples/CMakeLists.txt
+index a9bb428..7596c01 100644
+--- a/clients/samples/CMakeLists.txt
++++ b/clients/samples/CMakeLists.txt
+@@ -31,7 +31,7 @@ add_executable( hipblas-example-hip-complex-her2 example_hip_complex_her2.cpp ${
+ add_executable( hipblas-example-hgemm-half example_hgemm_hip_half.cpp ${hipblas_samples_common})
+ add_executable( hipblas-example-gemmEx_v2 example_gemm_ex_v2.cpp ${hipblas_samples_common})
+ 
+-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/amdclang\\+\\+$")
++if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/clang\\+\\+$")
+   add_executable( hipblas-example-hgemm example_hgemm.cpp ${hipblas_samples_common} )
+ endif( )
+ 
+@@ -63,7 +63,7 @@ if( NOT TARGET hipblas )
+ endif( )
+ 
+ list (APPEND hipblas-example-executables hipblas-example-sscal hipblas-example-scal-ex-v2 hipblas-example-strmm hipblas-example-sgemm hipblas-example-sgemm-strided-batched hipblas-example-gemmEx_v2 hipblas-example-hip-complex-her2 hipblas-example-hgemm-half hipblas-example-c ${sample_list_fortran} )
+-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/amdclang\\+\\+$")
++if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/clang\\+\\+$")
+   list (APPEND hipblas-example-executables hipblas-example-hgemm)
+ endif( )
+ if(HIP_PLATFORM STREQUAL amd)
+@@ -91,7 +91,7 @@ foreach( exe IN LISTS hipblas-example-executables)
+ 
+   target_include_directories( ${exe} PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include> )
+ 
+-  target_compile_options( ${exe} PRIVATE -mf16c -DHIPBLAS_BFLOAT16_CLASS )
++  target_compile_options( ${exe} PRIVATE -mf16c -fPIE -DHIPBLAS_BFLOAT16_CLASS )
+   target_compile_definitions( ${exe} PRIVATE HIPBLAS_NO_DEPRECATED_WARNINGS )
+ 
+   target_link_libraries( ${exe} PRIVATE roc::hipblas )
+-- 
+2.48.1
+

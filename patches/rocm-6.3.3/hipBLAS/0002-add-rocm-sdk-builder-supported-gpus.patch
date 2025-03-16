@@ -1,0 +1,112 @@
+From 6e7b99e3bbae57705d4e2d89c54aacc59fcb29e5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 18 May 2024 18:35:05 -0700
+Subject: [PATCH 2/4] add rocm sdk builder supported gpus
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ clients/common/utility.cpp | 44 ++++++++++++++++++++++++++++++++++++++
+ clients/include/utility.h  |  9 +++++++-
+ 2 files changed, 52 insertions(+), 1 deletion(-)
+
+diff --git a/clients/common/utility.cpp b/clients/common/utility.cpp
+index 2aa6438..3916fc5 100644
+--- a/clients/common/utility.cpp
++++ b/clients/common/utility.cpp
+@@ -448,6 +448,10 @@ hipblasClientProcessor getArch()
+     {
+         return hipblasClientProcessor::gfx900;
+     }
++    else if(deviceString.find("gfx902") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx902;
++    }
+     else if(deviceString.find("gfx906") != std::string::npos)
+     {
+         return hipblasClientProcessor::gfx906;
+@@ -488,6 +492,26 @@ hipblasClientProcessor getArch()
+     {
+         return hipblasClientProcessor::gfx1030;
+     }
++    else if(deviceString.find("gfx1031") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1031;
++    }
++    else if(deviceString.find("gfx1032") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1032;
++    }
++    else if(deviceString.find("gfx1034") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1034;
++    }
++    else if(deviceString.find("gfx1035") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1035;
++    }
++    else if(deviceString.find("gfx1036") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1036;
++    }
+     else if(deviceString.find("gfx1100") != std::string::npos)
+     {
+         return hipblasClientProcessor::gfx1100;
+@@ -500,6 +524,26 @@ hipblasClientProcessor getArch()
+     {
+         return hipblasClientProcessor::gfx1102;
+     }
++    else if(deviceString.find("gfx1103") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1103;
++    }
++    else if(deviceString.find("gfx1150") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1150;
++    }
++    else if(deviceString.find("gfx1151") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1151;
++    }
++    else if(deviceString.find("gfx1200") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1200;
++    }
++    else if(deviceString.find("gfx1201") != std::string::npos)
++    {
++        return hipblasClientProcessor::gfx1201;
++    }
+     return static_cast<hipblasClientProcessor>(0);
+ }
+ 
+diff --git a/clients/include/utility.h b/clients/include/utility.h
+index 0f3ff7b..69cf09a 100644
+--- a/clients/include/utility.h
++++ b/clients/include/utility.h
+@@ -483,6 +483,7 @@ typedef enum hipblasClientProcessor
+     // only including supported types
+     gfx803  = 803,
+     gfx900  = 900,
++    gfx902  = 902,
+     gfx906  = 906,
+     gfx908  = 908,
+     gfx90a  = 910,
+@@ -497,9 +498,15 @@ typedef enum hipblasClientProcessor
+     gfx1032 = 1032,
+     gfx1034 = 1034,
+     gfx1035 = 1035,
++    gfx1036 = 1036,
+     gfx1100 = 1100,
+     gfx1101 = 1101,
+-    gfx1102 = 1102
++    gfx1102 = 1102,
++    gfx1103 = 1103,
++    gfx1150 = 1150,
++    gfx1151 = 1151,
++    gfx1200 = 1200,
++    gfx1201 = 1201
+ } hipblasClientProcessor;
+ 
+ /* get architecture number */
+-- 
+2.48.1
+

@@ -1,7 +1,7 @@
-From 95c06ec97e891829b2d525c9bee1da21a52fdfc8 Mon Sep 17 00:00:00 2001
+From 2e78ecb824571d85a474c71f71102d914daedf35 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 23 May 2024 11:51:49 -0700
-Subject: [PATCH 3/3] fixes for gtest and lapack linking in ubuntu
+Subject: [PATCH 3/4] fixes for gtest and lapack linking in ubuntu
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -10,7 +10,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  2 files changed, 24 insertions(+), 3 deletions(-)
 
 diff --git a/clients/CMakeLists.txt b/clients/CMakeLists.txt
-index 0240293..e5d58d7 100644
+index f5c51b6..06d6de0 100644
 --- a/clients/CMakeLists.txt
 +++ b/clients/CMakeLists.txt
 @@ -27,11 +27,17 @@ function( get_lapack lapack_lib lapack_inc )
@@ -35,7 +35,7 @@ index 0240293..e5d58d7 100644
  
  function( get_cblas cblas_libs cblas_inc )
 diff --git a/clients/benchmarks/CMakeLists.txt b/clients/benchmarks/CMakeLists.txt
-index b670407..8c66252 100644
+index d04d28e..577fa4e 100644
 --- a/clients/benchmarks/CMakeLists.txt
 +++ b/clients/benchmarks/CMakeLists.txt
 @@ -22,6 +22,18 @@
@@ -57,7 +57,7 @@ index b670407..8c66252 100644
  # Linking lapack library requires fortran flags
  enable_language( Fortran )
  
-@@ -137,6 +149,9 @@ else( )
+@@ -130,6 +142,9 @@ else( )
    target_link_libraries( hipblas_v2-bench PRIVATE ${CUDA_LIBRARIES} )
  endif( )
  
@@ -68,5 +68,5 @@ index b670407..8c66252 100644
    CXX_EXTENSIONS OFF
    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 -- 
-2.45.2
+2.48.1
 

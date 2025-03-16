@@ -1,0 +1,56 @@
+From e45550455194298a93561838d8f0b8137829e17f Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 15 Mar 2025 12:07:03 -0700
+Subject: [PATCH 3/3] amdclang to clang
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9441993..0175dae 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -99,9 +99,9 @@ endif()
+ if(NOT BUILD_CUDA)
+     # Determine if CXX Compiler is hip-clang
+     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+-        message(STATUS "Using amdclang to build for amdgpu backend")
++        message(STATUS "Using clang to build for amdgpu backend")
+         if( CMAKE_CXX_COMPILER MATCHES ".*hipcc.*" )
+-          message( STATUS "WARNING: hipcc compiler use is deprecated. Use amdclang++ directly." )
++          message( STATUS "WARNING: hipcc compiler use is deprecated. Use clang++ directly." )
+         endif()
+         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
+         if (CMAKE_BUILD_TYPE MATCHES "Debug" AND NOT WIN32)
+@@ -111,7 +111,7 @@ if(NOT BUILD_CUDA)
+             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3" )
+         endif()
+     else()
+-        message(FATAL_ERROR "'amdclang' compiler required to compile for ROCm software.")
++        message(FATAL_ERROR "'clang' compiler required to compile for ROCm software.")
+     endif()
+ endif()
+ # Dependencies
+@@ -162,7 +162,7 @@ else()
+ 
+       set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+       set( Tensile_CODE_OBJECT_VERSION "default" CACHE STRING "Tensile code_object_version")
+-      set( Tensile_COMPILER "amdclang++" CACHE STRING "Tensile compiler")
++      set( Tensile_COMPILER "clang++" CACHE STRING "Tensile compiler")
+       set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
+       set( Tensile_CPU_THREADS "" CACHE STRING "Number of threads for Tensile parallel build")
+ 
+@@ -174,7 +174,7 @@ else()
+ 
+       set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
+       set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS default V4 V5 )
+-      set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc amdclang++)
++      set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc clang++)
+       set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
+ 
+       if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
+-- 
+2.48.1
+

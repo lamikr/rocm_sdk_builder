@@ -16,7 +16,13 @@
 - blis: use latest from 1.x branch instead of 1.0 release. Drop upstreamed patches
 - openblas: update from v3.27 to v3.29
 - Tensile: adapt patches
+- hipBLASLt
+    - needs to be build before rocBLAS on rocm 6.3.x
+    - todo: check gpu filtering in binfo
 - rocBLAS: adapt patches, todo: logic files for gfx1200 needed. todo: check strixpoint and strixhalo logic file naming match (strixpoint vs gfx1150)
+- hipSPARSELt
+    - add hipSPARSE_Lt_Tensilelite because hipSPARSE 6.3.x requires different version of tensilelite than hipBLASLt
+    - todo: check gpu filtering in binfo
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------

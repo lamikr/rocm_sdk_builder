@@ -1,7 +1,7 @@
 From 878bff7874f2360564934521eecfb70a4b3916f4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 13 Mar 2025 08:32:45 -0700
-Subject: [PATCH 5/5] fallback architecture fixes
+Subject: [PATCH 5/6] fallback architecture fixes
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
