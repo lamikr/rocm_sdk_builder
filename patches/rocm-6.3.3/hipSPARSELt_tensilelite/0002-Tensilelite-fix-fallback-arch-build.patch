@@ -1,0 +1,66 @@
+From 39c45cf8b3cde59145186729602d97231d668b25 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 15 May 2024 19:30:31 -0700
+Subject: [PATCH 2/6] Tensilelite fix fallback arch build
+
+fixes build error which happens for example
+if the only gpu selected is gfx1010 / AMD RX 5700 XT.
+
+Original patch and discussion in
+https://github.com/ROCm/Tensile/issues/1757
+https://github.com/ulyssesrr/docker-rocm-xtra/blob/3be41a9d79ff4f4324f3f34383b2282529c0c4b7/rocm-xtra-builder-rocblas/patches/Tensile-fix-fallback-arch-build.patch
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ tensilelite/Tensile/TensileCreateLibrary.py | 21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/tensilelite/Tensile/TensileCreateLibrary.py b/tensilelite/Tensile/TensileCreateLibrary.py
+index 8a37403d..d2ac2166 100644
+--- a/tensilelite/Tensile/TensileCreateLibrary.py
++++ b/tensilelite/Tensile/TensileCreateLibrary.py
+@@ -1111,7 +1111,11 @@ def generateLogicDataAndSolutions(logicFiles, args):
+       for key, value in masterLibraries.items():
+         if key != "fallback":
+           value.merge(deepcopy(masterLibraries["fallback"]))
+-
++      for architectureName in parseArchitecturesFromArgs(args.Architecture, True):
++        if architectureName not in masterLibraries:
++          print("Using fallback for arch: "+architectureName)
++          masterLibraries[architectureName] = deepcopy(masterLibraries["fallback"])
++          masterLibraries[architectureName].version = args.version
+       masterLibraries.pop("fallback")
+ 
+     for _, masterLibrary in masterLibraries.items():
+@@ -1170,6 +1174,16 @@ def writeBenchmarkClientFiles(libraryWorkingPath, tensileSourcePath, solutions,
+ 
+   return (codeObjectFiles, newLibrary)
+ 
++def parseArchitecturesFromArgs(architectureArgValue, handleLiteralAllAsList):
++  if architectureArgValue == 'all' and handleLiteralAllAsList:
++    archs = [gfxName(arch) for arch in globalParameters['SupportedISA']]
++  else:
++    if ";" in architectureArgValue:
++      archs = architectureArgValue.split(";") # user arg list format
++    else:
++      archs = architectureArgValue.split("_") # workaround for cmake list in list issue
++  return archs
++
+ def WriteClientLibraryFromSolutions(solutionList, libraryWorkingPath, tensileSourcePath = None):
+ 
+   if tensileSourcePath == None:
+@@ -1323,10 +1337,7 @@ def TensileCreateLibrary():
+   if not os.path.exists(logicPath):
+     printExit("LogicPath %s doesn't exist" % logicPath)
+ 
+-  if ";" in arguments["Architecture"]:
+-    archs = arguments["Architecture"].split(";") # user arg list format
+-  else:
+-    archs = arguments["Architecture"].split("_") # workaround for cmake list in list issue
++  archs = parseArchitecturesFromArgs(arguments["Architecture"], False)
+   logicArchs = set()
+   for arch in archs:
+     if arch in architectureMap:
+-- 
+2.48.1
+

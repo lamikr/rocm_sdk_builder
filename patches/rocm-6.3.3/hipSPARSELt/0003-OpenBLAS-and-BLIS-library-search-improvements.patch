@@ -1,7 +1,7 @@
-From 62e1aef01d1d23a08f8612565c77dad8da5e034d Mon Sep 17 00:00:00 2001
+From 27153e6d344268f7b9a9e889d7c9e1f3dae1fa38 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 18 May 2024 19:38:52 -0700
-Subject: [PATCH 2/3] OpenBLAS and BLIS library search improvements
+Subject: [PATCH 3/3] OpenBLAS and BLIS library search improvements
 
 - OpenBLAS and BLIS can now be found from
   rocm_sdk build by rocm sdk builder
@@ -69,7 +69,7 @@ index 31479ab..62b9935 100644
    list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
    if (NOT BUILD_FORTRAN_CLIENTS)
 diff --git a/clients/gtest/CMakeLists.txt b/clients/gtest/CMakeLists.txt
-index f85594b..d57ee98 100644
+index 2057db0..b4bd01d 100644
 --- a/clients/gtest/CMakeLists.txt
 +++ b/clients/gtest/CMakeLists.txt
 @@ -81,8 +81,8 @@ target_compile_options(hipsparselt-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMM

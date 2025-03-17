@@ -1,0 +1,44 @@
+From d3c6500e9a0b781354bf1bdb1baf6d39e980d4c8 Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Sun, 4 Aug 2024 17:07:19 +0000
+Subject: [PATCH 6/6] Set standard to C++17
+
+The combination of Clang 17 with the STL of GCC 13 doesn't work with
+-std=c++20 (at the very least not on Void Linux). Nothing actually
+uses C++20 features, so use the same flags as main Tensile.
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ CMakeLists.txt                                | 2 +-
+ tensilelite/Tensile/Source/lib/CMakeLists.txt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index fec03c1b..1b9d2fdb 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -25,7 +25,7 @@
+ cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+ 
+ # This will add compile option: -std=c++17
+-set(CMAKE_CXX_STANDARD 20 )
++set(CMAKE_CXX_STANDARD 17 )
+ # Without this line, it will add -std=gnu++17 instead, which may have issues.
+ set(CMAKE_CXX_EXTENSIONS OFF )
+ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+diff --git a/tensilelite/Tensile/Source/lib/CMakeLists.txt b/tensilelite/Tensile/Source/lib/CMakeLists.txt
+index e9476b3d..72425d07 100644
+--- a/tensilelite/Tensile/Source/lib/CMakeLists.txt
++++ b/tensilelite/Tensile/Source/lib/CMakeLists.txt
+@@ -91,7 +91,7 @@ add_library (TensileHost STATIC ${tensile_sources})
+ 
+ set_target_properties(TensileHost
+                       PROPERTIES
+-                      CXX_STANDARD 20
++                      CXX_STANDARD 17
+                       CXX_STANDARD_REQUIRED ON
+                       CXX_EXTENSIONS OFF)
+ 
+-- 
+2.48.1
+
