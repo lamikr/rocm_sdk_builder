@@ -1,7 +1,7 @@
-From 40df60d6544a9ed48f820eb7eaf7b1e28a3c15f1 Mon Sep 17 00:00:00 2001
+From f534803bed5705bc76c4b59aab9880448e863774 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 15 Mar 2025 22:16:09 -0700
-Subject: [PATCH 3/4] cmakelist.txt gfx1150 fix?
+Subject: [PATCH 2/4] cmakelist.txt gfx1150 fix?
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---

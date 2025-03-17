@@ -1,7 +1,7 @@
-From 3f71b96ab8c1c41f3c8ed6410c000b6e9659914c Mon Sep 17 00:00:00 2001
+From ac39aaf9d8b2764b3eaec85da9dbe9619ef7807a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 15 Mar 2025 22:51:13 -0700
-Subject: [PATCH 4/4] composable kernel jit library backport
+Subject: [PATCH 3/4] composable kernel jit library backport
 
 - backported from the composable_kernel
   migraphx branch revision 57cdd70b7cb14e5e3b60cd9a5f96ba8dc343763e
@@ -13,7 +13,7 @@ Subject: [PATCH 4/4] composable kernel jit library backport
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- CMakeLists.txt                                |  16 +
+ CMakeLists.txt                                |  20 +
  Config.cmake.in                               |   9 +-
  library/CMakeLists.txt                        |   8 +-
  library/src/jit_library/CMakeLists.txt        |  46 +++
@@ -25,9 +25,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  .../src/device_gemm_multiple_d.cpp            | 174 ++++++++
  .../src/jit_library/util/file_templates.py    | 174 ++++++++
  .../jit_library/util/make_instance_strings.py | 366 +++++++++++++++++
- test/jit_library/CMakeLists.txt               |   4 +
+ test/CMakeLists.txt                           |   4 +
+ test/jit_library/CMakeLists.txt               |   6 +
  test/jit_library/jit_library.cpp              | 386 ++++++++++++++++++
- 14 files changed, 1535 insertions(+), 4 deletions(-)
+ 15 files changed, 1545 insertions(+), 4 deletions(-)
  create mode 100644 library/src/jit_library/CMakeLists.txt
  create mode 100644 library/src/jit_library/include/ck/host/common.hpp
  create mode 100644 library/src/jit_library/include/ck/host/device_batched_gemm_softmax_gemm.hpp
@@ -41,28 +42,38 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  create mode 100644 test/jit_library/jit_library.cpp
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index e527a40d3..58652b4e8 100644
+index e527a40d3..85a29c6fd 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -136,6 +136,9 @@ if(GPU_TARGETS)
+@@ -136,6 +136,8 @@ if(GPU_TARGETS)
  else()
      set(USER_GPU_TARGETS 0)
  endif()
 +
 +option(CK_BUILD_JIT_LIB, "Only build the CK JIT Helper Library" OFF)
-+if (NOT CK_BUILD_JIT_LIB)
  find_package(hip)
  # No assumption that HIP kernels are launched with uniform block size for backward compatibility
  # SWDEV-413293 and https://reviews.llvm.org/D155213
-@@ -336,6 +339,7 @@ if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
+@@ -175,6 +177,7 @@ rocm_check_target_ids(SUPPORTED_GPU_TARGETS
+         TARGETS ${CK_GPU_TARGETS})
+ 
+ message("Building CK for the following targets: ${SUPPORTED_GPU_TARGETS}")
++if (NOT CK_BUILD_JIT_LIB)
+ 
+ if (GPU_TARGETS)
+     if (GPU_TARGETS MATCHES "gfx9")
+@@ -336,6 +339,10 @@ if(CK_hip_VERSION VERSION_GREATER_EQUAL 6.0.23494)
  else()
      add_compile_definitions(__HIP_PLATFORM_HCC__=1)
  endif()
-+endif() # if NOT CK_BUILD_JIT_LIB
++else() # if NOT CK_BUILD_JIT_LIB
++# CK config file to record supported datatypes, etc.
++configure_file(include/ck/config.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/ck/config.h)
++endif() # if CK_BUILD_JIT_LIB
  
  ## tidy
  include(EnableCompilerWarnings)
-@@ -490,6 +494,7 @@ include_directories(BEFORE
+@@ -490,6 +497,7 @@ include_directories(BEFORE
      ${HIP_INCLUDE_DIRS}
  )
  
@@ -70,17 +81,18 @@ index e527a40d3..58652b4e8 100644
  SET(BUILD_DEV ON CACHE BOOL "BUILD_DEV")
  if(BUILD_DEV)
      add_compile_options(-Werror)
-@@ -574,6 +579,17 @@ if(CK_USE_CODEGEN AND (GPU_TARGETS MATCHES "gfx9" OR GPU_ARCHS))
+@@ -574,6 +582,18 @@ if(CK_USE_CODEGEN AND (GPU_TARGETS MATCHES "gfx9" OR GPU_ARCHS))
    add_subdirectory(codegen)
  endif()
  
 +else() # if NOT CK_BUILD_JIT_LIB
++  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
 +  rocm_package_setup_component(jit_library
 +    LIBRARY_NAME composablekernel
 +    PACKAGE_NAME jit_library
 +  )
 +  add_subdirectory(library)
-+  if(BUILD_TESTING)
++if(BUILD_TESTING)
 +	   add_subdirectory(test)
 +  endif()
 +endif()
@@ -1294,16 +1306,37 @@ index 000000000..9b2f0f2de
 +
 +if __name__ == '__main__':
 +    run(sys.argv[1:])
+diff --git a/test/CMakeLists.txt b/test/CMakeLists.txt
+index b836dd687..47de52980 100644
+--- a/test/CMakeLists.txt
++++ b/test/CMakeLists.txt
+@@ -164,6 +164,7 @@ function(add_gtest_executable TEST_NAME)
+     set(result ${result} PARENT_SCOPE)
+ endfunction()
+ 
++if (NOT CK_BUILD_JIT_LIB)
+ add_compile_options(-Wno-c++20-extensions)
+ add_subdirectory(ck_tile)
+ add_subdirectory(magic_number_division)
+@@ -210,3 +211,6 @@ if(SUPPORTED_GPU_TARGETS MATCHES "gfx942" AND CK_HIP_VERSION_MAJOR GREATER_EQUAL
+     add_subdirectory(smfmac_op)
+ endif()
+ add_subdirectory(position_embedding)
++else()  # if (NOT CK_BUILD_JIT_LIB)
++    add_subdirectory(jit_library)
++endif()
 diff --git a/test/jit_library/CMakeLists.txt b/test/jit_library/CMakeLists.txt
 new file mode 100644
-index 000000000..6c78cd34b
+index 000000000..c8a286188
 --- /dev/null
 +++ b/test/jit_library/CMakeLists.txt
-@@ -0,0 +1,4 @@
+@@ -0,0 +1,6 @@
 +add_test_executable(test_jit_library jit_library.cpp)
-+add_dependencies(test_jit_library jit_library)
-+target_include_directories(test_jit_library PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/jit_library/include>)
-+target_link_libraries(test_jit_library PRIVATE jit_library ck_headers)
++if(result EQUAL 0)
++    add_dependencies(test_jit_library jit_library)
++    target_include_directories(test_jit_library PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/src/jit_library/include>)
++    target_link_libraries(test_jit_library PRIVATE jit_library ck_headers)
++endif()
 diff --git a/test/jit_library/jit_library.cpp b/test/jit_library/jit_library.cpp
 new file mode 100644
 index 000000000..a5057da10

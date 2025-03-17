@@ -1,13 +1,14 @@
-From 5e93a8a21ed3e48d07b88a6d676cf3f3439e1894 Mon Sep 17 00:00:00 2001
+From df20d3b1d28679cdba484dc7bca376eb45eb2e72 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 15 Mar 2025 21:23:55 -0700
-Subject: [PATCH 2/4] rocm sdk gpus support for ck memory config
+Subject: [PATCH 1/4] rocm sdk gpus support for ck memory config
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  include/ck/ck.hpp                       | 12 +++++++++---
  include/ck/host_utility/device_prop.hpp | 19 ++++++++++++++++++-
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ include/ck_tile/core/config.hpp         |  3 ++-
+ 3 files changed, 29 insertions(+), 5 deletions(-)
 
 diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
 index 5f74d51a6..d33e67ce7 100644
@@ -83,6 +84,20 @@ index f5c4b43ad..b816fdccd 100644
  }
  
  inline bool is_gfx12_supported()
+diff --git a/include/ck_tile/core/config.hpp b/include/ck_tile/core/config.hpp
+index a8bc27cdf..d25e73d0c 100644
+--- a/include/ck_tile/core/config.hpp
++++ b/include/ck_tile/core/config.hpp
+@@ -14,7 +14,8 @@
+     defined(__gfx1034__) || defined(__gfx1035__) || defined(__gfx1036__)
+ #define __gfx103__
+ #endif
+-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
++    defined(__gfx1150__) || defined(__gfx1151__)
+ #define __gfx11__
+ #endif
+ #if defined(__gfx1200__) || defined(__gfx1201__)
 -- 
 2.48.1
 

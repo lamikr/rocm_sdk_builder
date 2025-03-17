@@ -1,0 +1,25 @@
+From 306c5447546f7fefa3bf4e0503704c7650e60053 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 12 Jul 2024 23:28:19 -0700
+Subject: [PATCH] add /usr/share to pci.ids search path
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index cadb9c4..a2ce2c4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -116,6 +116,7 @@ find_file(
+   NAMES
+     pci.ids
+   PATHS
++    /usr/share
+     /usr/share/misc
+     /usr/share/hwdata
+   NO_DEFAULT_PATH
+-- 
+2.41.1
+
