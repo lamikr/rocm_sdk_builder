@@ -22,6 +22,7 @@
 - rocBLAS: adapt patches, todo: logic files for gfx1200 needed. todo: check strixpoint and strixhalo logic file naming match (strixpoint vs gfx1150)
 - hipSPARSELt
     - add hipSPARSE_Lt_Tensilelite because hipSPARSE 6.3.x requires different version of tensilelite than hipBLASLt
+    - force to use older 6.1.2 release temporarily to resolve the build problems
     - todo: check gpu filtering in binfo
 - rocMLIR: drop patch, could not find anymore a way to set the CU count for each GPU in code
 - MIOpen
