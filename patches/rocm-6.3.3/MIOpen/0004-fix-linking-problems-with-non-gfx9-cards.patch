@@ -1,0 +1,160 @@
+From 407acbe0d5f749b2a4648ba88688927f42ce5163 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 17 Mar 2025 08:19:57 -0700
+Subject: [PATCH 4/4] fix linking problems with non gfx9-cards
+
+- composable kernel does not build all features
+  when target is not gcn-based card causing a linking
+  problems on MIOpen because 2 solvers try to use these
+  features. Workaround this by forcing these solvers
+  to return false on isApplicable method
+  and then ifdeffing the code.
+- TODO: make these solvers to work when gfx9 is the target
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt                                      |  2 +-
+ src/CMakeLists.txt                                  |  2 +-
+ .../conv/conv_hip_implicit_gemm_bwd_data_xdlops.cpp | 12 ++++++------
+ src/solver/mha/mha_ck_fa_v2_solver_forward.cpp      | 13 +++++++++++++
+ 4 files changed, 21 insertions(+), 8 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f9ff86b4e..910ec434a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -327,7 +327,7 @@ add_compile_definitions($<$<COMPILE_LANGUAGE:CXX>:HIP_COMPILER_FLAGS=${HIP_COMPI
+ # HIP
+ if( MIOPEN_BACKEND STREQUAL "HIP" OR MIOPEN_BACKEND STREQUAL "HIPOC" OR MIOPEN_BACKEND STREQUAL "HIPNOGPU")
+     if(MIOPEN_USE_COMPOSABLEKERNEL)
+-        find_package(composable_kernel 1.0.0 COMPONENTS device_other_operations device_gemm_operations device_conv_operations device_reduction_operations device_mha_operations)
++        find_package(composable_kernel 1.0.0 COMPONENTS device_other_operations device_gemm_operations device_conv_operations device_reduction_operations)
+     endif()
+     if( MIOPEN_BACKEND STREQUAL "HIPNOGPU")
+         set(MIOPEN_MODE_NOGPU 1)
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index cf969e688..9cbb32a58 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -848,7 +848,7 @@ target_include_directories(MIOpen PUBLIC
+ )
+ 
+ if(MIOPEN_USE_COMPOSABLEKERNEL)
+-set(MIOPEN_CK_LINK_FLAGS composable_kernel::device_other_operations composable_kernel::device_gemm_operations composable_kernel::device_conv_operations composable_kernel::device_reduction_operations composable_kernel::device_mha_operations hip::host)
++set(MIOPEN_CK_LINK_FLAGS composable_kernel::device_other_operations composable_kernel::device_gemm_operations composable_kernel::device_conv_operations composable_kernel::device_reduction_operations hip::host)
+ endif()
+ 
+ if(WIN32)
+diff --git a/src/solver/conv/conv_hip_implicit_gemm_bwd_data_xdlops.cpp b/src/solver/conv/conv_hip_implicit_gemm_bwd_data_xdlops.cpp
+index 703dc2b7a..a125c404f 100644
+--- a/src/solver/conv/conv_hip_implicit_gemm_bwd_data_xdlops.cpp
++++ b/src/solver/conv/conv_hip_implicit_gemm_bwd_data_xdlops.cpp
+@@ -31,7 +31,7 @@
+ #include <miopen/generic_search.hpp>
+ #include <miopen/conv/data_invoke_params.hpp>
+ #include <miopen/solver/problem_description_interpreter.hpp>
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+ #include <ck/library/tensor_operation_instance/gpu/convolution_backward_data.hpp>
+ #endif
+ #include <miopen/solver/implicitgemm_util.hpp>
+@@ -44,7 +44,7 @@ namespace conv {
+ 
+ using ProblemDescription = miopen::conv::ProblemDescription;
+ 
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+ template <typename DataType>
+ using DeviceOpBwd = ck::tensor_operation::device::DeviceConvBwdData<
+     2,
+@@ -176,7 +176,7 @@ void PerformanceConfigHipImplicitGemmBwdXdlops::HeuristicInit(
+     index     = 0;
+     kernel_id = "";
+ 
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+     switch(problem.GetInDataType())
+     {
+     case miopenHalf: Init<ck::half_t>(problem); break;
+@@ -218,7 +218,7 @@ bool PerformanceConfigHipImplicitGemmBwdXdlops::IsValidValue() const
+ bool PerformanceConfigHipImplicitGemmBwdXdlops::IsValid(
+     [[maybe_unused]] const ProblemDescription& problem) const
+ {
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+     switch(problem.GetInDataType())
+     {
+     case miopenHalf: return CheckIsSupportCKArgs<ck::half_t>(problem);
+@@ -270,7 +270,7 @@ bool ConvHipImplicitGemmBwdXdlops::IsApplicable(
+     [[maybe_unused]] const ExecutionContext& ctx,
+     [[maybe_unused]] const ProblemDescription& problem) const
+ {
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+     if(env::disabled(MIOPEN_DEBUG_CONV_IMPLICIT_GEMM_HIP_BWD_XDLOPS))
+         return false;
+     if(problem.GetConv().attribute.deterministic)
+@@ -321,7 +321,7 @@ ConvSolution ConvHipImplicitGemmBwdXdlops::GetSolution(
+     [[maybe_unused]] const ProblemDescription& problem,
+     [[maybe_unused]] const PerformanceConfigHipImplicitGemmBwdXdlops& config) const
+ {
+-#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL
++#if MIOPEN_BACKEND_HIP && MIOPEN_USE_COMPOSABLEKERNEL2
+     switch(problem.GetInDataType())
+     {
+     case miopenHalf:
+diff --git a/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp b/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
+index 6313f3920..05106f1f8 100644
+--- a/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
++++ b/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
+@@ -29,6 +29,11 @@
+ #include <miopen/datatype.hpp>
+ #include <miopen/hipoc_kernel.hpp>
+ 
++#if defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__) || \
++    defined(__gfx942__)
++#define __gfx9__
++#endif
++
+ #if MIOPEN_USE_COMPOSABLEKERNEL
+ #include "ck_tile/ops/fmha.hpp"
+ #include "ck_tile/ops/fmha_fwd.hpp"
+@@ -66,6 +71,7 @@ bool MhaCKFlashAttentionV2Forward::IsApplicable(
+     const miopen::mha::ProblemDescription& problem) const
+ {
+ #if MIOPEN_USE_COMPOSABLEKERNEL
++#if defined(__gfx9__)
+     if(!problem.IsForward())
+     {
+         return false;
+@@ -109,6 +115,9 @@ bool MhaCKFlashAttentionV2Forward::IsApplicable(
+ #else
+     return false;
+ #endif
++#else
++    return false;
++#endif
+ }
+ 
+ std::size_t MhaCKFlashAttentionV2Forward::GetWorkspaceSize(
+@@ -123,6 +132,7 @@ MhaCKFlashAttentionV2Forward::GetSolution([[maybe_unused]] const ExecutionContex
+                                           const miopen::mha::ProblemDescription& problem) const
+ {
+ #if MIOPEN_USE_COMPOSABLEKERNEL
++#if defined(__gfx9__)
+     auto result         = ConvSolution{miopenStatusSuccess};
+     result.workspace_sz = 0;
+ 
+@@ -257,6 +267,9 @@ MhaCKFlashAttentionV2Forward::GetSolution([[maybe_unused]] const ExecutionContex
+ #else
+     return ConvSolution{miopenStatusNotImplemented};
+ #endif
++#else
++    return ConvSolution{miopenStatusNotImplemented};
++#endif
+ }
+ 
+ bool MhaCKFlashAttentionV2Forward::MayNeedWorkspace() const { return false; }
+-- 
+2.48.1
+

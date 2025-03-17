@@ -1,0 +1,28 @@
+From a9d1b2a3b7ab22241d3e60a03a5fcf712ff2d317 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sun, 16 Mar 2025 19:23:27 -0700
+Subject: [PATCH 4/4] rocm sdk gpus to fuse_operations
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/targets/gpu/fuse_ops.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/targets/gpu/fuse_ops.cpp b/src/targets/gpu/fuse_ops.cpp
+index 170f67f3f..b9b09e9f1 100644
+--- a/src/targets/gpu/fuse_ops.cpp
++++ b/src/targets/gpu/fuse_ops.cpp
+@@ -167,7 +167,9 @@ struct fusion
+ const std::unordered_set<std::string>& get_supported_archs()
+ {
+     static std::unordered_set<std::string> supported_archs{
+-        "gfx900", "gfx906", "gfx908", "gfx1030", "gfx940"};
++        "gfx900", "gfx906", "gfx908", "gfx940", "gfx941", "gfx942", "gfx1010", "gfx1011", "gfx1012", \
++        "gfx1030", "gfx1031", "gfx1032", "gfx1034", "gfx1035", "gfx1036", \
++        "gfx1100", "gfx1101", "gfx1102", "gfx1103", "gfx1150", "gfx1151", "gfx1200", "gfx1201" };
+     return supported_archs;
+ }
+ #if MIGRAPHX_USE_MIOPEN
+-- 
+2.48.1
+

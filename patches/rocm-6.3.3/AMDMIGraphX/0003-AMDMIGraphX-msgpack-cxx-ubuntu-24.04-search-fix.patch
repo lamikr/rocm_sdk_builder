@@ -1,0 +1,57 @@
+From 7127b30f3278a247e5b8594e419f601407dc24e6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 1 Jun 2024 19:06:33 -0700
+Subject: [PATCH 3/4] AMDMIGraphX msgpack-cxx ubuntu 24.04 search fix
+
+Ubuntu 24.04 has renamed msgpackc-cxx to
+msgpack-cxx and AMDMIGraphX configure failed to
+find it and eventually failed on linking phase.
+(msgpack itself was found but not -cxx extensions)
+
+Fix by searching first the msgpackc-cxx and if that
+fails search the msgpack-cxx
+
+https://github.com/lamikr/rocm_sdk_builder/issues/11
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/CMakeLists.txt | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 3a847bbe7..68521fe1c 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -317,12 +317,24 @@ find_package(SQLite3 REQUIRED)
+ target_link_libraries(migraphx PRIVATE SQLite::SQLite3)
+ 
+ find_package(msgpackc-cxx QUIET)
+-if(NOT msgpackc-cxx_FOUND)
+-    find_package(msgpack REQUIRED)
++if(msgpackc-cxx_FOUND)
++    target_link_libraries(migraphx PRIVATE msgpackc-cxx)
++    # Make this available to the tests
++    target_link_libraries(migraphx INTERFACE $<BUILD_INTERFACE:msgpackc-cxx>)
++else()
++    #ubuntu 24.04 renamed msgpackc-cxx to msgpack-cxx, so search also that name
++    find_package(msgpack-cxx QUIET)
++    if(msgpack-cxx_FOUND)
++        target_link_libraries(migraphx PRIVATE msgpack-cxx)
++        # Make this available to the tests
++        target_link_libraries(migraphx INTERFACE $<BUILD_INTERFACE:msgpack-cxx>)
++    else()
++        find_package(msgpack REQUIRED)
++        target_link_libraries(migraphx PRIVATE msgpackc-cxx)
++        # Make this available to the tests
++        target_link_libraries(migraphx INTERFACE $<BUILD_INTERFACE:msgpackc-cxx>)
++    endif()
+ endif()
+-target_link_libraries(migraphx PRIVATE msgpackc-cxx)
+-# Make this available to the tests
+-target_link_libraries(migraphx INTERFACE $<BUILD_INTERFACE:msgpackc-cxx>)
+ 
+ add_library(migraphx_all_targets INTERFACE)
+ 
+-- 
+2.48.1
+
