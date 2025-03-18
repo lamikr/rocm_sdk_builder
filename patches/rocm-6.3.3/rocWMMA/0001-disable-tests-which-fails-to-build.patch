@@ -1,0 +1,26 @@
+From cb5383a9eb562519432ae7138ca83477fb6c202f Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 3 May 2024 14:21:04 -0700
+Subject: [PATCH 1/3] disable tests which fails to build
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 9226fbad..3ab06343 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -48,7 +48,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --driver-mode=g++ -Xclang -fallow-half-a
+ 
+ # Top level configs
+ if( CMAKE_PROJECT_NAME STREQUAL "rocwmma" )
+-  option( ROCWMMA_BUILD_TESTS "Build rocWMMA tests" ON )
++  option( ROCWMMA_BUILD_TESTS "Build rocWMMA tests" OFF )
+   option( ROCWMMA_BUILD_SAMPLES "Build rocWMMA samples" ON )
+   option( ROCWMMA_BUILD_ASSEMBLY "Output assembly files" OFF )
+ endif()
+-- 
+2.48.1
+

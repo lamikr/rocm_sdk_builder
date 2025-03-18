@@ -1,0 +1,407 @@
+From 27d69453c5ac292680fc79bb7bfea54422eab16a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 17 Mar 2025 15:05:50 -0700
+Subject: [PATCH 3/3] rocm gpu support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ library/include/rocwmma/internal/config.hpp     | 17 ++++++++++++++++-
+ library/include/rocwmma/internal/constants.hpp  |  9 +++++++++
+ samples/common.hpp                              |  5 ++++-
+ test/dlrm/dlrm_kernel_base_impl.hpp             |  3 ++-
+ test/gemm/gemm_kernel_base_dispatch_impl.hpp    | 10 ++++++++--
+ test/gemm/gemm_test_traits.hpp                  |  5 ++++-
+ test/hip_device.cpp                             | 12 ++++++++++++
+ test/hip_device.hpp                             |  3 +++
+ .../detail/load_contamination.hpp               |  3 +++
+ .../detail/store_contamination.hpp              |  3 +++
+ .../detail/cross_lane_ops.hpp                   |  5 ++++-
+ .../fill_fragment_test/detail/fill_fragment.hpp |  3 +++
+ test/unit/layout_test/detail/col_layout.hpp     |  3 +++
+ test/unit/layout_test/detail/colnt_layout.hpp   |  3 +++
+ test/unit/layout_test/detail/row_layout.hpp     |  3 +++
+ test/unit/layout_test/detail/rownt_layout.hpp   |  3 +++
+ .../detail/load_store_matrix_sync.hpp           |  3 +++
+ .../detail/map_block_to_matrix_override.hpp     |  3 +++
+ .../detail/map_matrix_to_data_override.hpp      |  3 +++
+ test/unit/unit_test_traits.hpp                  |  5 ++++-
+ 20 files changed, 96 insertions(+), 8 deletions(-)
+
+diff --git a/library/include/rocwmma/internal/config.hpp b/library/include/rocwmma/internal/config.hpp
+index d61dd51e..f1b28c22 100644
+--- a/library/include/rocwmma/internal/config.hpp
++++ b/library/include/rocwmma/internal/config.hpp
+@@ -66,6 +66,12 @@
+ #define ROCWMMA_ARCH_GFX1101 __gfx1101__
+ #elif defined(__gfx1102__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX1102 __gfx1102__
++#elif defined(__gfx1103__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1103 __gfx1103__
++#elif defined(__gfx1150__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1150 __gfx1150__
++#elif defined(__gfx1151__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1151 __gfx1151__
+ #elif defined(__gfx1200__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX1200 __gfx1200__
+ #elif defined(__gfx1201__) && ROCWMMA_DEVICE_COMPILE
+@@ -100,6 +106,15 @@ static_assert(0, "Unsupported architecture");
+ #if !defined(ROCWMMA_ARCH_GFX1102)
+ #define ROCWMMA_ARCH_GFX1102 0
+ #endif
++#if !defined(ROCWMMA_ARCH_GFX1103)
++#define ROCWMMA_ARCH_GFX1103 0
++#endif
++#if !defined(ROCWMMA_ARCH_GFX1150)
++#define ROCWMMA_ARCH_GFX1150 0
++#endif
++#if !defined(ROCWMMA_ARCH_GFX1151)
++#define ROCWMMA_ARCH_GFX1151 0
++#endif
+ #if !defined(ROCWMMA_ARCH_GFX1200)
+ #define ROCWMMA_ARCH_GFX1200 0
+ #endif
+@@ -130,7 +145,7 @@ static_assert(0, "Unsupported architecture");
+ #define ROCWMMA_BLOCK_DIM_32_SUPPORTED 1
+ #endif
+ 
+-#if ROCWMMA_ARCH_GFX1100 || ROCWMMA_ARCH_GFX1101 || ROCWMMA_ARCH_GFX1102
++#if ROCWMMA_ARCH_GFX1100 || ROCWMMA_ARCH_GFX1101 || ROCWMMA_ARCH_GFX1102 || ROCWMMA_ARCH_GFX1103 || ROCWMMA_ARCH_GFX1150 || ROCWMMA_ARCH_GFX1151
+ #define ROCWMMA_ARCH_GFX11 1
+ #define ROCWMMA_WAVE32_MODE 1
+ #define ROCWMMA_BLOCK_DIM_16_SUPPORTED 1
+diff --git a/library/include/rocwmma/internal/constants.hpp b/library/include/rocwmma/internal/constants.hpp
+index e8d2f873..9232c90f 100644
+--- a/library/include/rocwmma/internal/constants.hpp
++++ b/library/include/rocwmma/internal/constants.hpp
+@@ -44,6 +44,9 @@ namespace rocwmma
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1100 = 0x1100;
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1101 = 0x1101;
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1102 = 0x1102;
++        static constexpr uint32_t AMDGCN_ARCH_ID_GFX1103 = 0x1103;
++        static constexpr uint32_t AMDGCN_ARCH_ID_GFX1150 = 0x1150;
++        static constexpr uint32_t AMDGCN_ARCH_ID_GFX1151 = 0x1151;        
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1200 = 0x1200;
+         static constexpr uint32_t AMDGCN_ARCH_ID_GFX1201 = 0x1201;
+         static constexpr uint32_t AMDGCN_ARCH_ID_NONE    = 0x0;
+@@ -74,6 +77,12 @@ namespace rocwmma
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1101;
+ #elif ROCWMMA_ARCH_GFX1102
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1102;
++#elif ROCWMMA_ARCH_GFX1103
++        static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1103;
++#elif ROCWMMA_ARCH_GFX1150
++        static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1150;
++#elif ROCWMMA_ARCH_GFX1151
++        static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1151;
+ #elif ROCWMMA_ARCH_GFX1200
+         static constexpr uint32_t AMDGCN_CURRENT_ARCH_ID = AMDGCN_ARCH_ID_GFX1200;
+ #elif ROCWMMA_ARCH_GFX1201
+diff --git a/samples/common.hpp b/samples/common.hpp
+index 247759f9..abffd0f8 100644
+--- a/samples/common.hpp
++++ b/samples/common.hpp
+@@ -91,7 +91,10 @@ bool isGfx11()
+ 
+     return ((deviceName.find("gfx1100") != std::string::npos)
+             || (deviceName.find("gfx1101") != std::string::npos)
+-            || (deviceName.find("gfx1102") != std::string::npos));
++            || (deviceName.find("gfx1102") != std::string::npos)
++            || (deviceName.find("gfx1103") != std::string::npos)
++            || (deviceName.find("gfx1150") != std::string::npos)
++            || (deviceName.find("gfx1151") != std::string::npos));
+ }
+ 
+ bool isGfx12()
+diff --git a/test/dlrm/dlrm_kernel_base_impl.hpp b/test/dlrm/dlrm_kernel_base_impl.hpp
+index bdc7dec4..4996d1bf 100644
+--- a/test/dlrm/dlrm_kernel_base_impl.hpp
++++ b/test/dlrm/dlrm_kernel_base_impl.hpp
+@@ -108,7 +108,8 @@ namespace rocwmma
+         // Arch
+         auto isGfx908 = deviceArch == DeviceInfo::GFX908;
+         auto isGfx11  = (deviceArch == DeviceInfo::GFX1100) || (deviceArch == DeviceInfo::GFX1101)
+-                       || (deviceArch == DeviceInfo::GFX1102);
++                       || (deviceArch == DeviceInfo::GFX1102) || (deviceArch == DeviceInfo::GFX1103)
++                       || (deviceArch == DeviceInfo::GFX1150) || (deviceArch == DeviceInfo::GFX1151)
+ 
+         auto isGfx12 = (deviceArch == DeviceInfo::GFX1200) || (deviceArch == DeviceInfo::GFX1201);
+ 
+diff --git a/test/gemm/gemm_kernel_base_dispatch_impl.hpp b/test/gemm/gemm_kernel_base_dispatch_impl.hpp
+index f0c16372..86abc17d 100644
+--- a/test/gemm/gemm_kernel_base_dispatch_impl.hpp
++++ b/test/gemm/gemm_kernel_base_dispatch_impl.hpp
+@@ -59,7 +59,7 @@ namespace rocwmma
+         // - TBlockX [32, 64, 128, 256]
+         // - TBlockY [1, 2, 4]
+         // - Wave Size [32, 64]
+-        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102]
++        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102, gfx1103, gfx1150, gfx1151]
+         auto dispatchGuardFunc = [this]() {
+             bool dispatchResult = false;
+ 
+@@ -91,6 +91,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151     \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+@@ -135,7 +138,7 @@ namespace rocwmma
+         // - TBlockX [32, 64, 128, 256]
+         // - TBlockY [1, 2, 4]
+         // - Wave Size [32, 64]
+-        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102]
++        // - Arch [gfx908, gfx90a, gfx940, gfx941, gfx942, gfx1100, gfx1101, gfx1102, gfx1103, gfx1150, gfx1151]
+         auto dispatchKernel = [this]() {
+             auto waveSize   = DeviceInfo::instance()->warpSize();
+             auto deviceArch = DeviceInfo::instance()->getGcnArch();
+@@ -168,6 +171,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151     \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/gemm/gemm_test_traits.hpp b/test/gemm/gemm_test_traits.hpp
+index f1a26c5b..ac63f2d5 100644
+--- a/test/gemm/gemm_test_traits.hpp
++++ b/test/gemm/gemm_test_traits.hpp
+@@ -104,12 +104,15 @@ namespace rocwmma
+             IsGfx1100 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1100),
+             IsGfx1101 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1101),
+             IsGfx1102 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1102),
++            IsGfx1103 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1103),
++            IsGfx1150 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1150),
++            IsGfx1151 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1151),
+ 
+             IsGfx1200 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1200),
+             IsGfx1201 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1201),
+ 
+             IsGfx9  = IsGfx908 || IsGfx90A || IsGfx940 || IsGfx941 || IsGfx942,
+-            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102,
++            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102 || IsGfx1103 || IsGfx1150 || IsGfx1151,
+             IsGfx12 = IsGfx1200 || IsGfx1201,
+         };
+ 
+diff --git a/test/hip_device.cpp b/test/hip_device.cpp
+index 773c1254..817ac78a 100644
+--- a/test/hip_device.cpp
++++ b/test/hip_device.cpp
+@@ -85,6 +85,18 @@ namespace rocwmma
+         {
+             mGcnArch = hipGcnArch_t::GFX1201;
+         }
++        else if(deviceName.find("gfx1103") != std::string::npos)
++        {
++            mGcnArch = hipGcnArch_t::GFX1103;
++        }
++        else if(deviceName.find("gfx1150") != std::string::npos)
++        {
++            mGcnArch = hipGcnArch_t::GFX1150;
++        }
++        else if(deviceName.find("gfx1151") != std::string::npos)
++        {
++            mGcnArch = hipGcnArch_t::GFX1151;
++        }
+ 
+         switch(mProps.warpSize)
+         {
+diff --git a/test/hip_device.hpp b/test/hip_device.hpp
+index c4e8ee2e..46d8cae9 100644
+--- a/test/hip_device.hpp
++++ b/test/hip_device.hpp
+@@ -54,6 +54,9 @@ namespace rocwmma
+             GFX1100          = Constants::AMDGCN_ARCH_ID_GFX1100,
+             GFX1101          = Constants::AMDGCN_ARCH_ID_GFX1101,
+             GFX1102          = Constants::AMDGCN_ARCH_ID_GFX1102,
++            GFX1103          = Constants::AMDGCN_ARCH_ID_GFX1103,
++            GFX1150          = Constants::AMDGCN_ARCH_ID_GFX1150,
++            GFX1151          = Constants::AMDGCN_ARCH_ID_GFX1151,
+             GFX1200          = Constants::AMDGCN_ARCH_ID_GFX1200,
+             GFX1201          = Constants::AMDGCN_ARCH_ID_GFX1201,
+             UNSUPPORTED_ARCH = Constants::AMDGCN_ARCH_ID_NONE,
+diff --git a/test/unit/contamination_test/detail/load_contamination.hpp b/test/unit/contamination_test/detail/load_contamination.hpp
+index 75d2d160..c145b56a 100644
+--- a/test/unit/contamination_test/detail/load_contamination.hpp
++++ b/test/unit/contamination_test/detail/load_contamination.hpp
+@@ -132,6 +132,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/contamination_test/detail/store_contamination.hpp b/test/unit/contamination_test/detail/store_contamination.hpp
+index b2e0a8d5..de85adbd 100644
+--- a/test/unit/contamination_test/detail/store_contamination.hpp
++++ b/test/unit/contamination_test/detail/store_contamination.hpp
+@@ -132,6 +132,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp b/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
+index b2069456..07a36a56 100644
+--- a/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
++++ b/test/unit/cross_lane_ops_test/detail/cross_lane_ops.hpp
+@@ -91,7 +91,10 @@ namespace rocwmma
+             // gfx11 doesn't support dpp wave shift / rotate, bcast15x16 or bcast31x32
+             bool isGfx11 = (deviceArch == Base::DeviceInfo::GFX1100
+                             || deviceArch == Base::DeviceInfo::GFX1101
+-                            || deviceArch == Base::DeviceInfo::GFX1102);
++                            || deviceArch == Base::DeviceInfo::GFX1102
++                            || deviceArch == Base::DeviceInfo::GFX1103
++                            || deviceArch == Base::DeviceInfo::GFX1150
++                            || deviceArch == Base::DeviceInfo::GFX1151);
+ 
+             bool isGfx12 = (deviceArch == Base::DeviceInfo::GFX1200)
+                            || (deviceArch == Base::DeviceInfo::GFX1201);
+diff --git a/test/unit/fill_fragment_test/detail/fill_fragment.hpp b/test/unit/fill_fragment_test/detail/fill_fragment.hpp
+index 7a48babc..9618c130 100644
+--- a/test/unit/fill_fragment_test/detail/fill_fragment.hpp
++++ b/test/unit/fill_fragment_test/detail/fill_fragment.hpp
+@@ -114,6 +114,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/layout_test/detail/col_layout.hpp b/test/unit/layout_test/detail/col_layout.hpp
+index e0b456d7..122f125d 100644
+--- a/test/unit/layout_test/detail/col_layout.hpp
++++ b/test/unit/layout_test/detail/col_layout.hpp
+@@ -116,6 +116,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/layout_test/detail/colnt_layout.hpp b/test/unit/layout_test/detail/colnt_layout.hpp
+index 139ba73f..ce74a747 100644
+--- a/test/unit/layout_test/detail/colnt_layout.hpp
++++ b/test/unit/layout_test/detail/colnt_layout.hpp
+@@ -116,6 +116,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/layout_test/detail/row_layout.hpp b/test/unit/layout_test/detail/row_layout.hpp
+index 66fb1cc2..37af8b14 100644
+--- a/test/unit/layout_test/detail/row_layout.hpp
++++ b/test/unit/layout_test/detail/row_layout.hpp
+@@ -109,6 +109,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/layout_test/detail/rownt_layout.hpp b/test/unit/layout_test/detail/rownt_layout.hpp
+index 4c0b4fb4..3c858e32 100644
+--- a/test/unit/layout_test/detail/rownt_layout.hpp
++++ b/test/unit/layout_test/detail/rownt_layout.hpp
+@@ -116,6 +116,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp b/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
+index bbae28d8..532dd7d5 100644
+--- a/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
++++ b/test/unit/load_store_matrix_sync_test/detail/load_store_matrix_sync.hpp
+@@ -109,6 +109,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp b/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
+index ab6d057c..73f114e0 100644
+--- a/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
++++ b/test/unit/map_util_test/detail/map_block_to_matrix_override.hpp
+@@ -192,6 +192,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp b/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
+index f8ec6db0..91ee910c 100644
+--- a/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
++++ b/test/unit/map_util_test/detail/map_matrix_to_data_override.hpp
+@@ -193,6 +193,9 @@ namespace rocwmma
+                                HipDevice::GFX1100,    \
+                                HipDevice::GFX1101,    \
+                                HipDevice::GFX1102,    \
++                               HipDevice::GFX1103,    \
++                               HipDevice::GFX1150,    \
++                               HipDevice::GFX1151,    \
+                                HipDevice::GFX1200,    \
+                                HipDevice::GFX1201)
+ 
+diff --git a/test/unit/unit_test_traits.hpp b/test/unit/unit_test_traits.hpp
+index 46fe0596..b3fe0e09 100644
+--- a/test/unit/unit_test_traits.hpp
++++ b/test/unit/unit_test_traits.hpp
+@@ -78,11 +78,14 @@ namespace rocwmma
+             IsGfx1100 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1100),
+             IsGfx1101 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1101),
+             IsGfx1102 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1102),
++            IsGfx1103 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1103),
++            IsGfx1150 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1150),
++            IsGfx1151 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1151),
+             IsGfx1200 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1200),
+             IsGfx1201 = (ArchId == Constants::AMDGCN_ARCH_ID_GFX1201),
+ 
+             IsGfx9  = IsGfx908 || IsGfx90A || IsGfx940 || IsGfx941 || IsGfx942,
+-            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102,
++            IsGfx11 = IsGfx1100 || IsGfx1101 || IsGfx1102 || IsGfx1103 || IsGfx1150 || IsGfx1151,
+             IsGfx12 = IsGfx1200 || IsGfx1201,
+         };
+     };
+-- 
+2.48.1
+
