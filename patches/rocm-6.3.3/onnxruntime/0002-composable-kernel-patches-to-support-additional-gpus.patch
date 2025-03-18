@@ -1,0 +1,1630 @@
+From d287dfeb4c8ec34b82642f69c2b61e8a410f76ee Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 24 May 2024 16:03:37 -0700
+Subject: [PATCH 2/8] composable kernel patches to support additional gpus
+
+- gfx1010
+- gfx1031
+- gfx1032
+- gfx1035
+- gfx1036
+- gfx1103
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/external/composable_kernel.cmake        |   2 +-
+ ...RD_DWORD-support-for-not-listed-gpus.patch |  26 +
+ ...0-1035-1036-and-1103-initial-support.patch | 111 +++
+ ...-1036-and-1103-more-detailed-support.patch | 584 ++++++++++++++
+ .../0004-Fix_Clang_Build.patch.patch          | 106 +++
+ .../composable_kernel_patches_combined.patch  | 733 ++++++++++++++++++
+ 6 files changed, 1561 insertions(+), 1 deletion(-)
+ create mode 100644 cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
+ create mode 100644 cmake/patches/composable_kernel/0002-gfx1010-1035-1036-and-1103-initial-support.patch
+ create mode 100644 cmake/patches/composable_kernel/0003-gfx1031-1035-1036-and-1103-more-detailed-support.patch
+ create mode 100644 cmake/patches/composable_kernel/0004-Fix_Clang_Build.patch.patch
+ create mode 100644 cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
+
+diff --git a/cmake/external/composable_kernel.cmake b/cmake/external/composable_kernel.cmake
+index b4e6c834c8..123bafa9b9 100644
+--- a/cmake/external/composable_kernel.cmake
++++ b/cmake/external/composable_kernel.cmake
+@@ -1,4 +1,4 @@
+-set(PATCH ${PROJECT_SOURCE_DIR}/patches/composable_kernel/Fix_Clang_Build.patch)
++set(PATCH ${PROJECT_SOURCE_DIR}/patches/composable_kernel/composable_kernel_patches_combined.patch)
+ 
+ include(FetchContent)
+ FetchContent_Declare(composable_kernel
+diff --git a/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch b/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
+new file mode 100644
+index 0000000000..9e24184b42
+--- /dev/null
++++ b/cmake/patches/composable_kernel/0001-by-default-no-3RD_DWORD-support-for-not-listed-gpus.patch
+@@ -0,0 +1,26 @@
++From e203be284cbcf7fef697831e3479aa8b68ed6a73 Mon Sep 17 00:00:00 2001
++From: Mika Laitio <lamikr@gmail.com>
++Date: Tue, 19 Dec 2023 15:16:58 -0800
++Subject: [PATCH 1/4] by default no 3RD_DWORD support for not listed gpus
++
++Signed-off-by: Mika Laitio <lamikr@gmail.com>
++---
++ include/ck/ck.hpp | 2 ++
++ 1 file changed, 2 insertions(+)
++
++diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
++index 1e4140419..063d8b4dd 100644
++--- a/include/ck/ck.hpp
+++++ b/include/ck/ck.hpp
++@@ -55,6 +55,8 @@
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
++ #elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
+++#else
+++#define CK_BUFFER_RESOURCE_3RD_DWORD -1
++ #endif
++ 
++ // FMA instruction
++-- 
++2.43.0
++
+diff --git a/cmake/patches/composable_kernel/0002-gfx1010-1035-1036-and-1103-initial-support.patch b/cmake/patches/composable_kernel/0002-gfx1010-1035-1036-and-1103-initial-support.patch
+new file mode 100644
+index 0000000000..9d11c85027
+--- /dev/null
++++ b/cmake/patches/composable_kernel/0002-gfx1010-1035-1036-and-1103-initial-support.patch
+@@ -0,0 +1,111 @@
++From fe61f70c2d0d64f9300339582ce0a33a39ff1b14 Mon Sep 17 00:00:00 2001
++From: Mika Laitio <lamikr@gmail.com>
++Date: Fri, 24 May 2024 03:50:43 -0700
++Subject: [PATCH 2/4] gfx1010/1035/1036 and 1103 initial support
++
++Signed-off-by: Mika Laitio <lamikr@gmail.com>
++---
++ CMakeLists.txt                          |  6 +++---
++ include/ck/ck.hpp                       | 15 ++++++++++-----
++ include/ck/host_utility/device_prop.hpp | 12 ++++++++++++
++ 3 files changed, 25 insertions(+), 8 deletions(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 04674124c..b939cf007 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -106,7 +106,7 @@ message("checking which targets are supported")
++ #Setting GPU_TARGETS on command line will override this list
++ if(NOT PROFILER_ONLY)
++     rocm_check_target_ids(DEFAULT_GPU_TARGETS
++-        TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102")
+++        TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++ else()
++     add_definitions(-DPROFILER_ONLY)
++     set(GPU_TARGETS "" CACHE STRING "" FORCE)
++@@ -118,9 +118,9 @@ else()
++     elseif(GPU_ARCH MATCHES "gfx94")
++         rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx940;gfx941;gfx942")
++     elseif(GPU_ARCH MATCHES "gfx10")
++-        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1030")
+++        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1010;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036")
++     elseif(GPU_ARCH MATCHES "gfx11")
++-        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1100;gfx1101;gfx1102")
+++        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1100;gfx1101;gfx1102;gfx1103")
++     else()
++         message(FATAL_ERROR "For PROFILE_ONLY build, please specify GPU_ARCH as gfx90, gfx94, gfx10, or gfx11")
++     endif()
++diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
++index 063d8b4dd..75e181186 100644
++--- a/include/ck/ck.hpp
+++++ b/include/ck/ck.hpp
++@@ -51,24 +51,29 @@
++     defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__) ||                          \
++     defined(__gfx942__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
++-#elif defined(__gfx1030__) // for GPU code
+++#elif defined(__gfx1010__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1035__) || defined(__gfx1036__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
++ #else
++ #define CK_BUFFER_RESOURCE_3RD_DWORD -1
++ #endif
++ 
+++// whether to use assembly or rely on compiler for these instructions
+++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
+++// TODO: check defined(__gfx1035__)
++ // FMA instruction
++ #ifndef __HIP_DEVICE_COMPILE__                   // for host code, define nothing
++ #elif defined(__gfx803__) || defined(__gfx900__) // for GPU code
++ #define CK_USE_AMD_V_MAC_F32
++-#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || \
+++#elif defined(__gfx1010__)
+++#define CK_USE_AMD_V_FMAC_F32
+++#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || defined(__gfx1031__) || \
++     defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) // for GPU code
++ #define CK_USE_AMD_V_FMAC_F32
++ #define CK_USE_AMD_V_DOT2_F32_F16
++ #define CK_USE_AMD_V_DOT4_I32_I8
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++ #define CK_USE_AMD_V_FMAC_F32
++ #define CK_USE_AMD_V_DOT2_F32_F16
++ #define CK_USE_AMD_V_DOT4_I32_I8_GFX11
++@@ -93,7 +98,7 @@
++ // WMMA instruction
++ #ifndef __HIP_DEVICE_COMPILE__ // for host code
++ #define CK_USE_AMD_WMMA
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) // for GPU code
++ #define CK_USE_AMD_WMMA
++ #endif
++ 
++diff --git a/include/ck/host_utility/device_prop.hpp b/include/ck/host_utility/device_prop.hpp
++index be1dbc165..a31a120a5 100644
++--- a/include/ck/host_utility/device_prop.hpp
+++++ b/include/ck/host_utility/device_prop.hpp
++@@ -40,7 +40,19 @@ inline std::string get_device_name()
++         {"gfx804", "gfx803"},
++         {"Vega10", "gfx900"},
++         {"gfx901", "gfx900"},
+++        {"navi10", "gfx1010"},
+++        {"navi12", "gfx1011"},
+++        {"navi14", "gfx1012"},
++         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
+++        {"navi22", "gfx1031"},
+++        {"navi23", "gfx1032"},
+++        {"navi24", "gfx1034"},
+++        {"rembrandt", "gfx1035"},
+++        {"raphael", "gfx1036"},
+++        {"navi31", "gfx1100"},
+++        {"navi32", "gfx1101"},
+++        {"navi33", "gfx1102"},
+++        {"phoenix", "gfx1103"},
++     };
++ 
++     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
++-- 
++2.43.0
++
+diff --git a/cmake/patches/composable_kernel/0003-gfx1031-1035-1036-and-1103-more-detailed-support.patch b/cmake/patches/composable_kernel/0003-gfx1031-1035-1036-and-1103-more-detailed-support.patch
+new file mode 100644
+index 0000000000..33b1d13ef1
+--- /dev/null
++++ b/cmake/patches/composable_kernel/0003-gfx1031-1035-1036-and-1103-more-detailed-support.patch
+@@ -0,0 +1,584 @@
++From 2f2eec0a7ad3aa6932d52b199daaed86479f23c0 Mon Sep 17 00:00:00 2001
++From: Mika Laitio <lamikr@gmail.com>
++Date: Thu, 25 Jul 2024 17:11:46 -0700
++Subject: [PATCH 3/4] gfx1031/1035/1036 and 1103 more detailed support
++
++Signed-off-by: Mika Laitio <lamikr@gmail.com>
++---
++ ...d_contraction_multiple_d_wmma_cshuffle.hpp |  2 +-
++ .../device_batched_gemm_multiple_d_dl.hpp     | 12 ++++++----
++ .../device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp |  4 +++-
++ .../gpu/device/impl/device_gemm_dl.hpp        |  4 +++-
++ .../gpu/device/impl/device_gemm_dpp.hpp       |  7 ++++--
++ .../device/impl/device_gemm_multiple_d_dl.hpp | 18 ++++++++++----
++ .../device_gemm_multiple_d_wmma_cshuffle.hpp  |  2 +-
++ .../gpu/device/impl/device_gemm_wmma.hpp      |  2 +-
++ ...conv_bwd_data_multiple_d_wmma_cshuffle.hpp |  2 +-
++ .../device_grouped_conv_bwd_weight_dl.hpp     |  9 ++++---
++ ..._grouped_conv_bwd_weight_wmma_cshuffle.hpp |  2 +-
++ ..._conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp | 24 ++++++++++++-------
++ ...ice_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp | 14 +++++++----
++ ...uped_conv_fwd_multiple_d_wmma_cshuffle.hpp |  2 +-
++ .../device_grouped_gemm_multiple_d_dl.hpp     | 10 +++++---
++ .../gpu/grid/gridwise_gemm_dpp.hpp            |  7 ++++--
++ ...gridwise_gemm_multiple_d_wmma_cshuffle.hpp | 15 +++++++-----
++ .../gpu/grid/gridwise_gemm_wmma.hpp           |  5 ++--
++ .../gpu/grid/gridwise_tensor_rearrange.hpp    | 10 +++++---
++ include/ck/utility/amd_wmma.hpp               | 20 ++++++++--------
++ test/grouped_convnd_bwd_data/CMakeLists.txt   |  4 ++--
++ test/grouped_convnd_bwd_weight/CMakeLists.txt |  4 ++--
++ .../test_grouped_convnd_bwd_weight.cpp        |  3 ++-
++ 23 files changed, 117 insertions(+), 65 deletions(-)
++
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
++index 4d599e801..ed30c5517 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
++@@ -771,7 +771,7 @@ struct DeviceBatchedContractionMultipleD_Wmma_CShuffle
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
++index b51c60047..aeb028a74 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
++@@ -71,8 +71,9 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map)
++ {
++ #if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__))
+++    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || \
+++    defined(__gfx1031__) || defined(__gfx1032__) || defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__))
++ 
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -651,8 +652,11 @@ struct DeviceBatchedGemmMultipleD_Dl : public DeviceBatchedGemmMultiD<ALayout,
++         // TODO: Enable for gfx90a after complier fix
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx90a" ||
++            ck::get_device_name() == "gfx908" || ck::get_device_name() == "gfx1030" ||
++-           ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             bool pass = true;
++             pass      = pass && arg.K_ % K1 == 0;
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
++index 3178f73f4..bef0d0465 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
++@@ -1394,8 +1394,10 @@ struct DeviceConvNdBwdDataNwcKxcNwk_Dl
++     {
++         // check device
++         if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++             ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++             ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++              ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-             ck::get_device_name() == "gfx1102"))
+++             ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103"))
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
++index 514aa4452..6fa7404cb 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
++@@ -537,8 +537,10 @@ struct DeviceGemmDl : public DeviceGemm<ALayout,
++         }
++ 
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++            ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             return GridwiseGemm::CheckValidity(
++                 arg.a_grid_desc_k0_m_k1_, arg.b_grid_desc_k0_n_k1_, arg.c_grid_desc_m_n_);
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
++index 24393511c..071207e9c 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
++@@ -168,8 +168,11 @@ struct DeviceGemmDpp : public DeviceGemm<ALayout,
++ 
++     static bool IsSupportedArgument(const Argument& karg)
++     {
++-        if(ck::get_device_name() == "gfx1030" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102")
+++        if(ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             return GridwiseGemm::CheckValidity(karg);
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
++index ad51096db..fbfbf44c9 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
++@@ -51,8 +51,12 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map)
++ {
++ #if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++    defined(__gfx90a__) || defined(__gfx940__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++ 
++     constexpr index_t shared_block_size =
++         GridwiseGemm::GetSharedMemoryNumberOfByte() / sizeof(ABDataType);
++@@ -553,9 +557,13 @@ struct DeviceGemmMultipleD_Dl : public DeviceGemmMultipleD<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx908" ||
++-           ck::get_device_name() == "gfx90a" || ck::get_device_name() == "gfx1030" ||
++-           ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102" ||
+++           ck::get_device_name() == "gfx90a" ||
+++           ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103" ||
++            ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942")
++         {
++             return GridwiseGemm::CheckValidity(
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
++index 44b3518e2..78e950fb2 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
++@@ -485,7 +485,7 @@ struct DeviceGemmMultipleD_Wmma_CShuffle : public DeviceGemmMultipleD<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
++index f64450b75..5d6153064 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
++@@ -412,7 +412,7 @@ struct DeviceGemmWmma_CShuffle : public DeviceGemm<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
++index d66363c45..b055b4b27 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
++@@ -628,7 +628,7 @@ struct DeviceGroupedConvBwdDataMultipleD_Wmma_CShuffle
++     {
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
++index a5f34f0b2..289ba2d67 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
++@@ -48,9 +48,12 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) ||           \
++-    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++     const index_t g_idx = __builtin_amdgcn_readfirstlane(get_block_1d_id() / num_blocks_per_batch);
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
++index dd591fb78..fa4298e62 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
++@@ -699,7 +699,7 @@ struct DeviceGroupedConvBwdWeight_Wmma_CShuffle
++     {
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           get_device_name() == "gfx1102")
+++           get_device_name() == "gfx1102" || get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
++index 484f1e729..813c60ce9 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
++@@ -90,9 +90,13 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) ||           \
++-    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -666,11 +670,15 @@ struct DeviceGroupedConvFwdDlMultipleD_NHWC_KYXC_NHWK
++         namespace ctc = tensor_layout::convolution;
++ 
++         // check device
++-        if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
++-             ck::get_device_name() == "gfx90a" || ck::get_device_name() == "gfx908" ||
++-             ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-             ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102" ||
++-             ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942"))
+++        if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx908" ||
+++           ck::get_device_name() == "gfx90a" ||
+++           ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103" ||
+++           ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942")
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
++index f18fbcfe4..e671a42e8 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
++@@ -106,8 +106,11 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) || \
++-    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -601,9 +604,12 @@ struct DeviceGroupedConvFwdDl_NHWC_KYXC_NHWK : public DeviceGroupedConvFwd<NDimS
++         namespace ctc = tensor_layout::convolution;
++ 
++         // check device
++-        if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++        if(!(ck::get_device_name() == "gfx906" ||
+++             ck::get_device_name() == "gfx1030" ||
+++             ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++             ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++              ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-             ck::get_device_name() == "gfx1102"))
+++             ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103"))
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
++index 4c9178d6b..63297cbc5 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
++@@ -532,7 +532,7 @@ struct DeviceGroupedConvFwdMultipleD_Wmma_CShuffle
++ 
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
++index 0190b3cee..a5acec5b5 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
++@@ -39,9 +39,13 @@ __global__ void
++                                           const BElementwiseOperation b_element_op,
++                                           const CDEElementwiseOperation cde_element_op)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||              \
++-    defined(__gfx90a__) || defined(__gfx1030__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx906__)  || defined(__gfx908__)  || defined(__gfx90a__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx940__)  || defined(__gfx941__) || defined(__gfx942__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     const index_t block_id = get_block_1d_id();
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
++index 6eca77c89..8188a18c9 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
++@@ -28,8 +28,11 @@ __global__ void
++ #endif
++         kernel_gemm_dpp(const typename GridwiseGemm::Argument karg)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     const auto a_grid_desc_ak0_m_ak1 = amd_wave_read_first_lane(
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++index 53b2169bc..4cee092c5 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++@@ -54,8 +54,9 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -148,8 +149,9 @@ __global__ void
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch,
++             const Block2CTileMap block_2_etile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // printf("entry kernel launch");
++     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
++ 
++@@ -244,8 +246,9 @@ __global__ void
++             const CDEElementwiseOperation cde_element_op,
++             const Block2CTileMap block_2_ctile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
++ 
++     GridwiseOp::template Run<HasMainKBlockLoop>(p_a_grid,
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
++index d8b31311b..d530c0fd8 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
++@@ -49,8 +49,9 @@ __global__ void
++             const CElementwiseOperation c_element_op,
++             const Block2CTileMap block_2_ctile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     GridwiseGemm::template Run<HasMainKBlockLoop>(p_a_grid,
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
++index f77ffff35..e8e2102ec 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
++@@ -35,9 +35,13 @@ __global__ void
++                                 const Block2ETileMap block_2_tile_map,
++                                 const ComputePtrOffsetOfStridedBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx906__)  || defined(__gfx908__)  || defined(__gfx90a__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx940__)  || defined(__gfx941__) || defined(__gfx942__))
++     GridwiseTensorRearrangeKernel::Run(in_grid_desc,
++                                        p_in_global,
++                                        out_grid_desc,
++diff --git a/include/ck/utility/amd_wmma.hpp b/include/ck/utility/amd_wmma.hpp
++index dd7f0b770..6b3ce66ce 100644
++--- a/include/ck/utility/amd_wmma.hpp
+++++ b/include/ck/utility/amd_wmma.hpp
++@@ -25,7 +25,7 @@ struct intrin_wmma_f32_16x16x16_f16_w32<16, 16>
++         // delete them.
++         // amd_assembly_wmma_f32_16x16x16_f16_w32(
++         //     reg_a, reg_b, reg_c.template AsType<float8_t>()(Number<0>{}));
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float8_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f32_16x16x16_f16_w32(
++             reg_a, reg_b, reg_c.template AsType<float8_t>()[Number<0>{}]);
++ #else
++@@ -46,7 +46,7 @@ struct intrin_wmma_f32_16x16x16_bf16_w32<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const bhalf16_t& reg_a, const bhalf16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_f32_16x16x16_bf16_w32(
++                 reg_a, reg_b, reg_c.template AsType<float8_t>()[Number<0>{}]);
++@@ -71,7 +71,7 @@ struct intrin_wmma_f16_16x16x16_f16_w32<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<half16_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f16_16x16x16_f16_w32(
++             reg_a, reg_b, reg_c.template AsType<half16_t>()[Number<0>{}], Opsel);
++ #else
++@@ -95,7 +95,7 @@ struct intrin_wmma_bf16_16x16x16_bf16_w32<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<bhalf16_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32(
++                 reg_a, reg_b, reg_c.template AsType<bhalf16_t>()[Number<0>{}], Opsel);
++@@ -117,7 +117,7 @@ struct intrin_wmma_i32_16x16x16_iu8_w32<16, 16, neg_a, neg_b, clamp>
++     template <class FloatC>
++     __device__ static void Run(const int8x16_t& reg_a, const int8x16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<int32x8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_i32_16x16x16_iu8_w32(
++                 neg_a,
++@@ -145,7 +145,7 @@ struct intrin_wmma_f32_16x16x16_f16_w64<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const half16_t& reg_a, const half16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float4_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f32_16x16x16_f16_w64(
++             reg_a, reg_b, reg_c.template AsType<float4_t>()[Number<0>{}]);
++ #else
++@@ -166,7 +166,7 @@ struct intrin_wmma_f32_16x16x16_bf16_w64<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const bhalf16_t& reg_a, const bhalf16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float4_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_f32_16x16x16_bf16_w64(
++                 reg_a, reg_b, reg_c.template AsType<float4_t>()[Number<0>{}]);
++@@ -191,7 +191,7 @@ struct intrin_wmma_f16_16x16x16_f16_w64<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<half8_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f16_16x16x16_f16_w64(
++             reg_a, reg_b, reg_c.template AsType<half8_t>()[Number<0>{}], Opsel);
++ #else
++@@ -215,7 +215,7 @@ struct intrin_wmma_bf16_16x16x16_bf16_w64<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<bhalf8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w64(
++                 reg_a, reg_b, reg_c.template AsType<bhalf8_t>()[Number<0>{}], Opsel);
++@@ -237,7 +237,7 @@ struct intrin_wmma_i32_16x16x16_iu8_w64<16, 16, neg_a, neg_b, clamp>
++     template <class FloatC>
++     __device__ static void Run(const int8x16_t& reg_a, const int8x16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<int32x4_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_i32_16x16x16_iu8_w64(
++                 neg_a,
++diff --git a/test/grouped_convnd_bwd_data/CMakeLists.txt b/test/grouped_convnd_bwd_data/CMakeLists.txt
++index 9773e5a9c..b14c53481 100644
++--- a/test/grouped_convnd_bwd_data/CMakeLists.txt
+++++ b/test/grouped_convnd_bwd_data/CMakeLists.txt
++@@ -1,5 +1,5 @@
++ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940)
++-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
+++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103)
++ set(target 0)
++ foreach(gpu IN LISTS GPU_TARGETS)
++     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
++@@ -16,4 +16,4 @@ foreach(gpu IN LISTS GPU_TARGETS)
++         target_link_libraries(test_grouped_convnd_bwd_data_interface PRIVATE utility device_grouped_conv2d_bwd_data_instance)
++         set(target 1)
++     endif()
++-endforeach()
++\ No newline at end of file
+++endforeach()
++diff --git a/test/grouped_convnd_bwd_weight/CMakeLists.txt b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++index b167943c9..fb37c90b9 100644
++--- a/test/grouped_convnd_bwd_weight/CMakeLists.txt
+++++ b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++@@ -1,5 +1,5 @@
++ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
++-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
+++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103)
++ 
++ set(target 0)
++ foreach(gpu IN LISTS GPU_TARGETS)
++@@ -17,4 +17,4 @@ foreach(gpu IN LISTS GPU_TARGETS)
++    target_link_libraries(test_grouped_convnd_bwd_weight_interface PRIVATE utility)
++    set(target 1)
++  endif()
++-endforeach()
++\ No newline at end of file
+++endforeach()
++diff --git a/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp b/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
++index 856f9fd15..347cb65f6 100644
++--- a/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
+++++ b/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
++@@ -57,7 +57,8 @@ class TestGroupedConvndBwdWeight : public ::testing::Test
++ 
++         const bool is_navi3x = ck::get_device_name() == "gfx1100" ||
++                                ck::get_device_name() == "gfx1101" ||
++-                               ck::get_device_name() == "gfx1102";
+++                               ck::get_device_name() == "gfx1102" ||
+++                               ck::get_device_name() == "gfx1103";
++         if(is_navi3x)
++         {
++             // on navi3x only support for 3d is implemented
++-- 
++2.43.0
++
+diff --git a/cmake/patches/composable_kernel/0004-Fix_Clang_Build.patch.patch b/cmake/patches/composable_kernel/0004-Fix_Clang_Build.patch.patch
+new file mode 100644
+index 0000000000..9613af63dd
+--- /dev/null
++++ b/cmake/patches/composable_kernel/0004-Fix_Clang_Build.patch.patch
+@@ -0,0 +1,106 @@
++From a59b61c512efefa2c64e411712eeecb0a413b613 Mon Sep 17 00:00:00 2001
++From: Mika Laitio <lamikr@gmail.com>
++Date: Fri, 26 Jul 2024 09:43:14 -0700
++Subject: [PATCH 4/4] Fix_Clang_Build.patch
++
++Signed-off-by: Mika Laitio <lamikr@gmail.com>
++---
++ CMakeLists.txt                                | 37 ++-----------------
++ .../gpu/CMakeLists.txt                        |  6 +++
++ 2 files changed, 10 insertions(+), 33 deletions(-)
++
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index b939cf007..757b41afe 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -19,7 +19,7 @@ endif()
++ 
++ set(version 1.1.0)
++ # Check support for CUDA/HIP in Cmake
++-project(composable_kernel VERSION ${version})
+++project(composable_kernel VERSION ${version} LANGUAGES CXX HIP)
++ 
++ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
++ 
++@@ -173,27 +173,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
++ set(CMAKE_CXX_EXTENSIONS OFF)
++ message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
++ 
++-## OpenMP
++-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++-	# workaround issue hipcc in rocm3.5 cannot find openmp
++-	set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
++-	set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
++-	set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
++-	set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-	set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-	set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-else()
++-	find_package(OpenMP REQUIRED)
++-endif()
++-
++-message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
++-message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
++-message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
++-message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
++-
++-link_libraries(${OpenMP_gomp_LIBRARY})
++-link_libraries(${OpenMP_pthread_LIBRARY})
++-
++ ## HIP
++ find_package(HIP REQUIRED)
++ # Override HIP version in config.h, if necessary.
++@@ -215,8 +194,6 @@ if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
++     message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
++ endif()
++ message(STATUS "Build with HIP ${HIP_VERSION}")
++-link_libraries(hip::device)
++-add_compile_definitions(__HIP_PLATFORM_HCC__=1)
++ 
++ ## tidy
++ include(EnableCompilerWarnings)
++@@ -376,7 +353,9 @@ if(BUILD_DEV)
++     add_compile_options(-Werror -Weverything)
++ endif()
++ #add flags to reduce the size of binaries
++-add_compile_options(-Oz -flto=thin)
+++# -flto requires ORT to use a linker that support LTO and -flto flag shoud be passed to linker together.
+++# add_compile_options(-Oz -flto=thin)
+++add_compile_options(-Oz)
++ message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
++ 
++ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
++@@ -482,11 +461,3 @@ rocm_install(FILES
++ 
++ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
++ set(CPACK_RPM_PACKAGE_LICENSE "MIT")
++-
++-rocm_create_package(
++-    NAME composablekernel
++-    DESCRIPTION "High Performance Composable Kernel for AMD GPUs"
++-    MAINTAINER "MIOpen Kernels Dev Team <dl.MIOpen@amd.com>"
++-    LDCONFIG
++-    HEADER_ONLY
++-)
++diff --git a/library/src/tensor_operation_instance/gpu/CMakeLists.txt b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++index 9cb5d0e9a..141a46f3d 100644
++--- a/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+++++ b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++@@ -44,8 +44,14 @@ function(add_instance_library INSTANCE_NAME)
++     endforeach()
++     #only continue if there are some source files left on the list
++     if(ARGN)
+++        set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
++         add_library(${INSTANCE_NAME} OBJECT ${ARGN})
+++        # Always disable debug symbol and C debug assert due to
+++        # - Linker error: ... relocation truncated to fit ..., caused by object files to be linked are too huge.
+++        # - https://github.com/ROCmSoftwarePlatform/composable_kernel/issues/622
+++        target_compile_options(${INSTANCE_NAME} PRIVATE -g0 -DNDEBUG)
++         target_compile_features(${INSTANCE_NAME} PUBLIC)
+++        target_compile_definitions(${INSTANCE_NAME} PRIVATE "__HIP_PLATFORM_AMD__=1" "__HIP_PLATFORM_HCC__=1")
++         set_target_properties(${INSTANCE_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
++         clang_tidy_check(${INSTANCE_NAME})
++         set(result 0)
++-- 
++2.43.0
++
+diff --git a/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch b/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
+new file mode 100644
+index 0000000000..13a860f174
+--- /dev/null
++++ b/cmake/patches/composable_kernel/composable_kernel_patches_combined.patch
+@@ -0,0 +1,733 @@
++diff --git a/CMakeLists.txt b/CMakeLists.txt
++index 04674124c..757b41afe 100644
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -19,7 +19,7 @@ endif()
++ 
++ set(version 1.1.0)
++ # Check support for CUDA/HIP in Cmake
++-project(composable_kernel VERSION ${version})
+++project(composable_kernel VERSION ${version} LANGUAGES CXX HIP)
++ 
++ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
++ 
++@@ -106,7 +106,7 @@ message("checking which targets are supported")
++ #Setting GPU_TARGETS on command line will override this list
++ if(NOT PROFILER_ONLY)
++     rocm_check_target_ids(DEFAULT_GPU_TARGETS
++-        TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1030;gfx1100;gfx1101;gfx1102")
+++        TARGETS "gfx908;gfx90a;gfx940;gfx941;gfx942;gfx1010;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036;gfx1100;gfx1101;gfx1102;gfx1103")
++ else()
++     add_definitions(-DPROFILER_ONLY)
++     set(GPU_TARGETS "" CACHE STRING "" FORCE)
++@@ -118,9 +118,9 @@ else()
++     elseif(GPU_ARCH MATCHES "gfx94")
++         rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx940;gfx941;gfx942")
++     elseif(GPU_ARCH MATCHES "gfx10")
++-        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1030")
+++        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1010;gfx1030;gfx1031;gfx1032;gfx1035;gfx1036")
++     elseif(GPU_ARCH MATCHES "gfx11")
++-        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1100;gfx1101;gfx1102")
+++        rocm_check_target_ids(DEFAULT_GPU_TARGETS TARGETS "gfx1100;gfx1101;gfx1102;gfx1103")
++     else()
++         message(FATAL_ERROR "For PROFILE_ONLY build, please specify GPU_ARCH as gfx90, gfx94, gfx10, or gfx11")
++     endif()
++@@ -173,27 +173,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
++ set(CMAKE_CXX_EXTENSIONS OFF)
++ message("CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
++ 
++-## OpenMP
++-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
++-	# workaround issue hipcc in rocm3.5 cannot find openmp
++-	set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
++-	set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
++-	set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
++-	set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-	set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-	set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
++-else()
++-	find_package(OpenMP REQUIRED)
++-endif()
++-
++-message("OpenMP_CXX_LIB_NAMES: ${OpenMP_CXX_LIB_NAMES}")
++-message("OpenMP_gomp_LIBRARY: ${OpenMP_gomp_LIBRARY}")
++-message("OpenMP_pthread_LIBRARY: ${OpenMP_pthread_LIBRARY}")
++-message("OpenMP_CXX_FLAGS: ${OpenMP_CXX_FLAGS}")
++-
++-link_libraries(${OpenMP_gomp_LIBRARY})
++-link_libraries(${OpenMP_pthread_LIBRARY})
++-
++ ## HIP
++ find_package(HIP REQUIRED)
++ # Override HIP version in config.h, if necessary.
++@@ -215,8 +194,6 @@ if( DEFINED CK_OVERRIDE_HIP_VERSION_PATCH )
++     message(STATUS "CK_HIP_VERSION_PATCH overriden with ${CK_OVERRIDE_HIP_VERSION_PATCH}")
++ endif()
++ message(STATUS "Build with HIP ${HIP_VERSION}")
++-link_libraries(hip::device)
++-add_compile_definitions(__HIP_PLATFORM_HCC__=1)
++ 
++ ## tidy
++ include(EnableCompilerWarnings)
++@@ -376,7 +353,9 @@ if(BUILD_DEV)
++     add_compile_options(-Werror -Weverything)
++ endif()
++ #add flags to reduce the size of binaries
++-add_compile_options(-Oz -flto=thin)
+++# -flto requires ORT to use a linker that support LTO and -flto flag shoud be passed to linker together.
+++# add_compile_options(-Oz -flto=thin)
+++add_compile_options(-Oz)
++ message("CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
++ 
++ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure -C ${CMAKE_CFG_INTDIR})
++@@ -482,11 +461,3 @@ rocm_install(FILES
++ 
++ set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
++ set(CPACK_RPM_PACKAGE_LICENSE "MIT")
++-
++-rocm_create_package(
++-    NAME composablekernel
++-    DESCRIPTION "High Performance Composable Kernel for AMD GPUs"
++-    MAINTAINER "MIOpen Kernels Dev Team <dl.MIOpen@amd.com>"
++-    LDCONFIG
++-    HEADER_ONLY
++-)
++diff --git a/include/ck/ck.hpp b/include/ck/ck.hpp
++index 1e4140419..75e181186 100644
++--- a/include/ck/ck.hpp
+++++ b/include/ck/ck.hpp
++@@ -51,22 +51,29 @@
++     defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__) ||                          \
++     defined(__gfx942__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
++-#elif defined(__gfx1030__) // for GPU code
+++#elif defined(__gfx1010__) || defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1035__) || defined(__gfx1036__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) // for GPU code
++ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
+++#else
+++#define CK_BUFFER_RESOURCE_3RD_DWORD -1
++ #endif
++ 
+++// whether to use assembly or rely on compiler for these instructions
+++// TODO: rdna1/gfx1010 has CK_USE_AMD_V_FMAC_F32 but not CK_USE_AMD_V_DOT2_F32_F16 CK_USE_AMD_V_DOT4_I32_I8
+++// TODO: check defined(__gfx1035__)
++ // FMA instruction
++ #ifndef __HIP_DEVICE_COMPILE__                   // for host code, define nothing
++ #elif defined(__gfx803__) || defined(__gfx900__) // for GPU code
++ #define CK_USE_AMD_V_MAC_F32
++-#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || \
+++#elif defined(__gfx1010__)
+++#define CK_USE_AMD_V_FMAC_F32
+++#elif defined(__gfx906__) || defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx1030__) || defined(__gfx1031__) || \
++     defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) // for GPU code
++ #define CK_USE_AMD_V_FMAC_F32
++ #define CK_USE_AMD_V_DOT2_F32_F16
++ #define CK_USE_AMD_V_DOT4_I32_I8
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++ #define CK_USE_AMD_V_FMAC_F32
++ #define CK_USE_AMD_V_DOT2_F32_F16
++ #define CK_USE_AMD_V_DOT4_I32_I8_GFX11
++@@ -91,7 +98,7 @@
++ // WMMA instruction
++ #ifndef __HIP_DEVICE_COMPILE__ // for host code
++ #define CK_USE_AMD_WMMA
++-#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) // for GPU code
+++#elif defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) // for GPU code
++ #define CK_USE_AMD_WMMA
++ #endif
++ 
++diff --git a/include/ck/host_utility/device_prop.hpp b/include/ck/host_utility/device_prop.hpp
++index be1dbc165..a31a120a5 100644
++--- a/include/ck/host_utility/device_prop.hpp
+++++ b/include/ck/host_utility/device_prop.hpp
++@@ -40,7 +40,19 @@ inline std::string get_device_name()
++         {"gfx804", "gfx803"},
++         {"Vega10", "gfx900"},
++         {"gfx901", "gfx900"},
+++        {"navi10", "gfx1010"},
+++        {"navi12", "gfx1011"},
+++        {"navi14", "gfx1012"},
++         {"10.3.0 Sienna_Cichlid 18", "gfx1030"},
+++        {"navi22", "gfx1031"},
+++        {"navi23", "gfx1032"},
+++        {"navi24", "gfx1034"},
+++        {"rembrandt", "gfx1035"},
+++        {"raphael", "gfx1036"},
+++        {"navi31", "gfx1100"},
+++        {"navi32", "gfx1101"},
+++        {"navi33", "gfx1102"},
+++        {"phoenix", "gfx1103"},
++     };
++ 
++     const auto name = raw_name.substr(0, raw_name.find(':')); // str.substr(0, npos) returns str.
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
++index 4d599e801..ed30c5517 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_batched_contraction_multiple_d_wmma_cshuffle.hpp
++@@ -771,7 +771,7 @@ struct DeviceBatchedContractionMultipleD_Wmma_CShuffle
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
++index b51c60047..aeb028a74 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_batched_gemm_multiple_d_dl.hpp
++@@ -71,8 +71,9 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map)
++ {
++ #if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__))
+++    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || \
+++    defined(__gfx1031__) || defined(__gfx1032__) || defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__))
++ 
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -651,8 +652,11 @@ struct DeviceBatchedGemmMultipleD_Dl : public DeviceBatchedGemmMultiD<ALayout,
++         // TODO: Enable for gfx90a after complier fix
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx90a" ||
++            ck::get_device_name() == "gfx908" || ck::get_device_name() == "gfx1030" ||
++-           ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             bool pass = true;
++             pass      = pass && arg.K_ % K1 == 0;
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
++index 3178f73f4..bef0d0465 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_convnd_bwd_data_nwc_kxc_nwk_dl.hpp
++@@ -1394,8 +1394,10 @@ struct DeviceConvNdBwdDataNwcKxcNwk_Dl
++     {
++         // check device
++         if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++             ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++             ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++              ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-             ck::get_device_name() == "gfx1102"))
+++             ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103"))
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
++index 514aa4452..6fa7404cb 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dl.hpp
++@@ -537,8 +537,10 @@ struct DeviceGemmDl : public DeviceGemm<ALayout,
++         }
++ 
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++            ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             return GridwiseGemm::CheckValidity(
++                 arg.a_grid_desc_k0_m_k1_, arg.b_grid_desc_k0_n_k1_, arg.c_grid_desc_m_n_);
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
++index 24393511c..071207e9c 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_dpp.hpp
++@@ -168,8 +168,11 @@ struct DeviceGemmDpp : public DeviceGemm<ALayout,
++ 
++     static bool IsSupportedArgument(const Argument& karg)
++     {
++-        if(ck::get_device_name() == "gfx1030" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102")
+++        if(ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             return GridwiseGemm::CheckValidity(karg);
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
++index ad51096db..fbfbf44c9 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_dl.hpp
++@@ -51,8 +51,12 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map)
++ {
++ #if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++    defined(__gfx90a__) || defined(__gfx940__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++ 
++     constexpr index_t shared_block_size =
++         GridwiseGemm::GetSharedMemoryNumberOfByte() / sizeof(ABDataType);
++@@ -553,9 +557,13 @@ struct DeviceGemmMultipleD_Dl : public DeviceGemmMultipleD<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx908" ||
++-           ck::get_device_name() == "gfx90a" || ck::get_device_name() == "gfx1030" ||
++-           ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-           ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102" ||
+++           ck::get_device_name() == "gfx90a" ||
+++           ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103" ||
++            ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942")
++         {
++             return GridwiseGemm::CheckValidity(
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
++index 44b3518e2..78e950fb2 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_multiple_d_wmma_cshuffle.hpp
++@@ -485,7 +485,7 @@ struct DeviceGemmMultipleD_Wmma_CShuffle : public DeviceGemmMultipleD<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
++index f64450b75..5d6153064 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_gemm_wmma.hpp
++@@ -412,7 +412,7 @@ struct DeviceGemmWmma_CShuffle : public DeviceGemm<ALayout,
++     static bool IsSupportedArgument(const Argument& arg)
++     {
++         if(ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
++index d66363c45..b055b4b27 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_data_multiple_d_wmma_cshuffle.hpp
++@@ -628,7 +628,7 @@ struct DeviceGroupedConvBwdDataMultipleD_Wmma_CShuffle
++     {
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
++index a5f34f0b2..289ba2d67 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_dl.hpp
++@@ -48,9 +48,12 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) ||           \
++-    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++     const index_t g_idx = __builtin_amdgcn_readfirstlane(get_block_1d_id() / num_blocks_per_batch);
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
++index dd591fb78..fa4298e62 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_wmma_cshuffle.hpp
++@@ -699,7 +699,7 @@ struct DeviceGroupedConvBwdWeight_Wmma_CShuffle
++     {
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           get_device_name() == "gfx1102")
+++           get_device_name() == "gfx1102" || get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
++index 484f1e729..813c60ce9 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp
++@@ -90,9 +90,13 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) ||           \
++-    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx90a__) || defined(__gfx908__) || defined(__gfx940__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx941__) || defined(__gfx942__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -666,11 +670,15 @@ struct DeviceGroupedConvFwdDlMultipleD_NHWC_KYXC_NHWK
++         namespace ctc = tensor_layout::convolution;
++ 
++         // check device
++-        if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
++-             ck::get_device_name() == "gfx90a" || ck::get_device_name() == "gfx908" ||
++-             ck::get_device_name() == "gfx940" || ck::get_device_name() == "gfx1100" ||
++-             ck::get_device_name() == "gfx1101" || ck::get_device_name() == "gfx1102" ||
++-             ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942"))
+++        if(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx908" ||
+++           ck::get_device_name() == "gfx90a" ||
+++           ck::get_device_name() == "gfx1030" ||
+++           ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++           ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
+++           ck::get_device_name() == "gfx940" ||
+++           ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103" ||
+++           ck::get_device_name() == "gfx941" || ck::get_device_name() == "gfx942")
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
++index f18fbcfe4..e671a42e8 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_nhwc_kyxc_nhwk.hpp
++@@ -106,8 +106,11 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx1030__) || \
++-    defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -601,9 +604,12 @@ struct DeviceGroupedConvFwdDl_NHWC_KYXC_NHWK : public DeviceGroupedConvFwd<NDimS
++         namespace ctc = tensor_layout::convolution;
++ 
++         // check device
++-        if(!(ck::get_device_name() == "gfx906" || ck::get_device_name() == "gfx1030" ||
+++        if(!(ck::get_device_name() == "gfx906" ||
+++             ck::get_device_name() == "gfx1030" ||
+++             ck::get_device_name() == "gfx1031" || ck::get_device_name() == "gfx1032" ||
+++             ck::get_device_name() == "gfx1035" || ck::get_device_name() == "gfx1036" ||
++              ck::get_device_name() == "gfx1100" || ck::get_device_name() == "gfx1101" ||
++-             ck::get_device_name() == "gfx1102"))
+++             ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103"))
++         {
++             return false;
++         }
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
++index 4c9178d6b..63297cbc5 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_multiple_d_wmma_cshuffle.hpp
++@@ -532,7 +532,7 @@ struct DeviceGroupedConvFwdMultipleD_Wmma_CShuffle
++ 
++         // check device
++         if(get_device_name() == "gfx1100" || get_device_name() == "gfx1101" ||
++-           ck::get_device_name() == "gfx1102")
+++           ck::get_device_name() == "gfx1102" || ck::get_device_name() == "gfx1103")
++         {
++             if constexpr(!(is_same_v<AccDataType, float> || is_same_v<AccDataType, int32_t>))
++             {
++diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
++index 0190b3cee..a5acec5b5 100644
++--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
+++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_gemm_multiple_d_dl.hpp
++@@ -39,9 +39,13 @@ __global__ void
++                                           const BElementwiseOperation b_element_op,
++                                           const CDEElementwiseOperation cde_element_op)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||              \
++-    defined(__gfx90a__) || defined(__gfx1030__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__) || defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx906__)  || defined(__gfx908__)  || defined(__gfx90a__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx940__)  || defined(__gfx941__) || defined(__gfx942__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     const index_t block_id = get_block_1d_id();
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
++index 6eca77c89..8188a18c9 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_dpp.hpp
++@@ -28,8 +28,11 @@ __global__ void
++ #endif
++         kernel_gemm_dpp(const typename GridwiseGemm::Argument karg)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     const auto a_grid_desc_ak0_m_ak1 = amd_wave_read_first_lane(
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++index 53b2169bc..4cee092c5 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_multiple_d_wmma_cshuffle.hpp
++@@ -54,8 +54,9 @@ __global__ void
++             const Block2CTileMap block_2_ctile_map,
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // offset base pointer for each work-group
++     const index_t num_blocks_per_batch =
++         __builtin_amdgcn_readfirstlane(get_grid_size() / batch_count);
++@@ -148,8 +149,9 @@ __global__ void
++             const ComputePtrOffsetOfBatch compute_ptr_offset_of_batch,
++             const Block2CTileMap block_2_etile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     // printf("entry kernel launch");
++     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
++ 
++@@ -244,8 +246,9 @@ __global__ void
++             const CDEElementwiseOperation cde_element_op,
++             const Block2CTileMap block_2_ctile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseOp::GetSharedMemoryNumberOfByte()];
++ 
++     GridwiseOp::template Run<HasMainKBlockLoop>(p_a_grid,
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
++index d8b31311b..d530c0fd8 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_gemm_wmma.hpp
++@@ -49,8 +49,9 @@ __global__ void
++             const CElementwiseOperation c_element_op,
++             const Block2CTileMap block_2_ctile_map)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx1100__) || defined(__gfx1101__) || \
++-    defined(__gfx1102__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__))
++     __shared__ char p_shared[GridwiseGemm::GetSharedMemoryNumberOfByte()];
++ 
++     GridwiseGemm::template Run<HasMainKBlockLoop>(p_a_grid,
++diff --git a/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp b/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
++index f77ffff35..e8e2102ec 100644
++--- a/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
+++++ b/include/ck/tensor_operation/gpu/grid/gridwise_tensor_rearrange.hpp
++@@ -35,9 +35,13 @@ __global__ void
++                                 const Block2ETileMap block_2_tile_map,
++                                 const ComputePtrOffsetOfStridedBatch compute_ptr_offset_of_batch)
++ {
++-#if(!defined(__HIP_DEVICE_COMPILE__) || defined(__gfx906__) || defined(__gfx908__) ||             \
++-    defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx1030__) || defined(__gfx1100__) || \
++-    defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx941__) || defined(__gfx942__))
+++#if(!defined(__HIP_DEVICE_COMPILE__) || \
+++    defined(__gfx906__)  || defined(__gfx908__)  || defined(__gfx90a__) || \
+++    defined(__gfx1030__) || defined(__gfx1031__) || defined(__gfx1032__) || \
+++    defined(__gfx1035__) || defined(__gfx1036__) || \
+++    defined(__gfx1100__) || defined(__gfx1101__) || \
+++    defined(__gfx1102__) || defined(__gfx1103__) || \
+++    defined(__gfx940__)  || defined(__gfx941__) || defined(__gfx942__))
++     GridwiseTensorRearrangeKernel::Run(in_grid_desc,
++                                        p_in_global,
++                                        out_grid_desc,
++diff --git a/include/ck/utility/amd_wmma.hpp b/include/ck/utility/amd_wmma.hpp
++index dd7f0b770..6b3ce66ce 100644
++--- a/include/ck/utility/amd_wmma.hpp
+++++ b/include/ck/utility/amd_wmma.hpp
++@@ -25,7 +25,7 @@ struct intrin_wmma_f32_16x16x16_f16_w32<16, 16>
++         // delete them.
++         // amd_assembly_wmma_f32_16x16x16_f16_w32(
++         //     reg_a, reg_b, reg_c.template AsType<float8_t>()(Number<0>{}));
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float8_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f32_16x16x16_f16_w32(
++             reg_a, reg_b, reg_c.template AsType<float8_t>()[Number<0>{}]);
++ #else
++@@ -46,7 +46,7 @@ struct intrin_wmma_f32_16x16x16_bf16_w32<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const bhalf16_t& reg_a, const bhalf16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_f32_16x16x16_bf16_w32(
++                 reg_a, reg_b, reg_c.template AsType<float8_t>()[Number<0>{}]);
++@@ -71,7 +71,7 @@ struct intrin_wmma_f16_16x16x16_f16_w32<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<half16_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f16_16x16x16_f16_w32(
++             reg_a, reg_b, reg_c.template AsType<half16_t>()[Number<0>{}], Opsel);
++ #else
++@@ -95,7 +95,7 @@ struct intrin_wmma_bf16_16x16x16_bf16_w32<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<bhalf16_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32(
++                 reg_a, reg_b, reg_c.template AsType<bhalf16_t>()[Number<0>{}], Opsel);
++@@ -117,7 +117,7 @@ struct intrin_wmma_i32_16x16x16_iu8_w32<16, 16, neg_a, neg_b, clamp>
++     template <class FloatC>
++     __device__ static void Run(const int8x16_t& reg_a, const int8x16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<int32x8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_i32_16x16x16_iu8_w32(
++                 neg_a,
++@@ -145,7 +145,7 @@ struct intrin_wmma_f32_16x16x16_f16_w64<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const half16_t& reg_a, const half16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float4_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f32_16x16x16_f16_w64(
++             reg_a, reg_b, reg_c.template AsType<float4_t>()[Number<0>{}]);
++ #else
++@@ -166,7 +166,7 @@ struct intrin_wmma_f32_16x16x16_bf16_w64<16, 16>
++     template <class FloatC>
++     __device__ static void Run(const bhalf16_t& reg_a, const bhalf16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<float4_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_f32_16x16x16_bf16_w64(
++                 reg_a, reg_b, reg_c.template AsType<float4_t>()[Number<0>{}]);
++@@ -191,7 +191,7 @@ struct intrin_wmma_f16_16x16x16_f16_w64<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<half8_t>()(Number<0>{}) = __builtin_amdgcn_wmma_f16_16x16x16_f16_w64(
++             reg_a, reg_b, reg_c.template AsType<half8_t>()[Number<0>{}], Opsel);
++ #else
++@@ -215,7 +215,7 @@ struct intrin_wmma_bf16_16x16x16_bf16_w64<16, 16, Opsel>
++         // opsel usage
++         // false: D0.[0:15] = result
++         // true : D0.[16:31]= result
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<bhalf8_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w64(
++                 reg_a, reg_b, reg_c.template AsType<bhalf8_t>()[Number<0>{}], Opsel);
++@@ -237,7 +237,7 @@ struct intrin_wmma_i32_16x16x16_iu8_w64<16, 16, neg_a, neg_b, clamp>
++     template <class FloatC>
++     __device__ static void Run(const int8x16_t& reg_a, const int8x16_t& reg_b, FloatC& reg_c)
++     {
++-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__)
+++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__)
++         reg_c.template AsType<int32x4_t>()(Number<0>{}) =
++             __builtin_amdgcn_wmma_i32_16x16x16_iu8_w64(
++                 neg_a,
++diff --git a/library/src/tensor_operation_instance/gpu/CMakeLists.txt b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++index 9cb5d0e9a..141a46f3d 100644
++--- a/library/src/tensor_operation_instance/gpu/CMakeLists.txt
+++++ b/library/src/tensor_operation_instance/gpu/CMakeLists.txt
++@@ -44,8 +44,14 @@ function(add_instance_library INSTANCE_NAME)
++     endforeach()
++     #only continue if there are some source files left on the list
++     if(ARGN)
+++        set_source_files_properties(${ARGN} PROPERTIES LANGUAGE HIP)
++         add_library(${INSTANCE_NAME} OBJECT ${ARGN})
+++        # Always disable debug symbol and C debug assert due to
+++        # - Linker error: ... relocation truncated to fit ..., caused by object files to be linked are too huge.
+++        # - https://github.com/ROCmSoftwarePlatform/composable_kernel/issues/622
+++        target_compile_options(${INSTANCE_NAME} PRIVATE -g0 -DNDEBUG)
++         target_compile_features(${INSTANCE_NAME} PUBLIC)
+++        target_compile_definitions(${INSTANCE_NAME} PRIVATE "__HIP_PLATFORM_AMD__=1" "__HIP_PLATFORM_HCC__=1")
++         set_target_properties(${INSTANCE_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
++         clang_tidy_check(${INSTANCE_NAME})
++         set(result 0)
++diff --git a/test/grouped_convnd_bwd_data/CMakeLists.txt b/test/grouped_convnd_bwd_data/CMakeLists.txt
++index 9773e5a9c..b14c53481 100644
++--- a/test/grouped_convnd_bwd_data/CMakeLists.txt
+++++ b/test/grouped_convnd_bwd_data/CMakeLists.txt
++@@ -1,5 +1,5 @@
++ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940)
++-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
+++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103)
++ set(target 0)
++ foreach(gpu IN LISTS GPU_TARGETS)
++     if(gpu IN_LIST gpu_list_xdl AND target EQUAL 0)
++@@ -16,4 +16,4 @@ foreach(gpu IN LISTS GPU_TARGETS)
++         target_link_libraries(test_grouped_convnd_bwd_data_interface PRIVATE utility device_grouped_conv2d_bwd_data_instance)
++         set(target 1)
++     endif()
++-endforeach()
++\ No newline at end of file
+++endforeach()
++diff --git a/test/grouped_convnd_bwd_weight/CMakeLists.txt b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++index b167943c9..fb37c90b9 100644
++--- a/test/grouped_convnd_bwd_weight/CMakeLists.txt
+++++ b/test/grouped_convnd_bwd_weight/CMakeLists.txt
++@@ -1,5 +1,5 @@
++ list(APPEND gpu_list_xdl gfx908 gfx90a gfx940 gfx941 gfx942)
++-list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102)
+++list(APPEND gpu_list_wmma gfx1100 gfx1101 gfx1102 gfx1103)
++ 
++ set(target 0)
++ foreach(gpu IN LISTS GPU_TARGETS)
++@@ -17,4 +17,4 @@ foreach(gpu IN LISTS GPU_TARGETS)
++    target_link_libraries(test_grouped_convnd_bwd_weight_interface PRIVATE utility)
++    set(target 1)
++  endif()
++-endforeach()
++\ No newline at end of file
+++endforeach()
++diff --git a/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp b/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
++index 856f9fd15..347cb65f6 100644
++--- a/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
+++++ b/test/grouped_convnd_bwd_weight/test_grouped_convnd_bwd_weight.cpp
++@@ -57,7 +57,8 @@ class TestGroupedConvndBwdWeight : public ::testing::Test
++ 
++         const bool is_navi3x = ck::get_device_name() == "gfx1100" ||
++                                ck::get_device_name() == "gfx1101" ||
++-                               ck::get_device_name() == "gfx1102";
+++                               ck::get_device_name() == "gfx1102" ||
+++                               ck::get_device_name() == "gfx1103";
++         if(is_navi3x)
++         {
++             // on navi3x only support for 3d is implemented
+-- 
+2.41.1
+

@@ -1,0 +1,113 @@
+From cf2b399adb9b031c9669f5b183a0a8df80d92dae Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 11 Dec 2023 09:20:07 -0800
+Subject: [PATCH 01/13] pytorch_rocm preconfig, build and install scripts
+
+- clean previous build, build wheel and install wheel scripts
+"-Wno-error=maybe-uninitialized" is needed during
+build time for gcc14/fedora 40.
+- explicitly pass version number for release build
+- enable flash attention
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+---
+ build_rocm.sh     | 23 +++++++++++++++++++++++
+ install_rocm.sh   | 26 ++++++++++++++++++++++++++
+ preconfig_rocm.sh | 21 +++++++++++++++++++++
+ 3 files changed, 70 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 00000000000..464fe18bc4c
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,23 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory parameter specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "rocm_root_directory parameter: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    rocm_version_str=60101
++    echo ""
++    echo "Error, no rocm version parameter specified. Usage example for amd rocm version 6.1.1:"
++    echo "./build_rocm.sh /opt/rocm_sdk_600 ${rocm_version_str}"
++    echo ""
++    exit 1
++else
++    rocm_version_str=${2}
++    echo "Using rocm version parameter: ${rocm_version_str}"
++fi
++unset LDFLAGS
++export CFLAGS="-Wno-error=maybe-uninitialized"
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 00000000000..ec1f7d39b9f
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,26 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying pytorch python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes "$latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find pytorch whl file to install"
++    exit 1
++fi
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 00000000000..7ad2528e9fe
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,21 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++if [ -e ./preconfig_rocm.sh ]; then
++    if [ -d ./build ]; then
++        #rm -rf torch (this is needed to really get all files regenerated for hip)
++        #git status | xargs -- rm -rf
++        #git reset --hard
++        #git submodule update --init --recursive
++        python setup.py clean
++    fi
++fi
++USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
+-- 
+2.39.5
+

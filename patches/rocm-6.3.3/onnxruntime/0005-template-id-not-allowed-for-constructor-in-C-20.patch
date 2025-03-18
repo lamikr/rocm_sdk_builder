@@ -1,0 +1,36 @@
+From 45741bb989dc819cd4964d8be3aeccc05244c04b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 31 May 2024 11:08:25 -0700
+Subject: [PATCH 5/8] template-id not allowed for constructor in C++20
+
+following error in Fedora 40/gcc14
+
+In file included from onnxruntime/onnxruntime/core/providers/cpu/ml/tree_ensemble_common.h:6,
+                 from onnxruntime/onnxruntime/core/providers/cpu/ml/tree_ensemble_classifier.h:5,
+                 from onnxruntime/onnxruntime/core/providers/cpu/ml/tree_ensemble_classifier.cc:4:
+onnxruntime/onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h:329:59: error: template-id not allowed for constructor in C++20 [-Werror=template-id-cdtor]
+  329 |   TreeAggregatorMax<InputType, ThresholdType, OutputType>(size_t n_trees,
+
+fix: https://github.com/lamikr/rocm_sdk_builder/issues/12
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h b/onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h
+index b9f3050e59..896f2ad9af 100644
+--- a/onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h
++++ b/onnxruntime/core/providers/cpu/ml/tree_ensemble_aggregator.h
+@@ -326,7 +326,7 @@ class TreeAggregatorMin : public TreeAggregator<InputType, ThresholdType, Output
+ template <typename InputType, typename ThresholdType, typename OutputType>
+ class TreeAggregatorMax : public TreeAggregator<InputType, ThresholdType, OutputType> {
+  public:
+-  TreeAggregatorMax<InputType, ThresholdType, OutputType>(size_t n_trees,
++  TreeAggregatorMax(size_t n_trees,
+                                                           const int64_t& n_targets_or_classes,
+                                                           POST_EVAL_TRANSFORM post_transform,
+                                                           const std::vector<ThresholdType>& base_values) : TreeAggregator<InputType, ThresholdType, OutputType>(n_trees, n_targets_or_classes,
+-- 
+2.41.1
+

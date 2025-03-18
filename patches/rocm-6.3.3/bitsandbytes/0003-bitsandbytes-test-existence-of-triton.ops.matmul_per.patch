@@ -1,0 +1,65 @@
+From 28d2171fdb9f96aeb0d12d642cf15258b8203505 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 25 Jan 2025 21:00:51 -0800
+Subject: [PATCH 3/3] bitsandbytes, test existence of
+ triton.ops.matmul_perf_model
+
+Catch error if triton is available but the
+triton.ops.matmul_perf_model does not exist.
+This fixes the bitsandbytes to work with newer triton versions
+which does not anymore include the triton.ops.matmul_perf_model
+which has been moved to openai triton.kernels project.
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ bitsandbytes/triton/int8_matmul_mixed_dequantize.py   | 11 ++++++++++-
+ bitsandbytes/triton/int8_matmul_rowwise_dequantize.py | 11 ++++++++++-
+ 2 files changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/bitsandbytes/triton/int8_matmul_mixed_dequantize.py b/bitsandbytes/triton/int8_matmul_mixed_dequantize.py
+index 583371d..b810693 100644
+--- a/bitsandbytes/triton/int8_matmul_mixed_dequantize.py
++++ b/bitsandbytes/triton/int8_matmul_mixed_dequantize.py
+@@ -2,7 +2,16 @@ import torch
+ 
+ from bitsandbytes.triton.triton_utils import is_triton_available
+ 
+-if not is_triton_available():
++use_triton = False
++if is_triton_available():
++    import triton
++    try:
++        from triton.ops.matmul_perf_model import early_config_prune, estimate_matmul_time
++        use_triton = True
++    except ImportError:
++        print("bitsandbytes matmul_mixed warning, triton.ops.matmul_perf_model is not available anymore.")
++
++if use_triton == False:
+ 
+     def int8_matmul_mixed_dequantize(a, b, state_x, state_w, bias):
+         return None
+diff --git a/bitsandbytes/triton/int8_matmul_rowwise_dequantize.py b/bitsandbytes/triton/int8_matmul_rowwise_dequantize.py
+index e3d192d..c4218aa 100644
+--- a/bitsandbytes/triton/int8_matmul_rowwise_dequantize.py
++++ b/bitsandbytes/triton/int8_matmul_rowwise_dequantize.py
+@@ -2,7 +2,16 @@ import torch
+ 
+ from bitsandbytes.triton.triton_utils import is_triton_available
+ 
+-if not is_triton_available():
++use_triton = False
++if is_triton_available():
++    import triton
++    try:
++        from triton.ops.matmul_perf_model import early_config_prune, estimate_matmul_time
++        use_triton = True
++    except ImportError:
++        print("bitsandbytes rowwise_dequantize warning, triton.ops.matmul_perf_model is not available anymore.")
++
++if use_triton == False:
+ 
+     def int8_matmul_rowwise_dequantize(a, b, state_x, state_w, bias):
+         return None
+-- 
+2.48.1
+

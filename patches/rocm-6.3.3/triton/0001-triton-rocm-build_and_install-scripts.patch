@@ -1,0 +1,73 @@
+From d77aeaabdae5678e14436ee96324255fb1e5358d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 28 Jun 2024 02:58:51 -0700
+Subject: [PATCH 1/2] triton rocm build_and_install scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh     |  4 ++++
+ install_rocm.sh   | 26 ++++++++++++++++++++++++++
+ preconfig_rocm.sh |  7 +++++++
+ 3 files changed, 37 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 000000000..216108218
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,4 @@
++export TRITON_BUILD_WITH_CLANG_LLD=true
++# can not call python python/setup.py because then some relative paths are not found
++cd python
++python setup.py bdist_wheel -vvv
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 000000000..99d679dc0
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,26 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying triton python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in python/dist/*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    echo "installing $latest_wheel_file"
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++    pip uninstall --yes triton
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find triton python whl file to install"
++    exit 1
++fi
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 000000000..70048ac26
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,7 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./python/setup.py ]]; then
++    if [ -d ./python/build ]; then
++        cd python
++        python ./setup.py clean
++    fi
++fi
+-- 
+2.41.1
+

@@ -1,0 +1,44 @@
+From 45d4877d552141f133f63de79e1137b56992b7ed Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 31 May 2024 11:13:28 -0700
+Subject: [PATCH 6/8] fedora40 onnxruntime optimized maybe-uninitialized error
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Did not find proper fix, so silence just now the warning
+  interpreted as an error on Fedora 40/gcc 14.
+  I found some discussion about possible fixes in /usr/include
+  headers in itself related to similar problem on cases
+  where inlining is used. Hard to say whether was the same root cause.
+
+inlined from ‘onnxruntime::SelectorActionTransformer::SelectorActionTransformer(const std::string&, onnxruntime::SelectorActionRegistry&&, const onnxruntime::SatApplyContextVariant&, const onnxruntime::InlinedHashSet<std::basic_string_view<char> >&)’ at onnxruntime/onnxruntime/core/optimizer/selectors_actions/selector_action_transformer.cc:77:7:
+/usr/include/c++/14/bits/std_function.h:243:11: error: ‘((std::_Function_base*)((char*)this + 16))[7].std::_Function_base::_M_manager’ may be used uninitialized [-Werror=maybe-uninitialized]
+  243 |       if (_M_manager)
+
+Fixes: https://github.com/lamikr/rocm_sdk_builder/issues/12
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/onnxruntime_optimizer.cmake | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/cmake/onnxruntime_optimizer.cmake b/cmake/onnxruntime_optimizer.cmake
+index f15d5b8dd6..fde6941769 100644
+--- a/cmake/onnxruntime_optimizer.cmake
++++ b/cmake/onnxruntime_optimizer.cmake
+@@ -107,6 +107,11 @@ endif()
+ 
+ onnxruntime_add_static_library(onnxruntime_optimizer ${onnxruntime_optimizer_srcs})
+ 
++# workaround for Fedora 40/gcc 14 maybe-uninitialized eror
++# onnxruntime/core/optimizer/selectors_actions/selector_action_transformer.cc:77:7:
++# /usr/include/c++/14/bits/std_function.h:243:11: error: ‘((std::_Function_base*)((char*)this + 16))[7].std::_Function_base::_M_manager’ may be used uninitialized [-Werror=maybe-uninitialized]
++set_property(TARGET onnxruntime_optimizer APPEND_STRING PROPERTY COMPILE_FLAGS "-Wno-error=maybe-uninitialized")
++
+ onnxruntime_add_include_to_target(onnxruntime_optimizer onnxruntime_common onnxruntime_framework onnx onnx_proto ${PROTOBUF_LIB} flatbuffers::flatbuffers Boost::mp11 safeint_interface)
+ target_include_directories(onnxruntime_optimizer PRIVATE ${ONNXRUNTIME_ROOT})
+ if (onnxruntime_ENABLE_TRAINING)
+-- 
+2.41.1
+

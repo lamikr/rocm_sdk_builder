@@ -1,0 +1,969 @@
+From 85eaf744407cbdf97b3e7ad6491070f26c75de1b Mon Sep 17 00:00:00 2001
+From: Jeroen Mostert <jeroen.mostert@cm.com>
+Date: Sun, 30 Jun 2024 03:38:55 +0200
+Subject: [PATCH 4/9] add support for FFmpeg 7
+
+Add support by including an abstraction layer over the biggest change (the
+channel layout type changed from an uint64_t to a struct), and including
+a build-time only dependency on a copy of FFmpeg 7. Runtime support is then
+dynamically enabled in the same way as it is for FFmpeg 6, 5 and 4.
+
+Signed-off-by: Jeroen Mostert <jeroen.mostert@cm.com>
+Reviewed-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh                                 |   2 +-
+ src/libtorio/ffmpeg/CMakeLists.txt            |  14 ++
+ src/libtorio/ffmpeg/ffmpeg.cpp                | 139 ++++++++++++++++++
+ src/libtorio/ffmpeg/ffmpeg.h                  | 102 +++++++++++++
+ src/libtorio/ffmpeg/filter_graph.cpp          |  10 +-
+ src/libtorio/ffmpeg/filter_graph.h            |   2 +-
+ src/libtorio/ffmpeg/pybind/pybind.cpp         |   2 +-
+ .../ffmpeg/stream_reader/conversion.cpp       |   4 +
+ .../ffmpeg/stream_reader/post_process.cpp     |   9 +-
+ .../ffmpeg/stream_reader/stream_processor.cpp |   9 ++
+ .../ffmpeg/stream_reader/stream_reader.cpp    |  24 +++
+ .../ffmpeg/stream_writer/encode_process.cpp   |  64 ++++----
+ .../ffmpeg/stream_writer/stream_writer.cpp    |   6 +-
+ .../ffmpeg/stream_writer/stream_writer.h      |   4 +-
+ .../ffmpeg/stream_writer/tensor_converter.cpp |  13 ++
+ src/torio/_extension/utils.py                 |   7 +-
+ third_party/ffmpeg/multi/CMakeLists.txt       |  53 ++++++-
+ tools/setup_helpers/extension.py              |   2 +
+ 18 files changed, 415 insertions(+), 51 deletions(-)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 6ec84d24..091d0cbc 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -11,4 +11,4 @@ unset CPPFLAGS
+ unset PKG_CONFIG_PATH
+ export CMAKE_C_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
+ export CMAKE_CXX_COMPILER=${install_dir_prefix_rocm}/bin/hipcc
+-ROCM_PATH=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_CUDA=0 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
++ROCM_PATH=${install_dir_prefix_rocm} FFMPEG7_SRC="${install_dir_prefix_rocm}/ffmpeg7_devel" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake" USE_ROCM=1 USE_CUDA=0 USE_FFMPEG=1 USE_OPENMP=1 BUILD_SOX=1 CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} python setup.py bdist_wheel
+diff --git a/src/libtorio/ffmpeg/CMakeLists.txt b/src/libtorio/ffmpeg/CMakeLists.txt
+index a5c9e74b..ddc06ce3 100644
+--- a/src/libtorio/ffmpeg/CMakeLists.txt
++++ b/src/libtorio/ffmpeg/CMakeLists.txt
+@@ -67,6 +67,13 @@ else()
+     "torch;ffmpeg6;${additional_lib}"
+     ""
+     )
++  torio_library(
++    libtorio_ffmpeg7
++    "${sources}"
++    ""
++    "torch;ffmpeg7;${additional_lib}"
++    ""
++    )
+   if (BUILD_TORIO_PYTHON_EXTENSION)
+     torio_extension(
+       _torio_ffmpeg4
+@@ -89,5 +96,12 @@ else()
+       "libtorio_ffmpeg6"
+       "TORIO_FFMPEG_EXT_NAME=_torio_ffmpeg6"
+       )
++    torio_extension(
++      _torio_ffmpeg7
++      "${ext_sources}"
++      ""
++      "libtorio_ffmpeg7"
++      "TORIO_FFMPEG_EXT_NAME=_torio_ffmpeg7"
++      )
+   endif ()
+ endif()
+diff --git a/src/libtorio/ffmpeg/ffmpeg.cpp b/src/libtorio/ffmpeg/ffmpeg.cpp
+index 256cd156..019f2c6b 100644
+--- a/src/libtorio/ffmpeg/ffmpeg.cpp
++++ b/src/libtorio/ffmpeg/ffmpeg.cpp
+@@ -146,4 +146,143 @@ void AVCodecParametersDeleter::operator()(AVCodecParameters* codecpar) {
+ AVCodecParametersPtr::AVCodecParametersPtr(AVCodecParameters* p)
+     : Wrapper<AVCodecParameters, AVCodecParametersDeleter>(p) {}
+ 
++////////////////////////////////////////////////////////////////////////////////
++// AVChannelLayout
++////////////////////////////////////////////////////////////////////////////////
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++template<>
++ChannelLayout::WrappedChannelLayout(const AVChannelLayout& wrapped_channel_layout) {
++  av_channel_layout_copy(&channel_layout, &wrapped_channel_layout);
++}
++
++template<>
++ChannelLayout::WrappedChannelLayout(const ChannelLayout& c) {
++  av_channel_layout_copy(&channel_layout, &c.channel_layout);
++}
++
++template<>
++ChannelLayout::WrappedChannelLayout(int nb_channels) {
++  av_channel_layout_default(&channel_layout, nb_channels);
++}
++
++template<>
++int ChannelLayout::nb_channels() const {
++  return channel_layout.nb_channels;
++}
++
++template<>
++ChannelLayout::Range ChannelLayout::layouts_from_codec(const AVCodec* codec) {
++  return {codec->ch_layouts};
++}
++
++template<>
++ChannelLayout::operator bool() const {
++  return av_channel_layout_compare(&channel_layout, &zero_layout) != 0;
++}
++
++template<>
++std::string ChannelLayout::str() const {
++  if (!*this) return "";
++  char buf[1000];
++  int ret = av_channel_layout_describe(&channel_layout, buf, sizeof buf);
++  TORCH_CHECK(ret >= 0, "Error getting name for channel layout: ", av_err2string(ret));
++  return std::string{buf};
++}
++
++template<>
++std::string ChannelLayout::description() const {
++  return str();
++}
++
++template<>
++bool ChannelLayout::operator==(const WrappedChannelLayout& c) const {
++  return av_channel_layout_compare(&channel_layout, &c.channel_layout) == 0;
++}
++
++template<>
++void ChannelLayout::to_frame(AVFrame* frame) {
++  av_channel_layout_copy(&frame->ch_layout, &channel_layout);
++}
++
++template<>
++void ChannelLayout::to_codec_context(AVCodecContext* codec_context) {
++  av_channel_layout_copy(&codec_context->ch_layout, &channel_layout);
++}
++
++template<>
++ChannelLayout::~WrappedChannelLayout() {
++  av_channel_layout_uninit(&channel_layout);
++}
++
++
++#else
++template<>
++ChannelLayout::WrappedChannelLayout(const uint64_t& wrapped_channel_layout) {
++  channel_layout = wrapped_channel_layout;
++}
++
++template<>
++ChannelLayout::WrappedChannelLayout(const ChannelLayout& c) {
++  channel_layout = c.channel_layout;
++}
++
++template<>
++ChannelLayout::WrappedChannelLayout(int nb_channels) {
++  channel_layout = av_get_default_channel_layout(nb_channels);
++}
++
++template<>
++int ChannelLayout::nb_channels() const {
++  return av_get_channel_layout_nb_channels(channel_layout);
++}
++
++template<>
++std::string ChannelLayout::str() const {
++  char buf[20];
++  snprintf(buf, sizeof buf, "0x%" PRIx64, channel_layout);
++  return std::string{buf};
++}
++
++template<>
++std::string ChannelLayout::description() const {
++  if (av_get_channel_layout_nb_channels(channel_layout) == 1) {
++    char buf[200];
++    snprintf(buf, sizeof buf, "%s", av_get_channel_name(channel_layout));
++    return std::string{buf};
++  } else {
++    return str();
++  }
++}
++
++template<>
++ChannelLayout::Range ChannelLayout::layouts_from_codec(const AVCodec* codec) {
++  return {codec->channel_layouts};
++}
++
++template<>
++ChannelLayout::operator bool() const {
++  return channel_layout != 0;
++}
++
++template<>
++bool ChannelLayout::operator==(const WrappedChannelLayout& c) const {
++  return channel_layout == c.channel_layout;
++}
++
++template<>
++void ChannelLayout::to_frame(AVFrame* frame) {
++  frame->channels = av_get_channel_layout_nb_channels(channel_layout);
++  frame->channel_layout = channel_layout;
++}
++
++template<>
++void ChannelLayout::to_codec_context(AVCodecContext* codec_context) {
++  codec_context->channels = av_get_channel_layout_nb_channels(channel_layout);
++  codec_context->channel_layout = channel_layout;
++}
++
++template<>
++ChannelLayout::~WrappedChannelLayout() {}
++#endif
++
+ } // namespace torio::io
+diff --git a/src/libtorio/ffmpeg/ffmpeg.h b/src/libtorio/ffmpeg/ffmpeg.h
+index 0a680a7d..b2aa7999 100644
+--- a/src/libtorio/ffmpeg/ffmpeg.h
++++ b/src/libtorio/ffmpeg/ffmpeg.h
+@@ -38,6 +38,12 @@ using OptionDict = std::map<std::string, std::string>;
+ #define AVFORMAT_CONST
+ #endif
+ 
++#if LIBAVFORMAT_VERSION_MAJOR >= 61
++#define AVIO_WRITE_BUF_CONST const
++#else
++#define AVIO_WRITE_BUF_CONST
++#endif
++
+ // Replacement of av_err2str, which causes
+ // `error: taking address of temporary array`
+ // https://github.com/joncampbell123/composite-video-simulator/issues/5
+@@ -208,6 +214,102 @@ struct StreamParams {
+   AVRational time_base{};
+   int stream_index{};
+ };
++
++////////////////////////////////////////////////////////////////////////////////
++// AVChannelLayout
++////////////////////////////////////////////////////////////////////////////////
++// Simple wrapper type around channel layout, which is uint64_t pre-FFmpeg 6 and AVChannelLayout after.
++// It's only intended to make things compile and not as a generally useful abstraction, it's too wibbly for that. In particular, it does not attempt to implement proper ownership semantics.
++template <typename InternalChannelLayout>
++class WrappedChannelLayout {
++ public:
++  explicit WrappedChannelLayout(
++      const InternalChannelLayout& wrapped_channel_layout);
++
++  WrappedChannelLayout(const WrappedChannelLayout& c);
++
++  explicit WrappedChannelLayout(int nb_channels);
++
++  int nb_channels() const;
++
++  // must parse in channel_layout / channels parameters
++  std::string str() const;
++
++  // human-readable, need not parse
++  std::string description() const;
++
++  struct Range {
++    Range(const InternalChannelLayout* begin) {
++      p_begin = begin;
++    }
++    struct It {
++      It(const InternalChannelLayout* p) {
++        this->p = p;
++      }
++      bool operator==(const It& it) {
++        // Either the pointers are the same, or one of them is the end pointer
++        // and the other points to a zero layout.
++        return this->p == it.p ||
++            ((!this->p && it.p && !WrappedChannelLayout{*(it.p)}) ||
++             (!it.p && this->p && !WrappedChannelLayout{*this->p}));
++      }
++      bool operator!=(const It& it) {
++        return !(*this == it);
++      }
++      const It& operator++() {
++        if (p)
++          p++;
++        return *this;
++      }
++      const WrappedChannelLayout operator*() const {
++        return WrappedChannelLayout{*p};
++      }
++
++     private:
++      const InternalChannelLayout* p;
++    };
++    It begin() const {
++      return It(p_begin);
++    }
++    It end() const {
++      return It{0};
++    }
++    operator bool() const {
++      return begin() != end();
++    }
++    WrappedChannelLayout operator*() {
++      return WrappedChannelLayout{*p_begin};
++    }
++
++   private:
++    const InternalChannelLayout* p_begin;
++  };
++
++  static Range layouts_from_codec(const AVCodec* codec);
++
++  explicit operator bool() const;
++
++  bool operator==(const WrappedChannelLayout& c) const;
++  bool operator!=(const WrappedChannelLayout& c) const {
++    return !(*this == c);
++  }
++
++  void to_frame(AVFrame* frame); // must copy
++  void to_codec_context(AVCodecContext* codec_context); // must copy
++
++  ~WrappedChannelLayout();
++
++ private:
++  InternalChannelLayout channel_layout {};
++  static constexpr InternalChannelLayout zero_layout{};
++};
++
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++using ChannelLayout = WrappedChannelLayout<AVChannelLayout>;
++#else
++using ChannelLayout = WrappedChannelLayout<uint64_t>;
++#endif
++
+ } // namespace io
+ } // namespace torio
+ 
+diff --git a/src/libtorio/ffmpeg/filter_graph.cpp b/src/libtorio/ffmpeg/filter_graph.cpp
+index 51c8084f..7f3ddd71 100644
+--- a/src/libtorio/ffmpeg/filter_graph.cpp
++++ b/src/libtorio/ffmpeg/filter_graph.cpp
+@@ -22,17 +22,17 @@ std::string get_audio_src_args(
+     AVSampleFormat format,
+     AVRational time_base,
+     int sample_rate,
+-    uint64_t channel_layout) {
++    ChannelLayout channel_layout) {
+   char args[512];
+   std::snprintf(
+       args,
+       sizeof(args),
+-      "time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%" PRIx64,
++      "time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=%s",
+       time_base.num,
+       time_base.den,
+       sample_rate,
+       av_get_sample_fmt_name(format),
+-      channel_layout);
++      channel_layout.str().c_str());
+   return std::string(args);
+ }
+ 
+@@ -66,7 +66,7 @@ void FilterGraph::add_audio_src(
+     AVSampleFormat format,
+     AVRational time_base,
+     int sample_rate,
+-    uint64_t channel_layout) {
++    ChannelLayout channel_layout) {
+   add_src(
+       avfilter_get_by_name("abuffer"),
+       get_audio_src_args(format, time_base, sample_rate, channel_layout));
+@@ -186,7 +186,7 @@ FilterGraphOutputInfo FilterGraph::get_output_info() const {
+   switch (l->type) {
+     case AVMEDIA_TYPE_AUDIO: {
+       ret.sample_rate = l->sample_rate;
+-#if LIBAVFILTER_VERSION_MAJOR >= 8 && LIBAVFILTER_VERSION_MINOR >= 44
++#if LIBAVFILTER_VERSION_INT >= AV_VERSION_INT(8, 44, 0)
+       ret.num_channels = l->ch_layout.nb_channels;
+ #else
+       // Before FFmpeg 5.1
+diff --git a/src/libtorio/ffmpeg/filter_graph.h b/src/libtorio/ffmpeg/filter_graph.h
+index 2495c2d2..5107bda7 100644
+--- a/src/libtorio/ffmpeg/filter_graph.h
++++ b/src/libtorio/ffmpeg/filter_graph.h
+@@ -47,7 +47,7 @@ class FilterGraph {
+       AVSampleFormat format,
+       AVRational time_base,
+       int sample_rate,
+-      uint64_t channel_layout);
++      ChannelLayout channel_layout);
+ 
+   void add_video_src(
+       AVPixelFormat format,
+diff --git a/src/libtorio/ffmpeg/pybind/pybind.cpp b/src/libtorio/ffmpeg/pybind/pybind.cpp
+index 3f954a2a..f1d08d94 100644
+--- a/src/libtorio/ffmpeg/pybind/pybind.cpp
++++ b/src/libtorio/ffmpeg/pybind/pybind.cpp
+@@ -135,7 +135,7 @@ static int read_func(void* opaque, uint8_t* buf, int buf_size) {
+   return num_read == 0 ? AVERROR_EOF : num_read;
+ }
+ 
+-static int write_func(void* opaque, uint8_t* buf, int buf_size) {
++static int write_func(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size) {
+   FileObj* fileobj = static_cast<FileObj*>(opaque);
+   buf_size = FFMIN(buf_size, fileobj->buffer_size);
+ 
+diff --git a/src/libtorio/ffmpeg/stream_reader/conversion.cpp b/src/libtorio/ffmpeg/stream_reader/conversion.cpp
+index c762bc3f..d047d10e 100644
+--- a/src/libtorio/ffmpeg/stream_reader/conversion.cpp
++++ b/src/libtorio/ffmpeg/stream_reader/conversion.cpp
+@@ -36,7 +36,11 @@ void AudioConverter<dtype, is_planar>::convert(
+     const AVFrame* src,
+     torch::Tensor& dst) {
+   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(src);
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(num_channels == src->ch_layout.nb_channels);
++#else
+   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(num_channels == src->channels);
++#endif
+ 
+   constexpr int bps = []() {
+     switch (dtype) {
+diff --git a/src/libtorio/ffmpeg/stream_reader/post_process.cpp b/src/libtorio/ffmpeg/stream_reader/post_process.cpp
+index f2cd31fa..f224b3a6 100644
+--- a/src/libtorio/ffmpeg/stream_reader/post_process.cpp
++++ b/src/libtorio/ffmpeg/stream_reader/post_process.cpp
+@@ -2,6 +2,7 @@
+ #include <libtorio/ffmpeg/stream_reader/buffer/unchunked_buffer.h>
+ #include <libtorio/ffmpeg/stream_reader/conversion.h>
+ #include <libtorio/ffmpeg/stream_reader/post_process.h>
++#include "libtorio/ffmpeg/ffmpeg.h"
+ 
+ namespace torio::io {
+ namespace detail {
+@@ -19,8 +20,12 @@ FilterGraphFactory get_audio_factory(
+   return [fmt = codec_ctx->sample_fmt,
+           time_base,
+           rate = codec_ctx->sample_rate,
+-          channel_layout = codec_ctx->channel_layout](
+-             const std::string& filter_desc) -> FilterGraph {
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++          channel_layout = ChannelLayout{codec_ctx->ch_layout}
++#else
++          channel_layout = ChannelLayout{codec_ctx->channel_layout}
++#endif
++  ](const std::string& filter_desc) -> FilterGraph {
+     FilterGraph f;
+     f.add_audio_src(fmt, time_base, rate, channel_layout);
+     f.add_audio_sink();
+diff --git a/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp b/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
+index d11da429..f738852f 100644
+--- a/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
++++ b/src/libtorio/ffmpeg/stream_reader/stream_processor.cpp
+@@ -140,10 +140,15 @@ void open_codec(
+     av_dict_set(&opts, "threads", "1", 0);
+   }
+ 
++  // I'm not sure what this operation is supposed to accomplish, but from FFmpeg 7
++  // onwards it's physically impossible (channel layout and number of channels are
++  // bundled together, so we can't set one based on the other).
++#if LIBAVCODEC_VERSION_MAJOR < 61
+   if (!codec_ctx->channel_layout) {
+     codec_ctx->channel_layout =
+         av_get_default_channel_layout(codec_ctx->channels);
+   }
++#endif
+ 
+   int ret = avcodec_open2(codec_ctx, codec_ctx->codec, &opts);
+   clean_up_dict(opts);
+@@ -337,7 +342,11 @@ int StreamProcessor::process_packet(AVPacket* packet) {
+         // This is because they might be intra-frames not in chronological
+         // order. In this case, we use received frames as-is in the order they
+         // are received.
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++        frame->pts = codec_ctx->frame_num + 1;
++#else
+         frame->pts = codec_ctx->frame_number + 1;
++#endif
+       } else {
+         frame->pts = frame->best_effort_timestamp;
+       }
+diff --git a/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp b/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
+index cdea4205..7118fb55 100644
+--- a/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
++++ b/src/libtorio/ffmpeg/stream_reader/stream_reader.cpp
+@@ -35,7 +35,27 @@ AVFormatContext* get_input_format_context(
+     return nullptr;
+   }();
+ 
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++  // In FFmpeg 7 the raw PCM codecs have retired the "channels" option in favor
++  // of "ch_layout". Handle this transparently for our callers.
++  AVDictionary* opt =
++      get_option_dict([&option, pInputFormat]() -> std::optional<OptionDict> {
++        if (option && pInputFormat && pInputFormat->priv_class &&
++            pInputFormat->priv_class->class_name &&
++            strcmp("pcm demuxer", pInputFormat->priv_class->class_name) == 0) {
++          OptionDict o = option.value();
++          auto nodeHandler = o.extract("channels");
++          nodeHandler.key() = "ch_layout";
++          nodeHandler.mapped() = nodeHandler.mapped() + "c";
++          o.insert(std::move(nodeHandler));
++          return o;
++        } else {
++          return option;
++        }
++      }());
++#else
+   AVDictionary* opt = get_option_dict(option);
++#endif
+   int ret = avformat_open_input(&p, src.c_str(), pInputFormat, &opt);
+   clean_up_dict(opt);
+ 
+@@ -162,7 +182,11 @@ SrcStreamInfo StreamingMediaDecoder::get_src_stream_info(int i) const {
+         ret.fmt_name = av_get_sample_fmt_name(smp_fmt);
+       }
+       ret.sample_rate = static_cast<double>(codecpar->sample_rate);
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++      ret.num_channels = codecpar->ch_layout.nb_channels;
++#else
+       ret.num_channels = codecpar->channels;
++#endif
+       break;
+     }
+     case AVMEDIA_TYPE_VIDEO: {
+diff --git a/src/libtorio/ffmpeg/stream_writer/encode_process.cpp b/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
+index 9fce0ac9..f5e4e750 100644
+--- a/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
++++ b/src/libtorio/ffmpeg/stream_writer/encode_process.cpp
+@@ -311,33 +311,32 @@ int get_enc_sr(
+   return src_sample_rate;
+ }
+ 
+-std::string get_supported_channels(const uint64_t* channel_layouts) {
++std::string get_supported_channels(const AVCodec* codec) {
+   std::vector<std::string> names;
+-  while (*channel_layouts) {
++  for (auto channel_layout : ChannelLayout::layouts_from_codec(codec)) {
+     std::stringstream ss;
+-    ss << av_get_channel_layout_nb_channels(*channel_layouts);
+-    ss << " (" << av_get_channel_name(*channel_layouts) << ")";
++    ss << channel_layout.nb_channels();
++    ss << " (" << channel_layout.description() << ")";
+     names.emplace_back(ss.str());
+-    ++channel_layouts;
+   }
+   return c10::Join(", ", names);
+ }
+ 
+-uint64_t get_channel_layout(
+-    const uint64_t src_ch_layout,
+-    const std::optional<int> enc_num_channels,
+-    const AVCodec* codec) {
++ChannelLayout get_channel_layout(
++  const ChannelLayout src_ch_layout,
++  const std::optional<int> enc_num_channels,
++  const AVCodec* codec) {
+   // If the override is presented, and if it is supported by codec, we use it.
+   if (enc_num_channels) {
+     const int& val = enc_num_channels.value();
+     TORCH_CHECK(
+         val > 0, "The number of channels must be greater than 0. Found: ", val);
+-    if (!codec->channel_layouts) {
+-      return static_cast<uint64_t>(av_get_default_channel_layout(val));
++    if (!ChannelLayout::layouts_from_codec(codec)) {
++      return ChannelLayout(val);
+     }
+-    for (const uint64_t* it = codec->channel_layouts; *it; ++it) {
+-      if (av_get_channel_layout_nb_channels(*it) == val) {
+-        return *it;
++    for (auto channel_layout : ChannelLayout::layouts_from_codec(codec)) {
++      if (channel_layout.nb_channels() == val) {
++        return channel_layout;
+       }
+     }
+     TORCH_CHECK(
+@@ -347,35 +346,35 @@ uint64_t get_channel_layout(
+         " does not support a channel layout consists of ",
+         val,
+         " channels. Supported values are: ",
+-        get_supported_channels(codec->channel_layouts));
++        get_supported_channels(codec));
+   }
+   // If the codec does not have restriction on channel layout, we reuse the
+   // source channel layout
+-  if (!codec->channel_layouts) {
++  if (!ChannelLayout::layouts_from_codec(codec)) {
+     return src_ch_layout;
+   }
+   // If the codec has restriction, and source layout is supported, we reuse the
+   // source channel layout
+-  for (const uint64_t* it = codec->channel_layouts; *it; ++it) {
+-    if (*it == src_ch_layout) {
++  for (auto it : ChannelLayout::layouts_from_codec(codec)) {
++    if (it == src_ch_layout) {
+       return src_ch_layout;
+     }
+   }
+   // Use the default layout of the codec.
+-  return codec->channel_layouts[0];
++  return *ChannelLayout::layouts_from_codec(codec);
+ }
+ 
+ void configure_audio_codec_ctx(
+     AVCodecContext* codec_ctx,
+     AVSampleFormat format,
+     int sample_rate,
+-    uint64_t channel_layout,
++    ChannelLayout channel_layout,
+     const std::optional<CodecConfig>& codec_config) {
++
+   codec_ctx->sample_fmt = format;
+   codec_ctx->sample_rate = sample_rate;
+   codec_ctx->time_base = av_inv_q(av_d2q(sample_rate, 1 << 24));
+-  codec_ctx->channels = av_get_channel_layout_nb_channels(channel_layout);
+-  codec_ctx->channel_layout = channel_layout;
++  channel_layout.to_codec_context(codec_ctx);
+ 
+   // Set optional stuff
+   if (codec_config) {
+@@ -595,11 +594,11 @@ AVStream* get_stream(AVFormatContext* format_ctx, AVCodecContext* codec_ctx) {
+ FilterGraph get_audio_filter_graph(
+     AVSampleFormat src_fmt,
+     int src_sample_rate,
+-    uint64_t src_ch_layout,
++    ChannelLayout src_ch_layout,
+     const std::optional<std::string>& filter_desc,
+     AVSampleFormat enc_fmt,
+     int enc_sample_rate,
+-    uint64_t enc_ch_layout,
++    ChannelLayout enc_ch_layout,
+     int nb_samples) {
+   const auto desc = [&]() -> const std::string {
+     std::vector<std::string> parts;
+@@ -610,8 +609,8 @@ FilterGraph get_audio_filter_graph(
+         src_sample_rate != enc_sample_rate || src_ch_layout != enc_ch_layout) {
+       std::stringstream ss;
+       ss << "aformat=sample_fmts=" << av_get_sample_fmt_name(enc_fmt)
+-         << ":sample_rates=" << enc_sample_rate << ":channel_layouts=0x"
+-         << std::hex << enc_ch_layout;
++         << ":sample_rates=" << enc_sample_rate << ":channel_layouts="
++         << enc_ch_layout.str();
+       parts.push_back(ss.str());
+     }
+     if (nb_samples > 0) {
+@@ -697,20 +696,22 @@ AVFramePtr get_audio_frame(
+     AVSampleFormat format,
+     int sample_rate,
+     int num_channels,
+-    uint64_t channel_layout,
++    ChannelLayout channel_layout,
+     int nb_samples) {
+   AVFramePtr frame{alloc_avframe()};
+   frame->format = format;
+-  frame->channel_layout = channel_layout;
++  channel_layout.to_frame(frame);
+   frame->sample_rate = sample_rate;
+   frame->nb_samples = nb_samples;
+   int ret = av_frame_get_buffer(frame, 0);
+   TORCH_CHECK(
+       ret >= 0, "Error allocating the source audio frame:", av_err2string(ret));
+ 
++#if LIBAVCODEC_VERSION_MAJOR < 61
+   // Note: `channels` attribute is not required for encoding, but
+   // TensorConverter refers to it
+   frame->channels = num_channels;
++#endif
+   frame->pts = 0;
+   return frame;
+ }
+@@ -767,8 +768,7 @@ EncodeProcess get_audio_encode_process(
+   const AVSampleFormat src_fmt = (disable_converter)
+       ? av_get_sample_fmt(format.c_str())
+       : get_src_sample_fmt(format);
+-  const auto src_ch_layout =
+-      static_cast<uint64_t>(av_get_default_channel_layout(src_num_channels));
++  ChannelLayout src_ch_layout(src_num_channels);
+ 
+   // 2. Fetch codec from default or override
+   TORCH_CHECK(
+@@ -780,7 +780,7 @@ EncodeProcess get_audio_encode_process(
+   // 3. Check that encoding sample format, sample rate and channels
+   const AVSampleFormat enc_fmt = get_enc_fmt(src_fmt, encoder_format, codec);
+   const int enc_sr = get_enc_sr(src_sample_rate, encoder_sample_rate, codec);
+-  const uint64_t enc_ch_layout = [&]() -> uint64_t {
++  const ChannelLayout enc_ch_layout = [&]() -> ChannelLayout {
+     if (std::strcmp(codec->name, "vorbis") == 0) {
+       // Special case for vorbis.
+       // It only supports 2 channels, but it is not listed in channel_layouts
+@@ -788,7 +788,7 @@ EncodeProcess get_audio_encode_process(
+       // https://github.com/FFmpeg/FFmpeg/blob/0684e58886881a998f1a7b510d73600ff1df2b90/libavcodec/vorbisenc.c#L1277
+       // This is the case for at least until FFmpeg 6.0, so it will be
+       // like this for a while.
+-      return static_cast<uint64_t>(av_get_default_channel_layout(2));
++      return ChannelLayout(2);
+     }
+     return get_channel_layout(src_ch_layout, encoder_num_channels, codec);
+   }();
+diff --git a/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp b/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
+index 95eff147..5cf1f615 100644
+--- a/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
++++ b/src/libtorio/ffmpeg/stream_writer/stream_writer.cpp
+@@ -355,7 +355,7 @@ namespace {
+ AVIOContext* get_io_context(
+     void* opaque,
+     int buffer_size,
+-    int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
++    int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
+     int64_t (*seek)(void* opaque, int64_t offset, int whence)) {
+   unsigned char* buffer = static_cast<unsigned char*>(av_malloc(buffer_size));
+   TORCH_CHECK(buffer, "Failed to allocate buffer.");
+@@ -372,7 +372,7 @@ AVIOContext* get_io_context(
+ CustomOutput::CustomOutput(
+     void* opaque,
+     int buffer_size,
+-    int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
++    int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
+     int64_t (*seek)(void* opaque, int64_t offset, int whence))
+     : io_ctx(get_io_context(opaque, buffer_size, write_packet, seek)) {}
+ } // namespace detail
+@@ -381,7 +381,7 @@ StreamingMediaEncoderCustomIO::StreamingMediaEncoderCustomIO(
+     void* opaque,
+     const std::optional<std::string>& format,
+     int buffer_size,
+-    int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
++    int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
+     int64_t (*seek)(void* opaque, int64_t offset, int whence))
+     : CustomOutput(opaque, buffer_size, write_packet, seek),
+       StreamingMediaEncoder(io_ctx, format) {}
+diff --git a/src/libtorio/ffmpeg/stream_writer/stream_writer.h b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
+index fc8b3ae6..37bb5858 100644
+--- a/src/libtorio/ffmpeg/stream_writer/stream_writer.h
++++ b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
+@@ -299,7 +299,7 @@ struct CustomOutput {
+   CustomOutput(
+       void* opaque,
+       int buffer_size,
+-      int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
++      int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
+       int64_t (*seek)(void* opaque, int64_t offset, int whence));
+ };
+ } // namespace detail
+@@ -327,7 +327,7 @@ class StreamingMediaEncoderCustomIO : private detail::CustomOutput,
+       void* opaque,
+       const std::optional<std::string>& format,
+       int buffer_size,
+-      int (*write_packet)(void* opaque, uint8_t* buf, int buf_size),
++      int (*write_packet)(void* opaque, AVIO_WRITE_BUF_CONST uint8_t* buf, int buf_size),
+       int64_t (*seek)(void* opaque, int64_t offset, int whence) = nullptr);
+ };
+ 
+diff --git a/src/libtorio/ffmpeg/stream_writer/tensor_converter.cpp b/src/libtorio/ffmpeg/stream_writer/tensor_converter.cpp
+index 097cae17..1e6be66d 100644
+--- a/src/libtorio/ffmpeg/stream_writer/tensor_converter.cpp
++++ b/src/libtorio/ffmpeg/stream_writer/tensor_converter.cpp
+@@ -29,18 +29,31 @@ void validate_audio_input(
+       t.dtype().toScalarType());
+   TORCH_CHECK(t.device().is_cpu(), "Input tensor has to be on CPU.");
+   TORCH_CHECK(t.dim() == 2, "Input Tensor has to be 2D.");
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++  TORCH_CHECK(
++      t.size(1) == buffer->ch_layout.nb_channels,
++      "Expected waveform with ",
++      buffer->ch_layout.nb_channels,
++      " channels. Found ",
++      t.size(1));
++#else
+   TORCH_CHECK(
+       t.size(1) == buffer->channels,
+       "Expected waveform with ",
+       buffer->channels,
+       " channels. Found ",
+       t.size(1));
++#endif
+ }
+ 
+ // 2D (time, channel) and contiguous.
+ void convert_func_(const torch::Tensor& chunk, AVFrame* buffer) {
+   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(chunk.dim() == 2);
++#if LIBAVCODEC_VERSION_MAJOR >= 61
++  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(chunk.size(1) == buffer->ch_layout.nb_channels);
++#else
+   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(chunk.size(1) == buffer->channels);
++#endif
+ 
+   // https://ffmpeg.org/doxygen/4.1/muxing_8c_source.html#l00334
+   if (!av_frame_is_writable(buffer)) {
+diff --git a/src/torio/_extension/utils.py b/src/torio/_extension/utils.py
+index c72d59c1..a558ae03 100644
+--- a/src/torio/_extension/utils.py
++++ b/src/torio/_extension/utils.py
+@@ -95,10 +95,10 @@ def _load_lib(lib: str) -> bool:
+     return True
+ 
+ 
+-_FFMPEG_VERS = ["6", "5", "4", ""]
++_FFMPEG_VERS = ["7", "6", "5", "4", ""]
+ 
+ 
+-def _find_versionsed_ffmpeg_extension(version: str):
++def _find_versioned_ffmpeg_extension(version: str):
+     ext = f"torio.lib._torio_ffmpeg{version}"
+     lib = f"libtorio_ffmpeg{version}"
+ 
+@@ -113,7 +113,7 @@ def _find_ffmpeg_extension(ffmpeg_vers):
+     for ffmpeg_ver in ffmpeg_vers:
+         _LG.debug("Loading FFmpeg%s", ffmpeg_ver)
+         try:
+-            ext = _find_versionsed_ffmpeg_extension(ffmpeg_ver)
++            ext = _find_versioned_ffmpeg_extension(ffmpeg_ver)
+             _LG.debug("Successfully loaded FFmpeg%s", ffmpeg_ver)
+             return ext
+         except Exception:
+@@ -144,4 +144,5 @@ def _init_ffmpeg():
+     ext.init()
+     if ext.get_log_level() > 8:
+         ext.set_log_level(8)
++#    ext.set_log_level(32)
+     return ext
+diff --git a/third_party/ffmpeg/multi/CMakeLists.txt b/third_party/ffmpeg/multi/CMakeLists.txt
+index 11ea5d1d..882239dc 100644
+--- a/third_party/ffmpeg/multi/CMakeLists.txt
++++ b/third_party/ffmpeg/multi/CMakeLists.txt
+@@ -4,12 +4,14 @@
+ add_library(ffmpeg4 INTERFACE)
+ add_library(ffmpeg5 INTERFACE)
+ add_library(ffmpeg6 INTERFACE)
++add_library(ffmpeg7 INTERFACE)
+ 
+ ################################################################################
+ 
+ include(FetchContent)
+ 
+ set(base_url https://pytorch.s3.amazonaws.com/torchaudio/ffmpeg)
++set(ffmpeg7_src $ENV{FFMPEG7_SRC})
+ 
+ if (APPLE)
+   if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+@@ -28,6 +30,10 @@ if (APPLE)
+       URL ${base_url}/2023-07-06/macos_arm64/6.0.tar.gz
+       URL_HASH SHA256=5d1da9626f8cb817d6c558a2c61085a3d39a8d9f725a6f69f4658bea8efa9389
+       )
++    FetchContent_Declare(
++      f7
++      SOURCE_DIR ${ffmpeg7_src}
++      )
+   elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+     FetchContent_Declare(
+       f4
+@@ -44,6 +50,10 @@ if (APPLE)
+       URL ${base_url}/2023-07-06/macos_x86_64/6.0.tar.gz
+       URL_HASH SHA256=eabc01eb7d9e714e484d5e1b27bf7d921e87c1f3c00334abd1729e158d6db862
+       )
++    FetchContent_Declare(
++      f7
++      SOURCE_DIR ${ffmpeg7_src}
++      )
+   else ()
+     message(
+       FATAL_ERROR
+@@ -71,6 +81,10 @@ elseif (UNIX)
+       URL ${base_url}/2023-07-06/linux_aarch64/6.0.tar.gz
+       URL_HASH SHA256=ec762fd41ea7b8d9ad4f810f53fd78a565f2bc6f680afe56d555c80f3d35adef
+       )
++    FetchContent_Declare(
++      f7
++      SOURCE_DIR ${ffmpeg7_src}
++      )
+   elseif ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+     FetchContent_Declare(
+       f4
+@@ -87,6 +101,10 @@ elseif (UNIX)
+       URL ${base_url}/2023-07-06/linux_x86_64/6.0.tar.gz
+       URL_HASH SHA256=04d3916404bab5efadd29f68361b7d13ea71e6242c6473edcb747a41a9fb97a6
+       )
++    FetchContent_Declare(
++      f7
++      SOURCE_DIR ${ffmpeg7_src}
++      )
+   else ()
+     # Possible case ppc64le (though it's not officially supported.)
+     message(
+@@ -114,12 +132,17 @@ elseif(MSVC)
+     URL ${base_url}/2023-07-06/windows/6.0.tar.gz
+     URL_HASH SHA256=098347eca8cddb5aaa61e9ecc1a00548c645fc59b4f7346b3d91414aa00a9cf6
+     )
++  FetchContent_Declare(
++    f7
++    SOURCE_DIR ${ffmpeg7_src}
++    )
+ endif()
+ 
+-FetchContent_MakeAvailable(f4 f5 f6)
++FetchContent_MakeAvailable(f4 f5 f6 f7)
+ target_include_directories(ffmpeg4 INTERFACE ${f4_SOURCE_DIR}/include)
+ target_include_directories(ffmpeg5 INTERFACE ${f5_SOURCE_DIR}/include)
+ target_include_directories(ffmpeg6 INTERFACE ${f6_SOURCE_DIR}/include)
++target_include_directories(ffmpeg7 INTERFACE ${f7_SOURCE_DIR}/include)
+ 
+ if(APPLE)
+   target_link_libraries(
+@@ -149,6 +172,16 @@ if(APPLE)
+     ${f6_SOURCE_DIR}/lib/libavdevice.60.dylib
+     ${f6_SOURCE_DIR}/lib/libavfilter.9.dylib
+     )
++  target_link_libraries(
++    ffmpeg7
++    INTERFACE
++    ${f7_SOURCE_DIR}/lib/libavutil.59.dylib
++    ${f7_SOURCE_DIR}/lib/libavcodec.61.dylib
++    ${f7_SOURCE_DIR}/lib/libavformat.61.dylib
++    ${f7_SOURCE_DIR}/lib/libavdevice.61.dylib
++    ${f7_SOURCE_DIR}/lib/libavfilter.10.dylib
++    )
++
+ elseif (UNIX)
+   target_link_libraries(
+     ffmpeg4
+@@ -177,6 +210,15 @@ elseif (UNIX)
+     ${f6_SOURCE_DIR}/lib/libavdevice.so.60
+     ${f6_SOURCE_DIR}/lib/libavfilter.so.9
+     )
++  target_link_libraries(
++    ffmpeg7
++    INTERFACE
++    ${f7_SOURCE_DIR}/lib/libavutil.so.59
++    ${f7_SOURCE_DIR}/lib/libavcodec.so.61
++    ${f7_SOURCE_DIR}/lib/libavformat.so.61
++    ${f7_SOURCE_DIR}/lib/libavdevice.so.61
++    ${f7_SOURCE_DIR}/lib/libavfilter.so.10
++    )
+ elseif(MSVC)
+   target_link_libraries(
+     ffmpeg4
+@@ -205,4 +247,13 @@ elseif(MSVC)
+     ${f6_SOURCE_DIR}/bin/avdevice.lib
+     ${f6_SOURCE_DIR}/bin/avfilter.lib
+     )
++  target_link_libraries(
++    ffmpeg7
++    INTERFACE
++    ${f7_SOURCE_DIR}/bin/avutil.lib
++    ${f7_SOURCE_DIR}/bin/avcodec.lib
++    ${f7_SOURCE_DIR}/bin/avformat.lib
++    ${f7_SOURCE_DIR}/bin/avdevice.lib
++    ${f7_SOURCE_DIR}/bin/avfilter.lib
++    )
+ endif()
+diff --git a/tools/setup_helpers/extension.py b/tools/setup_helpers/extension.py
+index 2415bbae..c1a76581 100644
+--- a/tools/setup_helpers/extension.py
++++ b/tools/setup_helpers/extension.py
+@@ -83,6 +83,8 @@ def get_ext_modules():
+                     Extension(name="torio.lib._torio_ffmpeg5", sources=[]),
+                     Extension(name="torio.lib.libtorio_ffmpeg6", sources=[]),
+                     Extension(name="torio.lib._torio_ffmpeg6", sources=[]),
++                    Extension(name="torio.lib.libtorio_ffmpeg7", sources=[]),
++                    Extension(name="torio.lib._torio_ffmpeg7", sources=[]),
+                 ]
+             )
+     return modules
+-- 
+2.43.0
+
