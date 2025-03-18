@@ -1,7 +1,7 @@
-From df20d3b1d28679cdba484dc7bca376eb45eb2e72 Mon Sep 17 00:00:00 2001
+From 95e22fe5a11f3dd7ab2f06cf519acde0a29a2586 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 15 Mar 2025 21:23:55 -0700
-Subject: [PATCH 1/4] rocm sdk gpus support for ck memory config
+Subject: [PATCH 1/5] rocm sdk gpus support for ck memory config
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -99,5 +99,5 @@ index a8bc27cdf..d25e73d0c 100644
  #endif
  #if defined(__gfx1200__) || defined(__gfx1201__)
 -- 
-2.48.1
+2.41.3
 
