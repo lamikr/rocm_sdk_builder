@@ -1,0 +1,33 @@
+From f8275cae724f493db9f4e9d3732b530a3fd0ab48 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Thu, 12 Dec 2024 16:14:24 -0800
+Subject: [PATCH 7/9] add preconfig_rocm.sh script
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ preconfig_rocm.sh | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 0000000..aa630ef
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,13 @@
++if [ -e ./preconfig_rocm.sh ]; then
++	if [ -d ~/.triton/cache ]; then
++		rm -rf ~/.triton/cache
++	fi
++    if [ -d ./third_party/triton/python/build ]; then
++        #rm -rf torch (this is needed to really get all files regenerated for hip)
++        #git status | xargs -- rm -rf
++        #git reset --hard
++        #git submodule update --init --recursive
++        cd ./third_party/triton/python
++        python setup.py clean
++    fi
++fi
+-- 
+2.48.1
+

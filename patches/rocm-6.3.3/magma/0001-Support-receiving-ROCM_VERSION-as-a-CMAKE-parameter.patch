@@ -1,0 +1,67 @@
+From 7c4266ee8332c71c3b29ca0d19821eb15195598a Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 15 Jul 2024 17:09:38 -0400
+Subject: [PATCH] Support receiving ROCM_VERSION as a CMAKE parameter
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt |  8 ++++++++
+ Makefile       | 13 ++++++++-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 0e37ceba5..651c5686c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -11,6 +11,9 @@ else()
+     project( MAGMA C CXX )
+ endif()
+ 
++message( STATUS "ROCM_VERSION: ${ROCM_VERSION}")
++set( ROCM_VERSION ${ROCM_VERSION} CACHE STRING "ROCM Version String" )
++
+ 
+ # ----------------------------------------
+ # to show compile commands, set this here or use 'make VERBOSE=1'
+@@ -497,6 +500,11 @@ else()
+     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function" )
+ endif()
+ 
++if (ROCM_VERSION)
++    set( CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} -DROCM_VERSION=${ROCM_VERSION}" )
++    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROCM_VERSION=${ROCM_VERSION}" )
++endif()
++
+ if (CMAKE_HOST_APPLE)
+     # Use rpaths, which is on by default in CMake 3.
+     set( CMAKE_MACOSX_RPATH 1 )
+diff --git a/Makefile b/Makefile
+index 5d7940aac..223f3bc99 100644
+--- a/Makefile
++++ b/Makefile
+@@ -838,14 +838,17 @@ sparse/testing/clean:
+ 
+ # set the device extension
+ ifeq ($(BACKEND),cuda)
+-d_ext := cu
++    d_ext := cu
+ else ifeq ($(BACKEND),hip)
+-d_ext := cpp
+-CXXFLAGS += -D__HIP_PLATFORM_AMD__
+-CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
++    d_ext := cpp
++    CXXFLAGS += -D__HIP_PLATFORM_AMD__
++    ifndef ROCM_VERSION
++        CXXFLAGS += -DROCM_VERSION=$(shell ./tools/get-rocm-version.sh)
++    else
++        CXXFLAGS += -DROCM_VERSION=$(ROCM_VERSION)
++    endif
+ endif
+ 
+-
+ ifeq ($(BACKEND),cuda)
+ 
+ %.i: %.$(d_ext) | $(CONFIG)
+-- 
+2.45.2
+
