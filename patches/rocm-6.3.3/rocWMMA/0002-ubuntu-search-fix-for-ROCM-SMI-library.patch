@@ -1,4 +1,4 @@
-From c73c8daa8cef5551bc3152eee1df0350e8d04ee2 Mon Sep 17 00:00:00 2001
+From 756f19b828e98a4344645cfbfd7fa8ea85734ddc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 3 May 2024 14:24:53 -0700
 Subject: [PATCH 2/3] ubuntu search fix for ROCM SMI library
@@ -28,5 +28,5 @@ index 3ab06343..e465f140 100644
  add_library(rocwmma INTERFACE)
  target_link_libraries(rocwmma INTERFACE hip::device hip::host OpenMP::OpenMP_CXX ${ROCM_SMI_LIBRARY})
 -- 
-2.48.1
+2.41.3
 

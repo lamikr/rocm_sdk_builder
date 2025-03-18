@@ -1,37 +1,76 @@
-From 27d69453c5ac292680fc79bb7bfea54422eab16a Mon Sep 17 00:00:00 2001
+From 858660491122f1b5081d27c89b77c36c4420a5bc Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 17 Mar 2025 15:05:50 -0700
 Subject: [PATCH 3/3] rocm gpu support
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- library/include/rocwmma/internal/config.hpp     | 17 ++++++++++++++++-
- library/include/rocwmma/internal/constants.hpp  |  9 +++++++++
- samples/common.hpp                              |  5 ++++-
- test/dlrm/dlrm_kernel_base_impl.hpp             |  3 ++-
- test/gemm/gemm_kernel_base_dispatch_impl.hpp    | 10 ++++++++--
- test/gemm/gemm_test_traits.hpp                  |  5 ++++-
- test/hip_device.cpp                             | 12 ++++++++++++
- test/hip_device.hpp                             |  3 +++
- .../detail/load_contamination.hpp               |  3 +++
- .../detail/store_contamination.hpp              |  3 +++
- .../detail/cross_lane_ops.hpp                   |  5 ++++-
- .../fill_fragment_test/detail/fill_fragment.hpp |  3 +++
- test/unit/layout_test/detail/col_layout.hpp     |  3 +++
- test/unit/layout_test/detail/colnt_layout.hpp   |  3 +++
- test/unit/layout_test/detail/row_layout.hpp     |  3 +++
- test/unit/layout_test/detail/rownt_layout.hpp   |  3 +++
- .../detail/load_store_matrix_sync.hpp           |  3 +++
- .../detail/map_block_to_matrix_override.hpp     |  3 +++
- .../detail/map_matrix_to_data_override.hpp      |  3 +++
- test/unit/unit_test_traits.hpp                  |  5 ++++-
- 20 files changed, 96 insertions(+), 8 deletions(-)
+ library/include/rocwmma/internal/config.hpp   | 45 +++++++++++++++++--
+ .../include/rocwmma/internal/constants.hpp    |  9 ++++
+ samples/common.hpp                            |  5 ++-
+ test/dlrm/dlrm_kernel_base_impl.hpp           |  3 +-
+ test/gemm/gemm_kernel_base_dispatch_impl.hpp  | 10 ++++-
+ test/gemm/gemm_test_traits.hpp                |  5 ++-
+ test/hip_device.cpp                           | 12 +++++
+ test/hip_device.hpp                           |  3 ++
+ .../detail/load_contamination.hpp             |  3 ++
+ .../detail/store_contamination.hpp            |  3 ++
+ .../detail/cross_lane_ops.hpp                 |  5 ++-
+ .../detail/fill_fragment.hpp                  |  3 ++
+ test/unit/layout_test/detail/col_layout.hpp   |  3 ++
+ test/unit/layout_test/detail/colnt_layout.hpp |  3 ++
+ test/unit/layout_test/detail/row_layout.hpp   |  3 ++
+ test/unit/layout_test/detail/rownt_layout.hpp |  3 ++
+ .../detail/load_store_matrix_sync.hpp         |  3 ++
+ .../detail/map_block_to_matrix_override.hpp   |  3 ++
+ .../detail/map_matrix_to_data_override.hpp    |  3 ++
+ test/unit/unit_test_traits.hpp                |  5 ++-
+ 20 files changed, 122 insertions(+), 10 deletions(-)
 
 diff --git a/library/include/rocwmma/internal/config.hpp b/library/include/rocwmma/internal/config.hpp
-index d61dd51e..f1b28c22 100644
+index d61dd51e..fc01f187 100644
 --- a/library/include/rocwmma/internal/config.hpp
 +++ b/library/include/rocwmma/internal/config.hpp
-@@ -66,6 +66,12 @@
+@@ -50,7 +50,13 @@
+ #else
+ #define ROCWMMA_DEVICE_COMPILE 0
+ #endif
+-#if defined(__gfx908__) && ROCWMMA_DEVICE_COMPILE
++#if defined(__gfx900__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX900 __gfx900__
++#elif defined(__gfx902__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX902 __gfx902__
++#elif defined(__gfx906__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX906 __gfx906__
++#elif defined(__gfx908__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX908 __gfx908__
+ #elif defined(__gfx90a__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX90A __gfx90a__
+@@ -60,12 +66,36 @@
+ #define ROCWMMA_ARCH_GFX941 __gfx941__
+ #elif defined(__gfx942__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX942 __gfx942__
++#elif defined(__gfx1010__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1010 __gfx1010__
++#elif defined(__gfx1011__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1010 __gfx1011__
++#elif defined(__gfx1012__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1012 __gfx1012__
++#elif defined(__gfx1030__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1030 __gfx1030__
++#elif defined(__gfx1031__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1031 __gfx1031__
++#elif defined(__gfx1032__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1032 __gfx1032__
++#elif defined(__gfx1034__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1034 __gfx1034__
++#elif defined(__gfx1035__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1035 __gfx1035__
++#elif defined(__gfx1036__) && ROCWMMA_DEVICE_COMPILE
++#define ROCWMMA_ARCH_GFX1036 __gfx1036__
+ #elif defined(__gfx1100__) && ROCWMMA_DEVICE_COMPILE
+ #define ROCWMMA_ARCH_GFX1100 __gfx1100__
+ #elif defined(__gfx1101__) && ROCWMMA_DEVICE_COMPILE
  #define ROCWMMA_ARCH_GFX1101 __gfx1101__
  #elif defined(__gfx1102__) && ROCWMMA_DEVICE_COMPILE
  #define ROCWMMA_ARCH_GFX1102 __gfx1102__
@@ -44,7 +83,7 @@ index d61dd51e..f1b28c22 100644
  #elif defined(__gfx1200__) && ROCWMMA_DEVICE_COMPILE
  #define ROCWMMA_ARCH_GFX1200 __gfx1200__
  #elif defined(__gfx1201__) && ROCWMMA_DEVICE_COMPILE
-@@ -100,6 +106,15 @@ static_assert(0, "Unsupported architecture");
+@@ -100,6 +130,15 @@ static_assert(0, "Unsupported architecture");
  #if !defined(ROCWMMA_ARCH_GFX1102)
  #define ROCWMMA_ARCH_GFX1102 0
  #endif
@@ -60,7 +99,16 @@ index d61dd51e..f1b28c22 100644
  #if !defined(ROCWMMA_ARCH_GFX1200)
  #define ROCWMMA_ARCH_GFX1200 0
  #endif
-@@ -130,7 +145,7 @@ static_assert(0, "Unsupported architecture");
+@@ -122,7 +161,7 @@ static_assert(0, "Unsupported architecture");
+ /// ROCWMMA_BLOCK_DIM_32_SUPPORTED
+ /// ROCWMMA_ARCH_GFX94X
+ ///
+-#if ROCWMMA_ARCH_GFX908 || ROCWMMA_ARCH_GFX90A || ROCWMMA_ARCH_GFX940 || ROCWMMA_ARCH_GFX941 \
++#if ROCWMMA_ARCH_GFX906 ||  ROCWMMA_ARCH_GFX908 || ROCWMMA_ARCH_GFX90A || ROCWMMA_ARCH_GFX940 || ROCWMMA_ARCH_GFX941 \
+     || ROCWMMA_ARCH_GFX942
+ #define ROCWMMA_ARCH_GFX9 1
+ #define ROCWMMA_WAVE64_MODE 1
+@@ -130,7 +169,7 @@ static_assert(0, "Unsupported architecture");
  #define ROCWMMA_BLOCK_DIM_32_SUPPORTED 1
  #endif
  
@@ -403,5 +451,5 @@ index 46fe0596..b3fe0e09 100644
          };
      };
 -- 
-2.48.1
+2.41.3
 
