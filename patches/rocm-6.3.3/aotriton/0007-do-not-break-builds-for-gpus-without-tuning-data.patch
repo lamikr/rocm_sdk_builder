@@ -1,0 +1,30 @@
+From 150e84e27f51b5fc818623013719227e58d726d4 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 19 Mar 2025 20:01:50 -0700
+Subject: [PATCH 7/7] do not break builds for gpus without tuning data
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ v2python/tuning_lut.py | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/v2python/tuning_lut.py b/v2python/tuning_lut.py
+index 4091769..2732fc5 100644
+--- a/v2python/tuning_lut.py
++++ b/v2python/tuning_lut.py
+@@ -275,8 +275,10 @@ class KernelTuningEntryForFunctionalOnGPU(object):
+             mf.seek(0)
+             with open(ofn, 'w') as of:
+                 shutil.copyfileobj(mf, of)
+-        if raise_lut_entry:
+-            raise MissingLutEntry(self._dba.gpu, self._kdesc, ofn, self._fsels, lut_tensor)
++        # do not throw exception if tuning data is not available in the sqlite db for the gpu.
++        # It will still work eventhought the algorithm is not tuned in a best possible way
++        # if raise_lut_entry:
++        #    raise MissingLutEntry(self._dba.gpu, self._kdesc, ofn, self._fsels, lut_tensor)
+         return ofn
+ 
+     @property
+-- 
+2.48.1
+

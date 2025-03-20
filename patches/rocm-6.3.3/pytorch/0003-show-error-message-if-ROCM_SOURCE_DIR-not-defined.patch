@@ -1,7 +1,7 @@
-From f20c909dd0c1de15734a8df48256b60cf85b9841 Mon Sep 17 00:00:00 2001
+From 6278200d4ab11e8801974d5ad320a3843b43f8e4 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Fri, 10 May 2024 10:16:19 -0700
-Subject: [PATCH 02/13] show error message if ROCM_SOURCE_DIR not defined
+Subject: [PATCH 3/6] show error message if ROCM_SOURCE_DIR not defined
 
 ROCM_SOURCE_DIR is required by by third_party/kineto module
 and if it is not set, kineto will not find the
@@ -16,7 +16,7 @@ Signed-off-by: Mika Laitio <lamikr@pilppa.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/cmake/Dependencies.cmake b/cmake/Dependencies.cmake
-index c4661e39e18..6e7c87631f8 100644
+index 1813f4418a2..fb731f718b8 100644
 --- a/cmake/Dependencies.cmake
 +++ b/cmake/Dependencies.cmake
 @@ -1653,8 +1653,8 @@ if(USE_KINETO)
@@ -31,5 +31,5 @@ index c4661e39e18..6e7c87631f8 100644
    endif()
  
 -- 
-2.39.5
+2.48.1
 

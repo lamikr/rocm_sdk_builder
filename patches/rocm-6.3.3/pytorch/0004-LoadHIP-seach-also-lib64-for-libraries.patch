@@ -1,0 +1,87 @@
+From 34ac70552fa64d3d3194ccb821738f670a8d1a4b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 19 Mar 2025 20:49:06 -0700
+Subject: [PATCH 4/6] LoadHIP seach also lib64 for libraries
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/public/LoadHIP.cmake | 47 ++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 20 deletions(-)
+
+diff --git a/cmake/public/LoadHIP.cmake b/cmake/public/LoadHIP.cmake
+index 3eb34b0b833..a91f0d0381f 100644
+--- a/cmake/public/LoadHIP.cmake
++++ b/cmake/public/LoadHIP.cmake
+@@ -34,8 +34,13 @@ endif()
+ 
+ # MAGMA_HOME
+ if(NOT DEFINED ENV{MAGMA_HOME})
+-  set(MAGMA_HOME ${ROCM_PATH}/magma)
+-  set(ENV{MAGMA_HOME} ${ROCM_PATH}/magma)
++  if(EXISTS "${ROCM_PATH}/magma")
++    set(MAGMA_HOME ${ROCM_PATH}/magma)
++    set(ENV{MAGMA_HOME} ${ROCM_PATH}/magma)
++  else()
++    set(MAGMA_HOME ${ROCM_PATH})
++    set(ENV{MAGMA_HOME} ${ROCM_PATH})
++  endif()
+ else()
+   set(MAGMA_HOME $ENV{MAGMA_HOME})
+ endif()
+@@ -144,28 +149,28 @@ if(HIP_FOUND)
+   # Find ROCM components using Config mode
+   # These components will be searced for recursively in ${ROCM_PATH}
+   message("\n***** Library versions from cmake find_package *****\n")
+-  find_package_and_print_version(hip REQUIRED CONFIG)
+-  find_package_and_print_version(amd_comgr REQUIRED)
+-  find_package_and_print_version(rocrand REQUIRED)
+-  find_package_and_print_version(hiprand REQUIRED)
+-  find_package_and_print_version(rocblas REQUIRED)
+-  find_package_and_print_version(hipblas REQUIRED)
+-  find_package_and_print_version(miopen REQUIRED)
+-  find_package_and_print_version(hipfft REQUIRED)
+-  find_package_and_print_version(hipsparse REQUIRED)
+-  find_package_and_print_version(rocprim REQUIRED)
+-  find_package_and_print_version(hipcub REQUIRED)
+-  find_package_and_print_version(rocthrust REQUIRED)
+-  find_package_and_print_version(hipsolver REQUIRED)
+-  find_package_and_print_version(hiprtc REQUIRED)
++  find_package_and_print_version(hip REQUIRED CONFIG HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(amd_comgr REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(rocrand REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hiprand REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(rocblas REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hipblas REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(miopen REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hipfft REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hipsparse REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(rocprim REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hipcub REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(rocthrust REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hipsolver REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++  find_package_and_print_version(hiprtc REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
+ 
+   if(UNIX)
+-    find_package_and_print_version(rccl)
+-    find_package_and_print_version(hsa-runtime64 REQUIRED)
+-    find_package_and_print_version(hipblaslt REQUIRED)
++    find_package_and_print_version(rccl HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++    find_package_and_print_version(hsa-runtime64 REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
++    find_package_and_print_version(hipblaslt REQUIRED HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
+ 
+     # roctx is part of roctracer
+-    find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
++    find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib)
+ 
+     # check whether HIP declares new types
+     set(PROJECT_RANDOM_BINARY_DIR "${PROJECT_BINARY_DIR}")
+@@ -196,4 +201,6 @@ if(HIP_FOUND)
+     # With HIP-SDK 6.2, HIP declares new enum types on Windows
+     set(HIP_NEW_TYPE_ENUMS ON)
+   endif()
++else()
++  message(FATAL_ERROR "HIP_NOT_FOUND")
+ endif()
+-- 
+2.48.1
+

@@ -1,0 +1,42 @@
+From eab6901bd333532fb297a47aa2de75755d26206d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 19 Mar 2025 23:44:18 -0700
+Subject: [PATCH 6/6] build script fix attempts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh     | 4 +++-
+ preconfig_rocm.sh | 8 +++++++-
+ 2 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+index 6744ddbff16..6016959496e 100755
+--- a/build_rocm.sh
++++ b/build_rocm.sh
+@@ -26,4 +26,6 @@ unset LDFLAGS
+ export CFLAGS="-Wno-error=maybe-uninitialized"
+ unset CPPFLAGS
+ unset PKG_CONFIG_PATH
+-BUILD_TEST=0 USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
++export CMAKE_CXX_COMPILER_ID=Clang
++export AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm}
++CMAKE_C_COMPILER=/opt/rocm_sdk_633/bin/hipcc CMAKE_CXX_COMPILER=/opt/rocm_sdk_633/bin/hipcc CC=/opt/rocm_sdk_633/bin/clang CCX=/opt/rocm_sdk_633/bin/clang++ BUILD_TEST=OFF USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} ROCM_PATH=${install_dir_prefix_rocm} ROCM_SOURCE_DIR=${install_dir_prefix_rocm} CMAKE_CXX_FLAGS="$CMAKE_CXX_FLAGS -Wno-error=maybe-uninitialized" CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64/cmake;${install_dir_prefix_rocm}/lib/cmake;${install_dir_prefix_rocm}/lib64;${install_dir_prefix_rocm}/lib" ROCM_VERSION=${rocm_version_str} HIP_ROOT_DIR=${install_dir_prefix_rocm} USE_ROCM=1 PYTORCH_BUILD_VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')" PYTORCH_BUILD_NUMBER=1 python setup.py bdist_wheel
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+index 7ad2528e9fe..ae09ec62e8e 100755
+--- a/preconfig_rocm.sh
++++ b/preconfig_rocm.sh
+@@ -18,4 +18,10 @@ if [ -e ./preconfig_rocm.sh ]; then
+         python setup.py clean
+     fi
+ fi
+-USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
++export CC=/opt/rocm_sdk_633/bin/clang++
++export CCX=/opt/rocm_sdk_633/bin/clang++
++export CMAKE_CXX_COMPILER_ID=Clang
++export CMAKE_C_COMPILER=/opt/rocm_sdk_633/bin/clang
++export CMAKE_CXX_COMPILER=/opt/rocm_sdk_633/bin/clang++
++export AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm}
++CMAKE_C_COMPILER=/opt/rocm_sdk_633/bin/hipcc CMAKE_CXX_COMPILER=/opt/rocm_sdk_633/bin/hipcc CC=/opt/rocm_sdk_633/bin/clang CCX=/opt/rocm_sdk_633/bin/clang++ BUILD_TEST=OFF USE_FLASH_ATTENTION=ON AOTRITON_INSTALLED_PREFIX=${install_dir_prefix_rocm} CMAKE_PREFIX_PATH="${install_dir_prefix_rocm};${install_dir_prefix_rocm}/lib64 python" tools/amd_build/build_amd.py
+-- 
+2.48.1
+

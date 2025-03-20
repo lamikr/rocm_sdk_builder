@@ -1,0 +1,34 @@
+From e9bcb2338947ec3c4aa7698c8410290c0ac9ee06 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 19 Mar 2025 11:29:17 -0700
+Subject: [PATCH 6/7] add gfx gpu check
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ v2python/rules/flash/_common.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/v2python/rules/flash/_common.py b/v2python/rules/flash/_common.py
+index 9454031..1a54842 100644
+--- a/v2python/rules/flash/_common.py
++++ b/v2python/rules/flash/_common.py
+@@ -18,6 +18,7 @@ class FlashKernel(KernelDescription):
+             return True
+         MI = 'MI' in gpu
+         Navi = 'Navi' in gpu
++        gfx = 'gfx' in gpu
+         def check_value(repr_name):
+             for fsel in fsels:
+                 if fsel.repr_name == repr_name:
+@@ -30,7 +31,7 @@ class FlashKernel(KernelDescription):
+             to_check = lut_tensor.diagonal()
+         else:
+             to_check = lut_tensor
+-        if MI or Navi:
++        if MI or Navi or gfx:
+             return (to_check >= 0).all() and lut_tensor.shape == (12, 12)
+         else:
+             assert False, f"Unknown {gpu}"
+-- 
+2.48.1
+

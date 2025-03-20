@@ -1,0 +1,57 @@
+From 4a0d92dd4e4f06fa649d27ed6dbb2915bcecd9e2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 18 Dec 2024 21:38:44 -0800
+Subject: [PATCH 4/7] max python process compile count for hsaco files
+
+use MAX_JOBS environment variable to
+limit the amount python processes to
+build and compress hsaco files.
+
+Note that this will require that aotriton uses
+ninja as a builder because cmakes add_custom_command
+supports only Ninja for setting the process count.
+
+This solves out of memory build problem in cases where
+computer has low amount of memory compared to amount
+of CPUs available.
+
+Fixes: https://github.com/lamikr/rocm_sdk_builder/issues/178
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ v2src/CMakeLists.txt | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
+index e58f2e4..11d7d2f 100644
+--- a/v2src/CMakeLists.txt
++++ b/v2src/CMakeLists.txt
+@@ -15,6 +15,17 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "${AOTRITON_KERNEL_ST
+ get_filename_component(AOTRITON_COMPILER "${CMAKE_CURRENT_LIST_DIR}/../v2python/compile.py" ABSOLUTE)
+ message("AOTRITON_COMPILER ${AOTRITON_COMPILER}")
+ 
++if(DEFINED ENV{MAX_JOBS})
++  set(MAX_JOBS "$ENV{MAX_JOBS}")
++else()
++  cmake_host_system_information(RESULT MAX_JOBS QUERY NUMBER_OF_PHYSICAL_CORES)
++  if(MAX_JOBS LESS 2) # In case of failures.
++    set(MAX_JOBS 2)
++  endif()
++endif()
++
++set_property(GLOBAL PROPERTY JOB_POOLS MAX_JOB_CNT__HSACO=${MAX_JOBS})
++
+ if(AOTRITON_BUILD_FOR_TUNING)
+   set(GENERATE_OPTION "--build_for_tuning")
+ else(AOTRITON_BUILD_FOR_TUNING)
+@@ -83,6 +94,7 @@ if(NOT AOTRITON_NOIMAGE_MODE)
+       "--signature" "${SIG}"
+       "--timeout" "${AOTRITON_GPU_BUILD_TIMEOUT}"
+       DEPENDS aotriton_venv_triton
++      JOB_POOL MAX_JOB_CNT__HSACO
+     )
+     # DO NOT USE list(APPEND). It is quadratic growth
+     file(APPEND "${AOTRITON_HSACO_RECORD}" "${HSACO}" "\n")
+-- 
+2.48.1
+

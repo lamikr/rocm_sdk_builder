@@ -1,7 +1,7 @@
-From f8275cae724f493db9f4e9d3732b530a3fd0ab48 Mon Sep 17 00:00:00 2001
+From 39fcaabadefd2cf3cd6f9ed514ad69231680d9df Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Thu, 12 Dec 2024 16:14:24 -0800
-Subject: [PATCH 7/9] add preconfig_rocm.sh script
+Subject: [PATCH 3/7] add preconfig_rocm.sh script
 
 Signed-off-by: Mika Laitio <lamikr@pilppa.org>
 ---
