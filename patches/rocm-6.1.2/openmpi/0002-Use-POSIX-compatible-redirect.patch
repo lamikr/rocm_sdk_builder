@@ -1,7 +1,7 @@
-From 65c8e2978024fee5c5d24c9575111abd0a391775 Mon Sep 17 00:00:00 2001
+From 1c3a394aed0cb16d8c4074c7caf37cc3c4fb6834 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 14:47:58 +0000
-Subject: [PATCH 3/3] Use POSIX compatible redirect
+Subject: [PATCH 2/3] Use POSIX compatible redirect
 
 Fixes build on systems where /bin/sh is not bash
 
@@ -36,5 +36,5 @@ index 6ab607b..4c50bad 100644
  
                    AC_MSG_CHECKING([for $1 library (${check_package_generic_search_lib}) in ${check_package_prefix}])
 -- 
-2.46.0
+2.48.1
 
