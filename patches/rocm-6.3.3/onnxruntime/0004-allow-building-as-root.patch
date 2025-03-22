@@ -1,7 +1,7 @@
-From fdd22e92bc4f467ffb56b87df449a85012335017 Mon Sep 17 00:00:00 2001
+From 1135b49c69c5e4e3b9c9d1585a0d572f90ca06e2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Tue, 29 Oct 2024 13:11:13 -0700
-Subject: [PATCH 8/8] allow building as root
+Subject: [PATCH 4/4] allow building as root
 
 - required for docker/podman build
 
@@ -24,5 +24,5 @@ index 44d7022e2e..15e660531b 100755
  #
  #./build.sh --config RelWithDebInfo --build_shared_lib --parallel --compile_no_warning_as_error --skip_submodule_sync
 -- 
-2.41.1
+2.48.1
 
