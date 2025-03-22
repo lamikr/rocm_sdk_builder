@@ -1,0 +1,41 @@
+From acf503ddd1440020731b0a9bda770e86ef28dcfd Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 21 Mar 2025 23:41:33 -0700
+Subject: [PATCH 4/5] fix unused variables error
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../device_grouped_conv_bwd_weight_xdl_cshuffle_v3.hpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_xdl_cshuffle_v3.hpp b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_xdl_cshuffle_v3.hpp
+index f6ea23a1e..d56c7abcd 100644
+--- a/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_xdl_cshuffle_v3.hpp
++++ b/include/ck/tensor_operation/gpu/device/impl/device_grouped_conv_bwd_weight_xdl_cshuffle_v3.hpp
+@@ -81,6 +81,11 @@ __global__ void
+                                         k_idx);
+ #else
+     ignore = karg;
++    ignore = a_grid_desc_ak0_m_ak1;
++    ignore = b_grid_desc_bk0_n_bk1;
++    ignore = c_grid_desc_mblock_mperblock_nblock_nperblock;
++    ignore = compute_ptr_offset_of_batch;
++    ignore = num_k_per_block;
+ #endif // end of if (defined(__gfx9__)
+ }
+ 
+@@ -140,6 +145,11 @@ __global__ void
+                                              k_idx);
+ #else
+     ignore = karg;
++    ignore = a_grid_desc_ak0_m_ak1;
++    ignore = b_grid_desc_bk0_n_bk1;
++    ignore = c_grid_desc_mblock_mperblock_nblock_nperblock;
++    ignore = compute_ptr_offset_of_batch;
++    ignore = num_k_per_block;
+ #endif // end of if (defined(__gfx9__)
+ }
+ 
+-- 
+2.48.1
+
