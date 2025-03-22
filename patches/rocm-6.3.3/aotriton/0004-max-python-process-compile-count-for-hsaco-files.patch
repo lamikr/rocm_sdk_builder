@@ -1,7 +1,7 @@
-From 4a0d92dd4e4f06fa649d27ed6dbb2915bcecd9e2 Mon Sep 17 00:00:00 2001
+From 96be20adfe6b9ad631795fd52e2968495f152b90 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 18 Dec 2024 21:38:44 -0800
-Subject: [PATCH 4/7] max python process compile count for hsaco files
+Subject: [PATCH 4/8] max python process compile count for hsaco files
 
 use MAX_JOBS environment variable to
 limit the amount python processes to
@@ -23,7 +23,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 12 insertions(+)
 
 diff --git a/v2src/CMakeLists.txt b/v2src/CMakeLists.txt
-index e58f2e4..11d7d2f 100644
+index 7cc1e3b..a97b7c9 100644
 --- a/v2src/CMakeLists.txt
 +++ b/v2src/CMakeLists.txt
 @@ -15,6 +15,17 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory "${AOTRITON_KERNEL_ST
@@ -44,7 +44,7 @@ index e58f2e4..11d7d2f 100644
  if(AOTRITON_BUILD_FOR_TUNING)
    set(GENERATE_OPTION "--build_for_tuning")
  else(AOTRITON_BUILD_FOR_TUNING)
-@@ -83,6 +94,7 @@ if(NOT AOTRITON_NOIMAGE_MODE)
+@@ -92,6 +103,7 @@ if(NOT AOTRITON_NOIMAGE_MODE)
        "--signature" "${SIG}"
        "--timeout" "${AOTRITON_GPU_BUILD_TIMEOUT}"
        DEPENDS aotriton_venv_triton

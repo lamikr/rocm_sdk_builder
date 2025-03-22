@@ -1,23 +1,22 @@
-From c8087326e75f065e17fbd5f8ccabfc50741a9563 Mon Sep 17 00:00:00 2001
+From fd99ae49a9ac236dda338361ff6946ec33f10720 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
-Date: Tue, 18 Mar 2025 17:42:26 -0700
-Subject: [PATCH 1/7] add rocm sdk builder gpus
+Date: Fri, 21 Mar 2025 10:07:44 -0700
+Subject: [PATCH 1/8] add rocm sdk builder gpus
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
- include/aotriton/util.h      | 19 ++++++++++
- v2python/compile.py          | 22 ++++++++++++
- v2python/generate_compile.py | 62 +++++++++++++++++++++++++++-----
- v2python/gpu_targets.py      | 69 ++++++++++++++++++++++++++++++++++++
- v2python/tuning_lut.py       | 62 +++++++++++++++++++++++++++-----
- v2src/util.cc                | 19 ++++++++++
- 6 files changed, 237 insertions(+), 16 deletions(-)
+ include/aotriton/util.h | 18 ++++++++++
+ v2python/compile.py     | 22 ++++++++++++
+ v2python/gpu_targets.py | 78 ++++++++++++++++++++++++++++++++++++++++-
+ v2python/tuning_lut.py  | 56 ++++++++++++++++++++++++++---
+ v2src/util.cc           | 18 ++++++++++
+ 5 files changed, 186 insertions(+), 6 deletions(-)
 
 diff --git a/include/aotriton/util.h b/include/aotriton/util.h
-index 222f025..5c41c00 100644
+index e1a6656..153fac2 100644
 --- a/include/aotriton/util.h
 +++ b/include/aotriton/util.h
-@@ -36,10 +36,29 @@ enum GpuVendor : uint32_t {
+@@ -36,11 +36,29 @@ enum GpuVendor : uint32_t {
  // More bits for potential non-PCI architectures
  enum GpuArch : uint64_t {
    GPU_ARCH_UNKNOWN = 0,
@@ -42,19 +41,19 @@ index 222f025..5c41c00 100644
 +  GPU_ARCH_AMD_GFX1103 = CAT(GpuVendor::kAMD, 0x1103),
 +  GPU_ARCH_AMD_GFX1150 = CAT(GpuVendor::kAMD, 0x1150),
 +  GPU_ARCH_AMD_GFX1151 = CAT(GpuVendor::kAMD, 0x1151),
+   GPU_ARCH_AMD_GFX950 = CAT(GpuVendor::kAMD, 0x950),
 +  GPU_ARCH_AMD_GFX1200 = CAT(GpuVendor::kAMD, 0x1200),
-+  GPU_ARCH_AMD_GFX1201 = CAT(GpuVendor::kAMD, 0x1201),
+   GPU_ARCH_AMD_GFX1201 = CAT(GpuVendor::kAMD, 0x1201),
  };
  
- template<int Rank>
 diff --git a/v2python/compile.py b/v2python/compile.py
-index 9f24298..8168185 100644
+index b41f0c3..f5ca992 100644
 --- a/v2python/compile.py
 +++ b/v2python/compile.py
-@@ -20,6 +20,28 @@ KNOWN_TARGETS = {
-         'MI300X' : GPUTarget('hip', 'gfx942', 64),
-         'Navi31' : GPUTarget('hip', 'gfx1100', 32),
+@@ -22,6 +22,28 @@ KNOWN_TARGETS = {
          'Navi32' : GPUTarget('hip', 'gfx1101', 32),
+         'Unidentified' : GPUTarget('hip', 'gfx950', 64),
+         'RX9070XT' : GPUTarget('hip', 'gfx1201', 32),
 +        'gfx900' : GPUTarget('hip', 'gfx900', 32),
 +        'gfx902' : GPUTarget('hip', 'gfx902', 32),
 +        'gfx906' : GPUTarget('hip', 'gfx906', 64),
@@ -80,90 +79,14 @@ index 9f24298..8168185 100644
  }
  
  desc = """
-diff --git a/v2python/generate_compile.py b/v2python/generate_compile.py
-index 8afa4a9..8583191 100644
---- a/v2python/generate_compile.py
-+++ b/v2python/generate_compile.py
-@@ -15,17 +15,63 @@ SOURCE_PATH = Path(__file__).resolve()
- COMPILER = SOURCE_PATH.parent / 'compile.py'
- 
- GPU_TO_DIRECTORY = {
--    'MI200'  : 'amd-gfx90a',
--    'MI300X' : 'amd-gfx942',
--    'Navi31' : 'amd-gfx110x',
--    'Navi32' : 'amd-gfx110x',
-+    'MI200'   : 'amd-gfx90a',
-+    'MI300X'  : 'amd-gfx942',
-+    'Navi31'  : 'amd-gfx110x',
-+    'Navi32'  : 'amd-gfx110x',
-+    'gfx900'  : 'amd-gfx900',
-+    'gfx902'  : 'amd-gfx902',
-+    'gfx906'  : 'amd-gfx906',
-+    'gfx908'  : 'amd-gfx908',
-+    'gfx90a'  : 'amd-gfx90a',
-+    'gfx942'  : 'amd-gfx942',
-+    'gfx1010' : 'amd-gfx1010',
-+    'gfx1011' : 'amd-gfx1011',
-+    'gfx1012' : 'amd-gfx1012',
-+    'gfx1030' : 'amd-gfx1030',
-+    'gfx1031' : 'amd-gfx1031',
-+    'gfx1032' : 'amd-gfx1032',
-+    'gfx1034' : 'amd-gfx1034',
-+    'gfx1035' : 'amd-gfx1035',
-+    'gfx1036' : 'amd-gfx1036',
-+    'gfx1100' : 'amd-gfx1100',
-+    'gfx1101' : 'amd-gfx1101',
-+    'gfx1102' : 'amd-gfx1102',
-+    'gfx1103' : 'amd-gfx1103',
-+    'gfx1150' : 'amd-gfx1150',
-+    'gfx1151' : 'amd-gfx1151',
-+    'gfx1200' : 'amd-gfx1200',
-+    'gfx1201' : 'amd-gfx1201',
- }
- 
- GPU_TO_CLUSTER_SUFFIX = {
--    'MI200'  : 'MI200',
--    'MI300X' : 'MI300X',
--    'Navi31' : 'Navi3x',
--    'Navi32' : 'Navi3x',
-+    'MI200'   : 'MI200',
-+    'MI300X'  : 'MI300X',
-+    'Navi31'  : 'Navi3x',
-+    'Navi32'  : 'Navi3x',
-+    'gfx900'  : 'gfx900',
-+    'gfx902'  : 'gfx902',
-+    'gfx906'  : 'gfx906',
-+    'gfx908'  : 'gfx908',
-+    'gfx90a'  : 'gfx90a',
-+    'gfx942'  : 'gfx942',
-+    'gfx1010' : 'gfx1010',
-+    'gfx1011' : 'gfx1011',
-+    'gfx1012' : 'gfx1012',
-+    'gfx1030' : 'gfx1030',
-+    'gfx1031' : 'gfx1031',
-+    'gfx1032' : 'gfx1032',
-+    'gfx1034' : 'gfx1034',
-+    'gfx1035' : 'gfx1035',
-+    'gfx1036' : 'gfx1036',
-+    'gfx1100' : 'gfx1100',
-+    'gfx1101' : 'gfx1101',
-+    'gfx1102' : 'gfx1102',
-+    'gfx1103' : 'gfx1103',
-+    'gfx1150' : 'gfx1150',
-+    'gfx1151' : 'gfx1151',
-+    'gfx1200' : 'gfx1200',
-+    'gfx1201' : 'gfx1201',
- }
- 
- class ClusterKernel(object):
 diff --git a/v2python/gpu_targets.py b/v2python/gpu_targets.py
-index fb51fef..6479ef8 100644
+index 6342be0..f5df9df 100644
 --- a/v2python/gpu_targets.py
 +++ b/v2python/gpu_targets.py
-@@ -6,6 +6,29 @@ AOTRITON_SUPPORTED_GPUS = {
-     'MI300X'    : 'GPU_ARCH_AMD_GFX942',
-     'Navi31'    : 'GPU_ARCH_AMD_GFX1100',
+@@ -8,6 +8,29 @@ AOTRITON_SUPPORTED_GPUS = {
      'Navi32'    : 'GPU_ARCH_AMD_GFX1101',
+     'Unidentified'    : 'GPU_ARCH_AMD_GFX950',
+     'RX9070XT'  : 'GPU_ARCH_AMD_GFX1201',
 +    'gfx900'    : 'GPU_ARCH_AMD_GFX900',
 +    'gfx902'    : 'GPU_ARCH_AMD_GFX902',
 +    'gfx906'    : 'GPU_ARCH_AMD_GFX906',
@@ -190,10 +113,10 @@ index fb51fef..6479ef8 100644
  }
  
  AOTRITON_GPU_ARCH_TUNING_STRING = {
-@@ -13,6 +36,29 @@ AOTRITON_GPU_ARCH_TUNING_STRING = {
-     'MI300X'    : 'gfx942',
-     'Navi31'    : 'gfx1100',
+@@ -17,11 +40,41 @@ AOTRITON_GPU_ARCH_TUNING_STRING = {
      'Navi32'    : 'gfx1101',
+     'Unidentified'    : 'gfx950',
+     'RX9070XT'  : 'gfx1201',
 +    'gfx900'    : 'gfx900',
 +    'gfx902'    : 'gfx902',
 +    'gfx906'    : 'gfx906',
@@ -219,11 +142,24 @@ index fb51fef..6479ef8 100644
 +    'gfx1201'   : 'gfx1201',
  }
  
+ AOTRITON_TUNING_DATABASE_REUSE = {
+-    'gfx950' : 'gfx942',
++    'gfx950'  : 'gfx942',
++    'gfx1200' : 'gfx1100',
+     'gfx1201' : 'gfx1100',
++    'gfx1100' : 'gfx1100',
++    'gfx1101' : 'gfx1100',
++    'gfx1102' : 'gfx1100',
++    'gfx1103' : 'gfx1100',
++    'gfx1150' : 'gfx1100',
++    'gfx1151' : 'gfx1100',
+ }
+ 
  AOTRITON_GPU_WARPSIZE = {
-@@ -20,4 +66,27 @@ AOTRITON_GPU_WARPSIZE = {
-     'MI300X'    : 64,
-     'Navi31'    : 32,
+@@ -31,4 +84,27 @@ AOTRITON_GPU_WARPSIZE = {
      'Navi32'    : 32,
+     'Unidentified'    : 64,
+     'RX9070XT'  : 32,
 +    'gfx900'    : 32,
 +    'gfx902'    : 32,
 +    'gfx906'    : 64,
@@ -249,11 +185,11 @@ index fb51fef..6479ef8 100644
 +    'gfx1201'   : 32,
  }
 diff --git a/v2python/tuning_lut.py b/v2python/tuning_lut.py
-index cb7c75c..4091769 100644
+index 899ad79..0e9c4b5 100644
 --- a/v2python/tuning_lut.py
 +++ b/v2python/tuning_lut.py
-@@ -13,17 +13,63 @@ from pathlib import Path
- # TODO: merge with generate_compile.py
+@@ -13,12 +13,35 @@ import os
+ SKIPPED_LUT_CHECK = os.getenv('AOTRITON_SKIP_LUT_CHECK', default='').split(',')
  
  GPU_TO_DIRECTORY = {
 -    'MI200'  : 'amd-gfx90a',
@@ -264,6 +200,9 @@ index cb7c75c..4091769 100644
 +    'MI300X'  : 'amd-gfx942',
 +    'Navi31'  : 'amd-gfx110x',
 +    'Navi32'  : 'amd-gfx110x',
+     'Unidentified' : 'amd-gfx950',
+-    'RX9070XT'    : 'amd-gfx120x',
++    'RX9070XT' : 'amd-gfx120x',
 +    'gfx900'  : 'amd-gfx900',
 +    'gfx902'  : 'amd-gfx902',
 +    'gfx906'  : 'amd-gfx906',
@@ -290,14 +229,10 @@ index cb7c75c..4091769 100644
  }
  
  GPU_TO_CLUSTER_SUFFIX = {
--    'MI200'  : 'MI200',
--    'MI300X' : 'MI300X',
--    'Navi31' : 'Navi3x',
--    'Navi32' : 'Navi3x',
-+    'MI200'   : 'MI200',
-+    'MI300X'  : 'MI300X',
-+    'Navi31'  : 'Navi3x',
-+    'Navi32'  : 'Navi3x',
+@@ -28,6 +51,29 @@ GPU_TO_CLUSTER_SUFFIX = {
+     'Navi32' : 'Navi3x',
+     'Unidentified'      : 'Unidentified',
+     'RX9070XT'    : 'RX9070XT',
 +    'gfx900'  : 'gfx900',
 +    'gfx902'  : 'gfx902',
 +    'gfx906'  : 'gfx906',
@@ -325,10 +260,10 @@ index cb7c75c..4091769 100644
  
  class MissingLutEntry(Exception):
 diff --git a/v2src/util.cc b/v2src/util.cc
-index e9520a7..719d5b4 100644
+index d08054c..6138125 100644
 --- a/v2src/util.cc
 +++ b/v2src/util.cc
-@@ -34,10 +34,29 @@ private:
+@@ -39,11 +39,29 @@ private:
  };
  
  std::unordered_map<std::string, GpuArch> LazyArch::string_to_arch = {
@@ -353,11 +288,11 @@ index e9520a7..719d5b4 100644
 +  {"gfx1103", GPU_ARCH_AMD_GFX1103},
 +  {"gfx1150", GPU_ARCH_AMD_GFX1150},
 +  {"gfx1151", GPU_ARCH_AMD_GFX1151},
+   {"gfx950", GPU_ARCH_AMD_GFX950},
 +  {"gfx1200", GPU_ARCH_AMD_GFX1200},
-+  {"gfx1201", GPU_ARCH_AMD_GFX1201},
+   {"gfx1201", GPU_ARCH_AMD_GFX1201},
  };
  
- GpuArch
 -- 
 2.48.1
 

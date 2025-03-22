@@ -1,7 +1,7 @@
-From 4d476123ad5331ef61444359a39cd9c7124ca27a Mon Sep 17 00:00:00 2001
+From ec3889ce8b6de71226ad0b3f63dc93b61230b112 Mon Sep 17 00:00:00 2001
 From: mritunjaymusale <mritunjaymusale@gmail.com>
 Date: Sun, 2 Jun 2024 18:00:59 +0530
-Subject: [PATCH 2/7] changed the line which allocates twice the number of max
+Subject: [PATCH 2/8] changed the line which allocates twice the number of max
  cpu threads to triton build
 
 Signed-off-by: mritunjaymusale <mritunjaymusale@gmail.com>
@@ -10,10 +10,10 @@ Signed-off-by: mritunjaymusale <mritunjaymusale@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/third_party/triton/python/setup.py b/third_party/triton/python/setup.py
-index a9107a1..357db79 100644
+index f9fc375..6eb75b8 100644
 --- a/third_party/triton/python/setup.py
 +++ b/third_party/triton/python/setup.py
-@@ -434,7 +434,7 @@ class CMakeBuild(build_ext):
+@@ -466,7 +466,7 @@ class CMakeBuild(build_ext):
          if platform.system() == "Windows":
              cmake_args += [f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"]
          else:

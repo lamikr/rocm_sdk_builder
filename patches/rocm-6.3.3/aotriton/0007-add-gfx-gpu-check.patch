@@ -1,0 +1,44 @@
+From c1fad91f5ca6eed987d7bfd04c8e2912868e3c8e Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 21 Mar 2025 10:14:53 -0700
+Subject: [PATCH 7/8] add gfx gpu check
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ v2python/rules/flash/_common.py | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/v2python/rules/flash/_common.py b/v2python/rules/flash/_common.py
+index dd5e865..78f86d1 100644
+--- a/v2python/rules/flash/_common.py
++++ b/v2python/rules/flash/_common.py
+@@ -42,6 +42,7 @@ class FlashKernel(KernelDescription):
+             return True  # ignore disabled functionals
+         MI = 'MI' in gpu
+         Navi = 'Navi' in gpu or gpu.startswith('RX')
++        gfx = 'gfx' in gpu
+         LUT_TENSOR_SIZE = (len(self.LUT_FULL_SEQLEN_Q), len(self.LUT_FULL_SEQLEN_K))
+         LUT_TENSOR_SIZE_NAVI = (len(self.LUT_FULL_SEQLEN_NAVI), len(self.LUT_FULL_SEQLEN_NAVI))
+         if lut_tensor.size == 1:
+@@ -50,7 +51,7 @@ class FlashKernel(KernelDescription):
+             to_check = lut_tensor
+         if MI:
+             return (to_check >= 0).all() and lut_tensor.shape == LUT_TENSOR_SIZE
+-        elif Navi:
++        elif Navi or gfx:
+             return (to_check >= 0).all() and (lut_tensor.shape == LUT_TENSOR_SIZE or lut_tensor.shape == LUT_TENSOR_SIZE_NAVI)
+         else:
+             assert False, f"Unknown {gpu}"
+@@ -64,7 +65,8 @@ class FlashKernel(KernelDescription):
+         base = {'gpu' : gpu}
+         MI = 'MI' in gpu
+         Navi = 'Navi' in gpu or gpu.startswith('RX')
+-        if Navi:
++        gfx = 'gfx' in gpu
++        if Navi or gfx:
+             lut_full_seqlen_q = self.LUT_FULL_SEQLEN_NAVI
+             lut_full_seqlen_k = self.LUT_FULL_SEQLEN_NAVI
+         else:
+-- 
+2.48.1
+

@@ -1,7 +1,7 @@
-From 39fdc33998757382846a2847989df979831f512b Mon Sep 17 00:00:00 2001
+From 3c6038c47ad7a716e2d9ae23d36ead376d8db41b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 15 Jul 2024 00:57:55 -0400
-Subject: [PATCH 2/6] handle hipcc verbose output on dumpversion command
+Subject: [PATCH 2/4] handle hipcc verbose output on dumpversion command
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/torch/utils/cpp_extension.py b/torch/utils/cpp_extension.py
-index b4a70dcc06e..7f6b621bf83 100644
+index c63da0d6263..9317ada539f 100644
 --- a/torch/utils/cpp_extension.py
 +++ b/torch/utils/cpp_extension.py
-@@ -402,8 +402,16 @@ def get_compiler_abi_compatibility_and_version(compiler) -> Tuple[bool, TorchVer
+@@ -434,8 +434,16 @@ def get_compiler_abi_compatibility_and_version(compiler) -> tuple[bool, TorchVer
      try:
          if IS_LINUX:
              minimum_required_version = MINIMUM_GCC_VERSION
