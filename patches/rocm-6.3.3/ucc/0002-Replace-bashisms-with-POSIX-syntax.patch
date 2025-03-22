@@ -1,4 +1,4 @@
-From eb102973999ace7b2da6075e6a4cf869884325c4 Mon Sep 17 00:00:00 2001
+From 719947af96f1e971d96f58d1e1af006871d81df7 Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 4 Aug 2024 14:58:56 +0000
 Subject: [PATCH 2/2] Replace bashisms with POSIX syntax
@@ -28,7 +28,7 @@ index c063a57..08c848b 100644
            required="n"
            tls_str=${TLS_REQUIRED:1}])
 diff --git a/config/m4/configure.m4 b/config/m4/configure.m4
-index 3c04314..9bf7036 100644
+index f29a7b5..0d13aae 100644
 --- a/config/m4/configure.m4
 +++ b/config/m4/configure.m4
 @@ -40,7 +40,7 @@ AC_DEFUN([CHECK_NEED_TL_PROFILING], [
@@ -66,7 +66,7 @@ index 1e681f4..7abf0ee 100644
      ])
  ])
 diff --git a/configure.ac b/configure.ac
-index bd8c27a..961bb1e 100644
+index 07e1d28..644db30 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -119,7 +119,7 @@ AC_ARG_WITH([docs_only],
@@ -79,5 +79,5 @@ index bd8c27a..961bb1e 100644
                         doxygen was not found])],
                         [])])])
 -- 
-2.41.1
+2.48.1
 

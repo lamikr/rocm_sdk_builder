@@ -46,7 +46,9 @@
     - update to latest version in rocm_enabled_multi_backend branch
 - triton:
     - update to latest version in master branch
-
+- openmpi 5.0.7
+- ucx  v1.18.1-rc1
+- ucc: latest on git master (no releases for a while)
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)
 -------------------------------------
