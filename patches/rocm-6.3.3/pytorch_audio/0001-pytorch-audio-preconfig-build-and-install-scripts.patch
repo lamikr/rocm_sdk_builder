@@ -1,7 +1,7 @@
-From fb5ed124003037955b2783593a1e96b3ab2d5cc9 Mon Sep 17 00:00:00 2001
+From fd6c1eab720a14bdbb9229a1afe23587b63d2dd2 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 12 Dec 2023 23:14:41 -0800
-Subject: [PATCH 1/9] pytorch audio preconfig, build and install scripts
+Subject: [PATCH 1/7] pytorch audio preconfig, build and install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -77,5 +77,5 @@ index 00000000..9f71fe83
 +    fi
 +fi
 -- 
-2.43.0
+2.48.1
 

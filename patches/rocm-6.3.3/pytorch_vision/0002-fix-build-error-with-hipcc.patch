@@ -1,4 +1,4 @@
-From 520b97ad51f2f911e4aee586268c01e866404caa Mon Sep 17 00:00:00 2001
+From 1aaed1fda63e8b4f1b96957db3ae4ef588f48524 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 26 Jan 2024 15:19:56 -0800
 Subject: [PATCH 2/4] fix build error with hipcc
@@ -15,7 +15,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/torchvision/csrc/io/image/cpu/encode_jpeg.cpp b/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
-index d2ed73071a..eada131d32 100644
+index 67ca424560..d6a92e882f 100644
 --- a/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
 +++ b/torchvision/csrc/io/image/cpu/encode_jpeg.cpp
 @@ -103,7 +103,7 @@ torch::Tensor encode_jpeg(const torch::Tensor& data, int64_t quality) {
@@ -28,5 +28,5 @@ index d2ed73071a..eada131d32 100644
    return out_tensor;
  }
 -- 
-2.46.0
+2.48.1
 

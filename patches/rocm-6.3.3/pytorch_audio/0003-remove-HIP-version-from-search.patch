@@ -1,7 +1,7 @@
-From 3e512aee25745cecd3033c192ef56670802fc94d Mon Sep 17 00:00:00 2001
+From 230ea4744a3e521ba486927001011df6408d7e3a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 5 Jul 2024 12:32:20 -0400
-Subject: [PATCH 3/9] remove HIP version from search
+Subject: [PATCH 3/7] remove HIP version from search
 
 HIP 1.0 could never be found now when
 rocm/HIP version is already 6.1
@@ -25,5 +25,5 @@ index 09ae6385..4f695e01 100644
  if(HIP_FOUND)
    set(PYTORCH_FOUND_HIP TRUE)
 -- 
-2.43.0
+2.48.1
 

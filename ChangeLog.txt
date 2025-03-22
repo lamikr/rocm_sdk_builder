@@ -34,7 +34,18 @@
     - no tuning data yet added for each gpu
     - patch that allows building without tuning data?
     - patches not included at least yet: 0001-pass-extra-build-options.patch, 0006-separate-each-gpu-files-to-own-dir.patch
-- 
+- pytorch
+    - update to 2.7.0-rc2
+- pytorch vision
+    - update to 0.22.0-rc2
+- pytorch audio
+    - update to 2.7.0-rc2
+- torch_migraphx:
+    - update to latest version in master branch
+- bitsandbytes:
+    - update to latest version in rocm_enabled_multi_backend branch
+- triton:
+    - update to latest version in master branch
 
 
 # ROCM SDK Builder 6.1.2 (2025-03-05)

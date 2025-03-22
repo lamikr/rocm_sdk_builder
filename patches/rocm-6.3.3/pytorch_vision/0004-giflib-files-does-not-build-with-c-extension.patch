@@ -1,4 +1,4 @@
-From e14babe7326431b1298669c89e07345c020db942 Mon Sep 17 00:00:00 2001
+From 21f7b61e101538298fbe2b02c4325bc2c1183048 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 6 Aug 2024 15:34:06 -0700
 Subject: [PATCH 4/4] giflib files does not build with c-extension
@@ -23,10 +23,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  rename torchvision/csrc/io/image/cpu/giflib/{openbsd-reallocarray.c => openbsd-reallocarray.cpp} (100%)
 
 diff --git a/setup.py b/setup.py
-index dd032c942f..3be4b47cad 100644
+index d24903f8f8..c0dd27ef7e 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -270,7 +270,7 @@ def make_image_extension():
+@@ -284,7 +284,7 @@ def make_image_extension():
      define_macros, extra_compile_args = get_macros_and_flags()
  
      image_dir = CSRS_DIR / "io/image"
@@ -52,5 +52,5 @@ similarity index 100%
 rename from torchvision/csrc/io/image/cpu/giflib/openbsd-reallocarray.c
 rename to torchvision/csrc/io/image/cpu/giflib/openbsd-reallocarray.cpp
 -- 
-2.46.0
+2.48.1
 

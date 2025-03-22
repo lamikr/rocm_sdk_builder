@@ -1,16 +1,16 @@
-From fd881c2b3d142a41927252ffacfec3be3d9b141b Mon Sep 17 00:00:00 2001
-From: Mika Laitio <lamikr@pilppa.org>
-Date: Fri, 20 Dec 2024 18:27:45 -0800
+From a45723911219062682def98550a92bed93522590 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 22 Mar 2025 10:19:07 -0700
 Subject: [PATCH 2/2] add gcn5 architecture check
 
-Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
  third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h | 1 +
- third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp   | 4 ++++
- 2 files changed, 5 insertions(+)
+ third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp   | 5 +++++
+ 2 files changed, 6 insertions(+)
 
 diff --git a/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h b/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
-index a49e442d3..1da652ff3 100644
+index 223eadb2e..f1c237e42 100644
 --- a/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
 +++ b/third_party/amd/include/TritonAMDGPUToLLVM/TargetUtils.h
 @@ -8,6 +8,7 @@ namespace mlir::triton::AMD {
@@ -22,20 +22,21 @@ index a49e442d3..1da652ff3 100644
    CDNA2,
    CDNA3,
 diff --git a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
-index 63fb972f7..ced97fa5f 100644
+index fb655694e..78656518c 100644
 --- a/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
 +++ b/third_party/amd/lib/TritonAMDGPUToLLVM/TargetUtils.cpp
-@@ -11,6 +11,10 @@ ISAFamily deduceISAFamily(llvm::StringRef arch) {
- 
-   // CDNA ISA cases
-   switch (kind) {
+@@ -19,6 +19,11 @@ ISAFamily deduceISAFamily(llvm::StringRef arch) {
+     return ISAFamily::CDNA2;
+   case llvm::AMDGPU::GK_GFX908:
+     return ISAFamily::CDNA1;
 +  case llvm::AMDGPU::GK_GFX900:
 +  case llvm::AMDGPU::GK_GFX902:
 +  case llvm::AMDGPU::GK_GFX906:
 +    return ISAFamily::GCN5;
-   case llvm::AMDGPU::GK_GFX942:
-   case llvm::AMDGPU::GK_GFX941:
-   case llvm::AMDGPU::GK_GFX940:
++
+   default:
+     break;
+   }
 -- 
-2.41.1
+2.48.1
 

@@ -1,4 +1,4 @@
-From a3b40f1c32f6703fa532182ea7f444d757234f0d Mon Sep 17 00:00:00 2001
+From 7b57e55274524dbcec6f5bd804a21737dce4c661 Mon Sep 17 00:00:00 2001
 From: Daniele <57776841+daniandtheweb@users.noreply.github.com>
 Date: Mon, 1 Jul 2024 02:12:12 +0200
 Subject: [PATCH 3/4] pytorch-vision build fix for Python 3.11
@@ -13,10 +13,10 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/setup.py b/setup.py
-index 4dd74a1eaf..dd032c942f 100644
+index a42aef6972..d24903f8f8 100644
 --- a/setup.py
 +++ b/setup.py
-@@ -364,11 +364,11 @@ def make_video_decoders_extensions():
+@@ -389,11 +389,11 @@ def make_video_decoders_extensions():
          ffmpeg_library_dir = os.path.join(ffmpeg_root, "lib")
  
          gcc = os.environ.get("CC", shutil.which("gcc"))
@@ -32,5 +32,5 @@ index 4dd74a1eaf..dd032c942f 100644
              ffmpeg_library_dir = [ffmpeg_library_dir, os.path.join(ffmpeg_library_dir, platform_tag)]
          else:
 -- 
-2.46.0
+2.48.1
 

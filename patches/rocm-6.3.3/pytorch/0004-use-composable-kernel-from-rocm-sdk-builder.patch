@@ -1,7 +1,7 @@
 From cf89eec0f1f21fc1aa54a3c767782c9ca6957cb8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Thu, 20 Mar 2025 02:32:42 -0700
-Subject: [PATCH 4/4] use composable kernel from rocm sdk builder
+Subject: [PATCH 4/5] use composable kernel from rocm sdk builder
 
 - rocm sdk builder specific patches are needed
 

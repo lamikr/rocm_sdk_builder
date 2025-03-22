@@ -1,7 +1,7 @@
 From 51d4ca9416819629b533a949c795741103ac358f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 11 Dec 2023 09:20:07 -0800
-Subject: [PATCH 1/4] pytorch_rocm preconfig, build and install scripts
+Subject: [PATCH 1/5] pytorch_rocm preconfig, build and install scripts
 
 - clean previous build, build wheel and install wheel scripts
 "-Wno-error=maybe-uninitialized" is needed during

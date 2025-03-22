@@ -1,7 +1,7 @@
-From 85eaf744407cbdf97b3e7ad6491070f26c75de1b Mon Sep 17 00:00:00 2001
+From 07bc8e6922148368932b8cbba4b06374249a04ef Mon Sep 17 00:00:00 2001
 From: Jeroen Mostert <jeroen.mostert@cm.com>
 Date: Sun, 30 Jun 2024 03:38:55 +0200
-Subject: [PATCH 4/9] add support for FFmpeg 7
+Subject: [PATCH 4/7] add support for FFmpeg 7
 
 Add support by including an abstraction layer over the biggest change (the
 channel layout type changed from an uint64_t to a struct), and including
@@ -733,7 +733,7 @@ index 95eff147..5cf1f615 100644
      : CustomOutput(opaque, buffer_size, write_packet, seek),
        StreamingMediaEncoder(io_ctx, format) {}
 diff --git a/src/libtorio/ffmpeg/stream_writer/stream_writer.h b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
-index fc8b3ae6..37bb5858 100644
+index a646d3f3..c9d57792 100644
 --- a/src/libtorio/ffmpeg/stream_writer/stream_writer.h
 +++ b/src/libtorio/ffmpeg/stream_writer/stream_writer.h
 @@ -299,7 +299,7 @@ struct CustomOutput {
@@ -965,5 +965,5 @@ index 2415bbae..c1a76581 100644
              )
      return modules
 -- 
-2.43.0
+2.48.1
 
