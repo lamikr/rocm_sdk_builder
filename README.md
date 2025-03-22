@@ -28,7 +28,7 @@ This project has been so far tested with the following AMD Radeon GPUs:
 - AMD Radeon 680M Laptop iGPU (gfx1035)
 - AMD Raphael iGPU (gfx1036) (desktops)
 - AMD Strix Point iGPU (gfx1150) / (Experimental support, testing and feedback needed)
-- AMD Strix Halo iGPU (gfx1151) / (Experimental support)
+- AMD Strix Halo iGPU (gfx1151) / (Framework mini PC)
 - Radeon VII (gfx906) / (Experimental support)
 - MI50 CDNA (gfx906) / (Tested recently)
 - MI100 CDNA (gfx908) / (Experimental support)
