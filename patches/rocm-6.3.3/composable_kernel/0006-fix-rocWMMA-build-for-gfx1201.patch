@@ -1,7 +1,7 @@
-From 4eb0490f10d7ef9e21533d1f01c8c1c2df58240b Mon Sep 17 00:00:00 2001
+From 27c6dbc97f598b78be6a2dd8b9b663412d5f49c8 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Sun, 23 Mar 2025 19:59:30 -0700
-Subject: [PATCH 6/6] fix rocWMMA build for gfx1201
+Subject: [PATCH 6/7] fix rocWMMA build for gfx1201
 
 fix error for undefined method cast_to_f32_from_f8
 
@@ -50,5 +50,5 @@ index 429ba44b8..202a5fee1 100644
  #else
          return fp8_impl::cast_from_f8<_Float16, wm, we, false>(
 -- 
-2.41.3
+2.48.1
 

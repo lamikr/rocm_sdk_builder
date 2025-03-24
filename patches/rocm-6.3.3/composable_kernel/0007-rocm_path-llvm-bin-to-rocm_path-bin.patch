@@ -1,0 +1,83 @@
+From eed4b05590bac172c2e5d08b3cab548d7718eae6 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 24 Mar 2025 07:59:08 -0700
+Subject: [PATCH 7/7] rocm_path/llvm/bin to rocm_path/bin
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ Jenkinsfile                             | 6 +++---
+ codegen/test/rtc/src/compile_kernel.cpp | 4 ++--
+ rbuild.ini                              | 2 +-
+ script/sccache_wrapper.sh               | 4 ++--
+ 4 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/Jenkinsfile b/Jenkinsfile
+index 51a406ac4..4f59dabe4 100644
+--- a/Jenkinsfile
++++ b/Jenkinsfile
+@@ -755,8 +755,8 @@ pipeline {
+             description: 'Specify which commit of compiler branch to use: leave blank to use the latest commit (default), or use some specific commit of llvm-project branch.')
+         string(
+             name: 'BUILD_COMPILER', 
+-            defaultValue: '/opt/rocm/llvm/bin/clang++', 
+-            description: 'Build CK with /opt/rocm/bin/hipcc, /llvm-project/build/bin/clang++, or with /opt/rocm/llvm/bin/clang++ (default).')
++            defaultValue: '/opt/rocm/bin/clang++', 
++            description: 'Build CK with /opt/rocm/bin/hipcc, /llvm-project/build/bin/clang++, or with /opt/rocm/bin/clang++ (default).')
+         booleanParam(
+             name: "RUN_FULL_QA",
+             defaultValue: false,
+@@ -934,7 +934,7 @@ pipeline {
+                     agent{ label rocmnode("gfx90a")}
+                     environment{
+                         setup_args = "NO_CK_BUILD"
+-                        execute_args = """ CXX=/opt/rocm/llvm/bin/clang++ cmake ../codegen && \
++                        execute_args = """ CXX=/opt/rocm/bin/clang++ cmake ../codegen && \
+                                            make -j64 check"""
+                     }
+                     steps{
+diff --git a/codegen/test/rtc/src/compile_kernel.cpp b/codegen/test/rtc/src/compile_kernel.cpp
+index 262e6bae4..03c01ab78 100644
+--- a/codegen/test/rtc/src/compile_kernel.cpp
++++ b/codegen/test/rtc/src/compile_kernel.cpp
+@@ -85,9 +85,9 @@ void write_string(const std::string& filename, const std::string_view& buffer)
+     write_buffer(filename, buffer.data(), buffer.size());
+ }
+ 
+-std::string compiler() { return "/opt/rocm/llvm/bin/clang++ -x hip --cuda-device-only"; }
++std::string compiler() { return "/opt/rocm/bin/clang++ -x hip --cuda-device-only"; }
+ // TODO: undo after extracting the codeobj
+-// std::string compiler() { return "/opt/rocm/llvm/bin/clang++ -x hip"; }
++// std::string compiler() { return "/opt/rocm/bin/clang++ -x hip"; }
+ 
+ kernel clang_compile_kernel(const std::vector<src_file>& srcs, compile_options options)
+ {
+diff --git a/rbuild.ini b/rbuild.ini
+index 3649cedf0..c3f9972e8 100644
+--- a/rbuild.ini
++++ b/rbuild.ini
+@@ -1,6 +1,6 @@
+ [develop]
+ cxx = ${rocm_path}/bin/hipcc
+-cc = ${rocm_path}/llvm/bin/clang
++cc = ${rocm_path}/bin/clang
+ ignore = pcre
+ deps =
+     -f dev-requirements.txt
+diff --git a/script/sccache_wrapper.sh b/script/sccache_wrapper.sh
+index b0ec08de4..43e764bd3 100755
+--- a/script/sccache_wrapper.sh
++++ b/script/sccache_wrapper.sh
+@@ -29,8 +29,8 @@ setup_rocm_compilers_hash_file() {
+     # of RPATH.
+     # The versions themselves contain the commit hash of the compiler repo at the time of building.
+     # Hence, this should be a viable alternative to using the binary checksum itself.
+-    CLANG_VERSION="$("${ROCM_PATH}/llvm/bin/clang" --version | head -n 1)"
+-    CLANG_OFFLOAD_BUNDLER_VERSION="$("${ROCM_PATH}/llvm/bin/clang-offload-bundler" --version | head -n 1)"
++    CLANG_VERSION="$("${ROCM_PATH}/bin/clang" --version | head -n 1)"
++    CLANG_OFFLOAD_BUNDLER_VERSION="$("${ROCM_PATH}/bin/clang-offload-bundler" --version | head -n 1)"
+     printf '%s: %s\n' 'clang version' "${CLANG_VERSION}" | tee -a "$SCCACHE_EXTRAFILES"
+     printf '%s: %s\n' 'clang-offload-bundler version' "${CLANG_OFFLOAD_BUNDLER_VERSION}" | tee -a "$SCCACHE_EXTRAFILES"
+     printf '%s: %s\n' 'hipcc md5sum' "${HIPCC_HASH_VALUE}" | tee -a "$SCCACHE_EXTRAFILES"
+-- 
+2.48.1
+

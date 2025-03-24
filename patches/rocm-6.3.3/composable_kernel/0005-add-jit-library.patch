@@ -1,7 +1,7 @@
-From a3581c046137b0c589efe6dd214de0b2396749ee Mon Sep 17 00:00:00 2001
+From 79ff293abd4ffc19c91c9917abda7da3ea8d394b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 21 Mar 2025 23:53:22 -0700
-Subject: [PATCH 5/6] add jit library
+Subject: [PATCH 5/7] add jit library
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -1738,5 +1738,5 @@ index 000000000..a5057da10
 +    }
 +}
 -- 
-2.41.3
+2.48.1
 
