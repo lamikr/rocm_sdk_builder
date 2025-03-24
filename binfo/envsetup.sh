@@ -342,11 +342,12 @@ fi
 
 # Set additional environment variables
 export HIP_PLATFORM=hcc
-export ROCM_DIR=${INSTALL_DIR_PREFIX_SDK_ROOT}
-export HCC_HOME=${INSTALL_DIR_PREFIX_SDK_ROOT}/hcc
+export ROCM_DIR=${ROCM_PATH}
+export HCC_HOME=${ROCM_PATH}
 export HCC_PATH=${HCC_HOME}/bin
-export HIP_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}
+export HIP_PATH=${ROCM_PATH}
 export ROCBLAS_HOME=${INSTALL_DIR_PREFIX_SDK_ROOT}/rocblas
+export HIP_CLANG_PATH=${ROCM_PATH}/bin
 
 export DEVICE_LIB_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/amdgcn/bitcode
 

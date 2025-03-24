@@ -1,0 +1,49 @@
+From a627ed7020052fa6bf653e3f827959ac3a5d1a66 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Mon, 24 Mar 2025 16:19:38 -0700
+Subject: [PATCH] FindHIP clang path find rsb fixes
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/FindHIP.cmake | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/cmake/FindHIP.cmake b/cmake/FindHIP.cmake
+index b59cb3ac..de1232d4 100644
+--- a/cmake/FindHIP.cmake
++++ b/cmake/FindHIP.cmake
+@@ -279,18 +279,28 @@ elseif("${HIP_COMPILER}" STREQUAL "clang")
+         if(DEFINED ENV{HIP_CLANG_PATH})
+             set(HIP_CLANG_PATH $ENV{HIP_CLANG_PATH})
+         elseif(DEFINED ENV{ROCM_PATH})
+-            set(HIP_CLANG_PATH "$ENV{ROCM_PATH}/llvm/bin")
++            if(EXISTS "$ENV{ROCM_PATH}/llvm/bin")
++                set(HIP_CLANG_PATH "$ENV{ROCM_PATH}/llvm/bin")
++            elseif(EXISTS "$ENV{ROCM_PATH}/../llvm/bin")
++				set(HIP_CLANG_PATH "$ENV{ROCM_PATH}/../llvm/bin")
++			else()
++			    set(HIP_CLANG_PATH "$ENV{ROCM_PATH}/bin")
++			endif()
+         elseif(DEFINED ENV{HIP_PATH})
+             if(EXISTS "$ENV{HIP_PATH}/llvm/bin") #File Reorg backward compatibility
+                 set(HIP_CLANG_PATH "$ENV{HIP_PATH}/llvm/bin")
+-            else()
++            elseif(EXISTS "$ENV{HIP_PATH}/../llvm/bin")
+                 set(HIP_CLANG_PATH "$ENV{HIP_PATH}/../llvm/bin")
++            else()
++			    set(HIP_CLANG_PATH "$ENV{HIP_PATH}/bin")
+             endif()
+         elseif(DEFINED HIP_PATH)
+             if(EXISTS "${HIP_PATH}/llvm/bin") #File Reorg backward compatibility
+                 set(HIP_CLANG_PATH "${HIP_PATH}/llvm/bin")
+-            else()
++            elseif(EXISTS "${HIP_PATH}/../llvm/bin")
+                 set(HIP_CLANG_PATH "${HIP_PATH}/../llvm/bin")
++            else()
++                set(HIP_CLANG_PATH "${HIP_PATH}/bin")
+             endif()
+         # Handle the case where ROCM_PATH is defined and not set in ENV
+         elseif(DEFINED ROCM_PATH)
+-- 
+2.41.3
+
