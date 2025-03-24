@@ -1,7 +1,7 @@
-From acf503ddd1440020731b0a9bda770e86ef28dcfd Mon Sep 17 00:00:00 2001
+From fc6b3e7cdb7890da34a2e5f84f0b5282d7ec5eec Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 21 Mar 2025 23:41:33 -0700
-Subject: [PATCH 4/5] fix unused variables error
+Subject: [PATCH 4/6] fix unused variables error
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -37,5 +37,5 @@ index f6ea23a1e..d56c7abcd 100644
  }
  
 -- 
-2.48.1
+2.41.3
 
