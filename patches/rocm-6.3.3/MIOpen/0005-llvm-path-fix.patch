@@ -1,0 +1,31 @@
+From 779a59ef04ac6010860f908845e3bd0c97141af1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 24 Mar 2025 08:20:01 -0700
+Subject: [PATCH 5/5] llvm path fix
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/hip/hip_build_utils.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/src/hip/hip_build_utils.cpp b/src/hip/hip_build_utils.cpp
+index 011088597..5e3817e7d 100644
+--- a/src/hip/hip_build_utils.cpp
++++ b/src/hip/hip_build_utils.cpp
+@@ -48,10 +48,10 @@ MIOPEN_DECLARE_ENV_VAR_BOOL(MIOPEN_DEBUG_HIP_DUMP)
+ // for each Compiler Flags from ROCM Install Path
+ // This flag Paths are expected to be deprecated/modified
+ // in upcoming MAJOR Releases.
+-#define MIOPEN_CLANG_REL_PATH "llvm/bin/clang"
++#define MIOPEN_CLANG_REL_PATH "bin/clang"
+ #define MIOPEN_OCL_REL_PATH "bin/clang"
+-#define MIOPEN_CPPCLANG_REL_PATH "llvm/bin/clang++"
+-#define MIOPEN_OFFLOADBUNDLER_REL_PATH "llvm/bin/clang-offload-bundler"
++#define MIOPEN_CPPCLANG_REL_PATH "bin/clang++"
++#define MIOPEN_OFFLOADBUNDLER_REL_PATH "bin/clang-offload-bundler"
+ 
+ // Function to generate the MIOPEN Compiler Path Value using
+ // ROCm Base Install Path fetched using getROCmInstallPath()
+-- 
+2.48.1
+

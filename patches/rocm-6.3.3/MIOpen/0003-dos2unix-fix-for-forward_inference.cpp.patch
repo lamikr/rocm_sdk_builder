@@ -1,7 +1,7 @@
-From ed5a9712fb339bc490a0fd032d184c8c698bdb0b Mon Sep 17 00:00:00 2001
+From ead5d709cf57938f2fdc44ba8e80f490fef207d9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 16 Mar 2025 03:10:45 -0700
-Subject: [PATCH 3/4] dos2unix fix for forward_inference.cpp
+Subject: [PATCH 3/5] dos2unix fix for forward_inference.cpp
 
 - its easier to apply patches when whole
   file has same lineendings
