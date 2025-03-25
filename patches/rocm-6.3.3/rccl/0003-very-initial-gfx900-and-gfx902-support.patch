@@ -1,7 +1,7 @@
-From a53dc3ef0a5be543cc05f285334672a633556881 Mon Sep 17 00:00:00 2001
+From 305c60e9feaa555ba2c3ac673f7bcd6058fbbf3f Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Wed, 12 Mar 2025 19:38:53 -0700
-Subject: [PATCH 3/3] very initial gfx900 and gfx902 support
+Subject: [PATCH 3/4] very initial gfx900 and gfx902 support
 
 - did not have time to check this now fully
 
@@ -71,5 +71,5 @@ index 8b72b357..06df0587 100644
  #else
  #define RCCL_USE_WBINVL1_VOL 0
 -- 
-2.48.1
+2.43.0
 

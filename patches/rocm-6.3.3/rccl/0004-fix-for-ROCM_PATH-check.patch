@@ -1,0 +1,26 @@
+From 60cb7fb11c7f5d5b057093bb8af691a2d89d0d7d Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 25 Mar 2025 02:45:30 -0700
+Subject: [PATCH 4/4] fix for ROCM_PATH check
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c12e6199..594fb8ce 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -97,7 +97,7 @@ include(cmake/Dependencies.cmake) # Reloading to use desired GPU_TARGETS instead
+ 
+ # Try to establish ROCM_PATH (for find_package)
+ #==================================================================================================
+-if(NOT DEFINED ROCM_PATH)
++if(NOT DEFINED ENV{ROCM_PATH})
+   # Guess default location
+   set(ROCM_PATH "/opt/rocm")
+   message(WARNING "Unable to find ROCM_PATH: Falling back to ${ROCM_PATH}")
+-- 
+2.43.0
+

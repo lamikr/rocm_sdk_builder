@@ -1,7 +1,7 @@
-From 6f84cdbbdd473310565b0bb55e2dfcf1bdabec4a Mon Sep 17 00:00:00 2001
+From 590e58719fe62b0465afb605b57507c0e4064c95 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 1 Dec 2023 14:15:10 -0800
-Subject: [PATCH 1/5] workaround OmpxDynCgroupMem missing member name 'v'
+Subject: [PATCH 1/6] workaround OmpxDynCgroupMem missing member name 'v'
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -45,5 +45,5 @@ index c430375d5ed0..ca5538630878 100644
  CHECK_REQ_SCALAR_INT_CLAUSE(ThreadLimit, OMPC_thread_limit)
  
 -- 
-2.48.1
+2.43.0
 

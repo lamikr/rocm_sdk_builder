@@ -1,0 +1,26 @@
+From 85e128621806f77381c1aab84386df2245797d52 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 25 Mar 2025 02:36:53 -0700
+Subject: [PATCH 6/6] ubuntu fix for libhsakmt.a
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt b/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+index 69e2db879ffc..88b464c0067d 100644
+--- a/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
++++ b/openmp/libomptarget/plugins-nextgen/amdgpu/CMakeLists.txt
+@@ -20,7 +20,7 @@ if (NOT LIBOMPTARGET_BUILD_AMDGPU_PLUGIN)
+ endif()
+ 
+ # libhsakmt.a and libhsakmt.so
+-find_library ( HSAKMT_LIB libhsakmt.a REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm)
++find_library ( HSAKMT_LIB libhsakmt.a REQUIRED HINTS ${CMAKE_INSTALL_PREFIX}/lib64 ${CMAKE_INSTALL_PREFIX}/lib  PATHS /opt/rocm)
+ get_filename_component ( HSAKMT_LIB_PATH ${HSAKMT_LIB} DIRECTORY )
+ link_directories (${HSAKMT_LIB_PATH})
+ 
+-- 
+2.43.0
+

@@ -1,7 +1,7 @@
-From 7aa5878649da8bfd62c861505fcef7252051f6a5 Mon Sep 17 00:00:00 2001
+From 5ae6cdf01d03e2c793d02adbe95efb3628e3ed7d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 10 Mar 2025 11:51:27 -0700
-Subject: [PATCH 5/5] change llvm location in rocm_sdk_builder
+Subject: [PATCH 5/6] change llvm location in rocm_sdk_builder
 
 - llvm used by hipcc is in ROCM_PATH/bin in rocm_sdk_builder
   instead of ROCM_PATH/llvm/bin
@@ -39,5 +39,5 @@ index 57d009804cfe..f53ee4a4be9e 100644
  
      compilerPath = hipClangPath.string();
 -- 
-2.48.1
+2.43.0
 
