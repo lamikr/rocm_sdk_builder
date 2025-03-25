@@ -1,7 +1,7 @@
-From a45723911219062682def98550a92bed93522590 Mon Sep 17 00:00:00 2001
+From 8d6d3e5ee245ad610f589cb36ad8aefe817f88bd Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 22 Mar 2025 10:19:07 -0700
-Subject: [PATCH 2/2] add gcn5 architecture check
+Subject: [PATCH 2/3] add gcn5 architecture check
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -38,5 +38,5 @@ index fb655694e..78656518c 100644
      break;
    }
 -- 
-2.48.1
+2.41.3
 

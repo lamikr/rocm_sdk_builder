@@ -1,7 +1,7 @@
-From 1ae8d025f810b2c3ae350abf52ca7333601e1a40 Mon Sep 17 00:00:00 2001
+From d419a63a6ef2969e85e3ed85d6589733ecf2be70 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Fri, 28 Jun 2024 02:58:51 -0700
-Subject: [PATCH 1/2] triton rocm build_and_install scripts
+Subject: [PATCH 1/3] triton rocm build_and_install scripts
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -69,5 +69,5 @@ index 000000000..70048ac26
 +    fi
 +fi
 -- 
-2.48.1
+2.41.3
 

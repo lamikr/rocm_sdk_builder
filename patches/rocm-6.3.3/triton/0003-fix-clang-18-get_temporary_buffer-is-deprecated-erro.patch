@@ -1,0 +1,50 @@
+From 7f06d1a6e764a8a72421d84c73bd407c0d289a52 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Mon, 24 Mar 2025 17:45:31 -0700
+Subject: [PATCH 3/3] fix clang/18 get_temporary_buffer is deprecated error
+
+following error occured at least on Mageia 9 when using clang 18
+from rocm 6.3.3. Fix is to disable the error for deprecation warnings.
+
+src_projects/triton/lib/Analysis/Allocation.cpp
+In file included from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_633/src_projects/triton/lib/Analysis/Allocation.cpp:1:
+In file included from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_633/src_projects/triton/include/triton/Analysis/Allocation.h:4:
+In file included from /home/lamikr/own/rocm/src/sdk/rocm_sdk_builder_633/src_projects/triton/include/triton/Analysis/Utility.h:4:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/Analysis/DataFlowFramework.h:19:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/Operation.h:16:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/Block.h:16:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/BlockSupport.h:16:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/Value.h:16:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/Types.h:12:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/TypeSupport.h:16:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/IR/MLIRContext.h:12:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/mlir/Support/LLVM.h:23:
+In file included from /home/lamikr/.triton/llvm/llvm-2619c2ed-ubuntu-x64/include/llvm/Support/Casting.h:20:
+In file included from /usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/memory:66:
+/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/bits/stl_tempbuf.h:263:8: error: 'get_temporary_buffer<mlir::Allocation::BufferT *>' is deprecated [-Werror,-Wdeprecated-declarations]
+  263 |                 std::get_temporary_buffer<value_type>(_M_original_len));
+      |                      ^
+/usr/lib/gcc/x86_64-mageia-linux/12/../../../../include/c++/12/bits/stl_algo.h:4996:15: note: in instantiation of member function 'std::_Temporary_buffer<mlir::Allocation::BufferT **, mlir::Allocation::BufferT *>::_Temporary_buffer' requested here
+ 4996 |       _TmpBuf __buf(__first, (__last - __first + 1) / 2);
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e8c703d90..bd2326590 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -142,7 +142,7 @@ endfunction()
+ 
+ # Disable warnings that show up in external code (gtest;pybind11)
+ if(NOT MSVC)
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-covered-switch-default -fvisibility=hidden")
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wno-covered-switch-default -fvisibility=hidden -Wno-deprecated-declarations")
+ else()
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4624 /wd4715 /wd4530")
+ endif()
+-- 
+2.41.3
+
