@@ -1,0 +1,45 @@
+From 91b581c05a6ec6ac4e7a77e9f8324f506a8c3709 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 24 Aug 2024 17:58:51 -0700
+Subject: [PATCH 2/3] add supported rocm sdk gfx-devices
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ xla/stream_executor/device_description.h | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/xla/stream_executor/device_description.h b/xla/stream_executor/device_description.h
+index 7a7c35bc55..1f164f2008 100644
+--- a/xla/stream_executor/device_description.h
++++ b/xla/stream_executor/device_description.h
+@@ -200,9 +200,9 @@ class RocmComputeCapability {
+     return absl::c_count(kList, gfx_version()) != 0;
+   }
+ 
+-  bool navi21() const { return gfx_version() == "gfx1030"; }
++  bool navi21() const { return ((gfx_version() == "gfx1030") || (gfx_version() == "gfx1031") || (gfx_version() == "gfx1032") || (gfx_version() == "gfx1035") || (gfx_version() == "gfx1036")); }
+ 
+-  bool navi31() const { return gfx_version() == "gfx1100"; }
++  bool navi31() const { return ((gfx_version() == "gfx1100") || (gfx_version() == "gfx1101") || (gfx_version() == "gfx1102") || (gfx_version() == "gfx1103")); }
+ 
+   bool has_nhwc_layout_support() const { return gfx9_mi100_or_later(); }
+ 
+@@ -247,7 +247,14 @@ class RocmComputeCapability {
+       "gfx90a",                       // MI200
+       "gfx940",  "gfx941", "gfx942",  // MI300
+       "gfx1030",                      // Navi21
+-      "gfx1100"                       // Navi31
++      "gfx1031",
++      "gfx1032",
++      "gfx1035",
++      "gfx1036",
++      "gfx1100",                       // Navi31
++      "gfx1101",
++      "gfx1102",
++      "gfx1103"
+   };
+ };
+ 
+-- 
+2.41.1
+

@@ -1,0 +1,32 @@
+From 8cf50a55fc48f1acb39dcca4f22de0fd64fb3d04 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 31 Jul 2024 16:01:00 -0700
+Subject: [PATCH 3/6] create models directory if it does not exist
+
+- fixes error where the models are tried
+  to download to non-existing directory
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ modules/sd_models.py | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/modules/sd_models.py b/modules/sd_models.py
+index 55bd9ca5..22787567 100644
+--- a/modules/sd_models.py
++++ b/modules/sd_models.py
+@@ -17,8 +17,11 @@ from modules.timer import Timer
+ from modules.shared import opts
+ import tomesd
+ import numpy as np
++import os
+ 
+ model_dir = "Stable-diffusion"
++if not os.path.exists(paths.models_path):
++    os.makedirs(paths.models_path)
+ model_path = os.path.abspath(os.path.join(paths.models_path, model_dir))
+ 
+ checkpoints_list = {}
+-- 
+2.41.1
+

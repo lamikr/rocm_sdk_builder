@@ -1,0 +1,28 @@
+From d28cf89392c65b2d4221d0c9f7ac784dca3ae003 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 25 Oct 2024 14:49:28 -0700
+Subject: [PATCH 2/3] add amd gfx1011/v540 gpu
+
+- available and tested on amazon cloud
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ ggml/src/ggml-cuda/vendors/hip.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ggml/src/ggml-cuda/vendors/hip.h b/ggml/src/ggml-cuda/vendors/hip.h
+index a4c717a3..9efaeb3b 100644
+--- a/ggml/src/ggml-cuda/vendors/hip.h
++++ b/ggml/src/ggml-cuda/vendors/hip.h
+@@ -161,7 +161,7 @@
+ #define RDNA2
+ #endif
+ 
+-#if defined(__gfx1010__) || defined(__gfx1012__)
++#if defined(__gfx1010__) || defined(__gfx1011__) || defined(__gfx1012__)
+ #define RDNA1
+ #endif
+ 
+-- 
+2.41.3
+

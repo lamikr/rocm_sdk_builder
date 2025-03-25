@@ -1,0 +1,30 @@
+From 34a26bfa040a7c972ed34585a9fabf81a5953ccf Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Sat, 21 Sep 2024 05:10:25 -0700
+Subject: [PATCH 7/8] allow using mpifort with OMPI_FC=flang option
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ cmake/Modules/Packages.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/Modules/Packages.cmake b/cmake/Modules/Packages.cmake
+index 7963962f..a1cdbb47 100644
+--- a/cmake/Modules/Packages.cmake
++++ b/cmake/Modules/Packages.cmake
+@@ -702,7 +702,11 @@ if(NOT "$ENV{MPICXX}" STREQUAL "")
+ endif()
+ 
+ if(TIMEMORY_USE_MPI)
+-    find_package(MPI ${TIMEMORY_FIND_QUIETLY} ${TIMEMORY_FIND_REQUIREMENT})
++    #find_package(MPI ${TIMEMORY_FIND_QUIETLY} ${TIMEMORY_FIND_REQUIREMENT})
++    find_package(MPI QUIET)
++    # ugly hack because MPI_Fortran is found if CLANF_Fortran_Compiler=mpifort
++    # and not found if it is set to flang. Flang is however needed for building the timemory_f.f90
++    # I could not find a way to set the ENV(OMPI_FC=flang) only for one build target as an alternative solution
+ else()
+     find_package(MPI QUIET)
+ endif()
+-- 
+2.41.1
+

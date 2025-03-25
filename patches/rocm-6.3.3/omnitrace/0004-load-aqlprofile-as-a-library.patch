@@ -1,0 +1,47 @@
+From 5be594d374ed838126321c41a911d4757117c402 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 17 Sep 2024 23:48:32 -0700
+Subject: [PATCH 4/6] load aqlprofile as a library
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp b/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
+index aec3a87..624b862 100644
+--- a/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
++++ b/source/lib/omnitrace/library/rocm/hsa_rsrc_factory.cpp
+@@ -47,6 +47,11 @@ THE SOFTWARE.
+ #include <unistd.h>
+ #include <vector>
+ 
++#define ROCP_LD_AQLPROFILE
++
++// LOAD AQLProfile lib
++#define ROCP_LD_AQLPROFILE
++
+ namespace rocprofiler
+ {
+ namespace util
+@@ -393,7 +398,7 @@ HsaRsrcFactory::LoadAqlProfileLib(aqlprofile_pfn_t* api)
+ const AgentInfo*
+ HsaRsrcFactory::AddAgentInfo(const hsa_agent_t agent)
+ {
+-        std::cout << "AddAgentInfo started" << std::endl;
++    //std::cout << "AddAgentInfo started" << std::endl;
+     // Determine if device is a Gpu agent
+     hsa_status_t status;
+     AgentInfo*   agent_info = nullptr;
+@@ -534,7 +539,7 @@ HsaRsrcFactory::GetGpuAgentInfo(uint32_t idx, const AgentInfo** agent_info)
+ {
+     // Determine if request is valid
+     uint32_t size = uint32_t(gpu_list_.size());
+-    std::cout << "GetGpuAgentInfo started, idx: " << idx << ", size: " << size << std::endl;
++    //std::cout << "GetGpuAgentInfo started, idx: " << idx << ", size: " << size << std::endl;
+     if(idx >= size)
+     {
+         return false;
+-- 
+2.41.1
+

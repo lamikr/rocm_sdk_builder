@@ -1,0 +1,54 @@
+From ecf39aa24f57f2fad4f7227aee7434797768fdf2 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 17 Jan 2025 20:03:34 -0800
+Subject: [PATCH] allow building kernel driver and plugin separately
+
+- cmake support for variables to disable for example
+  the kernel driver build by setting variables:
+
+  -DXDNA_KERNEL_DRIVER=no
+  -DXDNA_USERSPACE_DRIVER_PLUGIN=yes
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ CMakeLists.txt     | 7 +++++++
+ src/CMakeLists.txt | 8 ++++++--
+ 2 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index c48e204..f9fab53 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -20,6 +20,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/xrt.cmake)
+ # version.cmake create XRT_PLUGIN_VERSION_STRING
+ include(${CMAKE_CURRENT_SOURCE_DIR}/CMake/version.cmake)
+ 
++if(NOT DEFINED XDNA_KERNEL_DRIVER)
++  SET(XDNA_KERNEL_DRIVER 1)
++endif()
++if(NOT DEFINED XDNA_USERSPACE_PLUGIN)
++  SET(XDNA_USERSPACE_DRIVER_PLUGIN 1)
++endif()
++
+ # For saving all built artifacts for quick testing purpose
+ # Should be redirected/prefixed by DESTDIR in make command line
+ # Can only be used with cmake install() command
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index f853324..02c4dcd 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1,5 +1,9 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # Copyright (C) 2022-2023, Advanced Micro Devices, Inc. All rights reserved.
+ 
+-add_subdirectory(driver)
+-add_subdirectory(shim)
++if(XDNA_KERNEL_DRIVER)
++  add_subdirectory(driver)
++endif()
++if(XDNA_USERSPACE_DRIVER_PLUGIN)
++  add_subdirectory(shim)
++endif()
+-- 
+2.41.1
+

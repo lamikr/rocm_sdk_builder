@@ -1,0 +1,1527 @@
+From f643e51946ba09710658dc836b9aa577727fc447 Mon Sep 17 00:00:00 2001
+From: Arlo Phoenix <aarlo.phoenix@gmail.com>
+Date: Tue, 6 Aug 2024 18:30:29 +0200
+Subject: [PATCH 1/9] Add ROCm support
+
+tested with ROCm 6.1, see README_ROCM.md for install instructions
+---
+ CMakeLists.txt             | 135 +++++++++++++++++++++++++++-------
+ README_ROCM.md             | 101 +++++++++++++++++++++++++
+ faster_whisper_bench.py    |  14 ++++
+ src/cpu/primitives.cc      |   3 +-
+ src/cuda/allocator.cc      |  17 ++++-
+ src/cuda/helpers.h         |  76 ++++++++++++++++---
+ src/cuda/primitives.cu     |  49 +++++++++++--
+ src/cuda/random.h          |   8 +-
+ src/cuda/utils.cc          |  38 ++++++++++
+ src/cuda/utils.h           |  79 +++++++++++++++++++-
+ src/dispatch.h             |  18 ++++-
+ src/ops/alibi_add_gpu.cu   |   3 +-
+ src/ops/bias_add_gpu.cu    |   3 +-
+ src/ops/conv1d_gpu.cu      | 146 ++++++++++++++++++++-----------------
+ src/ops/dequantize_gpu.cu  |   3 +-
+ src/ops/gumbel_max_gpu.cu  |   3 +-
+ src/ops/layer_norm_gpu.cu  |   9 ++-
+ src/ops/mean_gpu.cu        |  10 ++-
+ src/ops/multinomial_gpu.cu |  10 ++-
+ src/ops/quantize_gpu.cu    |   3 +-
+ src/ops/rms_norm_gpu.cu    |   9 ++-
+ src/ops/rotary_gpu.cu      |   3 +-
+ src/ops/softmax_gpu.cu     |   3 +-
+ src/ops/topk_gpu.cu        |   8 +-
+ src/ops/topp_mask_gpu.cu   |   8 +-
+ src/storage_view.cc        |   8 +-
+ src/type_dispatch.h        |  28 ++++++-
+ src/types.cc               |   8 +-
+ tests/CMakeLists.txt       |  29 +++++++-
+ tests/benchmark_utils.h    |   5 ++
+ whisperx_bench.py          |  20 +++++
+ 31 files changed, 714 insertions(+), 143 deletions(-)
+ create mode 100644 README_ROCM.md
+ create mode 100644 faster_whisper_bench.py
+ create mode 100644 whisperx_bench.py
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index a32a45fe..645717d9 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -14,6 +14,7 @@ option(WITH_OPENBLAS "Compile with OpenBLAS backend" OFF)
+ option(WITH_RUY "Compile with Ruy backend" OFF)
+ option(WITH_CUDA "Compile with CUDA backend" OFF)
+ option(WITH_CUDNN "Compile with cuDNN backend" OFF)
++option(WITH_HIP "Compile with HIP backend" OFF)
+ option(CUDA_DYNAMIC_LOADING "Dynamically load CUDA libraries at runtime" OFF)
+ option(ENABLE_CPU_DISPATCH "Compile CPU kernels for multiple ISA and dispatch at runtime" ON)
+ option(ENABLE_PROFILING "Compile with profiling support" OFF)
+@@ -195,6 +196,58 @@ set(SOURCES
+   src/vocabulary.cc
+   src/vocabulary_map.cc
+ )
++set(CPU_SOURCES
++  src/cpu/allocator.cc
++  src/cpu/backend.cc
++  src/cpu/cpu_info.cc
++  src/cpu/cpu_isa.cc
++  src/cpu/kernels.cc
++  src/cpu/parallel.cc
++  src/cpu/primitives.cc
++  src/ops/alibi_add_cpu.cc
++  src/ops/bias_add_cpu.cc
++  src/ops/concat_split_slide_cpu.cc
++  src/ops/conv1d_cpu.cc
++  src/ops/dequantize_cpu.cc
++  src/ops/gather_cpu.cc
++  src/ops/gumbel_max_cpu.cc
++  src/ops/layer_norm_cpu.cc
++  src/ops/mean_cpu.cc
++  src/ops/multinomial_cpu.cc
++  src/ops/quantize_cpu.cc
++  src/ops/rms_norm_cpu.cc
++  src/ops/rotary_cpu.cc
++  src/ops/softmax_cpu.cc
++  src/ops/tile_cpu.cc
++  src/ops/topk_cpu.cc
++  src/ops/topp_mask_cpu.cc
++  src/ops/nccl_ops_cpu.cc
++)
++
++set(CUDA_SOURCES
++  src/cuda/allocator.cc
++  src/cuda/primitives.cu
++  src/cuda/random.cu
++  src/cuda/utils.cc
++  src/ops/alibi_add_gpu.cu
++  src/ops/bias_add_gpu.cu
++  src/ops/concat_split_slide_gpu.cu
++  src/ops/conv1d_gpu.cu
++  src/ops/dequantize_gpu.cu
++  src/ops/gather_gpu.cu
++  src/ops/gumbel_max_gpu.cu
++  src/ops/layer_norm_gpu.cu
++  src/ops/mean_gpu.cu
++  src/ops/multinomial_gpu.cu
++  src/ops/rms_norm_gpu.cu
++  src/ops/rotary_gpu.cu
++  src/ops/softmax_gpu.cu
++  src/ops/tile_gpu.cu
++  src/ops/topk_gpu.cu
++  src/ops/topp_mask_gpu.cu
++  src/ops/quantize_gpu.cu
++  src/ops/nccl_ops_gpu.cu
++)
+ set(LIBRARIES
+   ${CMAKE_THREAD_LIBS_INIT}
+   spdlog::spdlog_header_only
+@@ -522,33 +575,63 @@ if (WITH_CUDA)
+   set(CUDA_LINK_LIBRARIES_KEYWORD PRIVATE)
+   cuda_add_library(${PROJECT_NAME}
+     ${SOURCES}
+-    src/cuda/allocator.cc
+-    src/cuda/primitives.cu
+-    src/cuda/random.cu
+-    src/cuda/utils.cc
+-    src/ops/alibi_add_gpu.cu
+-    src/ops/bias_add_gpu.cu
+-    src/ops/concat_split_slide_gpu.cu
+-    src/ops/conv1d_gpu.cu
+-    src/ops/dequantize_gpu.cu
+-    src/ops/gather_gpu.cu
+-    src/ops/gumbel_max_gpu.cu
+-    src/ops/layer_norm_gpu.cu
+-    src/ops/mean_gpu.cu
+-    src/ops/multinomial_gpu.cu
+-    src/ops/rms_norm_gpu.cu
+-    src/ops/rotary_gpu.cu
+-    src/ops/softmax_gpu.cu
+-    src/ops/tile_gpu.cu
+-    src/ops/topk_gpu.cu
+-    src/ops/topp_mask_gpu.cu
+-    src/ops/quantize_gpu.cu
+-    src/ops/nccl_ops_gpu.cu
++    ${CUDA_SOURCES}
+   )
+-elseif(WITH_CUDNN)
+-  message(FATAL_ERROR "WITH_CUDNN=ON requires WITH_CUDA=ON")
+-else()
+-  add_library(${PROJECT_NAME} ${SOURCES})
++endif()
++
++if (WITH_HIP)
++  enable_language(HIP)
++  set(CMAKE_CXX_STANDARD_REQUIRED ON)
++  message(STATUS "HIP Compiler: ${CMAKE_HIP_COMPILER}")
++  #add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
++  if(NOT DEFINED ENV{ROCM_PATH})
++    set(ROCM_PATH /opt/rocm)
++  else()
++    set(ROCM_PATH $ENV{ROCM_PATH})
++  endif()
++  list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH})
++
++  find_package(hiprand REQUIRED)
++  find_package(hipblas REQUIRED)
++  find_package(rocprim REQUIRED)
++  find_package(rocthrust REQUIRED)
++  find_package(hipcub REQUIRED)
++  
++  #TODO: properly separate files that need hip compiler
++  #set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE HIP)
++  set_source_files_properties(${CUDA_SOURCES} PROPERTIES LANGUAGE HIP)
++  set_source_files_properties(${CPU_SOURCES} PROPERTIES LANGUAGE CXX)
++  link_directories(${ROCM_PATH}/lib)
++
++  add_definitions(-DCT2_WITH_CUDA)
++  add_definitions(-DCT2_USE_HIP)
++
++  add_library(${PROJECT_NAME}
++    ${SOURCES}
++    ${CUDA_SOURCES}
++  )
++
++  add_compile_definitions(__HIP_PLATFORM_AMD__)
++  add_compile_definitions(__HIP_PLATFORM_HCC__)
++  target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${ROCM_PATH}/include /include)
++  target_link_libraries(${PROJECT_NAME} PRIVATE hiprand roc::hipblas roc::rocprim roc::rocthrust hip::hipcub)
++
++  if(WITH_CUDNN)
++    find_package(miopen)
++    target_link_libraries(${PROJECT_NAME} PRIVATE MIOpen)	  
++    add_definitions(-DCT2_WITH_CUDNN)
++endif()
++
++  set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
++  set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined") #for debug
++endif()
++
++if(NOT (WITH_CUDA OR WITH_HIP))
++  if(WITH_CUDNN)
++    message(FATAL_ERROR "WITH_CUDNN=ON requires WITH_CUDA=ON or WITH_HIP=ON")
++  else()
++    add_library(${PROJECT_NAME} ${SOURCES})
++  endif()
+ endif()
+ 
+ include(GenerateExportHeader)
+diff --git a/README_ROCM.md b/README_ROCM.md
+new file mode 100644
+index 00000000..71823b6c
+--- /dev/null
++++ b/README_ROCM.md
+@@ -0,0 +1,101 @@
++# ROCm CT2
++
++## Install Guide
++
++These install instructions are for https://hub.docker.com/r/rocm/pytorch. They should mostly work for system installs as well, but then you'll have to change install directories and make sure all dependencies are installed (in the image they are already present in the conda env)
++
++after following the guide in https://hub.docker.com/r/rocm/pytorch (tested for latest 95ac9ef9b5ec (**ROCm 6.1**))
++
++```bash
++#init conda
++conda init
++bash
++conda activate py_3.9
++```
++
++```bash
++git clone https://github.com/arlo-phoenix/CTranslate2-rocm.git
++cd CTranslate2-rocm
++git checkout rocm
++CLANG_CMAKE_CXX_COMPILER=clang++ CXX=clang++ HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)"     cmake -S . -B build -DWITH_MKL=OFF -DWITH_HIP=ON -DCMAKE_HIP_ARCHITECTURES=gfx1030 -DBUILD_TESTS=ON -DWITH_CUDNN=ON
++cmake --build build -- -j16
++cd build
++cmake --install . --prefix $CONDA_PREFIX #or just sudo make install if not using conda env
++sudo ldconfig
++cd ../python
++pip install -r install_requirements.txt
++python setup.py bdist_wheel
++pip install dist/*.whl
++export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
++```
++
++## Running tests / debugging issues
++
++### Tests
++
++In CT2 project root folder:
++
++```bash
++./build/tests/ctranslate2_test ./tests/data/ --gtest_filter=*CUDA*:-*bfloat16*
++```
++for me only some int8 test failed (I think that test shouldn't even be run for CUDA, but didn't check too deeply. The guard is from CT2 itself so it's supposed to fail)
++
++### Checking that all libraries are found
++
++`ld -lctranslate2 --verbose` (ignore warnings, only important thing is that it doesn't find link errors)
++
++### BF16 issues
++
++This fork just commented out everything related to bf16. I think an implicit conversion operator from 
++`__hip_bfloat16` to `float` is missing
++
++example error with bf16 enabled:
++```cpp
++CTranslate2/src/cuda/primitives.cu:284:19: error: no viable conversion from 'const __hip_bfloat16' to 'const float'
++  284 |       const float score = previous_scores[i];
++```
++
++Other than that I **won't** be adding FA2 or AWQ support. It's written with assembly for cuda and it isn't helpful at all for my use case (whisper). Otherwise on this older commit (besides bf16) this fork is feature complete, so I might look into cleaning it up and possibilities of disabling these for ROCm on master for upstreaming. But I'll only do that **after BF16 gets proper support** since this discrepancy adds way too many different code paths between ROCm and CUDA. Other than that conversion worked quite well, I only had to change a couple defines, otherwise it hipified well. Only the `conv1d OP` required a custom implementation for MIOpen (hipDNN isn't maintained anymore).
++
++## Tested libraries
++
++### faster_whisper
++```bash
++pip install faster_whisper 
++
++#1.0.3 was the most recent version when I made this, so try testing that one first if a newer one doesn't work
++#pip install faster_whisper==1.0.3 
++```
++
++I included a small benchmark script in this CT2 fork. You need to download a test file from the faster whisper repo
++```bash
++wget -P "./tests/data" https://github.com/SYSTRAN/faster-whisper/raw/master/tests/data/physicsworks.wav 
++```
++
++Then you should be able to run. This per default does just one testrun with the medium model
++
++```bash
++python faster_whisper_bench.py
++```
++
++I'm getting around `11s-12s` on my RX6800 (with model loading included `14s-15s`). 
++
++
++### whisperx
++
++System dependency is just ffmpeg. Either use your system package mangager or with conda `conda install conda-forge::ffmpeg`
++
++```bash
++pip install whisperx
++```
++Python dependencies are a mess here since versions aren't really pinned. I'd recommend just installing faster_whisper from master so you don't run into a bunch of version conflicts. I personally did get it running by pinning numpy==1.23 and then trial and error rolling back stuff till it worked (albeit with a bunch of warnings).
++
++For running you can use its great cli-tool by just using `whisperx path/to/audio` or running my little bench script for the `medium` model.
++
++```bash
++python whisperx_bench.py
++```
++
++this took `4.4s` with language detection and around `4.2s` without.
++
++If you do get it running it's pretty fast. I excluded model load since that one takes quite a while. With model load it was only slightly faster than faster_whisper, but I think that's connected with the bunch of version conflicts I had. The main advantage of `whisperx` is its great feature set (Forced Alignment, VAD, Speaker Diarization) and the cli-tool (lots of output options), so do try and get it running it's worth it.
+\ No newline at end of file
+diff --git a/faster_whisper_bench.py b/faster_whisper_bench.py
+new file mode 100644
+index 00000000..de4c25e0
+--- /dev/null
++++ b/faster_whisper_bench.py
+@@ -0,0 +1,14 @@
++#adapted from faster_whisper README
++
++from faster_whisper import WhisperModel
++import timeit
++
++def run_test():
++    segments, info = model.transcribe("tests/data/physicsworks.wav", beam_size=5, language="en")
++    for segment in segments:
++        print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
++
++#don't include model load in bench
++model_size = "medium"
++model = WhisperModel(model_size, device="cuda", compute_type="float16")
++print(timeit.timeit("run_test()", globals=locals(), number=1))
+diff --git a/src/cpu/primitives.cc b/src/cpu/primitives.cc
+index 0c6377bb..f1aa4a90 100644
+--- a/src/cpu/primitives.cc
++++ b/src/cpu/primitives.cc
+@@ -1211,6 +1211,7 @@ namespace ctranslate2 {
+   DECLARE_IMPL_NO_FLOAT(int16_t)
+   DECLARE_IMPL_NO_FLOAT(int32_t)
+   DECLARE_IMPL_NO_FLOAT(float16_t)
++  #ifndef CT2_USE_HIP//TODO
+   DECLARE_IMPL_NO_FLOAT(bfloat16_t)
+-
++  #endif
+ }
+diff --git a/src/cuda/allocator.cc b/src/cuda/allocator.cc
+index 2311bd00..ddad8627 100644
+--- a/src/cuda/allocator.cc
++++ b/src/cuda/allocator.cc
+@@ -7,8 +7,21 @@
+ #include "cuda/utils.h"
+ #include "env.h"
+ 
+-#include <cuda.h>
+-#include <cub/util_allocator.cuh>
++#ifdef CT2_USE_HIP
++  #include <hip/hip_runtime.h>
++  #include <hipcub/util_allocator.hpp>
++  #define cub hipcub
++  #define cudaGetDevice hipGetDevice
++  #define cudaSetDevice hipSetDevice
++  #define cudaFreeAsync hipFreeAsync
++  #define cudaMallocAsync hipMallocAsync
++  #define cudaDeviceGetAttribute hipDeviceGetAttribute 
++  #define cudaDevAttrMemoryPoolsSupported hipDeviceAttributeMemoryPoolsSupported
++#else
++  #include <cuda.h>
++  #include <cub/util_allocator.cuh>
++#endif
++
+ #include <spdlog/spdlog.h>
+ 
+ namespace ctranslate2 {
+diff --git a/src/cuda/helpers.h b/src/cuda/helpers.h
+index a34d5d89..b176805c 100644
+--- a/src/cuda/helpers.h
++++ b/src/cuda/helpers.h
+@@ -3,25 +3,37 @@
+ #include <algorithm>
+ #include <limits>
+ 
++#ifdef CT2_USE_HIP
++#include <hip/hip_fp16.h>
++#include <hip/hip_bf16.h>
++
++#define __nv_bfloat16 __hip_bfloat16
++__device__ inline void __syncwarp(uint32_t mask){} //TODO: 6.1 should have this but it doesn't?
++#else
+ #include <cuda_fp16.h>
+ #include <cuda_bf16.h>
++#endif
+ 
+ #include "ctranslate2/types.h"
+ 
+ #include "utils.h"
+ 
+-#if !defined(__CUDACC__) || !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 530
+-#  define CUDA_CAN_USE_HALF 1
+-#else
+-#  define CUDA_CAN_USE_HALF 0
+-#endif
+-
+-#if defined(__CUDACC__) && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
+-#  define CUDA_CAN_USE_BF16_MATH 1
++#ifdef CT2_USE_HIP
++  #define CUDA_CAN_USE_HALF 1 //TODO: check for what supports this
++  #define CUDA_CAN_USE_BF16_MATH 0
+ #else
+-#  define CUDA_CAN_USE_BF16_MATH 0
++  #if !defined(__CUDACC__) || !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 530
++  #  define CUDA_CAN_USE_HALF 1
++  #else
++  #  define CUDA_CAN_USE_HALF 0
++  #endif
++
++  #if defined(__CUDACC__) && (__CUDA_ARCH__ >= 800 || !defined(__CUDA_ARCH__))
++  #  define CUDA_CAN_USE_BF16_MATH 1
++  #else
++  #  define CUDA_CAN_USE_BF16_MATH 0
++  #endif
+ #endif
+-
+ namespace ctranslate2 {
+   namespace cuda {
+ 
+@@ -178,6 +190,44 @@ namespace ctranslate2 {
+       }
+     };
+ 
++#ifdef CT2_USE_HIP
++    // ROCm 6.1 still doesn't have these implemented
++    template<>
++    struct plus<__hip_bfloat16> {
++      __device__ __hip_bfloat16 operator()(const __hip_bfloat16& lhs, const __hip_bfloat16& rhs) const {
++        return __hadd(lhs, rhs);
++      }
++    };
++
++    template<>
++    struct minus<__hip_bfloat16> {
++      __device__ __hip_bfloat16 operator()(const __hip_bfloat16& lhs, const __hip_bfloat16& rhs) const {
++        return __hsub(lhs, rhs);
++      }
++    };
++
++    template<>
++    struct multiplies<__hip_bfloat16> {
++      __device__ __hip_bfloat16 operator()(const __hip_bfloat16& lhs, const __hip_bfloat16& rhs) const {
++        return __hmul(lhs, rhs);
++      }
++    };
++
++    template<>
++    struct maximum<__hip_bfloat16> {
++      __device__ __hip_bfloat16 operator()(const __hip_bfloat16& lhs, const __hip_bfloat16& rhs) const {
++        return __hmax(lhs, rhs);
++      }
++    };
++
++    template<>
++    struct minimum<__hip_bfloat16> {
++      __device__ __hip_bfloat16 operator()(const __hip_bfloat16& lhs, const __hip_bfloat16& rhs) const {
++        return __hmax(lhs, rhs);
++      }
++    };
++#endif
++
+ #if !CUDA_CAN_USE_HALF
+     template<>
+     struct plus<__half> {
+@@ -363,7 +413,11 @@ namespace ctranslate2 {
+     // https://github.com/pytorch/pytorch/blob/40eff454ce5638fbff638a7f4502e29ffb9a2f0d/aten/src/ATen/native/cuda/SoftMax.cu
+     // They help define row-wise reduction where each block handles a single row.
+ 
+-#define C10_WARP_SIZE 32
++#ifdef CT2_USE_HIP
++  #define C10_WARP_SIZE 64 //TODO: detect arch to set 32 for rdna
++#else
++  #define C10_WARP_SIZE 32
++#endif
+ 
+     template <index_t ILP = 2>
+     inline dim3 get_block_size(index_t dim_size) {
+diff --git a/src/cuda/primitives.cu b/src/cuda/primitives.cu
+index 149e10db..b620d6b8 100644
+--- a/src/cuda/primitives.cu
++++ b/src/cuda/primitives.cu
+@@ -1,9 +1,35 @@
+ #include "ctranslate2/primitives.h"
+ 
++#ifdef CT2_USE_HIP
++#include <hip/hip_runtime.h>
++#include <hipblas/hipblas.h>
++#define cudaMemcpyAsync hipMemcpyAsync
++#define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
++#define cudaMemcpyDeviceToHost hipMemcpyDeviceToHost
++#define cudaMemcpyHostToDevice hipMemcpyHostToDevice
++#define cublasSgemm hipblasSgemm
++#define CUBLAS_OP_T HIPBLAS_OP_T
++#define CUBLAS_OP_N HIPBLAS_OP_N
++#define cudaDataType_t  hipDataType
++#define cublasComputeType_t hipblasComputeType_t
++#define CUDA_R_16F HIP_R_16F
++#define CUBLAS_COMPUTE_16F HIPBLAS_COMPUTE_16F 
++#define CUBLAS_COMPUTE_32F HIPBLAS_COMPUTE_32F
++#define CUBLAS_COMPUTE_32I HIPBLAS_COMPUTE_32I
++#define CUDA_R_32F HIP_R_32F
++#define CUDA_R_16BF HIP_R_16BF
++#define cublasGemmEx hipblasGemmEx_v2
++#define CUDA_R_8I HIP_R_8I
++#define CUDA_R_32I HIP_R_32I
++#define CUBLAS_GEMM_DEFAULT_TENSOR_OP HIPBLAS_GEMM_DEFAULT
++#define cublasSgemmStridedBatched hipblasSgemmStridedBatched
++#define cublasGemmStridedBatchedEx hipblasGemmStridedBatchedEx_v2
++#else
+ #include <cuda_runtime.h>
+ #include <cublas_v2.h>
+-#include <thrust/device_ptr.h>
++#endif
+ 
++#include <thrust/device_ptr.h>
+ #include "cuda/helpers.h"
+ #include "type_dispatch.h"
+ 
+@@ -57,8 +83,10 @@ namespace ctranslate2 {
+ 
+   template void primitives<Device::CUDA>::convert(const float*, float16_t*, dim_t);
+   template void primitives<Device::CUDA>::convert(const float16_t*, float*, dim_t);
++  #if CUDA_CAN_USE_BF16_MATH
+   template void primitives<Device::CUDA>::convert(const float*, bfloat16_t*, dim_t);
+   template void primitives<Device::CUDA>::convert(const bfloat16_t*, float*, dim_t);
++  #endif 
+ 
+   struct convert_via_float {
+     template <typename T>
+@@ -67,6 +95,7 @@ namespace ctranslate2 {
+     }
+   };
+ 
++  #if CUDA_CAN_USE_BF16_MATH
+   template<>
+   template<>
+   void primitives<Device::CUDA>::convert(const float16_t* x, bfloat16_t* y, dim_t size) {
+@@ -78,6 +107,7 @@ namespace ctranslate2 {
+   void primitives<Device::CUDA>::convert(const bfloat16_t* x, float16_t* y, dim_t size) {
+     cuda::unary_transform(x, y, size, convert_via_float());
+   }
++  #endif
+ 
+   template<>
+   template <typename T>
+@@ -478,12 +508,12 @@ namespace ctranslate2 {
+ 
+     const void* alpha_ptr = &alpha_h;
+     const void* beta_ptr = &beta_h;
+-    cudaDataType_t compute_type = CUDA_R_16F;
++    cublasComputeType_t compute_type = CUBLAS_COMPUTE_16F;
+ 
+     if (!cuda::use_true_fp16_gemm()) {
+       alpha_ptr = &alpha;
+       beta_ptr = &beta;
+-      compute_type = CUDA_R_32F;
++      compute_type = CUBLAS_COMPUTE_32F;
+     }
+ 
+     // cuBLAS assumes column-major storage, so swap a and b accordingly.
+@@ -500,6 +530,7 @@ namespace ctranslate2 {
+                               CUBLAS_GEMM_DEFAULT_TENSOR_OP));
+   }
+ 
++#if CUDA_CAN_USE_BF16_MATH
+   template<>
+   template<>
+   void primitives<Device::CUDA>::gemm(bool, bool,
+@@ -524,6 +555,7 @@ namespace ctranslate2 {
+                               CUDA_R_32F,
+                               CUBLAS_GEMM_DEFAULT_TENSOR_OP));
+   }
++#endif
+ 
+   template<>
+   template<>
+@@ -549,7 +581,7 @@ namespace ctranslate2 {
+                               a, CUDA_R_8I, lda,
+                               &beta_i,
+                               c, CUDA_R_32I, ldc,
+-                              CUDA_R_32I,
++                              CUBLAS_COMPUTE_32I,
+                               CUBLAS_GEMM_DEFAULT_TENSOR_OP));
+   }
+ 
+@@ -591,12 +623,12 @@ namespace ctranslate2 {
+ 
+     const void* alpha_ptr = &alpha_h;
+     const void* beta_ptr = &beta_h;
+-    cudaDataType_t compute_type = CUDA_R_16F;
++    cublasComputeType_t compute_type = CUBLAS_COMPUTE_16F;
+ 
+     if (!cuda::use_true_fp16_gemm()) {
+       alpha_ptr = &alpha;
+       beta_ptr = &beta;
+-      compute_type = CUDA_R_32F;
++      compute_type = CUBLAS_COMPUTE_32F;
+     }
+ 
+     // cuBLAS assumes column-major storage, so swap a and b accordingly.
+@@ -614,6 +646,7 @@ namespace ctranslate2 {
+                                             CUBLAS_GEMM_DEFAULT_TENSOR_OP));
+   }
+ 
++#if CUDA_CAN_USE_BF16_MATH
+   template<>
+   template<>
+   void primitives<Device::CUDA>::gemm_batch_strided(bool transpose_a, bool transpose_b,
+@@ -638,6 +671,7 @@ namespace ctranslate2 {
+                                             CUDA_R_32F,
+                                             CUBLAS_GEMM_DEFAULT_TENSOR_OP));
+   }
++#endif
+ 
+   template <typename T>
+   class exp_minus_max_func {
+@@ -799,6 +833,7 @@ namespace ctranslate2 {
+ 
+   DECLARE_FLOAT_IMPL(float)
+   DECLARE_FLOAT_IMPL(float16_t)
++  #if CUDA_CAN_USE_BF16_MATH
+   DECLARE_FLOAT_IMPL(bfloat16_t)
+-
++  #endif
+ }
+diff --git a/src/cuda/random.h b/src/cuda/random.h
+index e12ae20f..6ddd8860 100644
+--- a/src/cuda/random.h
++++ b/src/cuda/random.h
+@@ -1,7 +1,13 @@
+ #pragma once
+ 
++#ifdef CT2_USE_HIP
++#include <hiprand/hiprand_kernel.h>
++#define curandStatePhilox4_32_10_t hiprandStatePhilox4_32_10_t
++#define curand_init hiprand_init
++#define curand_uniform hiprand_uniform
++#else
+ #include <curand_kernel.h>
+-
++#endif
+ namespace ctranslate2 {
+   namespace cuda {
+ 
+diff --git a/src/cuda/utils.cc b/src/cuda/utils.cc
+index 749c4e30..e1283d69 100644
+--- a/src/cuda/utils.cc
++++ b/src/cuda/utils.cc
+@@ -10,6 +10,29 @@
+ 
+ #include "env.h"
+ 
++#ifdef CT2_USE_HIP
++#define CUBLAS_STATUS_SUCCESS          HIPBLAS_STATUS_SUCCESS
++#define CUBLAS_STATUS_NOT_INITIALIZED  HIPBLAS_STATUS_NOT_INITIALIZED
++#define CUBLAS_STATUS_ALLOC_FAILED     HIPBLAS_STATUS_ALLOC_FAILED
++#define CUBLAS_STATUS_INVALID_VALUE    HIPBLAS_STATUS_INVALID_VALUE
++#define CUBLAS_STATUS_ARCH_MISMATCH    HIPBLAS_STATUS_ARCH_MISMATCH
++#define CUBLAS_STATUS_MAPPING_ERROR    HIPBLAS_STATUS_MAPPING_ERROR
++#define CUBLAS_STATUS_EXECUTION_FAILED HIPBLAS_STATUS_EXECUTION_FAILED
++#define CUBLAS_STATUS_INTERNAL_ERROR   HIPBLAS_STATUS_INTERNAL_ERROR
++#define CUBLAS_STATUS_NOT_SUPPORTED    HIPBLAS_STATUS_NOT_SUPPORTED
++#define CUBLAS_STATUS_LICENSE_ERROR    HIPBLAS_STATUS_UNKNOWN + 1 //so this is never reached
++#define cudaStreamDefault hipStreamDefault
++#define cudaGetDevice hipGetDevice
++#define cudaStreamCreate hipStreamCreate
++#define cudaStreamDestroy hipStreamDestroy
++#define cublasCreate hipblasCreate
++#define cublasDestroy hipblasDestroy
++#define cublasSetStream hipblasSetStream
++#define cudaGetDeviceCount hipGetDeviceCount
++#define cudaSuccess hipSuccess
++#define cudaGetDeviceProperties hipGetDeviceProperties
++#endif
++
+ namespace ctranslate2 {
+   namespace cuda {
+ 
+@@ -180,6 +203,20 @@ namespace ctranslate2 {
+     // See docs.nvidia.com/deeplearning/sdk/tensorrt-support-matrix/index.html
+     // for hardware support of reduced precision.
+ 
++    #ifdef CT2_USE_HIP
++    //TODO: capabilty research
++    bool gpu_supports_int8(int device) {
++      return true;
++    }
++
++    bool gpu_has_int8_tensor_cores(int device) {
++      return false;
++    }
++
++    bool gpu_has_fp16_tensor_cores(int device) {
++      return false;
++    }
++    #else
+     bool gpu_supports_int8(int device) {
+       const cudaDeviceProp& device_prop = get_device_properties(device);
+       return device_prop.major > 6 || (device_prop.major == 6 && device_prop.minor == 1);
+@@ -194,6 +231,7 @@ namespace ctranslate2 {
+       const cudaDeviceProp& device_prop = get_device_properties(device);
+       return device_prop.major >= 7;
+     }
++    #endif
+ 
+     bool have_same_compute_capability(const std::vector<int>& devices) {
+       if (devices.size() > 1) {
+diff --git a/src/cuda/utils.h b/src/cuda/utils.h
+index 8c1c134f..9af2a5fe 100644
+--- a/src/cuda/utils.h
++++ b/src/cuda/utils.h
+@@ -2,16 +2,86 @@
+ 
+ #include <string>
+ 
++#ifdef CT2_USE_HIP
++#include <hip/hip_runtime.h>
++#include <hipblas/hipblas.h>
++#include <thrust/execution_policy.h>
++#include <hipcub/hipcub.hpp>
++#ifdef CT2_WITH_TENSOR_PARALLEL
++  #include <cuda/mpi_stub.h>
++  #include <rccl/rccl.h>
++#endif
++#ifdef CT2_WITH_CUDNN
++  #include <miopen/miopen.h>
++#endif
++
++#define cub hipcub
++#define cudaError_t hipError_t 
++#define cudaSuccess hipSuccess
++#define cudaGetErrorString hipGetErrorString
++#define cublasStatus_t hipblasStatus_t
++#define CUBLAS_STATUS_SUCCESS HIPBLAS_STATUS_SUCCESS
++#define cudnnStatus_t miopenStatus_t
++#define CUDNN_STATUS_SUCCESS miopenStatusSuccess              
++#define cudnnGetErrorString miopenGetErrorString
++#define cudaStream_t  hipStream_t 
++#define cublasHandle_t hipblasHandle_t
++#define cudnnHandle_t miopenHandle_t
++#define cudnnDataType_t miopenDataType_t
++#define cudaDeviceProp hipDeviceProp_t
++
++#define cudaGetDevice hipGetDevice
++#define cudaSetDevice hipSetDevice
++#define cudaDeviceSynchronize hipDeviceSynchronize
++#define cudaStreamSynchronize hipStreamSynchronize
++
++//dnn
++#define cudnnCreate miopenCreate
++#define cudnnSetStream miopenSetStream
++#define cudnnDestroy miopenDestroy
++#define CUDNN_DATA_FLOAT miopenFloat
++#define CUDNN_DATA_HALF miopenHalf
++#define CUDNN_DATA_BFLOAT16 miopenBFloat16
++#define CUDNN_DATA_INT32 miopenInt32
++#define CUDNN_DATA_INT8 miopenInt8
++#define cudnnTensorDescriptor_t miopenTensorDescriptor_t
++#define cudnnCreateTensorDescriptor miopenCreateTensorDescriptor
++#define CUDNN_TENSOR_NCHW miopenTensorNCHW
++#define cudnnTensorDescriptor_t miopenTensorDescriptor_t
++#define cudnnCreateTensorDescriptor4d miopenCreateTensorDescriptor4d
++#define cudnnFilterDescriptor_t miopenTensorDescriptor_t
++#define cudnnConvolutionDescriptor_t miopenConvolutionDescriptor_t
++#define cudnnCreateConvolutionDescriptor miopenCreateConvolutionDescriptor
++#define CUDNN_CROSS_CORRELATION miopenConvolution
++#define cudnnSetTensor4dDescriptor miopenSet4dTensorDescriptor
++#define cudnnCreateFilterDescriptor miopenCreateTensorDescriptor
++#define cudnnSetConvolution2dDescriptor miopenInitConvolutionDescriptor
++#define cudnnConvolutionFwdAlgo_t miopenConvFwdAlgorithm_t
++#define cudnnActivationDescriptor_t miopenActivationDescriptor_t
++#define cudnnCreateActivationDescriptor miopenCreateActivationDescriptor
++#define cudnnSetActivationDescriptor miopenSetActivationDescriptor
++#define cudnnDestroyActivationDescriptor miopenDestroyActivationDescriptor
++#define CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM miopenConvolutionFwdAlgoGEMM
++#define CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM 
++#define cudnnConvolutionBiasActivationForward miopenConvolutionBiasActivationForward
++#define cudnnDestroyTensorDescriptor miopenDestroyTensorDescriptor
++#define cudnnDestroyConvolutionDescriptor miopenDestroyConvolutionDescriptor
++#define cudnnGetConvolutionForwardWorkspaceSize miopenConvolutionForwardGetWorkSpaceSize
++#define cudnnConvolutionForward miopenConvolutionForward
++#define cudnnDestroyFilterDescriptor miopenDestroyTensorDescriptor
++#define CUDNN_ACTIVATION_IDENTITY miopenActivationRELU
++#define cudnnSetFilter4dDescriptor miopenSet4dTensorDescriptor
++#else
+ #include <cuda_runtime.h>
+ #include <cublas_v2.h>
+ #include <thrust/execution_policy.h>
+-
+ #ifdef CT2_WITH_TENSOR_PARALLEL
+ #  include <cuda/mpi_stub.h>
+ #  include <nccl.h>
+ #endif
+ #ifdef CT2_WITH_CUDNN
+-#  include <cudnn.h>
++  #include <cudnn.h>
++#endif
+ #endif
+ 
+ #include "ctranslate2/types.h"
+@@ -101,7 +171,10 @@ namespace ctranslate2 {
+     };
+ 
+ // Convenience macro to call Thrust functions with a default execution policy.
++#ifdef CT2_USE_HIP
++#define THRUST_CALL(FUN, ...) FUN(thrust::hip::par_nosync.on(ctranslate2::cuda::get_cuda_stream()), __VA_ARGS__)
++#else
+ #define THRUST_CALL(FUN, ...) FUN(thrust::cuda::par_nosync.on(ctranslate2::cuda::get_cuda_stream()), __VA_ARGS__)
+-
++#endif
+   }
+ }
+diff --git a/src/dispatch.h b/src/dispatch.h
+index 3eed748c..1af9ec39 100644
+--- a/src/dispatch.h
++++ b/src/dispatch.h
+@@ -22,6 +22,22 @@
+ 
+ #else
+ 
++#ifdef CT2_USE_HIP
++#  define DEVICE_AND_FLOAT_DISPATCH(NAME, DEVICE, TYPE, STMTS)          \
++  switch (TYPE) {                                                       \
++    TYPE_CASE(float, DEVICE_DISPATCH(DEVICE, (STMTS)))                  \
++    TYPE_CASE(float16_t, {                                              \
++      if (DEVICE != Device::CUDA)                                       \
++        throw std::invalid_argument("FP16 " NAME " is only supported on GPU"); \
++      constexpr Device D = Device::CUDA;                                \
++      (STMTS);                                                          \
++    })                                                                  \
++    TYPE_CASE(bfloat16_t, {                                             \
++      throw std::invalid_argument("BF16 " NAME " is not supported with HIP."); \
++    })                                                                  \
++    NON_FLOAT_CASE(NAME)                                                \
++  }
++#else
+ #  define DEVICE_AND_FLOAT_DISPATCH(NAME, DEVICE, TYPE, STMTS)          \
+   switch (TYPE) {                                                       \
+     TYPE_CASE(float, DEVICE_DISPATCH(DEVICE, (STMTS)))                  \
+@@ -39,5 +55,5 @@
+     })                                                                  \
+     NON_FLOAT_CASE(NAME)                                                \
+   }
+-
++#endif
+ #endif
+diff --git a/src/ops/alibi_add_gpu.cu b/src/ops/alibi_add_gpu.cu
+index 12da57c0..a46d2441 100644
+--- a/src/ops/alibi_add_gpu.cu
++++ b/src/ops/alibi_add_gpu.cu
+@@ -60,7 +60,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/bias_add_gpu.cu b/src/ops/bias_add_gpu.cu
+index 8f53bcf6..bbf0d004 100644
+--- a/src/ops/bias_add_gpu.cu
++++ b/src/ops/bias_add_gpu.cu
+@@ -82,7 +82,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/conv1d_gpu.cu b/src/ops/conv1d_gpu.cu
+index 6f4d10b3..09637b1c 100644
+--- a/src/ops/conv1d_gpu.cu
++++ b/src/ops/conv1d_gpu.cu
+@@ -30,95 +30,107 @@ namespace ctranslate2 {
+       const int out_channels = weight.dim(0);
+       const int kernel_size = weight.dim(2);
+ 
+-      cudnnDataType_t data_type = cuda::get_cudnn_data_type(input.dtype());
++      miopenDataType_t data_type = cuda::get_cudnn_data_type(input.dtype());
+ 
+-      cudnnTensorDescriptor_t input_desc;
+-      CUDNN_CHECK(cudnnCreateTensorDescriptor(&input_desc));
+-      CUDNN_CHECK(cudnnSetTensor4dDescriptor(input_desc, CUDNN_TENSOR_NCHW, data_type,
++      miopenTensorDescriptor_t input_desc;
++      CUDNN_CHECK(miopenCreateTensorDescriptor(&input_desc));
++      CUDNN_CHECK(miopenSet4dTensorDescriptor(input_desc, data_type,
+                                              batch_size, in_channels, 1, input_length));
+ 
+-      cudnnTensorDescriptor_t output_desc;
+-      CUDNN_CHECK(cudnnCreateTensorDescriptor(&output_desc));
+-      CUDNN_CHECK(cudnnSetTensor4dDescriptor(output_desc, CUDNN_TENSOR_NCHW, data_type,
++      miopenTensorDescriptor_t output_desc;
++      CUDNN_CHECK(miopenCreateTensorDescriptor(&output_desc));
++      CUDNN_CHECK(miopenSet4dTensorDescriptor(output_desc, data_type,
+                                              batch_size, out_channels, 1, output_length));
+ 
+-      cudnnFilterDescriptor_t weight_desc;
+-      CUDNN_CHECK(cudnnCreateFilterDescriptor(&weight_desc));
+-      CUDNN_CHECK(cudnnSetFilter4dDescriptor(weight_desc, data_type, CUDNN_TENSOR_NCHW,
++      miopenTensorDescriptor_t weight_desc;
++      CUDNN_CHECK(miopenCreateTensorDescriptor(&weight_desc));
++      CUDNN_CHECK(miopenSet4dTensorDescriptor(weight_desc, data_type,
+                                              out_channels, in_channels, 1, kernel_size));
+ 
+-      cudnnConvolutionDescriptor_t conv_desc;
+-      CUDNN_CHECK(cudnnCreateConvolutionDescriptor(&conv_desc));
+-      CUDNN_CHECK(cudnnSetConvolution2dDescriptor(conv_desc,
++      miopenConvolutionDescriptor_t conv_desc;
++      CUDNN_CHECK(miopenCreateConvolutionDescriptor(&conv_desc));
++      CUDNN_CHECK(miopenInitConvolutionDescriptor(conv_desc,
++                                                  miopenConvolution,
+                                                   /*pad_h=*/0, /*pad_w=*/_padding,
+                                                   /*stride_h=*/1, /*stride_w=*/_stride,
+-                                                  /*dilation_h=*/1, /*dilation_w=*/_dilation,
+-                                                  CUDNN_CROSS_CORRELATION,
+-                                                  CUDNN_DATA_FLOAT));
++                                                  /*dilation_h=*/1, /*dilation_w=*/_dilation
++                                                  ));
+ 
+-      CUDNN_CHECK(cudnnSetConvolutionMathType(conv_desc, CUDNN_DEFAULT_MATH));
+-      if (data_type == CUDNN_DATA_HALF)
+-        CUDNN_CHECK(cudnnSetConvolutionMathType(conv_desc, CUDNN_TENSOR_OP_MATH));
++      miopenHandle_t handle = cuda::get_cudnn_handle();
+ 
+-      cudnnHandle_t handle = cuda::get_cudnn_handle();
+-
+-      cudnnConvolutionFwdAlgo_t algo = (bias
+-                                        ? CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM
+-                                        : CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM);
++      miopenConvFwdAlgorithm_t algo = (bias
++                                        ? miopenConvolutionFwdAlgoImplicitGEMM 
++                                        : miopenConvolutionFwdAlgoGEMM);
+ 
+       size_t workspace_size = 0;
+       void* workspace = nullptr;
+-      CUDNN_CHECK(cudnnGetConvolutionForwardWorkspaceSize(handle,
++      CUDNN_CHECK(miopenConvolutionForwardGetWorkSpaceSize(handle,
+                                                           input_desc,
+                                                           weight_desc,
+                                                           conv_desc,
+                                                           output_desc,
+-                                                          algo,
+                                                           &workspace_size));
+ 
+       if (workspace_size > 0)
+         workspace = get_allocator<Device::CUDA>().allocate(workspace_size);
+ 
++      {
++      miopenConvAlgoPerf_t convForwardAlgos;
++      int algoCount = 1;
++      CUDNN_CHECK(miopenFindConvolutionForwardAlgorithm(handle,
++                                            input_desc,
++                                            input.buffer(),
++                                            weight_desc,
++                                            weight.buffer(),
++                                            conv_desc,
++                                            output_desc,
++                                            output.buffer(),
++                                            algoCount,
++                                            &algoCount,
++                                            &convForwardAlgos,
++                                            workspace,
++                                            workspace_size,
++                                            false //exhaustive_search
++      ));
++      if(algoCount <= 0)
++        THROW_RUNTIME_ERROR("Couldn't find any forward algorithm for requested tensors.");
++
++      algo = convForwardAlgos.fwd_algo;
++      }
++
+       float alpha = 1;
+       float beta = 0;
+-
+       if (bias) {
+-        cudnnTensorDescriptor_t bias_desc;
+-        CUDNN_CHECK(cudnnCreateTensorDescriptor(&bias_desc));
+-        CUDNN_CHECK(cudnnSetTensor4dDescriptor(bias_desc, CUDNN_TENSOR_NCHW, data_type,
++        miopenTensorDescriptor_t bias_desc;
++        CUDNN_CHECK(miopenCreateTensorDescriptor(&bias_desc));
++        CUDNN_CHECK(miopenSet4dTensorDescriptor(bias_desc, data_type,
+                                                1, out_channels, 1, 1));
+ 
+-        cudnnActivationDescriptor_t activation_desc;
+-        CUDNN_CHECK(cudnnCreateActivationDescriptor(&activation_desc));
+-        CUDNN_CHECK(cudnnSetActivationDescriptor(activation_desc,
+-                                                 CUDNN_ACTIVATION_IDENTITY,
+-                                                 CUDNN_NOT_PROPAGATE_NAN,
+-                                                 /*coef=*/0));
+-
+-        CUDNN_CHECK(cudnnConvolutionBiasActivationForward(handle,
+-                                                          &alpha,
+-                                                          input_desc,
+-                                                          input.buffer(),
+-                                                          weight_desc,
+-                                                          weight.buffer(),
+-                                                          conv_desc,
+-                                                          algo,
+-                                                          workspace,
+-                                                          workspace_size,
+-                                                          &beta,
+-                                                          output_desc,
+-                                                          output.buffer(),
+-                                                          bias_desc,
+-                                                          bias->buffer(),
+-                                                          activation_desc,
+-                                                          output_desc,
+-                                                          output.buffer()));
++        CUDNN_CHECK(miopenConvolutionForward(handle,
++                                            &alpha,
++                                            input_desc,
++                                            input.buffer(),
++                                            weight_desc,
++                                            weight.buffer(),
++                                            conv_desc,
++                                            algo,
++                                            &beta,
++                                            output_desc,
++                                            output.buffer(),
++                                            workspace,
++                                            workspace_size));
+ 
+-        CUDNN_CHECK(cudnnDestroyActivationDescriptor(activation_desc));
+-        CUDNN_CHECK(cudnnDestroyTensorDescriptor(bias_desc));
++        CUDNN_CHECK(miopenConvolutionForwardBias(handle,
++                                         &alpha,
++                                         bias_desc,
++                                         bias->buffer(),
++                                         &beta,
++                                         output_desc,
++                                         output.buffer()));
+ 
++        CUDNN_CHECK(miopenDestroyTensorDescriptor(bias_desc));
+       } else {
+-        CUDNN_CHECK(cudnnConvolutionForward(handle,
++        CUDNN_CHECK(miopenConvolutionForward(handle,
+                                             &alpha,
+                                             input_desc,
+                                             input.buffer(),
+@@ -126,20 +138,21 @@ namespace ctranslate2 {
+                                             weight.buffer(),
+                                             conv_desc,
+                                             algo,
+-                                            workspace,
+-                                            workspace_size,
+                                             &beta,
+                                             output_desc,
+-                                            output.buffer()));
++                                            output.buffer(),
++                                            workspace,
++                                            workspace_size));
++      
+       }
+ 
+       if (workspace)
+         get_allocator<Device::CUDA>().free(workspace);
+ 
+-      CUDNN_CHECK(cudnnDestroyConvolutionDescriptor(conv_desc));
+-      CUDNN_CHECK(cudnnDestroyFilterDescriptor(weight_desc));
+-      CUDNN_CHECK(cudnnDestroyTensorDescriptor(input_desc));
+-      CUDNN_CHECK(cudnnDestroyTensorDescriptor(output_desc));
++      CUDNN_CHECK(miopenDestroyConvolutionDescriptor(conv_desc));
++      CUDNN_CHECK(miopenDestroyTensorDescriptor(weight_desc));
++      CUDNN_CHECK(miopenDestroyTensorDescriptor(input_desc));
++      CUDNN_CHECK(miopenDestroyTensorDescriptor(output_desc));
+ #endif
+     }
+ 
+@@ -153,7 +166,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/dequantize_gpu.cu b/src/ops/dequantize_gpu.cu
+index 241b3acd..edc7416f 100644
+--- a/src/ops/dequantize_gpu.cu
++++ b/src/ops/dequantize_gpu.cu
+@@ -155,7 +155,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/gumbel_max_gpu.cu b/src/ops/gumbel_max_gpu.cu
+index 160390c4..bb0c0e93 100644
+--- a/src/ops/gumbel_max_gpu.cu
++++ b/src/ops/gumbel_max_gpu.cu
+@@ -41,7 +41,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/layer_norm_gpu.cu b/src/ops/layer_norm_gpu.cu
+index 8c644d87..a9963601 100644
+--- a/src/ops/layer_norm_gpu.cu
++++ b/src/ops/layer_norm_gpu.cu
+@@ -58,7 +58,9 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
++    #endif
+ 
+   }
+ }
+@@ -140,8 +142,13 @@ namespace ctranslate2 {
+   POSSIBILITY OF SUCH DAMAGE.
+ */
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/hipcub.hpp>
++#include <hipcub/block/block_reduce.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_reduce.cuh>
+-
++#endif
+ namespace at {
+   namespace native {
+ 
+diff --git a/src/ops/mean_gpu.cu b/src/ops/mean_gpu.cu
+index 5125924c..bd32969a 100644
+--- a/src/ops/mean_gpu.cu
++++ b/src/ops/mean_gpu.cu
+@@ -1,7 +1,12 @@
+ #include "ctranslate2/ops/mean.h"
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/hipcub.hpp>
++#include <hipcub/block/block_reduce.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_reduce.cuh>
+-
++#endif
+ #include "type_dispatch.h"
+ #include "cuda/helpers.h"
+ 
+@@ -59,7 +64,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/multinomial_gpu.cu b/src/ops/multinomial_gpu.cu
+index 90f36377..d88cace2 100644
+--- a/src/ops/multinomial_gpu.cu
++++ b/src/ops/multinomial_gpu.cu
+@@ -1,7 +1,14 @@
+ #include "ctranslate2/ops/multinomial.h"
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/hipcub.hpp>
++#include <hipcub/block/block_reduce.hpp>
++#include <hipcub/block/block_scan.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_reduce.cuh>
+ #include <cub/block/block_scan.cuh>
++#endif
+ 
+ #include "cuda/helpers.h"
+ #include "cuda/random.h"
+@@ -94,7 +101,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/quantize_gpu.cu b/src/ops/quantize_gpu.cu
+index a48ef70f..85f5c3a7 100644
+--- a/src/ops/quantize_gpu.cu
++++ b/src/ops/quantize_gpu.cu
+@@ -112,7 +112,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/rms_norm_gpu.cu b/src/ops/rms_norm_gpu.cu
+index 086e6323..25d235ac 100644
+--- a/src/ops/rms_norm_gpu.cu
++++ b/src/ops/rms_norm_gpu.cu
+@@ -1,6 +1,12 @@
+ #include "ctranslate2/ops/rms_norm.h"
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/hipcub.hpp>
++#include <hipcub/block/block_reduce.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_reduce.cuh>
++#endif
+ 
+ #include "cuda/helpers.h"
+ #include "cuda/utils.h"
+@@ -63,7 +69,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/rotary_gpu.cu b/src/ops/rotary_gpu.cu
+index 511608ce..fd028926 100644
+--- a/src/ops/rotary_gpu.cu
++++ b/src/ops/rotary_gpu.cu
+@@ -89,7 +89,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/ops/softmax_gpu.cu b/src/ops/softmax_gpu.cu
+index abee00f7..226cdc3c 100644
+--- a/src/ops/softmax_gpu.cu
++++ b/src/ops/softmax_gpu.cu
+@@ -38,8 +38,9 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+ 
+diff --git a/src/ops/topk_gpu.cu b/src/ops/topk_gpu.cu
+index ad010fb4..f3a89651 100644
+--- a/src/ops/topk_gpu.cu
++++ b/src/ops/topk_gpu.cu
+@@ -61,8 +61,9 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+ 
+@@ -116,7 +117,12 @@ namespace ctranslate2 {
+   SOFTWARE.
+ */
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/block/block_reduce.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_reduce.cuh>
++#endif 
+ 
+ namespace fastertransformer {
+ 
+diff --git a/src/ops/topp_mask_gpu.cu b/src/ops/topp_mask_gpu.cu
+index a4e6cb6e..7e5d0a4b 100644
+--- a/src/ops/topp_mask_gpu.cu
++++ b/src/ops/topp_mask_gpu.cu
+@@ -1,6 +1,11 @@
+ #include "ctranslate2/ops/topp_mask.h"
+ 
++#ifdef CT2_USE_HIP
++#include <hipcub/block/block_radix_sort.hpp>
++#define cub hipcub
++#else
+ #include <cub/block/block_radix_sort.cuh>
++#endif 
+ 
+ #include "cuda/helpers.h"
+ 
+@@ -127,7 +132,8 @@ namespace ctranslate2 {
+ 
+     DECLARE_IMPL(float)
+     DECLARE_IMPL(float16_t)
++    #if CUDA_CAN_USE_BF16_MATH
+     DECLARE_IMPL(bfloat16_t)
+-
++    #endif
+   }
+ }
+diff --git a/src/storage_view.cc b/src/storage_view.cc
+index 0cbdf25c..0dcdf9f1 100644
+--- a/src/storage_view.cc
++++ b/src/storage_view.cc
+@@ -102,7 +102,9 @@ namespace ctranslate2 {
+     } else if (_dtype == DataType::FLOAT16 && dtype == DataType::FLOAT32) {
+       DEVICE_DISPATCH(_device,
+                       primitives<D>::convert(data<float16_t>(), converted.data<float>(), _size));
+-    } else if (_dtype == DataType::FLOAT32 && dtype == DataType::BFLOAT16) {
++    } 
++    #ifndef CT2_USE_HIP
++      else if (_dtype == DataType::FLOAT32 && dtype == DataType::BFLOAT16) {
+       DEVICE_DISPATCH(_device,
+                       primitives<D>::convert(data<float>(), converted.data<bfloat16_t>(), _size));
+     } else if (_dtype == DataType::BFLOAT16 && dtype == DataType::FLOAT32) {
+@@ -114,7 +116,9 @@ namespace ctranslate2 {
+     } else if (_dtype == DataType::FLOAT16 && dtype == DataType::BFLOAT16) {
+       DEVICE_DISPATCH(_device,
+                       primitives<D>::convert(data<float16_t>(), converted.data<bfloat16_t>(), _size));
+-    } else {
++    }
++    #endif
++    else {
+       // TODO: support other conversions.
+       throw std::invalid_argument("Conversion from " + dtype_name(_dtype)
+                                   + " to " + dtype_name(dtype) + " is not yet implemented");
+diff --git a/src/type_dispatch.h b/src/type_dispatch.h
+index 7ecab93b..36dd2be5 100644
+--- a/src/type_dispatch.h
++++ b/src/type_dispatch.h
+@@ -45,8 +45,9 @@ namespace ctranslate2 {
+   MATCH_TYPE_AND_ENUM(int16_t, DataType::INT16);
+   MATCH_TYPE_AND_ENUM(int32_t, DataType::INT32);
+   MATCH_TYPE_AND_ENUM(float16_t, DataType::FLOAT16);
++  #ifdef CT2_USE_HIP
+   MATCH_TYPE_AND_ENUM(bfloat16_t, DataType::BFLOAT16);
+-
++  #endif
+ #undef MATCH_TYPE_AND_ENUM
+ 
+ #define TYPE_CASE(TYPE, STMTS)                  \
+@@ -57,6 +58,8 @@ namespace ctranslate2 {
+   }
+ 
+ #define SINGLE_ARG(...) __VA_ARGS__
++
++#ifndef CT2_USE_HIP
+ #define TYPE_DISPATCH(TYPE_ENUM, STMTS)             \
+   switch (TYPE_ENUM) {                              \
+     TYPE_CASE(float, SINGLE_ARG(STMTS))             \
+@@ -66,7 +69,17 @@ namespace ctranslate2 {
+     TYPE_CASE(float16_t, SINGLE_ARG(STMTS))         \
+     TYPE_CASE(bfloat16_t, SINGLE_ARG(STMTS))        \
+   }
+-
++#else
++#define TYPE_DISPATCH(TYPE_ENUM, STMTS)             \
++  switch (TYPE_ENUM) {                              \
++    TYPE_CASE(float, SINGLE_ARG(STMTS))             \
++    TYPE_CASE(int8_t, SINGLE_ARG(STMTS))            \
++    TYPE_CASE(int16_t, SINGLE_ARG(STMTS))           \
++    TYPE_CASE(int32_t, SINGLE_ARG(STMTS))           \
++    TYPE_CASE(float16_t, SINGLE_ARG(STMTS))         \
++  }
++#endif
++#ifndef CT2_USE_HIP
+ #define DECLARE_ALL_TYPES(FUNC)                 \
+   FUNC(float)                                   \
+   FUNC(int8_t)                                  \
+@@ -74,5 +87,12 @@ namespace ctranslate2 {
+   FUNC(int32_t)                                 \
+   FUNC(float16_t)                               \
+   FUNC(bfloat16_t)
+-
+-}
++#else
++#define DECLARE_ALL_TYPES(FUNC)                 \
++  FUNC(float)                                   \
++  FUNC(int8_t)                                  \
++  FUNC(int16_t)                                 \
++  FUNC(int32_t)                                 \
++  FUNC(float16_t)
++#endif
++}
+\ No newline at end of file
+diff --git a/src/types.cc b/src/types.cc
+index 2431bce6..a2ae2ce1 100644
+--- a/src/types.cc
++++ b/src/types.cc
+@@ -111,8 +111,12 @@ namespace ctranslate2 {
+     switch (device) {
+     case Device::CUDA: {
+ #ifdef CT2_WITH_CUDA
+-      static const bool allow_float16 = read_bool_from_env("CT2_CUDA_ALLOW_FP16");
+-      return allow_float16 || cuda::gpu_has_fp16_tensor_cores(device_index);
++      #ifdef CT2_USE_HIP
++        return true;
++      #else
++        static const bool allow_float16 = read_bool_from_env("CT2_CUDA_ALLOW_FP16");
++        return allow_float16 || cuda::gpu_has_fp16_tensor_cores(device_index);
++      #endif
+ #else
+       (void)device_index;
+       return false;
+diff --git a/tests/CMakeLists.txt b/tests/CMakeLists.txt
+index 283c49db..176ec4ae 100644
+--- a/tests/CMakeLists.txt
++++ b/tests/CMakeLists.txt
+@@ -18,7 +18,7 @@ add_executable(ctranslate2_test
+ target_include_directories(ctranslate2_test PRIVATE
+   ${CMAKE_CURRENT_SOURCE_DIR}/../src
+   )
+-target_link_libraries(ctranslate2_test
++target_link_libraries(ctranslate2_test PRIVATE
+   ${PROJECT_NAME}
+   gtest_main
+   )
+@@ -26,10 +26,33 @@ target_link_libraries(ctranslate2_test
+ add_executable(benchmark_ops
+   benchmark_ops.cc
+   )
+-target_link_libraries(benchmark_ops
++target_link_libraries(benchmark_ops PRIVATE
+   ${PROJECT_NAME}
+   )
+ 
+ if(WITH_CUDA)
+-  target_link_libraries(benchmark_ops ${CUDA_LIBRARIES})
++  target_link_libraries(benchmark_ops PRIVATE ${CUDA_LIBRARIES})
++endif()
++if(WITH_HIP)
++  enable_language(HIP)
++  list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH})
++  link_directories(${ROCM_PATH}/lib)
++
++  find_package(hiprand REQUIRED)
++  find_package(hipblas REQUIRED)
++  find_package(rocprim REQUIRED)
++  find_package(rocthrust REQUIRED)
++  find_package(hipcub REQUIRED)
++
++  add_compile_definitions(__HIP_PLATFORM_AMD__)
++  add_compile_definitions(__HIP_PLATFORM_HCC__)
++  target_include_directories(benchmark_ops PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include ${ROCM_PATH}/include /include)
++  target_link_libraries(benchmark_ops PRIVATE hiprand roc::hipblas roc::rocprim roc::rocthrust hip::hipcub)
++
++  if(WITH_CUDNN)
++    find_package(miopen)
++    target_link_libraries(benchmark_ops PRIVATE MIOpen)	  
++    add_definitions(-DCT2_WITH_CUDNN)
++endif()
++
+ endif()
+diff --git a/tests/benchmark_utils.h b/tests/benchmark_utils.h
+index 55ee77b0..6b78ebd4 100644
+--- a/tests/benchmark_utils.h
++++ b/tests/benchmark_utils.h
+@@ -5,8 +5,13 @@
+ #include <vector>
+ 
+ #ifdef CT2_WITH_CUDA
++#ifdef CT2_USE_HIP
++  #include <hip/hip_runtime.h>
++  #define SYNCHRONIZE hipDeviceSynchronize()
++#else
+ #  include <cuda_runtime.h>
+ #  define SYNCHRONIZE cudaDeviceSynchronize()
++#endif
+ #else
+ #  define SYNCHRONIZE do {} while (false)
+ #endif
+diff --git a/whisperx_bench.py b/whisperx_bench.py
+new file mode 100644
+index 00000000..ece5b645
+--- /dev/null
++++ b/whisperx_bench.py
+@@ -0,0 +1,20 @@
++# Adapted from whisperx readme
++import whisperx
++import gc 
++import timeit
++
++device = "cuda" 
++audio_file = "tests/data/physicsworks.wav"
++batch_size = 16 # reduce if low on GPU mem
++compute_type = "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
++model_size = "medium"
++
++def run_test():
++    #1. Transcribe with original whisper (batched)
++    result = model.transcribe(audio, batch_size=batch_size, language="en")
++    print(result["segments"]) # before alignment
++
++# don't include model load in bench
++model = whisperx.load_model(model_size, device, compute_type=compute_type)
++audio = whisperx.load_audio(audio_file)
++print(timeit.timeit("run_test()", globals=locals(), number=1))
+-- 
+2.47.1
+

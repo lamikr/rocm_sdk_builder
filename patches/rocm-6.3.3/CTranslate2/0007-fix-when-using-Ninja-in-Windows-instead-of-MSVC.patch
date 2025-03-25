@@ -1,0 +1,52 @@
+From d213a42bf94e53f24f8f7f6e2c4be629690348bc Mon Sep 17 00:00:00 2001
+From: Richard Geslot <richard.geslot@amd.com>
+Date: Fri, 1 Nov 2024 15:52:45 +0100
+Subject: [PATCH 7/9] fix when using Ninja in Windows instead of MSVC
+
+---
+ CMakeLists.txt | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 94a5bcfa..1ceee64f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -75,6 +75,13 @@ string(REPLACE "." ";" CTRANSLATE2_VERSION_LIST ${CTRANSLATE2_VERSION})
+ list(GET CTRANSLATE2_VERSION_LIST 0 CTRANSLATE2_MAJOR_VERSION)
+ 
+ if(MSVC)
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /d2FH4-")
++else()
++  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
++endif()
++
++
++if(WIN32)
+   if(BUILD_SHARED_LIBS)
+     set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+   else()
+@@ -83,11 +90,9 @@ if(MSVC)
+     endif()
+     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+   endif()
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /d2FH4-")
+-else()
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+ endif()
+ 
++
+ find_package(Threads)
+ add_subdirectory(third_party/spdlog EXCLUDE_FROM_ALL)
+ 
+@@ -287,7 +292,7 @@ if(ENABLE_CPU_DISPATCH)
+   message(STATUS "Compiling for multiple CPU ISA and enabling runtime dispatch")
+   add_definitions(-DCT2_WITH_CPU_DISPATCH)
+   if(CT2_BUILD_ARCH STREQUAL "x86_64")
+-    if(WIN32)
++    if(MSVC)
+       ct2_compile_kernels_for_isa(avx "/arch:AVX")
+       ct2_compile_kernels_for_isa(avx2 "/arch:AVX2")
+       ct2_compile_kernels_for_isa(avx512 "/arch:AVX512")
+-- 
+2.47.1
+

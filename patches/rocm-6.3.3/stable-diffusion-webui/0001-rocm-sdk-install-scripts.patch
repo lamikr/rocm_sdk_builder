@@ -1,0 +1,174 @@
+From be1a40d19c3e09e26d0ec635d23b6da67100dd05 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 31 Jul 2024 14:03:48 -0700
+Subject: [PATCH 1/6] rocm sdk install scripts
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm.sh          | 81 ++++++++++++++++++++++++++++++++++++++++++
+ install_rocm.sh        | 35 ++++++++++++++++++
+ preconfig_rocm.sh      |  8 +++++
+ rocm_webui_template.sh |  6 ++++
+ 4 files changed, 130 insertions(+)
+ create mode 100755 build_rocm.sh
+ create mode 100755 install_rocm.sh
+ create mode 100755 preconfig_rocm.sh
+ create mode 100755 rocm_webui_template.sh
+
+diff --git a/build_rocm.sh b/build_rocm.sh
+new file mode 100755
+index 00000000..5f8bd4bb
+--- /dev/null
++++ b/build_rocm.sh
+@@ -0,0 +1,81 @@
++if [ -z "$1" ]; then
++    echo "Error, no app_src_dir specified"
++    exit 1
++else
++    app_src_dir=${1}
++    echo "Using specified app_src_dir: ${app_src_dir}"
++fi
++if [ -z "$2" ]; then
++    echo "Error, no app_build_dir specified"
++    exit 2
++else
++    app_build_dir=$2
++    echo "Using specified app_build_dir: ${app_build_dir}"
++fi
++if [ -z "$3" ]; then
++    echo "Error, no app_model_dir specified"
++    exit 3
++else
++    app_model_dir=$3
++    echo "Using specified app_model_dir: ${app_model_dir}"
++fi
++
++func_diffui_repo_git_checkout() {
++	local repo_dir_name=$1
++	local repo_url=$2
++	local githash=$3
++
++	if [ ! -d ${app_src_dir}/repositories/${repo_dir_name} ]; then
++		mkdir ${app_src_dir}/repositories/${repo_dir_name}
++		cd ${app_src_dir}/repositories/${repo_dir_name}
++		git init
++		git remote add origin ${repo_url}
++    else
++        cd ${app_src_dir}/repositories/${repo_dir_name}
++	fi
++	curhash=$(git rev-parse HEAD)
++	if [ ${curhash} != ${githash} ]; then
++	    git fetch --depth 1 origin ${githash}
++	fi
++    git checkout ${githash}
++}
++
++func_diffui_all_repositories_checkout() {
++	cd ${app_src_dir}
++    if [ ! -d ${app_src_dir}/repositories ]; then
++        mkdir ${app_src_dir}/repositories
++    fi
++
++    local blip_repo_url="https://github.com/salesforce/BLIP.git"
++    local stable_diffusion_xl_repo_url="https://github.com/Stability-AI/generative-models.git"
++    local k_diffusion_repo_url="https://github.com/crowsonkb/k-diffusion.git"
++    local stable_diffusion_repo_url="https://github.com/Stability-AI/stablediffusion.git"
++    local assets_repo_url="https://github.com/AUTOMATIC1111/stable-diffusion-webui-assets.git"
++
++    local blip_commit_hash="48211a1594f1321b00f14c9f7a5b4813144b2fb9"
++    local stable_diffusion_xl_commit_hash="45c443b316737a4ab6e40413d7794a7f5657c19f"
++    local k_diffusion_commit_hash="ab527a9a6d347f364e3d185ba6d714e22d80cb3c"
++    local stable_diffusion_commit_hash="cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf"
++    local assets_commit_hash="6f7db241d2f8ba7457bac5ca9753331f0c266917"
++
++    func_diffui_repo_git_checkout "BLIP" ${blip_repo_url} ${blip_commit_hash}
++    func_diffui_repo_git_checkout "generative-models" ${stable_diffusion_xl_repo_url} ${stable_diffusion_xl_commit_hash}
++    func_diffui_repo_git_checkout "k-diffusion" ${k_diffusion_repo_url} ${k_diffusion_commit_hash}
++    func_diffui_repo_git_checkout "stable-diffusion-stability-ai" ${stable_diffusion_repo_url} ${stable_diffusion_commit_hash}
++    func_diffui_repo_git_checkout "stable-diffusion-webui-assets" ${assets_repo_url} ${assets_commit_hash}
++}
++
++func_diffui_all_repositories_checkout
++
++# patch the stability ai with the import fix that is needed with newer pytorch-lightning versions
++cd ${app_src_dir}/repositories/stable-diffusion-stability-ai
++git am ${app_src_dir}/stable-diffusion-stability-ai-lightning-import-fix.patch
++
++cd ${app_src_dir}
++# create launch command which does not perform install steps as this installer has already handled those
++cp rocm_webui_template.sh webui.sh
++echo "python3 launch.py --listen --disable-safe-unpickle --skip-install --models-dir=${app_model_dir}" >> webui.sh
++
++# then package everything to installable tar-file
++chmod a+x webui.sh
++tar -cvf ${app_build_dir}/stable_diffusion.tar CHANGELOG.md CITATION.cff CODEOWNERS configs embeddings environment-wsl2.yaml .eslintignore .eslintrc.js extensions extensions-builtin html javascript launch.py LICENSE.txt localizations models modules .pylintrc pyproject.toml README.md requirement*.txt screenshot.png script.js scripts style.css test textual_inversion_templates webui.py repositories webui.sh --transform 's,^,stable-diffusion-webui/,'
+diff --git a/install_rocm.sh b/install_rocm.sh
+new file mode 100755
+index 00000000..9acbd822
+--- /dev/null
++++ b/install_rocm.sh
+@@ -0,0 +1,35 @@
++if [ -z "$1" ]; then
++    echo "Error, no rocm_prefix_dir specified"
++    exit 1
++else
++    rocm_prefix_dir=${1}
++    echo "Using specified rocm_prefix_dir: ${rocm_prefix_dir}"
++fi
++if [ -z "$2" ]; then
++    echo "Error, no app_build_dir specified"
++    exit 2
++else
++    app_build_dir=$2
++    echo "Using specified app_build_dir: ${app_build_dir}"
++fi
++
++mkdir -p ${rocm_prefix_dir}/apps
++tar -xvf ${app_build_dir}/stable_diffusion.tar -C ${rocm_prefix_dir}/apps
++cd ${rocm_prefix_dir}/apps/stable_diffusion_webui
++pip install git+https://github.com/openai/CLIP.git
++pip install git+https://github.com/mlfoundations/open_clip
++pip install -r requirements.txt
++echo ""
++echo "Warning during the first launch of application needs to load 4gb model file"
++echo "Model files are stored to following directory:"
++echo "    /opt/rocm_sdk_models"
++echo ""
++echo "Application installed to ${rocm_prefix_dir}/apps/stable-diffusion-webui"
++echo "Launch the application with commands:" 
++echo "    source ${rocm_prefix_dir}/bin/env_rocm.sh"
++echo "    cd ${rocm_prefix_dir}/apps/stable-diffusion-webui"
++echo "    ./webui.sh"
++echo ""
++echo "Once application is launched, open web-browser in address:"
++echo "    http://localhost:7860"
++
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 00000000..6c7cdf7d
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,8 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d ./build ]; then
++        pwd
++        #python3 setup.py clean --all
++        #rm -rf ./build
++    fi
++fi
+diff --git a/rocm_webui_template.sh b/rocm_webui_template.sh
+new file mode 100755
+index 00000000..75c4d390
+--- /dev/null
++++ b/rocm_webui_template.sh
+@@ -0,0 +1,6 @@
++if [ -z $ROCM_HOME ]; then
++    echo "Error, make sure that you have executed"
++    echo "    source  /opt/rocm_sdk_612/bin/env_rocm.sh"
++    echo "before running this script"
++    exit 1
++fi
+-- 
+2.41.1
+

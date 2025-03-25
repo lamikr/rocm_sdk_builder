@@ -1,0 +1,187 @@
+From 32722aaf8ad1543f3dbf0a2be049a12337233036 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 23 Aug 2024 11:36:55 -0700
+Subject: [PATCH 1/3] jaxlib and jax config,build and install scripts
+
+- scripts to build and install wheel files for jaxlib
+  and jax
+- jaxlib must be build and installed before building
+  and installing the jax wheel
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ build_rocm_jax.sh      | 34 ++++++++++++++++++++++++++++++++++
+ build_rocm_jaxlib.sh   | 36 ++++++++++++++++++++++++++++++++++++
+ install_rocm_jax.sh    | 27 +++++++++++++++++++++++++++
+ install_rocm_jaxlib.sh | 27 +++++++++++++++++++++++++++
+ preconfig_rocm.sh      |  6 ++++++
+ 5 files changed, 130 insertions(+)
+ create mode 100755 build_rocm_jax.sh
+ create mode 100755 build_rocm_jaxlib.sh
+ create mode 100755 install_rocm_jax.sh
+ create mode 100755 install_rocm_jaxlib.sh
+ create mode 100755 preconfig_rocm.sh
+
+diff --git a/build_rocm_jax.sh b/build_rocm_jax.sh
+new file mode 100755
+index 000000000..b5048607d
+--- /dev/null
++++ b/build_rocm_jax.sh
+@@ -0,0 +1,34 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    amd_target_gpu=\"gfx1030\"
++    echo "No rocm gpu specified, using default: ${amd_target_gpu}"
++else
++    amd_target_gpu="$2"
++    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
++fi
++
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++
++export JAX_ROCM_VERSION=${ROCM_VERSION_STR}
++export JAX_RELEASE=1
++export JAXLIB_RELEASE=1
++export TF_NEED_ROCM=1
++export TF_ROCM_AMDGPU_TARGETS=${amd_target_gpu}
++export ROCM_PATH=${install_dir_prefix_rocm}
++export ROCM_HOME=${install_dir_prefix_rocm}
++
++# 2) then install the jax itself after the jaxlib install     
++# not sure is there any other command to build the wheel
++# pip install -e .
++
++# build jax wheel after jaxlib has been build and installed
++ROCM_PATH=${install_dir_prefix_rocm} python setup.py bdist_wheel
+diff --git a/build_rocm_jaxlib.sh b/build_rocm_jaxlib.sh
+new file mode 100755
+index 000000000..b39763420
+--- /dev/null
++++ b/build_rocm_jaxlib.sh
+@@ -0,0 +1,36 @@
++if [ -z "$1" ]; then
++    install_dir_prefix_rocm=/opt/rocm
++    echo "No rocm_root_directory_specified, using default: ${install_dir_prefix_rocm}"
++else
++    install_dir_prefix_rocm=${1}
++    echo "using rocm_root_directory specified: ${install_dir_prefix_rocm}"
++fi
++if [ -z "$2" ]; then
++    amd_target_gpu=\"gfx1030\"
++    echo "No rocm gpu specified, using default: ${amd_target_gpu}"
++else
++    amd_target_gpu="$2"
++    echo "Using specified amd rocm gpu: ${amd_target_gpu}"
++fi
++
++unset LDFLAGS
++unset CFLAGS
++unset CPPFLAGS
++unset PKG_CONFIG_PATH
++
++export JAX_ROCM_VERSION=${ROCM_VERSION_STR}
++export JAX_RELEASE=1
++export JAXLIB_RELEASE=1
++export TF_NEED_ROCM=1
++export TF_ROCM_AMDGPU_TARGETS=${amd_target_gpu}
++export ROCM_PATH=${install_dir_prefix_rocm}
++export ROCM_HOME=${install_dir_prefix_rocm}
++
++XLA_SRC_DIR=${SDK_SRC_ROOT_DIR}/xla
++
++ROCM_PATH=${install_dir_prefix_rocm} python build/build.py \
++    --enable_rocm \
++    --rocm_amdgpu_targets=${TF_ROCM_AMDGPU_TARGETS} \
++    --rocm_path=$(realpath $install_dir_prefix_rocm) \
++    --bazel_options=--override_repository=xla=$(realpath $XLA_SRC_DIR)
++
+diff --git a/install_rocm_jax.sh b/install_rocm_jax.sh
+new file mode 100755
+index 000000000..07393d70c
+--- /dev/null
++++ b/install_rocm_jax.sh
+@@ -0,0 +1,27 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying pytorch vision python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/jax-*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++
++    # 1) install first the jaxlib
++    pip uninstall --yes "$latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find pytorch vision whl file to install"
++    exit 1
++fi
+diff --git a/install_rocm_jaxlib.sh b/install_rocm_jaxlib.sh
+new file mode 100755
+index 000000000..4832b148d
+--- /dev/null
++++ b/install_rocm_jaxlib.sh
+@@ -0,0 +1,27 @@
++unset backup_dir_python_wheel
++if [ ! -z "$1" ]; then
++    backup_dir_python_wheel=${1}
++    echo "copying pytorch vision python whl file to directory: ${backup_dir_python_wheel}"
++fi
++# if there are multiple wheel files, find the newest one and install it
++unset -v latest_wheel_file
++for cur_file in dist/jaxlib-*.whl; do
++    [[ $cur_file -nt "$latest_wheel_file" ]] && latest_wheel_file=$cur_file
++done
++if [ ! -z "$latest_wheel_file" ]; then
++    # do not use "pip install --force-reinstall because it can uninstall
++    # own build other packages and then re-install incorrect onew from internet
++
++    # 1) install first the jaxlib
++    pip uninstall --yes "$latest_wheel_file"
++    pip install "$latest_wheel_file"
++    if [ ! -z "$backup_dir_python_wheel" ]; then
++        if [ ! -d "$backup_dir_python_wheel" ]; then
++            mkdir -p "$backup_dir_python_wheel"
++        fi
++        cp -f "$latest_wheel_file" "$backup_dir_python_wheel"
++    fi
++else
++    echo "Could not find pytorch vision whl file to install"
++    exit 1
++fi
+diff --git a/preconfig_rocm.sh b/preconfig_rocm.sh
+new file mode 100755
+index 000000000..9f71fe83b
+--- /dev/null
++++ b/preconfig_rocm.sh
+@@ -0,0 +1,6 @@
++# check we are in right directory
++if [[ -f ./preconfig_rocm.sh && -f ./setup.py ]]; then
++    if [ -d build ]; then
++        python ./setup.py clean
++    fi
++fi
+-- 
+2.41.1
+

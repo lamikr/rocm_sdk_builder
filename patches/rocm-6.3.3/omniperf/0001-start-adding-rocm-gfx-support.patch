@@ -1,0 +1,32 @@
+From d195927079a1549d31a54ff984d9daaba0719123 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 2 Sep 2024 17:46:20 -0700
+Subject: [PATCH] start adding rocm gfx support
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/omniperf_base.py | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/omniperf_base.py b/src/omniperf_base.py
+index 39b84946..3e96e7ef 100644
+--- a/src/omniperf_base.py
++++ b/src/omniperf_base.py
+@@ -53,6 +53,14 @@ SUPPORTED_ARCHS = {
+     "gfx940": {"mi300": ["MI300A_A0"]},
+     "gfx941": {"mi300": ["MI300X_A0"]},
+     "gfx942": {"mi300": ["MI300A_A1", "MI300X_A1"]},
++    "gfx1030": {"RX6800": ["RX6800XT"]},
++    "gfx1031": {"RX6700": ["RX6700XT"]},
++    "gfx1032": {"RX6600": ["RX6600XT"]},
++    "gfx1035": {"M680": ["M680 Mobile"]},
++    "gfx1100": {"RX7900": ["RX7900XT", "RX7900XTX"]},
++    "gfx1101": {"RX7800": ["RX7800XT", "RX7700", "RX7700XT"]},
++    "gfx1102": {"RX7600": ["RX7600XT"]},
++    "gfx1103": {"M780": ["M780 Mobile"]},
+ }
+ 
+ 
+-- 
+2.41.1
+

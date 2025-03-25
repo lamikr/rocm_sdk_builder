@@ -1,0 +1,26 @@
+From bbd1443bd34b6b92de51e7232db4d1f844d99e16 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Mon, 24 Mar 2025 18:29:43 -0700
+Subject: [PATCH 3/3] define rdna4 gpus as rdna3 temporarily
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ ggml/src/ggml-cuda/vendors/hip.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ggml/src/ggml-cuda/vendors/hip.h b/ggml/src/ggml-cuda/vendors/hip.h
+index 9efaeb3b..b3734719 100644
+--- a/ggml/src/ggml-cuda/vendors/hip.h
++++ b/ggml/src/ggml-cuda/vendors/hip.h
+@@ -152,7 +152,7 @@
+ #endif
+ 
+ #if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1103__) || \
+-    defined(__gfx1150__) || defined(__gfx1151__)
++    defined(__gfx1150__) || defined(__gfx1151__) || defined(__gfx1200__) || defined(__gfx1201__)
+ #define RDNA3
+ #endif
+ 
+-- 
+2.41.3
+

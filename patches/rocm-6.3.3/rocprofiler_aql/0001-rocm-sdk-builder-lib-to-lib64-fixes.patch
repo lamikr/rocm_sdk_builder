@@ -1,0 +1,279 @@
+From f9f598f4db89b239576efbfd297980d158c83133 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Thu, 19 Sep 2024 19:43:55 -0700
+Subject: [PATCH 1/6] rocm sdk builder lib to lib64 fixes
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ bin/rocprofv2                                     | 10 +++++-----
+ plugin/att/CMakeLists.txt                         |  2 +-
+ plugin/att/service.py                             |  2 +-
+ plugin/cli/CMakeLists.txt                         |  2 +-
+ plugin/ctf/CMakeLists.txt                         |  2 +-
+ plugin/file/CMakeLists.txt                        |  8 ++++----
+ plugin/perfetto/CMakeLists.txt                    |  2 +-
+ src/tools/CMakeLists.txt                          |  2 +-
+ src/tools/rocprofv2/rocprofv2.cpp                 | 12 +++++++++---
+ test/run.sh                                       |  2 +-
+ tests-v2/featuretests/profiler/profiler_gtest.cpp |  2 +-
+ tests-v2/featuretests/tracer/tracer_gtest.cpp     |  2 +-
+ tests-v2/unittests/profiler/CMakeLists.txt        |  4 ++--
+ 13 files changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/bin/rocprofv2 b/bin/rocprofv2
+index b8779be..194cca8 100755
+--- a/bin/rocprofv2
++++ b/bin/rocprofv2
+@@ -83,7 +83,7 @@ while [ 1 ]; do
+       exit 1
+     fi
+   elif [[ "$1" == "--list-counters" ]]; then
+-    export LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib/rocprofiler/librocprofiler_tool.so
++    export LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib64/rocprofiler/librocprofiler_tool.so
+     eval $ROCM_DIR/libexec/rocprofiler/ctrl
+     exit 1
+   elif [[ "$1" == "-i" || "$1" == "--input" ]]; then
+@@ -194,7 +194,7 @@ while [ 1 ]; do
+   elif [ "$1" == "--plugin-version" ]; then
+     export ROCPROFILER_PLUGIN_LIB_VERSION=".$2"
+     if [ ! -z $ROCPROFILER_PLUGIN_LIB ]; then
+-      if [ -f $ROCM_DIR/lib/rocprofiler/$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION ]; then
++      if [ -f $ROCM_DIR/lib64/rocprofiler/$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION ]; then
+         export ROCPROFILER_PLUGIN_LIB=$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION
+       else
+         echo -e "Error: \"$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION\" doesn't exist!"
+@@ -275,7 +275,7 @@ if [ -z $ROCPROFILER_PLUGIN_LIB ]; then
+   if [ -z $OUTPUT_PATH ]; then
+     PLUGIN_TO_BE_USED=cli_plugin
+   fi
+-  if [ -f $ROCM_DIR/lib/rocprofiler/$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION ]; then
++  if [ -f $ROCM_DIR/lib64/rocprofiler/$ROCPROFILER_PLUGIN_LIB$ROCPROFILER_PLUGIN_LIB_VERSION ]; then
+     export ROCPROFILER_PLUGIN_LIB=lib$PLUGIN_TO_BE_USED.so$ROCPROFILER_PLUGIN_LIB_VERSION
+   else
+     export ROCPROFILER_PLUGIN_LIB=lib$PLUGIN_TO_BE_USED.so
+@@ -295,13 +295,13 @@ if [ -n "$PMC_LINES" ] && [ ! -n "$ATT_ARGV" ]; then
+       export OUTPUT_PATH=$FINAL_PATH
+     fi
+     let COUNTER=COUNTER+1
+-    LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib/rocprofiler/librocprofiler_tool.so $*
++    LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib64/rocprofiler/librocprofiler_tool.so $*
+     if [ -n "$OUTPUT_PATH" ]; then
+       echo -e "\nThe output path for the following counters: $OUTPUT_PATH"
+     fi
+   done
+ else
+-  LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib/rocprofiler/librocprofiler_tool.so $*
++  LD_PRELOAD=$LD_PRELOAD:$ROCM_DIR/lib64/rocprofiler/librocprofiler_tool.so $*
+ fi
+ 
+ get_pmc_results_txt_path() {
+diff --git a/plugin/att/CMakeLists.txt b/plugin/att/CMakeLists.txt
+index eda2cb5..96d89a1 100644
+--- a/plugin/att/CMakeLists.txt
++++ b/plugin/att/CMakeLists.txt
+@@ -33,7 +33,7 @@ set_target_properties(
+     att_plugin
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../exportmap
+-               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/rocprofiler
++               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib64/rocprofiler
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}")
+ 
+ target_compile_definitions(att_plugin PRIVATE HIP_PROF_HIP_API_STRING=1
+diff --git a/plugin/att/service.py b/plugin/att/service.py
+index 7716d33..1f48aaf 100644
+--- a/plugin/att/service.py
++++ b/plugin/att/service.py
+@@ -14,7 +14,7 @@ ID_OFFSET = 34
+ ID_MASK = (1<<28)-1
+ OFFSET_MASK = (1<<ID_OFFSET)-1
+ 
+-pluginpath = '../../../lib/rocprofiler/libatt_plugin.so'
++pluginpath = '../../../lib64/rocprofiler/libatt_plugin.so'
+ filedir = os.path.dirname(os.path.realpath(__file__))
+ attplugin = CDLL(os.path.join(filedir, pluginpath))
+ 
+diff --git a/plugin/cli/CMakeLists.txt b/plugin/cli/CMakeLists.txt
+index b5aeeef..49369b7 100644
+--- a/plugin/cli/CMakeLists.txt
++++ b/plugin/cli/CMakeLists.txt
+@@ -29,7 +29,7 @@ set_target_properties(
+     cli_plugin
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../exportmap
+-               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/rocprofiler
++               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib64/rocprofiler
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}")
+ 
+ target_compile_definitions(cli_plugin PRIVATE HIP_PROF_HIP_API_STRING=1
+diff --git a/plugin/ctf/CMakeLists.txt b/plugin/ctf/CMakeLists.txt
+index f501e97..1b148c0 100644
+--- a/plugin/ctf/CMakeLists.txt
++++ b/plugin/ctf/CMakeLists.txt
+@@ -36,7 +36,7 @@ set_target_properties(
+     ctf_plugin
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                LINK_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/../exportmap"
+-               LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib/rocprofiler"
++               LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib64/rocprofiler"
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}")
+ set(METADATA_STREAM_FILE_DIR "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/plugin/ctf")
+ target_compile_definitions(
+diff --git a/plugin/file/CMakeLists.txt b/plugin/file/CMakeLists.txt
+index 816ff64..31f4e7d 100644
+--- a/plugin/file/CMakeLists.txt
++++ b/plugin/file/CMakeLists.txt
+@@ -30,7 +30,7 @@ set_target_properties(
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                DEFINE_SYMBOL "ROCPROFILER_EXPORTS"
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../exportmap
+-               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/rocprofiler/v1
++               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib64/rocprofiler/v1
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}"
+                OUTPUT_NAME file_plugin
+                VERSION 1.0.0
+@@ -54,8 +54,8 @@ add_custom_command(
+     POST_BUILD
+     COMMAND
+         ${CMAKE_COMMAND} -E copy
+-        ${PROJECT_BINARY_DIR}/lib/rocprofiler/v1/libfile_plugin.so.1*
+-        ${PROJECT_BINARY_DIR}/lib/rocprofiler/.)
++        ${PROJECT_BINARY_DIR}/lib64/rocprofiler/v1/libfile_plugin.so.1*
++        ${PROJECT_BINARY_DIR}/lib64/rocprofiler/.)
+ 
+ install(TARGETS file_plugin_v1 LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME}
+                                     COMPONENT asan NAMELINK_SKIP)
+@@ -70,7 +70,7 @@ set_target_properties(
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                DEFINE_SYMBOL "ROCPROFILER_EXPORTS"
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../exportmap
+-               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/rocprofiler
++               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib64/rocprofiler
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}"
+                VERSION 2.0.0
+                SOVERSION 2)
+diff --git a/plugin/perfetto/CMakeLists.txt b/plugin/perfetto/CMakeLists.txt
+index 9c5ea03..d001ec3 100644
+--- a/plugin/perfetto/CMakeLists.txt
++++ b/plugin/perfetto/CMakeLists.txt
+@@ -8,7 +8,7 @@ set_target_properties(
+     perfetto_plugin
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../exportmap
+-               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib/rocprofiler
++               LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib64/rocprofiler
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}")
+ 
+ target_compile_definitions(perfetto_plugin PRIVATE HIP_PROF_HIP_API_STRING=1
+diff --git a/src/tools/CMakeLists.txt b/src/tools/CMakeLists.txt
+index 3a6aeb8..75e1184 100644
+--- a/src/tools/CMakeLists.txt
++++ b/src/tools/CMakeLists.txt
+@@ -15,7 +15,7 @@ add_library(rocprofiler_tool SHARED ${ROCPROFILER_TOOL_SRC_FILES}
+ set_target_properties(
+     rocprofiler_tool
+     PROPERTIES CXX_VISIBILITY_PRESET hidden
+-               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/rocprofiler
++               LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib64/rocprofiler
+                LINK_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/exportmap
+                INSTALL_RPATH "${ROCM_APPEND_PRIVLIB_RPATH}")
+ 
+diff --git a/src/tools/rocprofv2/rocprofv2.cpp b/src/tools/rocprofv2/rocprofv2.cpp
+index ae4b584..ef4a631 100644
+--- a/src/tools/rocprofv2/rocprofv2.cpp
++++ b/src/tools/rocprofv2/rocprofv2.cpp
+@@ -54,7 +54,13 @@ fs::path set_rocm_path() {
+   // check symlink
+   std::vector<std::string> rocm_paths;
+   fs::path opt_path = "/opt";
+-  fs::path rocm_path = "/opt/rocm";
++  std::string rocm_home_str("/opt/rocm");
++  char const* rocm_home_cstr = getenv("ROCM_HOME");
++
++  if (rocm_home_cstr != NULL) {
++    rocm_home_str = new std::string(rocm_home_cstr);
++  }
++  fs::path rocm_path = strdup(rocm_home_str.c_str());
+ 
+   // iterate and save all dirs under /opt that matches rocm
+   for (const auto& entry : fs::directory_iterator(opt_path)) {
+@@ -78,7 +84,7 @@ fs::path set_rocm_path() {
+   // create a symlink if not already exists
+   if (!is_sym_link) {
+     try {
+-      fs::create_symlink(rocm_paths[rocm_paths.size() - 1], "/opt/rocm");
++      fs::create_symlink(rocm_paths[rocm_paths.size() - 1], rocm_home_str.c_str());
+       std::cout << "symbolic link created successfully." << std::endl;
+     } catch (const fs::filesystem_error& e) {
+       std::cerr << "error creating symbolic link: " << e.what() << std::endl;
+@@ -315,7 +321,7 @@ int main(int argc, char** argv) {
+   }
+ 
+   // providing LD_PRELOAD of rocprofiler library to run_application function
+-  std::string tool_lib_path = rocm_path.string() + "/lib/rocprofiler/librocprofiler_tool.so";
++  std::string tool_lib_path = rocm_path.string() + "/lib64/rocprofiler/librocprofiler_tool.so";
+   std::string current_ld_preload;
+   if (getenv("LD_PRELOAD")) current_ld_preload = getenv("LD_PRELOAD");
+   if (!current_ld_preload.empty())
+diff --git a/test/run.sh b/test/run.sh
+index 03f5c03..f295966 100755
+--- a/test/run.sh
++++ b/test/run.sh
+@@ -63,7 +63,7 @@ eval_test() {
+ }
+ 
+ # paths to ROC profiler and oher libraries
+-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:$PWD/../../lib:$BIN_DIR/../../../lib:$BIN_DIR/../../../lib/rocprofiler:/opt/rocm/lib:/opt/rocm/lib/rocprofiler
++export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:$PWD/../../lib:$BIN_DIR/../../../lib:$BIN_DIR/../../../lib64/rocprofiler:/opt/rocm/lib:/opt/rocm/lib64/rocprofiler
+ 
+ # enable tools load failure reporting
+ export HSA_TOOLS_REPORT_LOAD_FAILURE=1
+diff --git a/tests-v2/featuretests/profiler/profiler_gtest.cpp b/tests-v2/featuretests/profiler/profiler_gtest.cpp
+index 9808b38..468b274 100644
+--- a/tests-v2/featuretests/profiler/profiler_gtest.cpp
++++ b/tests-v2/featuretests/profiler/profiler_gtest.cpp
+@@ -48,7 +48,7 @@ std::string profiler_api_lib_path = "";
+ bool bContainsGFX11Agent = false;
+ 
+ static void init_test_path() {
+-  lib_path = "lib/rocprofiler/librocprofiler_tool.so";
++  lib_path = "lib64/rocprofiler/librocprofiler_tool.so";
+   metrics_path = "libexec/rocprofiler/counters/derived_counters.xml";
+   profiler_api_lib_path = "/lib";
+   if (is_installed_path()) {
+diff --git a/tests-v2/featuretests/tracer/tracer_gtest.cpp b/tests-v2/featuretests/tracer/tracer_gtest.cpp
+index 704456a..4b1abf8 100644
+--- a/tests-v2/featuretests/tracer/tracer_gtest.cpp
++++ b/tests-v2/featuretests/tracer/tracer_gtest.cpp
+@@ -34,7 +34,7 @@ std::string binary_path;
+ std::string profiler_api_lib_path = "";
+ 
+ static void init_test_path() {
+-  lib_path = "lib/rocprofiler/librocprofiler_tool.so";
++  lib_path = "lib64/rocprofiler/librocprofiler_tool.so";
+   metrics_path = "libexec/rocprofiler/counters/derived_counters.xml";
+   profiler_api_lib_path = "/lib";
+   if (is_installed_path()) {
+diff --git a/tests-v2/unittests/profiler/CMakeLists.txt b/tests-v2/unittests/profiler/CMakeLists.txt
+index e84d1a7..db1b258 100644
+--- a/tests-v2/unittests/profiler/CMakeLists.txt
++++ b/tests-v2/unittests/profiler/CMakeLists.txt
+@@ -27,7 +27,7 @@ find_library(PCIACCESS_LIBRARIES pciaccess REQUIRED)
+ enable_testing()
+ find_package(GTest REQUIRED)
+ 
+-find_library(GDB rocm-dbgapi PATHS ${ROCM_PATH} REQUIRED)
++find_library(GDB rocm-dbgapi PATHS ${ROCM_PATH}/lib64 ${ROCM_PATH}/lib REQUIRED)
+ 
+ # Getting Source files for ROCProfiler, Hardware, HSA, Memory, Session, Counters, Utils
+ set(CORE_MEMORY_DIR ${PROJECT_SOURCE_DIR}/src/core/memory)
+@@ -158,4 +158,4 @@ endif()
+ # for the *_FilePlugin tests
+ if(NOT EXISTS "${PROJECT_BINARY_DIR}/test-output")
+     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/test-output")
+-endif()
+\ No newline at end of file
++endif()
+-- 
+2.41.1
+

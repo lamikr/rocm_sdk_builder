@@ -1,0 +1,30 @@
+From bfca5b8376e0e971705bc764ac3d965de6ec5668 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 17 Sep 2024 19:08:58 -0700
+Subject: [PATCH 6/8] fix build with the perfetto v46.0
+
+- use perfetto::StaticString insted of
+  const char * in the TRACE_COUNTER macro
+  to be able to find the trace-method template
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ source/timemory/components/perfetto/backends.hpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/source/timemory/components/perfetto/backends.hpp b/source/timemory/components/perfetto/backends.hpp
+index 0a69deb6..392b7910 100644
+--- a/source/timemory/components/perfetto/backends.hpp
++++ b/source/timemory/components/perfetto/backends.hpp
+@@ -113,7 +113,7 @@ tim::backend::perfetto::trace_counter(policy::perfetto_category<ApiT> _category,
+                                       std::enable_if_t<std::is_integral<Tp>::value, int>)
+ {
+ #if defined(TIMEMORY_USE_PERFETTO)
+-    TRACE_COUNTER(_category(), _label, _val, std::forward<Args>(_args)...);
++    TRACE_COUNTER(_category(), perfetto::StaticString(_label), _val, std::forward<Args>(_args)...);
+ #else
+     unused_args(_category, _label, _val, _args...);
+ #endif
+-- 
+2.41.1
+

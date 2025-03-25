@@ -1,0 +1,113 @@
+From 76f93ad9b945dd973d1b9e97ef4802d7125f5c13 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 18 Sep 2024 02:11:04 -0700
+Subject: [PATCH 6/6] add rocm sdk builder supported gpus to metrics.xml
+
+- values in gfx_metrics.xml will trigger
+  Translate method calls which will then
+  end up calling the libhsa-amd-aqlprofiler.so
+- note that if there is problems of loading the
+  libhsa-amd-aqlprofiler.so, then the
+  Translate method will crash
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ test/tool/gfx_metrics.xml | 17 +++++++++--------
+ test/tool/metrics.xml     | 30 +++++++++++++++++++-----------
+ 2 files changed, 28 insertions(+), 19 deletions(-)
+
+diff --git a/test/tool/gfx_metrics.xml b/test/tool/gfx_metrics.xml
+index 81dc9dd..638ae61 100755
+--- a/test/tool/gfx_metrics.xml
++++ b/test/tool/gfx_metrics.xml
+@@ -682,14 +682,15 @@
+   <metric name="TA_FLAT_STORE_WAVEFRONTS" block=TA event=102 descr="Number of flat store vec32 packets processed by TA, same as flat_write_wavefronts in earlier IP"></metric>
+ </gfx10>
+ 
+-<gfx1030 base="gfx10">
+-</gfx1030>
++<gfx1010 base="gfx10"></gfx1010>
++<gfx1011 base="gfx10"></gfx1011>
++<gfx1012 base="gfx10"></gfx1012>
+ 
+-<gfx1031 base="gfx10">
+-</gfx1031>
+-
+-<gfx1032 base="gfx10">
+-</gfx1032>
++<gfx1030 base="gfx10"></gfx1030>
++<gfx1031 base="gfx10"></gfx1031>
++<gfx1032 base="gfx10"></gfx1032>
++<gfx1035 base="gfx10"></gfx1035>
++<gfx1036 base="gfx10"></gfx1036>
+ 
+ <gfx11>
+   <metric name="GRBM_COUNT" block=GRBM event=0 descr="Tie High - Count Number of Clocks"></metric>
+@@ -740,4 +741,4 @@
+ <gfx1100 base="gfx11"></gfx1100>
+ <gfx1101 base="gfx11"></gfx1101>
+ <gfx1102 base="gfx11"></gfx1102>
+-
++<gfx1103 base="gfx11"></gfx1103>
+diff --git a/test/tool/metrics.xml b/test/tool/metrics.xml
+index fab7522..2d64c85 100755
+--- a/test/tool/metrics.xml
++++ b/test/tool/metrics.xml
+@@ -410,18 +410,20 @@
+   <metric name="LDSBankConflict" expr=100*SQC_LDS_BANK_CONFLICT/SQC_LDS_IDX_ACTIVE descr="The percentage of GPUTime LDS is stalled by bank conflicts. Value range: 0% (optimal) to 100% (bad)."></metric>
+ </gfx11_expr>
+ 
++<gfx1010_expr base="gfx10_expr"></gfx1010_expr>
++<gfx1011_expr base="gfx10_expr"></gfx1011_expr>
++<gfx1012_expr base="gfx10_expr"></gfx1012_expr>
++<gfx1030_expr base="gfx10_expr"></gfx1030_expr>
++
++<gfx1031_expr base="gfx10_expr"></gfx1031_expr>
++<gfx1032_expr base="gfx10_expr"></gfx1032_expr>
++<gfx1035_expr base="gfx10_expr"></gfx1035_expr>
++<gfx1036_expr base="gfx10_expr"></gfx1036_expr>
++
+ <gfx1100_expr base="gfx11_expr"></gfx1100_expr>
+ <gfx1101_expr base="gfx11_expr"></gfx1101_expr>
+ <gfx1102_expr base="gfx11_expr"></gfx1102_expr>
+-
+-<gfx1030_expr base="gfx10_expr">
+-</gfx1030_expr>
+-
+-<gfx1031_expr base="gfx10_expr">
+-</gfx1031_expr>
+-
+-<gfx1032_expr base="gfx10_expr">
+-</gfx1032_expr>
++<gfx1103_expr base="gfx11_expr"></gfx1103_expr>
+ 
+ <gfx8 base="gfx8_expr"></gfx8>
+ <gfx9 base="gfx9_expr"></gfx9>
+@@ -436,16 +438,22 @@
+ <gfx940 base="gfx940_expr"></gfx940>
+ <gfx941 base="gfx940_expr"></gfx941>
+ <gfx942 base="gfx940_expr"></gfx942>
++
++<gfx1010 base="gfx1010_expr"></gfx1010>
++<gfx1011 base="gfx1011_expr"></gfx1011>
++<gfx1012 base="gfx1012_expr"></gfx1012>
++
+ #Navi21
+ <gfx1030 base="gfx1030_expr"></gfx1030>
+-
+ <gfx1031 base="gfx1031_expr"></gfx1031>
+-
+ <gfx1032 base="gfx1032_expr"></gfx1032>
++<gfx1035 base="gfx1035_expr"></gfx1035>
++<gfx1036 base="gfx1036_expr"></gfx1036>
+ 
+ <gfx1100 base="gfx1100_expr"></gfx1100>
+ <gfx1101 base="gfx1101_expr"></gfx1101>
+ <gfx1102 base="gfx1102_expr"></gfx1102>
++<gfx1103 base="gfx1103_expr"></gfx1103>
+ 
+ <global>
+   # GPUBusy         The percentage of time GPU was busy.
+-- 
+2.41.1
+

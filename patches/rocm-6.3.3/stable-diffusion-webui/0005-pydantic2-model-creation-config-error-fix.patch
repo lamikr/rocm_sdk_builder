@@ -1,0 +1,46 @@
+From 768d010bb699dc6d26186bf5f23ffbc63e76fde1 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 31 Jul 2024 19:01:01 -0700
+Subject: [PATCH 5/6] pydantic2 model creation config error fix
+
+fixes following error:
+
+ Error creating UI for None:
+    Traceback (most recent call last):
+      File "/opt/rocm_sdk_612/stable_diffusion_webui_/modules/scripts.py", line 640, in create_script_ui
+        self.create_script_ui_inner(script)
+      File "/opt/rocm_sdk_612/stable_diffusion_webui_/modules/scripts.py", line 645, in create_script_ui_inner
+        import modules.api.models as api_models
+      File "/opt/rocm_sdk_612/stable_diffusion_webui_/modules/api/models.py", line 113, in <module>
+        ).generate_model()
+          ^^^^^^^^^^^^^^^^
+      File "/opt/rocm_sdk_612/stable_diffusion_webui_/modules/api/models.py", line 96, in generate_model
+        DynamicModel.__config__.allow_population_by_field_name = True
+        ^^^^^^^^^^^^^^^^^^^^^^^
+      File "/opt/rocm_sdk_612/lib/python3.11/site-packages/pydantic/_internal/_model_construction.py", line 237, in __getattr__
+        raise AttributeError(item)
+    AttributeError: __config__
+
+see also:
+https://medium.com/codex/migrating-to-pydantic-v2-5a4b864621c3
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ modules/api/models.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/api/models.py b/modules/api/models.py
+index 79c4cbbb..26af758b 100644
+--- a/modules/api/models.py
++++ b/modules/api/models.py
+@@ -1,6 +1,6 @@
+ import inspect
+ 
+-from pydantic import BaseModel, Field, create_model
++from pydantic.v1 import BaseModel, Field, create_model
+ from typing import Any, Optional, Literal
+ from inflection import underscore
+ from modules.processing import StableDiffusionProcessingTxt2Img, StableDiffusionProcessingImg2Img
+-- 
+2.41.1
+

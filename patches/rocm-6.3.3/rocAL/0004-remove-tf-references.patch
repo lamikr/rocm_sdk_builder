@@ -1,0 +1,685 @@
+From 0fee5b71baee93ab10a91290810ff1603a9395f3 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 28 Aug 2024 17:16:07 -0700
+Subject: [PATCH 4/4] remove tf references
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ rocAL/include/api/rocal_api_meta_data.h       |  20 --
+ rocAL/include/meta_data/meta_data_reader.h    |   2 -
+ .../include/meta_data/randombboxcrop_reader.h |   1 -
+ rocAL/source/api/rocal_api_meta_data.cpp      |  45 ---
+ .../meta_data/meta_data_reader_factory.cpp    |  18 --
+ rocAL/source/pipeline/master_graph.cpp        |  33 ---
+ rocAL/source/readers/image/reader_factory.cpp |   7 -
+ rocAL_pybind/rocal_pybind.cpp                 |   2 -
+ tests/cpp_api/dataloader_tf/CMakeLists.txt    |  73 -----
+ tests/cpp_api/dataloader_tf/README.md         |  26 --
+ tests/cpp_api/dataloader_tf/dataloader_tf.cpp | 271 ------------------
+ tests/cpp_api/unit_tests/unit_tests.cpp       |  25 --
+ 12 files changed, 523 deletions(-)
+ delete mode 100644 tests/cpp_api/dataloader_tf/CMakeLists.txt
+ delete mode 100644 tests/cpp_api/dataloader_tf/README.md
+ delete mode 100644 tests/cpp_api/dataloader_tf/dataloader_tf.cpp
+
+diff --git a/rocAL/include/api/rocal_api_meta_data.h b/rocAL/include/api/rocal_api_meta_data.h
+index 9907427..5406099 100644
+--- a/rocAL/include/api/rocal_api_meta_data.h
++++ b/rocAL/include/api/rocal_api_meta_data.h
+@@ -53,26 +53,6 @@ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateLabelReader(RocalContext roca
+  */
+ extern "C" RocalMetaData ROCAL_API_CALL rocalCreateVideoLabelReader(RocalContext rocal_context, const char* source_path, unsigned sequence_length, unsigned frame_step, unsigned frame_stride, bool file_list_frame_num = true);
+ 
+-/*! \brief create tf reader
+- * \ingroup group_rocal_meta_data
+- * \param [in] rocal_context rocal context
+- * \param [in] source_path path to the coco json file
+- * \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+- */
+-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReader(RocalContext rocal_context, const char* source_path, bool is_output,
+-                                                            const char* user_key_for_label, const char* user_key_for_filename);
+-
+-/*! \brief create tf reader detection
+- * \ingroup group_rocal_meta_data
+- * \param [in] rocal_context
+- * \param [in] source_path path to the coco json file
+- * \return RocalMetaData object, can be used to inquire about the rocal's output (processed) tensors
+- */
+-extern "C" RocalMetaData ROCAL_API_CALL rocalCreateTFReaderDetection(RocalContext rocal_context, const char* source_path, bool is_output,
+-                                                                     const char* user_key_for_label, const char* user_key_for_text,
+-                                                                     const char* user_key_for_xmin, const char* user_key_for_ymin, const char* user_key_for_xmax, const char* user_key_for_ymax,
+-                                                                     const char* user_key_for_filename);
+-
+ /*! \brief create coco reader
+  * \ingroup group_rocal_meta_data
+  * \param [in] rocal_context rocal context
+diff --git a/rocAL/include/meta_data/meta_data_reader.h b/rocAL/include/meta_data/meta_data_reader.h
+index 111d6ea..027ac6b 100644
+--- a/rocAL/include/meta_data/meta_data_reader.h
++++ b/rocAL/include/meta_data/meta_data_reader.h
+@@ -34,12 +34,10 @@ enum class MetaDataReaderType {
+     COCO_META_DATA_READER,
+     COCO_KEY_POINTS_META_DATA_READER,
+     CIFAR10_META_DATA_READER,  // meta_data for cifar10 data which is store as part of bin file
+-    TF_META_DATA_READER,
+     CAFFE_META_DATA_READER,
+     CAFFE_DETECTION_META_DATA_READER,
+     CAFFE2_META_DATA_READER,
+     CAFFE2_DETECTION_META_DATA_READER,
+-    TF_DETECTION_META_DATA_READER,
+     VIDEO_LABEL_READER,
+     MXNET_META_DATA_READER
+ };
+diff --git a/rocAL/include/meta_data/randombboxcrop_reader.h b/rocAL/include/meta_data/randombboxcrop_reader.h
+index d39a599..6d2c471 100644
+--- a/rocAL/include/meta_data/randombboxcrop_reader.h
++++ b/rocAL/include/meta_data/randombboxcrop_reader.h
+@@ -35,7 +35,6 @@ THE SOFTWARE.
+ #include "parameters/parameter_crop_factory.h"
+ #include "parameters/parameter_factory.h"
+ #include "meta_data/randombboxcrop_meta_data_reader.h"
+-#include "meta_data/tf_meta_data_reader_detection.h"
+ 
+ // todo:: move this to common header
+ template <typename T = std::mt19937, std::size_t state_size = T::state_size>
+diff --git a/rocAL/source/api/rocal_api_meta_data.cpp b/rocAL/source/api/rocal_api_meta_data.cpp
+index 6250d98..62c84b7 100644
+--- a/rocAL/source/api/rocal_api_meta_data.cpp
++++ b/rocAL/source/api/rocal_api_meta_data.cpp
+@@ -93,51 +93,6 @@ RocalMetaData
+     return context->master_graph->create_coco_meta_data_reader(source_path, is_output, MetaDataReaderType::COCO_KEY_POINTS_META_DATA_READER, MetaDataType::KeyPoints, false, false, false, false, sigma, pose_output_width, pose_output_height);
+ }
+ 
+-RocalMetaData
+-    ROCAL_API_CALL
+-    rocalCreateTFReader(RocalContext p_context, const char* source_path, bool is_output, const char* user_key_for_label, const char* user_key_for_filename) {
+-    if (!p_context)
+-        THROW("Invalid rocal context passed to rocalCreateTFReader")
+-    auto context = static_cast<Context*>(p_context);
+-    std::string user_key_for_label_str(user_key_for_label);
+-    std::string user_key_for_filename_str(user_key_for_filename);
+-
+-    std::map<std::string, std::string> feature_key_map = {
+-        {"image/class/label", user_key_for_label_str},
+-        {"image/filename", user_key_for_filename_str}};
+-    return context->master_graph->create_tf_record_meta_data_reader(source_path, MetaDataReaderType::TF_META_DATA_READER, MetaDataType::Label, feature_key_map);
+-}
+-
+-RocalMetaData
+-    ROCAL_API_CALL
+-    rocalCreateTFReaderDetection(RocalContext p_context, const char* source_path, bool is_output,
+-                                 const char* user_key_for_label, const char* user_key_for_text,
+-                                 const char* user_key_for_xmin, const char* user_key_for_ymin, const char* user_key_for_xmax, const char* user_key_for_ymax,
+-                                 const char* user_key_for_filename) {
+-    if (!p_context)
+-        THROW("Invalid rocal context passed to rocalCreateTFReaderDetection")
+-    auto context = static_cast<Context*>(p_context);
+-
+-    std::string user_key_for_label_str(user_key_for_label);
+-    std::string user_key_for_text_str(user_key_for_text);
+-    std::string user_key_for_xmin_str(user_key_for_xmin);
+-    std::string user_key_for_ymin_str(user_key_for_ymin);
+-    std::string user_key_for_xmax_str(user_key_for_xmax);
+-    std::string user_key_for_ymax_str(user_key_for_ymax);
+-    std::string user_key_for_filename_str(user_key_for_filename);
+-
+-    std::map<std::string, std::string> feature_key_map = {
+-        {"image/class/label", user_key_for_label_str},
+-        {"image/class/text", user_key_for_text_str},
+-        {"image/object/bbox/xmin", user_key_for_xmin_str},
+-        {"image/object/bbox/ymin", user_key_for_ymin_str},
+-        {"image/object/bbox/xmax", user_key_for_xmax_str},
+-        {"image/object/bbox/ymax", user_key_for_ymax_str},
+-        {"image/filename", user_key_for_filename_str}};
+-
+-    return context->master_graph->create_tf_record_meta_data_reader(source_path, MetaDataReaderType::TF_DETECTION_META_DATA_READER, MetaDataType::BoundingBox, feature_key_map);
+-}
+-
+ RocalMetaData
+     ROCAL_API_CALL
+     rocalCreateMXNetReader(RocalContext p_context, const char* source_path, bool is_output) {
+diff --git a/rocAL/source/meta_data/meta_data_reader_factory.cpp b/rocAL/source/meta_data/meta_data_reader_factory.cpp
+index b004786..838a735 100644
+--- a/rocAL/source/meta_data/meta_data_reader_factory.cpp
++++ b/rocAL/source/meta_data/meta_data_reader_factory.cpp
+@@ -35,8 +35,6 @@ THE SOFTWARE.
+ #include "meta_data/label_reader_folders.h"
+ #include "meta_data/mxnet_meta_data_reader.h"
+ #include "meta_data/text_file_meta_data_reader.h"
+-#include "meta_data/tf_meta_data_reader.h"
+-#include "meta_data/tf_meta_data_reader_detection.h"
+ #include "meta_data/video_label_reader.h"
+ 
+ std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& config, pMetaDataBatch& meta_data_batch) {
+@@ -67,22 +65,6 @@ std::shared_ptr<MetaDataReader> create_meta_data_reader(const MetaDataConfig& co
+             meta_data_reader->init(config, meta_data_batch);
+             return meta_data_reader;
+         } break;
+-        case MetaDataReaderType::TF_META_DATA_READER: {
+-            if (config.type() != MetaDataType::Label)
+-                THROW("TF_META_DATA_READER can only be used to load labels")
+-            auto meta_data_reader = std::make_shared<TFMetaDataReader>();
+-            meta_data_batch = std::make_shared<LabelBatch>();
+-            meta_data_reader->init(config, meta_data_batch);
+-            return meta_data_reader;
+-        } break;
+-        case MetaDataReaderType::TF_DETECTION_META_DATA_READER: {
+-            if (config.type() != MetaDataType::BoundingBox)
+-                THROW("TF_DETECTION_META_DATA_READER can only be used to load bounding boxes")
+-            auto meta_data_reader = std::make_shared<TFMetaDataReaderDetection>();
+-            meta_data_batch = std::make_shared<BoundingBoxBatch>();
+-            meta_data_reader->init(config, meta_data_batch);
+-            return meta_data_reader;
+-        } break;
+         case MetaDataReaderType::COCO_META_DATA_READER: {
+             if (config.type() != MetaDataType::BoundingBox && config.type() != MetaDataType::PolygonMask)
+                 THROW("COCO_META_DATA_READER can only be used to load bounding boxes and mask coordinates")
+diff --git a/rocAL/source/pipeline/master_graph.cpp b/rocAL/source/pipeline/master_graph.cpp
+index 2f9227f..11a8870 100644
+--- a/rocAL/source/pipeline/master_graph.cpp
++++ b/rocAL/source/pipeline/master_graph.cpp
+@@ -1093,39 +1093,6 @@ std::vector<rocalTensorList *> MasterGraph::create_tf_record_meta_data_reader(co
+     _meta_data_reader = create_meta_data_reader(config, _augmented_meta_data);
+     _meta_data_reader->read_all(source_path);
+ 
+-    if (reader_type == MetaDataReaderType::TF_META_DATA_READER) {
+-        std::vector<size_t> dims = {1};
+-        auto default_labels_info = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);  // Create default labels Info
+-        default_labels_info.set_metadata();
+-        _meta_data_buffer_size.emplace_back(_user_batch_size * sizeof(vx_int32));
+-
+-        for (unsigned i = 0; i < _user_batch_size; i++) {
+-            auto info = default_labels_info;
+-            auto tensor = new Tensor(info);
+-            _labels_tensor_list.push_back(tensor);
+-        }
+-        _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
+-    } else if (reader_type == MetaDataReaderType::TF_DETECTION_META_DATA_READER) {
+-        std::vector<size_t> dims = {MAX_OBJECTS};
+-        auto default_labels_info = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::INT32);  // Create default labels Info
+-        default_labels_info.set_metadata();
+-        _meta_data_buffer_size.emplace_back(_user_batch_size * default_labels_info.data_size());
+-
+-        dims = {MAX_OBJECTS, BBOX_COUNT};
+-        auto default_bbox_info = TensorInfo(std::move(dims), _mem_type, RocalTensorDataType::FP32);  // Create default Bbox Info
+-        default_bbox_info.set_metadata();
+-        _meta_data_buffer_size.emplace_back(_user_batch_size * default_bbox_info.data_size());
+-
+-        for (unsigned i = 0; i < _user_batch_size; i++) {
+-            auto labels_info = default_labels_info;
+-            auto bbox_info = default_bbox_info;
+-            _labels_tensor_list.push_back(new Tensor(labels_info));
+-            _bbox_tensor_list.push_back(new Tensor(bbox_info));
+-        }
+-        _metadata_output_tensor_list.emplace_back(&_labels_tensor_list);
+-        _metadata_output_tensor_list.emplace_back(&_bbox_tensor_list);
+-    }
+-
+     _ring_buffer.init_metadata(RocalMemType::HOST, _meta_data_buffer_size);
+ 
+     return _metadata_output_tensor_list;
+diff --git a/rocAL/source/readers/image/reader_factory.cpp b/rocAL/source/readers/image/reader_factory.cpp
+index 27bea24..fdc5902 100644
+--- a/rocAL/source/readers/image/reader_factory.cpp
++++ b/rocAL/source/readers/image/reader_factory.cpp
+@@ -33,7 +33,6 @@ THE SOFTWARE.
+ #include "readers/image/external_source_reader.h"
+ #include "readers/image/mxnet_recordio_reader.h"
+ #include "readers/video/sequence_file_source_reader.h"
+-#include "readers/image/tf_record_reader.h"
+ 
+ std::shared_ptr<Reader> create_reader(ReaderConfig config) {
+     switch (config.type()) {
+@@ -55,12 +54,6 @@ std::shared_ptr<Reader> create_reader(ReaderConfig config) {
+                 throw std::runtime_error("COCO File reader cannot access the storage");
+             return ret;
+         } break;
+-        case StorageType::TF_RECORD: {
+-            auto ret = std::make_shared<TFRecordReader>();
+-            if (ret->initialize(config) != Reader::Status::OK)
+-                throw std::runtime_error("File reader cannot access the storage");
+-            return ret;
+-        } break;
+         case StorageType::UNCOMPRESSED_BINARY_DATA: {
+             auto ret = std::make_shared<CIFAR10DataReader>();
+             if (ret->initialize(config) != Reader::Status::OK)
+diff --git a/rocAL_pybind/rocal_pybind.cpp b/rocAL_pybind/rocal_pybind.cpp
+index 22f40d2..9d024c5 100644
+--- a/rocAL_pybind/rocal_pybind.cpp
++++ b/rocAL_pybind/rocal_pybind.cpp
+@@ -463,8 +463,6 @@ PYBIND11_MODULE(rocal_pybind, m) {
+     m.def("getImageNameLen", &wrapper_image_name_length);
+     m.def("getStatus", &rocalGetStatus);
+     m.def("setOutputs", &rocalSetOutputs);
+-    m.def("tfReader", &rocalCreateTFReader, py::return_value_policy::reference);
+-    m.def("tfReaderDetection", &rocalCreateTFReaderDetection, py::return_value_policy::reference);
+     m.def("caffeReader", &rocalCreateCaffeLMDBLabelReader, py::return_value_policy::reference);
+     m.def("caffe2Reader", &rocalCreateCaffe2LMDBLabelReader, py::return_value_policy::reference);
+     m.def("caffeReaderDetection", &rocalCreateCaffeLMDBReaderDetection, py::return_value_policy::reference);
+diff --git a/tests/cpp_api/dataloader_tf/CMakeLists.txt b/tests/cpp_api/dataloader_tf/CMakeLists.txt
+deleted file mode 100644
+index 79ef111..0000000
+--- a/tests/cpp_api/dataloader_tf/CMakeLists.txt
++++ /dev/null
+@@ -1,73 +0,0 @@
+-################################################################################
+-#
+-# MIT License
+-#
+-# Copyright (c) 2018 - 2023 Advanced Micro Devices, Inc.
+-#
+-# Permission is hereby granted, free of charge, to any person obtaining a copy
+-# of this software and associated documentation files (the "Software"), to deal
+-# in the Software without restriction, including without limitation the rights
+-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-# copies of the Software, and to permit persons to whom the Software is
+-# furnished to do so, subject to the following conditions:
+-#
+-# The above copyright notice and this permission notice shall be included in all
+-# copies or substantial portions of the Software.
+-#
+-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-# SOFTWARE.
+-#
+-################################################################################
+-cmake_minimum_required(VERSION 3.5)
+-
+-project(dataloader_tf)
+-
+-set(CMAKE_CXX_STANDARD 14)
+-
+-# ROCM Path
+-if(DEFINED ENV{ROCM_PATH})
+-    set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Default ROCm installation path")
+-elseif(ROCM_PATH)
+-    message("-- ${PROJECT_NAME} INFO:ROCM_PATH Set -- ${ROCM_PATH}")
+-else()
+-    set(ROCM_PATH /opt/rocm CACHE PATH "Default ROCm installation path")
+-endif()
+-
+-# Add Default libdir
+-set(CMAKE_INSTALL_LIBDIR "lib" CACHE STRING "Library install directory")
+-include(GNUInstallDirs)
+-
+-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../cmake)
+-
+-find_package(OpenCV QUIET)
+-find_package(AMDRPP QUIET)
+-
+-include_directories(${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR} ${ROCM_PATH}/${CMAKE_INSTALL_INCLUDEDIR}/rocal)
+-link_directories(${ROCM_PATH}/lib)
+-file(GLOB My_Source_Files ./*.cpp)
+-add_executable(${PROJECT_NAME} ${My_Source_Files})
+-
+-if(OpenCV_FOUND)
+-    if(${OpenCV_VERSION_MAJOR} EQUAL 3 OR ${OpenCV_VERSION_MAJOR} EQUAL 4)
+-        message("-- OpenCV Found -- Version-${OpenCV_VERSION_MAJOR}.${OpenCV_VERSION_MINOR}.X Supported")
+-        include_directories(${OpenCV_INCLUDE_DIRS})
+-        target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBRARIES})
+-        if(${OpenCV_VERSION_MAJOR} EQUAL 4)
+-            target_compile_definitions(${PROJECT_NAME} PUBLIC USE_OPENCV_4=1)
+-        else()
+-            target_compile_definitions(${PROJECT_NAME} PUBLIC USE_OPENCV_4=0)
+-        endif()
+-    else()
+-        message(FATAL_ERROR "OpenCV Found -- Version-${OpenCV_VERSION_MAJOR}.${OpenCV_VERSION_MINOR}.X Not Supported")
+-    endif()
+-else()
+-    message(FATAL_ERROR "OpenCV Not Found -- No Display Support")
+-endif()
+-
+-target_link_libraries(${PROJECT_NAME} rocal)
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mf16c -Wall ")
+diff --git a/tests/cpp_api/dataloader_tf/README.md b/tests/cpp_api/dataloader_tf/README.md
+deleted file mode 100644
+index bfe4e3a..0000000
+--- a/tests/cpp_api/dataloader_tf/README.md
++++ /dev/null
+@@ -1,26 +0,0 @@
+-# dataloader tensorflow application
+-
+-This application demonstrates a basic usage of rocAL's C API to load TfRecords from the disk and modify them in different possible ways and displays the output images.
+-
+-## Pre-requisites
+-
+-*  Ubuntu 16.04/18.04 Linux
+-*  [OpenCV 3.1](https://github.com/opencv/opencv/releases) or higher
+-*  Google protobuf 3.11.1 or higher
+-*  ROCm Performance Primitives (RPP)
+-
+-## Build Instructions
+-
+-  ````shell
+-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib
+-  mkdir build
+-  cd build
+-  cmake ../
+-  make
+-  ````
+-
+-### running the application
+-
+-  ````shell
+-  ./dataloader_tf <path-to-TFRecord-folder - required> <proc_dev> <decode_width> <decode_height> <batch_size> <grayscale/rgb> <dispay_on_or_off>
+-  ````
+diff --git a/tests/cpp_api/dataloader_tf/dataloader_tf.cpp b/tests/cpp_api/dataloader_tf/dataloader_tf.cpp
+deleted file mode 100644
+index 605c896..0000000
+--- a/tests/cpp_api/dataloader_tf/dataloader_tf.cpp
++++ /dev/null
+@@ -1,271 +0,0 @@
+-/*
+-MIT License
+-
+-Copyright (c) 2018 - 2023 Advanced Micro Devices, Inc. All rights reserved.
+-
+-Permission is hereby granted, free of charge, to any person obtaining a copy
+-of this software and associated documentation files (the "Software"), to deal
+-in the Software without restriction, including without limitation the rights
+-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-copies of the Software, and to permit persons to whom the Software is
+-furnished to do so, subject to the following conditions:
+-
+-The above copyright notice and this permission notice shall be included in
+-all copies or substantial portions of the Software.
+-
+-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+-THE SOFTWARE.
+-*/
+-
+-#include <chrono>
+-#include <cstdio>
+-#include <cstring>
+-#include <iostream>
+-#include <vector>
+-
+-#include "opencv2/opencv.hpp"
+-#include "rocal_api.h"
+-using namespace cv;
+-#if USE_OPENCV_4
+-#define CV_LOAD_IMAGE_COLOR IMREAD_COLOR
+-#define CV_BGR2GRAY COLOR_BGR2GRAY
+-#define CV_GRAY2RGB COLOR_GRAY2RGB
+-#define CV_RGB2BGR COLOR_RGB2BGR
+-#define CV_FONT_HERSHEY_SIMPLEX FONT_HERSHEY_SIMPLEX
+-#define CV_FILLED FILLED
+-#define CV_WINDOW_AUTOSIZE WINDOW_AUTOSIZE
+-#define cvDestroyWindow destroyWindow
+-#endif
+-
+-#define DISPLAY 0
+-using namespace std::chrono;
+-
+-int main(int argc, const char **argv) {
+-    // check command-line usage
+-    const int MIN_ARG_COUNT = 2;
+-    if (argc < MIN_ARG_COUNT) {
+-        printf("Usage: dataloader_tf <path-to-TFRecord-folder - required> <processing_device=1/cpu=0>  <decode_width> <decode_height> <batch_size> <gray_scale/rgb/rgbplanar> display_on_off \n");
+-        return -1;
+-    }
+-    int argIdx = 0;
+-    const char *folderPath1 = argv[++argIdx];
+-    bool display = 0;  // Display the images
+-    // int aug_depth = 1;// how deep is the augmentation tree
+-    int rgb = 0;            // process gray images
+-    int decode_width = 640;
+-    int decode_height = 480;
+-    int inputBatchSize = 16;
+-    bool processing_device = 1;
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        processing_device = atoi(argv[++argIdx]);
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        decode_width = atoi(argv[++argIdx]);
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        decode_height = atoi(argv[++argIdx]);
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        inputBatchSize = atoi(argv[++argIdx]);
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        rgb = atoi(argv[++argIdx]);
+-
+-    if (argc >= argIdx + MIN_ARG_COUNT)
+-        display = atoi(argv[++argIdx]);
+-
+-    std::cout << ">>> Running on " << (processing_device ? "GPU" : "CPU") << std::endl;
+-    RocalImageColor color_format = RocalImageColor::ROCAL_COLOR_U8;
+-    if (rgb == 0)
+-        color_format = RocalImageColor::ROCAL_COLOR_U8;
+-    else if (rgb == 1)
+-        color_format = RocalImageColor::ROCAL_COLOR_RGB24;
+-    else if (rgb == 2)
+-        color_format = RocalImageColor::ROCAL_COLOR_RGB_PLANAR;
+-
+-    auto handle = rocalCreate(inputBatchSize, processing_device ? RocalProcessMode::ROCAL_PROCESS_GPU : RocalProcessMode::ROCAL_PROCESS_CPU, 0, 1);
+-
+-    if (rocalGetStatus(handle) != ROCAL_OK) {
+-        std::cout << "Could not create the Rocal contex\n";
+-        return -1;
+-    }
+-
+-    /*>>>>>>>>>>>>>>>>>>> Graph description <<<<<<<<<<<<<<<<<<<*/
+-    RocalTensor decoded_output;
+-    // hardcoding the following for mnist tfrecords
+-    std::string feature_map_image = "image/encoded";
+-    std::string feature_map_filename = "image/filename";
+-    std::string feature_map_label = "image/class/label";
+-
+-    rocalCreateTFReader(handle, folderPath1, 1, feature_map_label.c_str(), feature_map_filename.c_str());
+-    decoded_output = rocalJpegTFRecordSource(handle, folderPath1, color_format, 1, false, feature_map_image.c_str(), feature_map_filename.c_str(), false, false, ROCAL_USE_USER_GIVEN_SIZE, decode_width, decode_height);
+-
+-    if (rocalGetStatus(handle) != ROCAL_OK) {
+-        std::cout << "JPEG source could not initialize : " << rocalGetErrorMessage(handle) << std::endl;
+-        return -1;
+-    }
+-
+-#if 0
+-    const size_t num_values = 3;
+-    float values[num_values] = {0,10,135};
+-    double frequencies[num_values] = {1, 5, 5};
+-
+-    RocalFloatParam rand_angle =   rocalCreateFloatRand( values , frequencies, num_values);
+-    // Creating successive blur nodes to simulate a deep branch of augmentations
+-    RocalTensor input2 = rocalCropResize(handle, decoded_output, resize_w, resize_h, false, rand_crop_area);;
+-    for(int i = 0 ; i < aug_depth; i++)
+-    {
+-        input2 = rocalBlurFixed(handle, input2, 17.25, (i == (aug_depth -1)) ? true:false );
+-    }
+-
+-
+-    RocalTensor input4 = rocalColorTemp(handle, decoded_output, false, color_temp_adj);
+-
+-    RocalTensor input5 = rocalWarpAffine(handle, input4, false);
+-
+-    RocalTensor input6 = rocalJitter(handle, input5, false);
+-
+-    rocalVignette(handle, input6, true);
+-
+-
+-
+-    RocalTensor input7 = rocalPixelate(handle, decoded_output, false);
+-
+-    RocalTensor input8 = rocalSnow(handle, decoded_output, false);
+-
+-    RocalTensor input9 = rocalBlend(handle, input7, input8, false);
+-
+-    RocalTensor image10 = rocalLensCorrection(handle, input9, false);
+-
+-    rocalExposure(handle, image10, true);
+-#else
+-    // uncomment the following to add augmentation if needed
+-    // just do one augmentation to test
+-    rocalResize(handle, decoded_output, 300, 300, true);
+-#endif
+-
+-    if (rocalGetStatus(handle) != ROCAL_OK) {
+-        std::cout << "Error while adding the augmentation nodes " << std::endl;
+-        auto err_msg = rocalGetErrorMessage(handle);
+-        std::cout << err_msg << std::endl;
+-    }
+-    // Calling the API to verify and build the augmentation graph
+-    if (rocalVerify(handle) != ROCAL_OK) {
+-        std::cout << "Could not verify the augmentation graph" << std::endl;
+-        return -1;
+-    }
+-
+-    std::cout << "Remaining images " << rocalGetRemainingImages(handle) << std::endl;
+-
+-    std::cout << "Augmented copies count " << rocalGetAugmentationBranchCount(handle) << std::endl;
+-
+-    /*>>>>>>>>>>>>>>>>>>> Diplay using OpenCV <<<<<<<<<<<<<<<<<*/
+-    int n = rocalGetAugmentationBranchCount(handle);
+-    int h = n * rocalGetOutputHeight(handle) * inputBatchSize;
+-    int w = rocalGetOutputWidth(handle);
+-    int p = (((color_format == RocalImageColor::ROCAL_COLOR_RGB24) ||
+-              (color_format == RocalImageColor::ROCAL_COLOR_RGB_PLANAR))
+-                 ? 3
+-                 : 1);
+-    std::cout << "output width " << w << " output height " << h << " color planes " << p << std::endl;
+-    const unsigned number_of_cols = 1;  // no augmented case
+-
+-    auto cv_color_format = ((p == 3) ? CV_8UC3 : CV_8UC1);
+-    cv::Mat mat_output(h, w * number_of_cols, cv_color_format);
+-    cv::Mat mat_input(h, w, cv_color_format);
+-    int col_counter = 0;
+-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+-    int counter = 0;
+-    std::vector<std::string> names;
+-    names.resize(inputBatchSize);
+-    int ImageNameLen[inputBatchSize];
+-
+-    int iter_cnt = 0;
+-    while (!rocalIsEmpty(handle) && (iter_cnt < 100)) {
+-        printf("Processing iter: %d\n", iter_cnt);
+-        if (rocalRun(handle) != 0) {
+-            std::cout << "rocalRun Failed" << std::endl;
+-            break;
+-        }
+-
+-        rocalCopyToOutput(handle, mat_input.data, h * w * p);
+-        counter += inputBatchSize;
+-
+-        RocalTensorList labels = rocalGetImageLabels(handle);
+-        unsigned img_name_size = rocalGetImageNameLen(handle, ImageNameLen);
+-        char img_name[img_name_size];
+-        rocalGetImageName(handle, img_name);
+-        std::string imageNamesStr(img_name);
+-        int pos = 0;
+-        int *labels_buffer = reinterpret_cast<int *>(labels->at(0)->buffer());
+-        for (int i = 0; i < inputBatchSize; i++) {
+-            names[i] = imageNamesStr.substr(pos, ImageNameLen[i]);
+-            pos += ImageNameLen[i];
+-            std::cout << "\n name: " << names[i] << " label: " << labels_buffer[i] << std::endl;
+-        }
+-        std::cout << std::endl;
+-
+-        iter_cnt++;
+-        if (!display)
+-            continue;
+-
+-        if (color_format == RocalImageColor::ROCAL_COLOR_RGB24) {
+-            cv::Mat mat_color;
+-            mat_input.copyTo(mat_output(cv::Rect(col_counter * w, 0, w, h)));
+-            cv::cvtColor(mat_output, mat_color, CV_RGB2BGR);
+-            if (DISPLAY)
+-                cv::imshow("output", mat_output);
+-            else
+-                cv::imwrite("output.png", mat_output);
+-        } else if (color_format == RocalImageColor::ROCAL_COLOR_RGB_PLANAR) {
+-            // convert planar to packed for OPENCV
+-            for (int j = 0; j < n; j++) {
+-                int const kWidth = w;
+-                int const kHeight = rocalGetOutputHeight(handle);
+-                int single_h = kHeight / inputBatchSize;
+-                for (int n = 0; n < inputBatchSize; n++) {
+-                    unsigned channel_size = kWidth * single_h * p;
+-                    unsigned char *interleavedp = mat_output.data + channel_size * n;
+-                    unsigned char *planarp = mat_input.data + channel_size * n;
+-                    for (int i = 0; i < (kWidth * single_h); i++) {
+-                        interleavedp[i * 3 + 0] = planarp[i + 0 * kWidth * single_h];
+-                        interleavedp[i * 3 + 1] = planarp[i + 1 * kWidth * single_h];
+-                        interleavedp[i * 3 + 2] = planarp[i + 2 * kWidth * single_h];
+-                    }
+-                }
+-            }
+-            if (DISPLAY)
+-                cv::imshow("output", mat_output);
+-            else
+-                cv::imwrite("output.png", mat_output);
+-        } else {
+-            mat_input.copyTo(mat_output(cv::Rect(col_counter * w, 0, w, h)));
+-            if (DISPLAY)
+-                cv::imshow("output", mat_output);
+-            else
+-                cv::imwrite("output.png", mat_output);
+-        }
+-        if (DISPLAY)
+-            cv::waitKey(1);
+-        col_counter = (col_counter + 1) % number_of_cols;
+-    }
+-
+-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+-    auto dur = duration_cast<microseconds>(t2 - t1).count();
+-    auto rocal_timing = rocalGetTimingInfo(handle);
+-    std::cout << "Load     time " << rocal_timing.load_time << std::endl;
+-    std::cout << "Decode   time " << rocal_timing.decode_time << std::endl;
+-    std::cout << "Process  time " << rocal_timing.process_time << std::endl;
+-    std::cout << "Transfer time " << rocal_timing.transfer_time << std::endl;
+-    std::cout << "Processed " << counter << " images/frames" << std::endl << "Total Elapsed Time " << dur / 1000000 << " sec " << dur % 1000000 << " us " << std::endl;
+-    rocalRelease(handle);
+-    mat_input.release();
+-    mat_output.release();
+-    return 0;
+-}
+diff --git a/tests/cpp_api/unit_tests/unit_tests.cpp b/tests/cpp_api/unit_tests/unit_tests.cpp
+index e59a370..0026072 100644
+--- a/tests/cpp_api/unit_tests/unit_tests.cpp
++++ b/tests/cpp_api/unit_tests/unit_tests.cpp
+@@ -242,31 +242,6 @@ int test(int test_case, int reader_type, const char *path, const char *outName,
+             std::vector<float> aspect_ratio = {3.0f / 4, 4.0f / 3};
+             decoded_output = rocalJpegCOCOFileSourcePartial(handle, path, json_path.c_str(), color_format, num_threads, false, area, aspect_ratio, 10, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+         } break;
+-        case 4:  // tf classification
+-        {
+-            std::cout << "Running TF CLASSIFICATION READER" << std::endl;
+-            pipeline_type = 1;
+-            char key1[25] = "image/encoded";
+-            char key2[25] = "image/class/label";
+-            char key8[25] = "image/filename";
+-            rocalCreateTFReader(handle, path, true, key2, key8);
+-            decoded_output = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+-        } break;
+-        case 5:  // tf detection
+-        {
+-            std::cout << "Running TF DETECTION READER" << std::endl;
+-            pipeline_type = 2;
+-            char key1[25] = "image/encoded";
+-            char key2[25] = "image/object/class/label";
+-            char key3[25] = "image/object/class/text";
+-            char key4[25] = "image/object/bbox/xmin";
+-            char key5[25] = "image/object/bbox/ymin";
+-            char key6[25] = "image/object/bbox/xmax";
+-            char key7[25] = "image/object/bbox/ymax";
+-            char key8[25] = "image/filename";
+-            rocalCreateTFReaderDetection(handle, path, true, key2, key3, key4, key5, key6, key7, key8);
+-            decoded_output = rocalJpegTFRecordSource(handle, path, color_format, num_threads, false, key1, key8, false, false, ROCAL_USE_USER_GIVEN_SIZE_RESTRICTED, decode_max_width, decode_max_height);
+-        } break;
+         case 6:  // caffe classification
+         {
+             std::cout << "Running CAFFE CLASSIFICATION READER" << std::endl;
+-- 
+2.41.1
+

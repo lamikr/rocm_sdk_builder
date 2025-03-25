@@ -1,0 +1,819 @@
+From 8c8377787f6d3d07ae3c703b4b9d84a23c7f47d5 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 17 Sep 2024 12:56:31 -0700
+Subject: [PATCH 1/6] omnitrace build on rocm sdk builder
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake/PAPI.cmake                              |  15 +-
+ cmake/Packages.cmake                          | 368 +++++++++---------
+ examples/CMakeLists.txt                       |   1 -
+ scripts/build-release.sh                      |   3 +-
+ source/bin/omnitrace-avail/CMakeLists.txt     |  27 ++
+ source/bin/omnitrace-avail/avail.cpp          |   3 +-
+ source/bin/omnitrace-causal/CMakeLists.txt    |   9 +
+ .../bin/omnitrace-instrument/CMakeLists.txt   |  16 +-
+ source/bin/omnitrace-instrument/details.cpp   |   6 +-
+ .../omnitrace-instrument/internal_libs.cpp    |   2 +-
+ source/bin/omnitrace-run/CMakeLists.txt       |   9 +
+ source/lib/CMakeLists.txt                     |  16 +
+ source/lib/binary/CMakeLists.txt              |   8 +
+ source/lib/omnitrace/library.cpp              |   2 +-
+ .../library/components/mpi_gotcha.cpp         |   1 +
+ .../library/components/roctracer.cpp          |   1 +
+ source/lib/omnitrace/library/ptl.cpp          |   2 +-
+ source/lib/omnitrace/library/rocm.cpp         |   1 +
+ source/lib/omnitrace/library/roctracer.cpp    |   1 +
+ source/lib/omnitrace/library/roctracer.hpp    |   8 +-
+ 20 files changed, 307 insertions(+), 192 deletions(-)
+
+diff --git a/cmake/PAPI.cmake b/cmake/PAPI.cmake
+index af8a207..a679194 100644
+--- a/cmake/PAPI.cmake
++++ b/cmake/PAPI.cmake
+@@ -36,13 +36,24 @@ if(NOT EXISTS "${OMNITRACE_PAPI_INSTALL_DIR}")
+                             ${OMNITRACE_PAPI_INSTALL_DIR}/lib)
+     execute_process(
+         COMMAND
+-            ${CMAKE_COMMAND} -E touch ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpapi.a
+-            ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpfm.a
++            ${CMAKE_COMMAND} -E touch ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpapi.a)
++
++    execute_process(
++        COMMAND
++            ${CMAKE_COMMAND} -E copy
++            /usr/lib64/libpfm.so
+             ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpfm.so)
++
++    execute_process(
++        COMMAND ${CMAKE_COMMAND} -E copy
++                /usr/lib64/libpfm.a
++                ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpfm.a)
++
+     set(_OMNITRACE_PAPI_BUILD_BYPRODUCTS
+         ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpapi.a
+         ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpfm.a
+         ${OMNITRACE_PAPI_INSTALL_DIR}/lib/libpfm.so)
++    #message(FATAL_ERROR "PAPI.cmake OMNITRACE_PAPI_INSTALL_DIR: ${OMNITRACE_PAPI_INSTALL_DIR}")
+ endif()
+ 
+ omnitrace_add_option(OMNITRACE_PAPI_AUTO_COMPONENTS "Automatically enable components" OFF)
+diff --git a/cmake/Packages.cmake b/cmake/Packages.cmake
+index a391408..f8bd984 100644
+--- a/cmake/Packages.cmake
++++ b/cmake/Packages.cmake
+@@ -371,7 +371,7 @@ if(OMNITRACE_BUILD_DYNINST)
+     target_link_libraries(omnitrace-dyninst INTERFACE Dyninst::Dyninst)
+ 
+ else()
+-    find_package(Dyninst ${omnitrace_FIND_QUIETLY} REQUIRED
++    find_package(Dyninst ${omnitrace_FIND_QUIETLY} REQUIRED HINTS ${CMAKE_INSTALL_PREFIX}/lib64 ${CMAKE_INSTALL_PREFIX}/lib
+                  COMPONENTS dyninstAPI parseAPI instructionAPI symtabAPI)
+ 
+     if(TARGET Dyninst::Dyninst) # updated Dyninst CMake system was found
+@@ -478,13 +478,13 @@ endif()
+ #
+ # ----------------------------------------------------------------------------------------#
+ 
+-set(perfetto_DIR ${PROJECT_SOURCE_DIR}/external/perfetto)
+-omnitrace_checkout_git_submodule(
+-    RELATIVE_PATH external/perfetto
+-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+-    REPO_URL https://github.com/google/perfetto.git
+-    REPO_BRANCH v46.0
+-    TEST_FILE sdk/perfetto.cc)
++#set(perfetto_DIR ${PROJECT_SOURCE_DIR}/external/perfetto)
++#omnitrace_checkout_git_submodule(
++#    RELATIVE_PATH external/perfetto
++#    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
++#    REPO_URL https://github.com/google/perfetto.git
++#    REPO_BRANCH v46.0
++#    TEST_FILE sdk/perfetto.cc)
+ 
+ include(Perfetto)
+ 
+@@ -520,168 +520,170 @@ endif()
+ #
+ # ----------------------------------------------------------------------------------------#
+ 
+-target_compile_definitions(
+-    omnitrace-timemory-config
+-    INTERFACE TIMEMORY_PAPI_ARRAY_SIZE=12 TIMEMORY_USE_ROOFLINE=0 TIMEMORY_USE_ERT=0
+-              TIMEMORY_USE_CONTAINERS=0 TIMEMORY_USE_ERT_EXTERN=0
+-              TIMEMORY_USE_CONTAINERS_EXTERN=0)
++if(OMNITRACE_BUILD_TIMEMORY)
++        target_compile_definitions(
++                omnitrace-timemory-config
++                INTERFACE TIMEMORY_PAPI_ARRAY_SIZE=12 TIMEMORY_USE_ROOFLINE=0 TIMEMORY_USE_ERT=0
++                                  TIMEMORY_USE_CONTAINERS=0 TIMEMORY_USE_ERT_EXTERN=0
++                                  TIMEMORY_USE_CONTAINERS_EXTERN=0)
+ 
+-if(OMNITRACE_BUILD_STACK_PROTECTOR)
+-    add_target_flag_if_avail(omnitrace-timemory-config "-fstack-protector-strong"
+-                             "-Wstack-protector")
+-endif()
+-
+-if(OMNITRACE_BUILD_DEBUG)
+-    add_target_flag_if_avail(omnitrace-timemory-config "-fno-omit-frame-pointer" "-g3")
+-endif()
+-
+-set(TIMEMORY_EXTERNAL_INTERFACE_LIBRARY
+-    omnitrace-timemory-config
+-    CACHE STRING "timemory configuration interface library")
+-set(TIMEMORY_INSTALL_HEADERS
+-    OFF
+-    CACHE BOOL "Disable timemory header install")
+-set(TIMEMORY_INSTALL_CONFIG
+-    OFF
+-    CACHE BOOL "Disable timemory cmake configuration install")
+-set(TIMEMORY_INSTALL_LIBRARIES
+-    OFF
+-    CACHE BOOL "Disable timemory installation of libraries not needed at runtime")
+-set(TIMEMORY_INSTALL_ALL
+-    OFF
+-    CACHE BOOL "Disable install target depending on all target")
+-set(TIMEMORY_BUILD_C
+-    OFF
+-    CACHE BOOL "Disable timemory C library")
+-set(TIMEMORY_BUILD_FORTRAN
+-    OFF
+-    CACHE BOOL "Disable timemory Fortran library")
+-set(TIMEMORY_BUILD_TOOLS
+-    OFF
+-    CACHE BOOL "Ensure timem executable is built")
+-set(TIMEMORY_BUILD_EXCLUDE_FROM_ALL
+-    ON
+-    CACHE BOOL "Set timemory to only build dependencies")
+-set(TIMEMORY_BUILD_HIDDEN_VISIBILITY
+-    ON
+-    CACHE BOOL "Build timemory with hidden visibility")
+-set(TIMEMORY_QUIET_CONFIG
+-    ON
+-    CACHE BOOL "Make timemory configuration quieter")
+-
+-# timemory feature settings
+-set(TIMEMORY_USE_MPI
+-    ${OMNITRACE_USE_MPI}
+-    CACHE BOOL "Enable MPI support in timemory" FORCE)
+-set(TIMEMORY_USE_GOTCHA
+-    ON
+-    CACHE BOOL "Enable GOTCHA support in timemory")
+-set(TIMEMORY_USE_PERFETTO
+-    OFF
+-    CACHE BOOL "Disable perfetto support in timemory")
+-set(TIMEMORY_USE_OMPT
+-    ${OMNITRACE_USE_OMPT}
+-    CACHE BOOL "Enable OMPT support in timemory" FORCE)
+-set(TIMEMORY_USE_PAPI
+-    ${OMNITRACE_USE_PAPI}
+-    CACHE BOOL "Enable PAPI support in timemory" FORCE)
+-set(TIMEMORY_USE_BFD
+-    ${OMNITRACE_USE_BFD}
+-    CACHE BOOL "Enable BFD support in timemory" FORCE)
+-set(TIMEMORY_USE_LIBUNWIND
+-    ON
+-    CACHE BOOL "Enable libunwind support in timemory")
+-set(TIMEMORY_USE_VISIBILITY
+-    OFF
+-    CACHE BOOL "Enable/disable using visibility decorations")
+-set(TIMEMORY_USE_SANITIZER
+-    ${OMNITRACE_USE_SANITIZER}
+-    CACHE BOOL "Build with -fsanitze=\${OMNITRACE_SANITIZER_TYPE}" FORCE)
+-set(TIMEMORY_SANITIZER_TYPE
+-    ${OMNITRACE_SANITIZER_TYPE}
+-    CACHE STRING "Sanitizer type, e.g. leak, thread, address, memory, etc." FORCE)
+-
+-if(DEFINED TIMEMORY_BUILD_GOTCHA AND NOT TIMEMORY_BUILD_GOTCHA)
+-    omnitrace_message(
+-        FATAL_ERROR
+-        "Using an external gotcha is not allowed due to known bug that has not been accepted upstream"
+-        )
+-endif()
++        if(OMNITRACE_BUILD_STACK_PROTECTOR)
++                add_target_flag_if_avail(omnitrace-timemory-config "-fstack-protector-strong"
++                                                                 "-Wstack-protector")
++        endif()
+ 
+-# timemory feature build settings
+-set(TIMEMORY_BUILD_GOTCHA
+-    ON
+-    CACHE BOOL "Enable building GOTCHA library from submodule" FORCE)
+-set(TIMEMORY_BUILD_LIBUNWIND
+-    ${OMNITRACE_BUILD_LIBUNWIND}
+-    CACHE BOOL "Enable building libunwind library from submodule" FORCE)
+-set(TIMEMORY_BUILD_EXTRA_OPTIMIZATIONS
+-    ${OMNITRACE_BUILD_EXTRA_OPTIMIZATIONS}
+-    CACHE BOOL "Enable building GOTCHA library from submodule" FORCE)
+-set(TIMEMORY_BUILD_ERT
+-    OFF
+-    CACHE BOOL "Disable building ERT support" FORCE)
+-set(TIMEMORY_BUILD_CONTAINERS
+-    OFF
+-    CACHE BOOL "Disable building container extern templates (unused)" FORCE)
+-
+-# timemory build settings
+-set(TIMEMORY_TLS_MODEL
+-    "global-dynamic"
+-    CACHE STRING "Thread-local static model" FORCE)
+-set(TIMEMORY_MAX_THREADS
+-    "${OMNITRACE_MAX_THREADS}"
+-    CACHE STRING "Max statically-allocated threads" FORCE)
+-set(TIMEMORY_SETTINGS_PREFIX
+-    "OMNITRACE_"
+-    CACHE STRING "Prefix used for settings and environment variables")
+-set(TIMEMORY_PROJECT_NAME
+-    "omnitrace"
+-    CACHE STRING "Name for configuration")
+-set(TIMEMORY_CXX_LIBRARY_EXCLUDE
+-    "kokkosp.cpp;pthread.cpp;timemory_c.cpp;trace.cpp;weak.cpp;library.cpp"
+-    CACHE STRING "Timemory C++ library implementation files to exclude from compiling")
+-
+-mark_as_advanced(TIMEMORY_SETTINGS_PREFIX)
+-mark_as_advanced(TIMEMORY_PROJECT_NAME)
+-
+-omnitrace_checkout_git_submodule(
+-    RELATIVE_PATH external/timemory
+-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+-    REPO_URL https://github.com/NERSC/timemory.git
+-    REPO_BRANCH omnitrace)
+-
+-omnitrace_save_variables(
+-    BUILD_CONFIG VARIABLES BUILD_SHARED_LIBS BUILD_STATIC_LIBS
+-                           CMAKE_POSITION_INDEPENDENT_CODE CMAKE_PREFIX_PATH)
++        if(OMNITRACE_BUILD_DEBUG)
++                add_target_flag_if_avail(omnitrace-timemory-config "-fno-omit-frame-pointer" "-g3")
++        endif()
+ 
+-# ensure timemory builds PIC static libs so that we don't have to install timemory shared
+-# lib
+-set(BUILD_SHARED_LIBS OFF)
+-set(BUILD_STATIC_LIBS ON)
+-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+-set(TIMEMORY_CTP_OPTIONS GLOBAL)
++        set(TIMEMORY_EXTERNAL_INTERFACE_LIBRARY
++                omnitrace-timemory-config
++                CACHE STRING "timemory configuration interface library")
++        set(TIMEMORY_INSTALL_HEADERS
++                OFF
++                CACHE BOOL "Disable timemory header install")
++        set(TIMEMORY_INSTALL_CONFIG
++                OFF
++                CACHE BOOL "Disable timemory cmake configuration install")
++        set(TIMEMORY_INSTALL_LIBRARIES
++                OFF
++                CACHE BOOL "Disable timemory installation of libraries not needed at runtime")
++        set(TIMEMORY_INSTALL_ALL
++                OFF
++                CACHE BOOL "Disable install target depending on all target")
++        set(TIMEMORY_BUILD_C
++                OFF
++                CACHE BOOL "Disable timemory C library")
++        set(TIMEMORY_BUILD_FORTRAN
++                OFF
++                CACHE BOOL "Disable timemory Fortran library")
++        set(TIMEMORY_BUILD_TOOLS
++                OFF
++                CACHE BOOL "Ensure timem executable is built")
++        set(TIMEMORY_BUILD_EXCLUDE_FROM_ALL
++                ON
++                CACHE BOOL "Set timemory to only build dependencies")
++        set(TIMEMORY_BUILD_HIDDEN_VISIBILITY
++                ON
++                CACHE BOOL "Build timemory with hidden visibility")
++        set(TIMEMORY_QUIET_CONFIG
++                ON
++                CACHE BOOL "Make timemory configuration quieter")
++
++        # timemory feature settings
++        set(TIMEMORY_USE_MPI
++                ${OMNITRACE_USE_MPI}
++                CACHE BOOL "Enable MPI support in timemory" FORCE)
++        set(TIMEMORY_USE_GOTCHA
++                ON
++                CACHE BOOL "Enable GOTCHA support in timemory")
++        set(TIMEMORY_USE_PERFETTO
++                OFF
++                CACHE BOOL "Disable perfetto support in timemory")
++        set(TIMEMORY_USE_OMPT
++                ${OMNITRACE_USE_OMPT}
++                CACHE BOOL "Enable OMPT support in timemory" FORCE)
++        set(TIMEMORY_USE_PAPI
++                ${OMNITRACE_USE_PAPI}
++                CACHE BOOL "Enable PAPI support in timemory" FORCE)
++        set(TIMEMORY_USE_BFD
++                ${OMNITRACE_USE_BFD}
++                CACHE BOOL "Enable BFD support in timemory" FORCE)
++        set(TIMEMORY_USE_LIBUNWIND
++                ON
++                CACHE BOOL "Enable libunwind support in timemory")
++        set(TIMEMORY_USE_VISIBILITY
++                OFF
++                CACHE BOOL "Enable/disable using visibility decorations")
++        set(TIMEMORY_USE_SANITIZER
++                ${OMNITRACE_USE_SANITIZER}
++                CACHE BOOL "Build with -fsanitze=\${OMNITRACE_SANITIZER_TYPE}" FORCE)
++        set(TIMEMORY_SANITIZER_TYPE
++                ${OMNITRACE_SANITIZER_TYPE}
++                CACHE STRING "Sanitizer type, e.g. leak, thread, address, memory, etc." FORCE)
++
++        if(DEFINED TIMEMORY_BUILD_GOTCHA AND NOT TIMEMORY_BUILD_GOTCHA)
++                omnitrace_message(
++                        FATAL_ERROR
++                        "Using an external gotcha is not allowed due to known bug that has not been accepted upstream"
++                        )
++        endif()
+ 
+-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+-    # results in undefined symbols to component::base<T>::load()
+-    set(TIMEMORY_BUILD_HIDDEN_VISIBILITY
+-        OFF
+-        CACHE BOOL "" FORCE)
+-endif()
++        # timemory feature build settings
++        set(TIMEMORY_BUILD_GOTCHA
++                ON
++                CACHE BOOL "Enable building GOTCHA library from submodule" FORCE)
++        set(TIMEMORY_BUILD_LIBUNWIND
++                ${OMNITRACE_BUILD_LIBUNWIND}
++                CACHE BOOL "Enable building libunwind library from submodule" FORCE)
++        set(TIMEMORY_BUILD_EXTRA_OPTIMIZATIONS
++                ${OMNITRACE_BUILD_EXTRA_OPTIMIZATIONS}
++                CACHE BOOL "Enable building GOTCHA library from submodule" FORCE)
++        set(TIMEMORY_BUILD_ERT
++                OFF
++                CACHE BOOL "Disable building ERT support" FORCE)
++        set(TIMEMORY_BUILD_CONTAINERS
++                OFF
++                CACHE BOOL "Disable building container extern templates (unused)" FORCE)
++
++        # timemory build settings
++        set(TIMEMORY_TLS_MODEL
++                "global-dynamic"
++                CACHE STRING "Thread-local static model" FORCE)
++        set(TIMEMORY_MAX_THREADS
++                "${OMNITRACE_MAX_THREADS}"
++                CACHE STRING "Max statically-allocated threads" FORCE)
++        set(TIMEMORY_SETTINGS_PREFIX
++                "OMNITRACE_"
++                CACHE STRING "Prefix used for settings and environment variables")
++        set(TIMEMORY_PROJECT_NAME
++                "omnitrace"
++                CACHE STRING "Name for configuration")
++        set(TIMEMORY_CXX_LIBRARY_EXCLUDE
++                "kokkosp.cpp;pthread.cpp;timemory_c.cpp;trace.cpp;weak.cpp;library.cpp"
++                CACHE STRING "Timemory C++ library implementation files to exclude from compiling")
++
++        mark_as_advanced(TIMEMORY_SETTINGS_PREFIX)
++        mark_as_advanced(TIMEMORY_PROJECT_NAME)
++
++        omnitrace_checkout_git_submodule(
++                RELATIVE_PATH external/timemory
++                WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
++                REPO_URL https://github.com/NERSC/timemory.git
++                REPO_BRANCH omnitrace)
++
++        omnitrace_save_variables(
++                BUILD_CONFIG VARIABLES BUILD_SHARED_LIBS BUILD_STATIC_LIBS
++                                                           CMAKE_POSITION_INDEPENDENT_CODE CMAKE_PREFIX_PATH)
++
++        # ensure timemory builds PIC static libs so that we don't have to install timemory shared
++        # lib
++        set(BUILD_SHARED_LIBS OFF)
++        set(BUILD_STATIC_LIBS ON)
++        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++        set(TIMEMORY_CTP_OPTIONS GLOBAL)
++
++        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
++                # results in undefined symbols to component::base<T>::load()
++                set(TIMEMORY_BUILD_HIDDEN_VISIBILITY
++                        OFF
++                        CACHE BOOL "" FORCE)
++        endif()
+ 
+-add_subdirectory(external/timemory EXCLUDE_FROM_ALL)
++        add_subdirectory(external/timemory EXCLUDE_FROM_ALL)
+ 
+-install(
+-    TARGETS gotcha
+-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/omnitrace
+-    COMPONENT gotcha)
+-if(OMNITRACE_BUILD_LIBUNWIND)
+-    install(
+-        DIRECTORY ${PROJECT_BINARY_DIR}/external/timemory/external/libunwind/install/lib/
+-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/omnitrace
+-        COMPONENT libunwind
+-        FILES_MATCHING
+-        PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
++        install(
++                TARGETS gotcha
++                DESTINATION ${CMAKE_INSTALL_LIBDIR}/omnitrace
++                COMPONENT gotcha)
++        if(OMNITRACE_BUILD_LIBUNWIND)
++                install(
++                        DIRECTORY ${PROJECT_BINARY_DIR}/external/timemory/external/libunwind/install/lib/
++                        DESTINATION ${CMAKE_INSTALL_LIBDIR}/omnitrace
++                        COMPONENT libunwind
++                        FILES_MATCHING
++                        PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}*")
++        endif()
+ endif()
+ 
+ omnitrace_restore_variables(
+@@ -700,15 +702,20 @@ if(TARGET omnitrace-papi-build)
+             endif()
+         endforeach()
+     endforeach()
+-endif()
+ 
+-target_link_libraries(
+-    omnitrace-timemory
+-    INTERFACE $<BUILD_INTERFACE:timemory::timemory-headers>
+-              $<BUILD_INTERFACE:timemory::timemory-gotcha>
+-              $<BUILD_INTERFACE:timemory::timemory-cxx-static>)
++        target_link_libraries(
++                omnitrace-timemory
++                INTERFACE $<BUILD_INTERFACE:timemory::timemory-headers>
++                                  $<BUILD_INTERFACE:timemory::timemory-gotcha>)
++
++    target_link_libraries(omnitrace-bfd INTERFACE $<BUILD_INTERFACE:timemory::timemory-bfd>)
++else()
++        target_link_libraries(
++                omnitrace-timemory
++                INTERFACE ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-gotcha-component.so)
+ 
+-target_link_libraries(omnitrace-bfd INTERFACE $<BUILD_INTERFACE:timemory::timemory-bfd>)
++    #target_link_libraries(omnitrace-bfd INTERFACE $<BUILD_INTERFACE:timemory::timemory-bfd>)
++endif()
+ 
+ if(OMNITRACE_USE_BFD)
+     omnitrace_target_compile_definitions(omnitrace-bfd INTERFACE OMNITRACE_USE_BFD)
+@@ -721,7 +728,8 @@ endif()
+ # ----------------------------------------------------------------------------------------#
+ 
+ # timemory might provide PTL::ptl-shared
+-if(NOT TARGET PTL::ptl-shared)
++#if(NOT TARGET PTL::ptl-shared)
++if(OMNITRACE_BUILD_PTL)
+     omnitrace_checkout_git_submodule(
+         RELATIVE_PATH external/PTL
+         WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+@@ -758,11 +766,17 @@ if(NOT TARGET PTL::ptl-shared)
+                   CMAKE_VISIBILITY_INLINES_HIDDEN)
+ endif()
+ 
+-target_sources(omnitrace-ptl
+-               INTERFACE $<BUILD_INTERFACE:$<TARGET_OBJECTS:PTL::ptl-object>>)
+-target_include_directories(
+-    omnitrace-ptl INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/PTL/source>
+-                            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/external/PTL/source>)
++#add_library(omnitrace-ptl INTERFACE IMPORTED)
++target_include_directories(omnitrace-ptl SYSTEM INTERFACE ${CMAKE_INSTALL_PREFIX}/include)
++#target_compile_definitions(omnitrace-ptl INTERFACE ${ElfUtils_DEFINITIONS})
++#target_link_directories(omnitrace-ptl INTERFACE ${ElfUtils_LIBRARY_DIRS})
++target_link_libraries(omnitrace-ptl INTERFACE ${CMAKE_INSTALL_PREFIX}/lib64/libptl.so)
++
++#target_sources(omnitrace-ptl
++#               INTERFACE $<BUILD_INTERFACE:$<TARGET_OBJECTS:PTL::ptl-object>>)
++#target_include_directories(
++#    omnitrace-ptl INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/PTL/source>
++#                            $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/external/PTL/source>)
+ 
+ # ----------------------------------------------------------------------------------------#
+ #
+diff --git a/examples/CMakeLists.txt b/examples/CMakeLists.txt
+index 8c8451e..ff70628 100644
+--- a/examples/CMakeLists.txt
++++ b/examples/CMakeLists.txt
+@@ -49,7 +49,6 @@ add_subdirectory(user-api)
+ add_subdirectory(openmp)
+ add_subdirectory(mpi)
+ add_subdirectory(python)
+-add_subdirectory(lulesh)
+ add_subdirectory(rccl)
+ add_subdirectory(rewrite-caller)
+ add_subdirectory(causal)
+diff --git a/scripts/build-release.sh b/scripts/build-release.sh
+index 53c27c7..5c47477 100755
+--- a/scripts/build-release.sh
++++ b/scripts/build-release.sh
+@@ -23,7 +23,7 @@
+ : ${WITH_CORE:=0}
+ : ${WITH_MPI:=0}
+ : ${WITH_ROCM:=0}
+-: ${WITH_ROCM_MPI:=0}
++: ${WITH_ROCM_MPI:=1}
+ : ${IS_DOCKER:=0}
+ : ${CONDA_ROOT:=/opt/conda}
+ 
+@@ -350,6 +350,7 @@ build-and-package-python()
+ build-and-package()
+ {
+     local VAL=${1}
++    echo "VAL: $VAL"
+     shift
+     if [ "${VAL}" -eq 1 ]; then
+         build-and-package-base ${@}
+diff --git a/source/bin/omnitrace-avail/CMakeLists.txt b/source/bin/omnitrace-avail/CMakeLists.txt
+index 2cec5b5..6d5777b 100644
+--- a/source/bin/omnitrace-avail/CMakeLists.txt
++++ b/source/bin/omnitrace-avail/CMakeLists.txt
+@@ -28,6 +28,33 @@ target_link_libraries(
+     omnitrace-avail
+     PRIVATE omnitrace::omnitrace-compile-definitions
+             omnitrace::omnitrace-interface-library omnitrace::libomnitrace-static)
++
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    target_link_libraries(
++        omnitrace-avail
++        PRIVATE
++        ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtbb.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-ompt-component.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-papi-component.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-trip_count-component.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
++
++if(EXISTS /lib64/libz.so)
++    target_link_libraries(
++        omnitrace-avail
++        PRIVATE
++        /lib64/libz.so)
++else()
++    if(EXISTS /lib/x86_64-linux-gnu/libz.so)
++        target_link_libraries(
++            omnitrace-avail
++            PRIVATE
++            /lib/x86_64-linux-gnu/libz.so)
++    endif()
++endif()
++
+ set_target_properties(
+     omnitrace-avail PROPERTIES BUILD_RPATH "\$ORIGIN:\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+                                INSTALL_RPATH "${OMNITRACE_EXE_INSTALL_RPATH}")
+diff --git a/source/bin/omnitrace-avail/avail.cpp b/source/bin/omnitrace-avail/avail.cpp
+index 5fe5c44..c2cb26a 100644
+--- a/source/bin/omnitrace-avail/avail.cpp
++++ b/source/bin/omnitrace-avail/avail.cpp
+@@ -20,6 +20,7 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#include "core/hip_runtime.hpp"
+ #include "avail.hpp"
+ #include "common.hpp"
+ #include "common/defines.h"
+@@ -531,7 +532,7 @@ main(int argc, char** argv)
+ #endif
+ 
+     auto _parser_set_if_exists = [&parser](auto& _var, const std::string& _opt) {
+-        using Tp = decay_t<decltype(_var)>;
++        using Tp = std::decay_t<decltype(_var)>;
+         if(parser.exists(_opt)) _var = parser.get<Tp>(_opt);
+     };
+ 
+diff --git a/source/bin/omnitrace-causal/CMakeLists.txt b/source/bin/omnitrace-causal/CMakeLists.txt
+index 0d0ed37..3c157c4 100644
+--- a/source/bin/omnitrace-causal/CMakeLists.txt
++++ b/source/bin/omnitrace-causal/CMakeLists.txt
+@@ -15,6 +15,15 @@ target_link_libraries(
+     omnitrace-causal
+     PRIVATE omnitrace::omnitrace-compile-definitions omnitrace::omnitrace-headers
+             omnitrace::omnitrace-common-library omnitrace::omnitrace-core)
++
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    target_link_libraries(
++        omnitrace-causal
++        PRIVATE
++        ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
++
+ set_target_properties(
+     omnitrace-causal PROPERTIES BUILD_RPATH "\$ORIGIN:\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+                                 INSTALL_RPATH "${OMNITRACE_EXE_INSTALL_RPATH}")
+diff --git a/source/bin/omnitrace-instrument/CMakeLists.txt b/source/bin/omnitrace-instrument/CMakeLists.txt
+index ffed456..cfb7540 100644
+--- a/source/bin/omnitrace-instrument/CMakeLists.txt
++++ b/source/bin/omnitrace-instrument/CMakeLists.txt
+@@ -30,10 +30,18 @@ target_link_libraries(
+             omnitrace::omnitrace-dyninst
+             omnitrace::omnitrace-compile-options
+             omnitrace::omnitrace-compile-definitions
+-            omnitrace::omnitrace-sanitizer
+-            timemory::timemory-headers
+-            timemory::timemory-extensions
+-            timemory::timemory-core)
++            omnitrace::omnitrace-sanitizer)
++
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-common.so)
++    target_link_libraries(
++        omnitrace-instrument
++        PRIVATE
++        ${CMAKE_INSTALL_PREFIX}/lib/libunwind.so
++        ${CMAKE_INSTALL_PREFIX}/lib/libunwind-x86_64.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-core.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-common.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
+ 
+ set_target_properties(
+     omnitrace-instrument
+diff --git a/source/bin/omnitrace-instrument/details.cpp b/source/bin/omnitrace-instrument/details.cpp
+index 24d231b..40e1c2a 100644
+--- a/source/bin/omnitrace-instrument/details.cpp
++++ b/source/bin/omnitrace-instrument/details.cpp
+@@ -811,8 +811,10 @@ process_modules(const std::vector<module_t*>& _app_modules)
+                        itr->fullName().c_str());
+         }
+ 
+-        symtab_data.functions.emplace(itr, std::vector<symtab_func_t*>{});
+-        if(!itr->getAllFunctions(symtab_data.functions.at(itr))) continue;
++        std::vector<symtab_func_t *> func_vec;
++        func_vec = itr->getAllFunctions();
++        if(func_vec.empty()) continue;
++        symtab_data.functions.emplace(itr, func_vec);
+         _erase_nullptrs(symtab_data.functions.at(itr));
+ 
+         for(auto* fitr : symtab_data.functions.at(itr))
+diff --git a/source/bin/omnitrace-instrument/internal_libs.cpp b/source/bin/omnitrace-instrument/internal_libs.cpp
+index b8ebb7d..658111f 100644
+--- a/source/bin/omnitrace-instrument/internal_libs.cpp
++++ b/source/bin/omnitrace-instrument/internal_libs.cpp
+@@ -474,7 +474,7 @@ get_internal_libs_data_impl()
+             _data[itr.first].emplace(_mname, func_set_t{});
+ 
+             auto _funcs = std::vector<symtab_func_t*>{};
+-            mitr->getAllFunctions(_funcs);
++            _funcs = mitr->getAllFunctions();
+ 
+             for(const auto& fitr : _funcs)
+             {
+diff --git a/source/bin/omnitrace-run/CMakeLists.txt b/source/bin/omnitrace-run/CMakeLists.txt
+index 63054bc..00bd491 100644
+--- a/source/bin/omnitrace-run/CMakeLists.txt
++++ b/source/bin/omnitrace-run/CMakeLists.txt
+@@ -16,6 +16,15 @@ target_link_libraries(
+     PRIVATE omnitrace::omnitrace-compile-definitions omnitrace::omnitrace-headers
+             omnitrace::omnitrace-common-library omnitrace::omnitrace-core
+             omnitrace::omnitrace-sanitizer)
++
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    target_link_libraries(
++        omnitrace-run
++        PRIVATE
++        ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
++
+ set_target_properties(
+     omnitrace-run PROPERTIES BUILD_RPATH "\$ORIGIN:\$ORIGIN/../${CMAKE_INSTALL_LIBDIR}"
+                              INSTALL_RPATH "${OMNITRACE_EXE_INSTALL_RPATH}")
+diff --git a/source/lib/CMakeLists.txt b/source/lib/CMakeLists.txt
+index e1a5d06..4e6a9f2 100644
+--- a/source/lib/CMakeLists.txt
++++ b/source/lib/CMakeLists.txt
+@@ -59,6 +59,22 @@ target_link_libraries(
+         $<BUILD_INTERFACE:omnitrace::omnitrace-sanitizer>
+         $<BUILD_INTERFACE:$<IF:$<BOOL:${OMNITRACE_BUILD_LTO}>,omnitrace::omnitrace-lto,>>)
+ 
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-common.so)
++    target_link_libraries(
++        omnitrace-interface-library
++        INTERFACE
++        ${CMAKE_INSTALL_PREFIX}/lib/libunwind.so
++        ${CMAKE_INSTALL_PREFIX}/lib/libunwind-generic.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libpapi.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libcaliper.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libroctx64.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-runtime.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-core.so
++        ${CMAKE_INSTALL_PREFIX}/lib64/libtimemory-common.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
++
++
+ # ------------------------------------------------------------------------------#
+ #
+ # omnitrace internal libraries
+diff --git a/source/lib/binary/CMakeLists.txt b/source/lib/binary/CMakeLists.txt
+index 8eefb0a..ff4aaf9 100644
+--- a/source/lib/binary/CMakeLists.txt
++++ b/source/lib/binary/CMakeLists.txt
+@@ -25,4 +25,12 @@ target_link_libraries(
+     omnitrace-binary-library PRIVATE omnitrace::omnitrace-interface-library
+                                      omnitrace::omnitrace-core)
+ 
++if(EXISTS ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    target_link_libraries(
++        omnitrace-binary-library
++        PRIVATE
++        ${CMAKE_INSTALL_PREFIX}/x86_64/lib/libTAUsh-rocm-rocmv6-pthread.so)
++    message(STATUS "libtimemory-common.so linked")
++endif()
++
+ set_target_properties(omnitrace-binary-library PROPERTIES OUTPUT_NAME omnitrace-binary)
+diff --git a/source/lib/omnitrace/library.cpp b/source/lib/omnitrace/library.cpp
+index 1086989..f61320b 100644
+--- a/source/lib/omnitrace/library.cpp
++++ b/source/lib/omnitrace/library.cpp
+@@ -144,7 +144,7 @@ ensure_finalization(bool _static_init = false)
+     {
+         auto _idx = threading::add_callback(&ensure_initialization);
+         if(_idx < 0)
+-            throw exception<std::runtime_error>("failure adding threading callback");
++            throw std::runtime_error("failure adding threading callback");
+     }
+ 
+     OMNITRACE_CI_BASIC_THROW(
+diff --git a/source/lib/omnitrace/library/components/mpi_gotcha.cpp b/source/lib/omnitrace/library/components/mpi_gotcha.cpp
+index 5e552e9..686783a 100644
+--- a/source/lib/omnitrace/library/components/mpi_gotcha.cpp
++++ b/source/lib/omnitrace/library/components/mpi_gotcha.cpp
+@@ -20,6 +20,7 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#include "core/hip_runtime.hpp"
+ #include "library/components/mpi_gotcha.hpp"
+ #include "api.hpp"
+ #include "core/components/fwd.hpp"
+diff --git a/source/lib/omnitrace/library/components/roctracer.cpp b/source/lib/omnitrace/library/components/roctracer.cpp
+index a419e46..701a7bb 100644
+--- a/source/lib/omnitrace/library/components/roctracer.cpp
++++ b/source/lib/omnitrace/library/components/roctracer.cpp
+@@ -20,6 +20,7 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#include "core/hip_runtime.hpp"
+ #include "library/components/roctracer.hpp"
+ #include "core/common.hpp"
+ #include "core/config.hpp"
+diff --git a/source/lib/omnitrace/library/ptl.cpp b/source/lib/omnitrace/library/ptl.cpp
+index 5b96381..cdb173b 100644
+--- a/source/lib/omnitrace/library/ptl.cpp
++++ b/source/lib/omnitrace/library/ptl.cpp
+@@ -75,7 +75,7 @@ auto _thread_pool_cfg = []() {
+     _v.initializer  = []() {
+         thread_info::init(true);
+         threading::set_thread_name(
+-            JOIN('.', "ptl", PTL::Threading::GetThreadId()).c_str());
++            JOIN('.', "ptl", PTL::GetThreadId()).c_str());
+         set_thread_state(ThreadState::Disabled);
+         sampling::block_signals();
+     };
+diff --git a/source/lib/omnitrace/library/rocm.cpp b/source/lib/omnitrace/library/rocm.cpp
+index d57705a..71967d4 100644
+--- a/source/lib/omnitrace/library/rocm.cpp
++++ b/source/lib/omnitrace/library/rocm.cpp
+@@ -20,6 +20,7 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#include "core/hip_runtime.hpp"
+ #include "library/rocm.hpp"
+ #include "core/config.hpp"
+ #include "core/debug.hpp"
+diff --git a/source/lib/omnitrace/library/roctracer.cpp b/source/lib/omnitrace/library/roctracer.cpp
+index 224f597..5596505 100644
+--- a/source/lib/omnitrace/library/roctracer.cpp
++++ b/source/lib/omnitrace/library/roctracer.cpp
+@@ -89,6 +89,7 @@ hip_api_string(hip_api_id_t id, const hip_api_data_t* data)
+     return _v.substr(_pbeg + 1, _n);
+ #else
+     tim::consume_parameters(id, data);
++    return std::string();
+ #endif
+ }
+ 
+diff --git a/source/lib/omnitrace/library/roctracer.hpp b/source/lib/omnitrace/library/roctracer.hpp
+index 5b77338..d4ecf71 100644
+--- a/source/lib/omnitrace/library/roctracer.hpp
++++ b/source/lib/omnitrace/library/roctracer.hpp
+@@ -20,11 +20,15 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#ifndef _ROCTRACER_HPP_HEADER
++#define _ROCTRACER_HPP_HEADER
++
+ #pragma once
+ 
++#include "core/hip_runtime.hpp"
+ #include "core/config.hpp"
+ #include "core/debug.hpp"
+-#include "core/hip_runtime.hpp"
++#include <hip/hip_runtime.h>
+ #include "core/perfetto.hpp"
+ #include "library/components/roctracer.hpp"
+ #include "library/ptl.hpp"
+@@ -87,3 +91,5 @@ roctracer_setup_routines();
+ roctracer_functions_t&
+ roctracer_shutdown_routines();
+ }  // namespace omnitrace
++
++#endif // _ROCTRACER_HPP_HEADER
+-- 
+2.41.1
+

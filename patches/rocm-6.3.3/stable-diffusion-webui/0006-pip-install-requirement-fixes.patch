@@ -1,0 +1,42 @@
+From cc415c2ff53cb599eed54ffd49cb6fb2bf184389 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@pilppa.org>
+Date: Fri, 20 Dec 2024 23:44:36 -0800
+Subject: [PATCH 6/6] pip install requirement fixes
+
+update transformers version to match
+with vllm requirements
+
+Signed-off-by: Mika Laitio <lamikr@pilppa.org>
+---
+ requirements.txt          | 4 ++--
+ requirements_versions.txt | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/requirements.txt b/requirements.txt
+index 0d6bac60..9767c3f1 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -30,5 +30,5 @@ tomesd
+ torch
+ torchdiffeq
+ torchsde
+-transformers==4.30.2
+-pillow-avif-plugin==1.4.3
+\ No newline at end of file
++transformers==4.45.0
++pillow-avif-plugin==1.4.3
+diff --git a/requirements_versions.txt b/requirements_versions.txt
+index 0306ce94..f10a8142 100644
+--- a/requirements_versions.txt
++++ b/requirements_versions.txt
+@@ -30,6 +30,6 @@ tomesd==0.1.3
+ torch
+ torchdiffeq==0.2.3
+ torchsde==0.2.6
+-transformers==4.30.2
++transformers==4.45.0
+ httpx==0.24.1
+ pillow-avif-plugin==1.4.3
+-- 
+2.41.1
+

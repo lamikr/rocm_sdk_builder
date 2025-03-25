@@ -1,0 +1,32 @@
+From e8185bbc5a3c6a9add9eac794e130f6dc42a34bd Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 13 Jan 2025 00:51:20 -0800
+Subject: [PATCH 1/2] relocate fix for aie2p-none-unknown-elf arch
+
+This solves "Unknown AIE version in EFLAGS"
+error when test application is build for the
+triplet aie2p-none-unknown-elf target.
+For this target the EFLAGS is 3.
+
+fixes: https://github.com/Xilinx/llvm-aie/issues/258
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ lld/ELF/Arch/AIE.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/lld/ELF/Arch/AIE.cpp b/lld/ELF/Arch/AIE.cpp
+index 378be130ce56..4002d8877551 100644
+--- a/lld/ELF/Arch/AIE.cpp
++++ b/lld/ELF/Arch/AIE.cpp
+@@ -370,6 +370,7 @@ void AIE::relocate(uint8_t *Loc, const Relocation &rel, uint64_t Val) const {
+     relocateAIE1(Loc, rel, Val);
+     break;
+   case 2:
++  case 3:
+     relocateAIE2(Loc, rel, Val);
+     break;
+   default:
+-- 
+2.41.1
+

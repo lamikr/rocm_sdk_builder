@@ -1,0 +1,26 @@
+From dd450233f5c00949da49c1324d4f21c58f545cc4 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Mon, 26 Aug 2024 16:23:18 -0700
+Subject: [PATCH 3/3] rocmsdk to wheel name
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ jaxlib/setup.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/jaxlib/setup.py b/jaxlib/setup.py
+index 58a4d43c5..4bf9068e1 100644
+--- a/jaxlib/setup.py
++++ b/jaxlib/setup.py
+@@ -41,7 +41,7 @@ if cuda_version and cudnn_version:
+ 
+ rocm_version = os.environ.get("JAX_ROCM_VERSION")
+ if rocm_version:
+-    __version__ += f"+rocm{rocm_version.replace('.', '')}"
++    __version__ += f"+rocmsdk_{rocm_version.replace('.', '')}"
+ 
+ class BinaryDistribution(Distribution):
+   """This class makes 'bdist_wheel' include an ABI tag on the wheel."""
+-- 
+2.41.1
+
