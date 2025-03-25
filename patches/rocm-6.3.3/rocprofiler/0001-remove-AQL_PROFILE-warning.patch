@@ -1,7 +1,7 @@
-From 421f8ee7f3959d1e3819fad4fb385cc612f7efbf Mon Sep 17 00:00:00 2001
+From 8cc719fb36597949f888114bba500a4457205110 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 6 Jan 2024 08:13:00 +0200
-Subject: [PATCH 1/2] remove AQL_PROFILE warning
+Subject: [PATCH 1/3] remove AQL_PROFILE warning
 
 old rocm-5.3.1 can be easily patched not to require
 the proprietary AQL profiler library.
@@ -30,5 +30,5 @@ index 2e9613b..1e9150a 100644
 +#  message ( FATAL_ERROR "AQL_PROFILE not installed. Please install AQL_PROFILE" )
 +#endif()
 -- 
-2.48.1
+2.43.0
 

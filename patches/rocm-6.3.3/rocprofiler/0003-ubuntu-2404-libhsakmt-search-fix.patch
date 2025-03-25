@@ -1,0 +1,38 @@
+From f028f82fbf13204a8884e7b395ca0d0c4b3255f0 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 25 Mar 2025 00:32:12 -0700
+Subject: [PATCH 3/3] ubuntu 2404 libhsakmt search fix
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ cmake_modules/env.cmake | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/cmake_modules/env.cmake b/cmake_modules/env.cmake
+index 1e9150a..40f02cb 100644
+--- a/cmake_modules/env.cmake
++++ b/cmake_modules/env.cmake
+@@ -100,9 +100,9 @@ find_package(hsa-runtime64 CONFIG REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /
+ find_package(hsakmt CONFIG REQUIRED HINTS ${CMAKE_INSTALL_PREFIX} PATHS /opt/rocm PATH_SUFFIXES lib/cmake/hsakmt )
+ 
+ ## Find ROCm
+-find_library ( HSA_KMT_LIB "libhsakmt.so" )
++find_library ( HSA_KMT_LIB "libhsakmt.so" HINTS ${CMAKE_INSTALL_PREFIX}/lib64)
+ if ( "${HSA_KMT_LIB_PATH}" STREQUAL "" )
+-  find_library ( HSA_KMT_LIB "libhsakmt.a" )
++  find_library ( REQUIRED HSA_KMT_LIB "libhsakmt.a" HINTS ${CMAKE_INSTALL_PREFIX}/lib64)
+ endif()
+ get_filename_component ( HSA_KMT_LIB_PATH "${HSA_KMT_LIB}" DIRECTORY )
+ get_filename_component ( ROCM_ROOT_DIR "${HSA_KMT_LIB_PATH}" DIRECTORY )
+@@ -117,6 +117,8 @@ message ( "---CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}" )
+ message ( "---------GPU_TARGETS: ${GPU_TARGETS}" )
+ 
+ if ( "${ROCM_ROOT_DIR}" STREQUAL "" )
++  message ("HSA_KMT_LIB: ${HSA_KMT_LIB}")
++  message ("HSA_KMT_LIB_PATH: ${HSA_KMT_LIB_PATH}")
+   message ( FATAL_ERROR "ROCM_ROOT_DIR is not found." )
+ endif ()
+ 
+-- 
+2.43.0
+

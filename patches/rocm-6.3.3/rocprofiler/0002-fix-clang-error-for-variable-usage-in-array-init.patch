@@ -1,7 +1,7 @@
-From 3616319156b7e9518d816e7be7383c46c5812b4a Mon Sep 17 00:00:00 2001
+From ce3cf35a48326ac62c7233b0dbd8a6f2156469c9 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 11 Mar 2025 20:28:40 -0700
-Subject: [PATCH 2/2] fix clang++ error for variable usage in array init
+Subject: [PATCH 2/3] fix clang++ error for variable usage in array init
 
 error: variable length arrays in C++ are a Clang extension
 
@@ -155,5 +155,5 @@ index f20e66f..9339614 100644
  
      SetKernelNameRef(addr, name, to_free);
 -- 
-2.48.1
+2.43.0
 
