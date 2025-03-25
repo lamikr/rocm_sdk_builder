@@ -1,7 +1,7 @@
-From ead5d709cf57938f2fdc44ba8e80f490fef207d9 Mon Sep 17 00:00:00 2001
+From 65ce989e10c96cb02b8387da45f948049bd92a2b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 16 Mar 2025 03:10:45 -0700
-Subject: [PATCH 3/5] dos2unix fix for forward_inference.cpp
+Subject: [PATCH 3/7] dos2unix fix for forward_inference.cpp
 
 - its easier to apply patches when whole
   file has same lineendings
@@ -341,5 +341,5 @@ index 2f945c46a..d79f09050 100644
 +
 +} // namespace miopen
 -- 
-2.48.1
+2.47.2
 

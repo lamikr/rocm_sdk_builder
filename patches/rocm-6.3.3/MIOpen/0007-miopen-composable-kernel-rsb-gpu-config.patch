@@ -1,0 +1,77 @@
+From 097556f527acb9171d00b0c7bc457e22bd1e422c Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Tue, 25 Mar 2025 13:17:12 -0700
+Subject: [PATCH 7/7] miopen composable kernel rsb gpu config
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ .../include/utility/config.hpp                | 30 ++++++++++++-------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
+
+diff --git a/src/composable_kernel/composable_kernel/include/utility/config.hpp b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+index 0ab589f2e..4e328075f 100644
+--- a/src/composable_kernel/composable_kernel/include/utility/config.hpp
++++ b/src/composable_kernel/composable_kernel/include/utility/config.hpp
+@@ -15,9 +15,12 @@
+ // should enable one and only one GPU target
+ #if !(defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX906) ||    \
+       defined(CK_AMD_GPU_GFX940) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A) ||    \
+-      defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX1030) ||   \
+-      defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || \
+-      defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1200) || defined(CK_AMD_GPU_GFX1201))
++      defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || \
++      defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || defined(CK_AMD_GPU_GFX1034) || \
++      defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036) || \
++      defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103) || \
++      defined(CK_AMD_GPU_GFX1150) || defined(CK_AMD_GPU_GFX1151) || \
++      defined(CK_AMD_GPU_GFX1200) || defined(CK_AMD_GPU_GFX1201))
+ #error Need to define (only) one GPU target
+ #endif
+ 
+@@ -30,14 +33,17 @@
+ #endif
+ 
+ // buffer resourse
+-#if defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX906) || \
++#if defined(CK_AMD_GPU_GFX803) || defined(CK_AMD_GPU_GFX900) || defined(CK_AMD_GPU_GFX902) || defined(CK_AMD_GPU_GFX906) || \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) || \
+     defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90A)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x00020000
+-#elif defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
+-    defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1200) ||   \
+-    defined(CK_AMD_GPU_GFX1201)
++#elif defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1011) || defined(CK_AMD_GPU_GFX1012) || \
++      defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || defined(CK_AMD_GPU_GFX1034) || \
++      defined(CK_AMD_GPU_GFX1035) || defined(CK_AMD_GPU_GFX1036)
+ #define CK_BUFFER_RESOURCE_3RD_DWORD 0x31014000
++#elif defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103) || \
++      defined(CK_AMD_GPU_GFX1150) || defined(CK_AMD_GPU_GFX1151) || defined(CK_AMD_GPU_GFX1200) || defined(CK_AMD_GPU_GFX1201)
++#define CK_BUFFER_RESOURCE_3RD_DWORD 0x31004000
+ #endif
+ 
+ // FMA instruction
+@@ -45,14 +51,18 @@
+ #define CK_USE_AMD_V_MAC_F32
+ #elif defined(CK_AMD_GPU_GFX906) || defined(CK_AMD_GPU_GFX908) || defined(CK_AMD_GPU_GFX90a) ||  \
+     defined(CK_AMD_GPU_GFX941) || defined(CK_AMD_GPU_GFX942) || defined(CK_AMD_GPU_GFX940) ||    \
+-    defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1100) || \
+-    defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1200) || \
+-    defined(CK_AMD_GPU_GFX1201)
++    defined(CK_AMD_GPU_GFX1030) || defined(CK_AMD_GPU_GFX1031) || defined(CK_AMD_GPU_GFX1032) || defined(CK_AMD_GPU_GFX1034) ||   \
++    defined(CK_AMD_GPU_GFX1100) || defined(CK_AMD_GPU_GFX1101) || defined(CK_AMD_GPU_GFX1102) || defined(CK_AMD_GPU_GFX1103) ||   \
++    defined(CK_AMD_GPU_GFX1150) || defined(CK_AMD_GPU_GFX1151) || defined(CK_AMD_GPU_GFX1200) || defined(CK_AMD_GPU_GFX1201)
+ #define CK_USE_AMD_V_FMAC_F32
+ #define CK_USE_AMD_V_DOT2_F32_F16
+ #define CK_USE_AMD_V_DOT4_I32_I8
+ #endif
+ 
++#if defined(CK_AMD_GPU_GFX1010) || defined(CK_AMD_GPU_GFX1011) || defined(CK_AMD_GPU_GFX1012)
++    #define CK_USE_AMD_V_FMAC_F32
++#endif
++
+ // multi index
+ #define CK_USE_DYNAMICALLY_INDEXED_MULTI_INDEX 0
+ 
+-- 
+2.47.2
+
