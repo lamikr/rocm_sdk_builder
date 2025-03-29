@@ -1,0 +1,45 @@
+From 01ae96491f418cd42562ca09741eb893e2b0f78f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=2E=20=C3=81fra?= <attila.t.afra@intel.com>
+Date: Thu, 20 Mar 2025 21:37:25 +0200
+Subject: [PATCH 6/8] Fix compile errors on Windows and Linux (#2002)
+
+* Fix compile error on Windows (call to 'amd_wave_read_first_lane' is ambiguous)
+
+* Fix compile error (no matching function for call to 'cast_to_f32_from_f8')
+---
+ include/ck/utility/amd_ck_fp8.hpp | 2 +-
+ include/ck/utility/data_type.hpp  | 4 ++++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/ck/utility/amd_ck_fp8.hpp b/include/ck/utility/amd_ck_fp8.hpp
+index 429ba44b8..5c80c42d6 100644
+--- a/include/ck/utility/amd_ck_fp8.hpp
++++ b/include/ck/utility/amd_ck_fp8.hpp
+@@ -243,7 +243,7 @@ __host__ __device__ static inline T cast_from_f8(fp8_storage_t x)
+ 
+ #if CK_FP8_CVT_FAST_PATH
+ template <ck_fp8_interpretation_t interpret>
+-static __device__ float cast_to_f32_from_f8(fp8_storage_t v)
++static __host__ __device__ float cast_to_f32_from_f8(fp8_storage_t v)
+ {
+     union
+     {
+diff --git a/include/ck/utility/data_type.hpp b/include/ck/utility/data_type.hpp
+index a0d29e5a0..29105fda7 100644
+--- a/include/ck/utility/data_type.hpp
++++ b/include/ck/utility/data_type.hpp
+@@ -2475,7 +2475,11 @@ struct vector_type<T, 64, typename ck::enable_if_t<!is_native_type<T>()>>
+     }
+ };
+ 
++#if defined(_WIN32)
++using int64_t = long long;
++#else
+ using int64_t = long;
++#endif
+ 
+ // fp64
+ using double2_t = typename vector_type<double, 2>::type;
+-- 
+2.47.2
+

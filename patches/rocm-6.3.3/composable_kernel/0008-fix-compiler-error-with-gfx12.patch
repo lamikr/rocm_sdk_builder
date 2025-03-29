@@ -1,0 +1,48 @@
+From a7a658159eab5c9db9a227e9fd8c54133dd6cb61 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Fri, 28 Mar 2025 17:16:17 -0700
+Subject: [PATCH 8/8] fix compiler error with gfx12
+
+- better fix utilizing gfx12
+  api command needed
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ include/ck/utility/amd_wmma.hpp | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/include/ck/utility/amd_wmma.hpp b/include/ck/utility/amd_wmma.hpp
+index aa519fb2b..28ff360d3 100644
+--- a/include/ck/utility/amd_wmma.hpp
++++ b/include/ck/utility/amd_wmma.hpp
+@@ -104,10 +104,26 @@ struct intrin_wmma_bf16_16x16x16_bf16_w32<16, 16, Opsel>
+         // opsel usage
+         // false: D0.[0:15] = result
+         // true : D0.[16:31]= result
+-#if defined(__gfx11__) || defined(__gfx12__)
++#if defined(__gfx11__)
+         reg_c.template AsType<bhalf16_t>()(Number<0>{}) =
+             __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32(
+                 reg_a, reg_b, reg_c.template AsType<bhalf16_t>()[Number<0>{}], Opsel);
++#elif defined(__gfx12__)
++#if 1
++        ignore = reg_a;
++        ignore = reg_b;
++        ignore = reg_c;
++#else
++        /*
++         * error: cannot initialize a parameter of type
++         * '__attribute__((__vector_size__(8 * sizeof(short)))) short' (vector of 8 'short' values)
++         * with an lvalue of type 'const bhalf16_t' (aka 'const ck::vector_type<unsigned short, 16>::d16_t')
++         * 114 |                 reg_a, reg_b, reg_c.template AsType<bhalf16_t>()[Number<0>{}]);
++         */
++        reg_c.template AsType<bhalf16_t>()(Number<0>{}) =
++            __builtin_amdgcn_wmma_bf16_16x16x16_bf16_w32_gfx12(
++                reg_a, reg_b, reg_c.template AsType<bhalf16_t>()[Number<0>{}]);
++#endif
+ #else
+         ignore = reg_a;
+         ignore = reg_b;
+-- 
+2.47.2
+

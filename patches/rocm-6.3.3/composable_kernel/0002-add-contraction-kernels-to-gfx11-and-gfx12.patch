@@ -1,7 +1,7 @@
-From 676891bad3a947abfac9e7de6c9016cefcaa528e Mon Sep 17 00:00:00 2001
+From c9d6d916b52a13533cb117e0aab3d30981f5c768 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 16 Mar 2025 18:33:44 -0700
-Subject: [PATCH 2/7] add contraction kernels to gfx11 and gfx12
+Subject: [PATCH 2/8] add contraction kernels to gfx11 and gfx12
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -35,5 +35,5 @@ index 7d2d60436..67e98e87a 100755
          endif()
  	if(("${cmake_instance}" MATCHES "ONLY WMMA_KERNELS") AND (NOT INST_TARGETS MATCHES "gfx11") AND (NOT INST_TARGETS MATCHES "gfx12"))
 -- 
-2.48.1
+2.47.2
 

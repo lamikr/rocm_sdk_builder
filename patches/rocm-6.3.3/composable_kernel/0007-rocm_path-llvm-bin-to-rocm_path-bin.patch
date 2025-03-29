@@ -1,7 +1,7 @@
-From eed4b05590bac172c2e5d08b3cab548d7718eae6 Mon Sep 17 00:00:00 2001
+From e1d2fe6f5d80c961962fcac1d920b42d9fe24300 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 24 Mar 2025 07:59:08 -0700
-Subject: [PATCH 7/7] rocm_path/llvm/bin to rocm_path/bin
+Subject: [PATCH 7/8] rocm_path/llvm/bin to rocm_path/bin
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -79,5 +79,5 @@ index b0ec08de4..43e764bd3 100755
      printf '%s: %s\n' 'clang-offload-bundler version' "${CLANG_OFFLOAD_BUNDLER_VERSION}" | tee -a "$SCCACHE_EXTRAFILES"
      printf '%s: %s\n' 'hipcc md5sum' "${HIPCC_HASH_VALUE}" | tee -a "$SCCACHE_EXTRAFILES"
 -- 
-2.48.1
+2.47.2
 
