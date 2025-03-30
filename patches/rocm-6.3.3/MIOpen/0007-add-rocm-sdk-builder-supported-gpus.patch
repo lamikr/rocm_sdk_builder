@@ -1,0 +1,49 @@
+From d44e5476020f69aab17afe7719581db4dc659805 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 29 Mar 2025 20:41:25 -0700
+Subject: [PATCH 7/8] add rocm sdk builder supported gpus
+
+- add gpus to whitelist checked to use
+  the usage of composable kernel
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/include/miopen/solver/ck_utility_common.hpp | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/include/miopen/solver/ck_utility_common.hpp b/src/include/miopen/solver/ck_utility_common.hpp
+index 57f4de1a0..c5a294cac 100644
+--- a/src/include/miopen/solver/ck_utility_common.hpp
++++ b/src/include/miopen/solver/ck_utility_common.hpp
+@@ -51,17 +51,28 @@ static inline bool is_ck_supported_hardware(const Handle& handle)
+ {
+     return (StartsWith(handle.GetDeviceName(), "gfx803") && handle.GetMaxComputeUnits() == 64) ||
+            StartsWith(handle.GetDeviceName(), "gfx900") ||
++           StartsWith(handle.GetDeviceName(), "gfx902") ||
+            StartsWith(handle.GetDeviceName(), "gfx906") ||
+            StartsWith(handle.GetDeviceName(), "gfx908") ||
+            StartsWith(handle.GetDeviceName(), "gfx90a") ||
+            StartsWith(handle.GetDeviceName(), "gfx940") ||
+            StartsWith(handle.GetDeviceName(), "gfx941") ||
+            StartsWith(handle.GetDeviceName(), "gfx942") ||
++           StartsWith(handle.GetDeviceName(), "gfx1010") ||
++           StartsWith(handle.GetDeviceName(), "gfx1011") ||
++           StartsWith(handle.GetDeviceName(), "gfx1012") ||
+            StartsWith(handle.GetDeviceName(), "gfx1030") ||
+            StartsWith(handle.GetDeviceName(), "gfx1031") ||
++           StartsWith(handle.GetDeviceName(), "gfx1032") ||
++           StartsWith(handle.GetDeviceName(), "gfx1034") ||
++           StartsWith(handle.GetDeviceName(), "gfx1035") ||
++           StartsWith(handle.GetDeviceName(), "gfx1036") ||
+            StartsWith(handle.GetDeviceName(), "gfx1100") ||
+            StartsWith(handle.GetDeviceName(), "gfx1101") ||
+            StartsWith(handle.GetDeviceName(), "gfx1102") ||
++           StartsWith(handle.GetDeviceName(), "gfx1103") ||
++           StartsWith(handle.GetDeviceName(), "gfx1150") ||
++           StartsWith(handle.GetDeviceName(), "gfx1151") ||
+            StartsWith(handle.GetDeviceName(), "gfx1200") ||
+            StartsWith(handle.GetDeviceName(), "gfx1201");
+ }
+-- 
+2.48.1
+

@@ -1,7 +1,7 @@
-From 097556f527acb9171d00b0c7bc457e22bd1e422c Mon Sep 17 00:00:00 2001
+From d09577e6bc3e7f98a591e46165c01c3b3a93881a Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Tue, 25 Mar 2025 13:17:12 -0700
-Subject: [PATCH 7/7] miopen composable kernel rsb gpu config
+Subject: [PATCH 5/8] miopen composable kernel rsb gpu config
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -73,5 +73,5 @@ index 0ab589f2e..4e328075f 100644
  #define CK_USE_DYNAMICALLY_INDEXED_MULTI_INDEX 0
  
 -- 
-2.47.2
+2.48.1
 

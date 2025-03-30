@@ -1,0 +1,58 @@
+From 25729357496a5a6f8f8ced0178695dd46271386b Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 29 Mar 2025 21:46:04 -0700
+Subject: [PATCH 8/8] fix fp16/half invalid instruction error on
+ conv_wino_fury_RxS
+
+- return false in isApplicable is type is not Fp32
+- fixes invalid instruction error caused by the usage of
+  half/fp16 types with the conv_wino_fury_RxS kernel on
+  gfx11-cards.
+- todo: check could this be used with Fp8/Bfp8/Int8 types
+
+Error could be triggered by executing pytorch benchmark
+with half precision type or by executing test command:
+"MIOpenDriver convfp16 -n 4 -c 16 -H 112 -W 112 -k 8 -y 1 -x 1 -p 0 -q 0 -u 1 -v 1 -l 1 -j 1 -m conv -g 1 -F 1 -t 1"
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/solver/conv/conv_wino_fury_RxS.cpp | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/src/solver/conv/conv_wino_fury_RxS.cpp b/src/solver/conv/conv_wino_fury_RxS.cpp
+index 6f90642fa..b69cef471 100644
+--- a/src/solver/conv/conv_wino_fury_RxS.cpp
++++ b/src/solver/conv/conv_wino_fury_RxS.cpp
+@@ -254,6 +254,29 @@ bool ConvWinoFuryRxSCommon<Winodata, Winofilter>::IsApplicable(const ExecutionCo
+     // All gfx11 ASICs are supported
+     if(!StartsWith(dev_name, "gfx11"))
+         return false;
++#if 0
++    if (problem.IsFp8()) {
++        printf("IsFp8()\n");
++    if (problem.IsBfp8())
++        printf("IsBfp8()\n");
++    if (problem.IsFp16()) {
++        printf("IsFp16()\n");
++    }
++    if (problem.IsBfp16())
++        printf("IsBfp16()\n");
++    if (problem.IsFp32())
++        printf("IsFp32()\n");
++    if (problem.IsInt8())
++        printf("IsInt8()\n");
++#endif
++    if (!problem.IsFp32()) {
++        // fp16/half models causes invalid instruction error
++		// at least on gfx1102 and gfx1103 on rocm sdk builder 6.1.2
++        // when tested with pytorch_benchmark on half models
++        // or with command
++        // "MIOpenDriver convfp16 -n 4 -c 16 -H 112 -W 112 -k 8 -y 1 -x 1 -p 0 -q 0 -u 1 -v 1 -l 1 -j 1 -m conv -g 1 -F 1 -t 1"
++		return false;
++	}
+ 
+     if(!(problem.GetKernelStrideH() == 1 && problem.GetKernelStrideW() == 1))
+         return false;
+-- 
+2.48.1
+

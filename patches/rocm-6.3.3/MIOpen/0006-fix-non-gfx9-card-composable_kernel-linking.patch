@@ -1,0 +1,97 @@
+From 4d0be4470b00e347dfccf98278ee010037dbab75 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Sat, 29 Mar 2025 20:28:38 -0700
+Subject: [PATCH 6/8] fix non gfx9-card composable_kernel linking
+
+- composable kernel does not build mha features
+  when target is not gcn-based card causing a linking
+  problems on MIOpen because 2 solvers try to use these
+  features
+- add and use those features only if build for gfx9 cards
+- workaround this by forcing these solvers
+  to return false on isApplicable method
+  and then ifdeffing the code.
+- TODO: make these solvers to work when gfx9 is the target
+
+fixes:
+../lib/libMIOpen.so.1.0.60303: undefined reference to
+`fmha_fwd(fmha_fwd_traits, fmha_fwd_args, ck_tile::stream_config const&)'
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/CMakeLists.txt                             |  6 +++++-
+ src/solver/mha/mha_ck_fa_v2_solver_forward.cpp | 13 +++++++++++++
+ 2 files changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index cf969e688..4690fed84 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -848,7 +848,11 @@ target_include_directories(MIOpen PUBLIC
+ )
+ 
+ if(MIOPEN_USE_COMPOSABLEKERNEL)
+-set(MIOPEN_CK_LINK_FLAGS composable_kernel::device_other_operations composable_kernel::device_gemm_operations composable_kernel::device_conv_operations composable_kernel::device_reduction_operations composable_kernel::device_mha_operations hip::host)
++    if (composable_kernel::device_mha_operations)
++        set(MIOPEN_CK_LINK_FLAGS composable_kernel::device_other_operations composable_kernel::device_gemm_operations composable_kernel::device_conv_operations composable_kernel::device_reduction_operations composable_kernel::device_mha_operations hip::host)
++    else()
++        set(MIOPEN_CK_LINK_FLAGS composable_kernel::device_other_operations composable_kernel::device_gemm_operations composable_kernel::device_conv_operations composable_kernel::device_reduction_operations hip::host)
++    endif()
+ endif()
+ 
+ if(WIN32)
+diff --git a/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp b/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
+index 6313f3920..05106f1f8 100644
+--- a/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
++++ b/src/solver/mha/mha_ck_fa_v2_solver_forward.cpp
+@@ -29,6 +29,11 @@
+ #include <miopen/datatype.hpp>
+ #include <miopen/hipoc_kernel.hpp>
+ 
++#if defined(__gfx908__) || defined(__gfx90a__) || defined(__gfx940__) || defined(__gfx941__) || \
++    defined(__gfx942__)
++#define __gfx9__
++#endif
++
+ #if MIOPEN_USE_COMPOSABLEKERNEL
+ #include "ck_tile/ops/fmha.hpp"
+ #include "ck_tile/ops/fmha_fwd.hpp"
+@@ -66,6 +71,7 @@ bool MhaCKFlashAttentionV2Forward::IsApplicable(
+     const miopen::mha::ProblemDescription& problem) const
+ {
+ #if MIOPEN_USE_COMPOSABLEKERNEL
++#if defined(__gfx9__)
+     if(!problem.IsForward())
+     {
+         return false;
+@@ -109,6 +115,9 @@ bool MhaCKFlashAttentionV2Forward::IsApplicable(
+ #else
+     return false;
+ #endif
++#else
++    return false;
++#endif
+ }
+ 
+ std::size_t MhaCKFlashAttentionV2Forward::GetWorkspaceSize(
+@@ -123,6 +132,7 @@ MhaCKFlashAttentionV2Forward::GetSolution([[maybe_unused]] const ExecutionContex
+                                           const miopen::mha::ProblemDescription& problem) const
+ {
+ #if MIOPEN_USE_COMPOSABLEKERNEL
++#if defined(__gfx9__)
+     auto result         = ConvSolution{miopenStatusSuccess};
+     result.workspace_sz = 0;
+ 
+@@ -257,6 +267,9 @@ MhaCKFlashAttentionV2Forward::GetSolution([[maybe_unused]] const ExecutionContex
+ #else
+     return ConvSolution{miopenStatusNotImplemented};
+ #endif
++#else
++    return ConvSolution{miopenStatusNotImplemented};
++#endif
+ }
+ 
+ bool MhaCKFlashAttentionV2Forward::MayNeedWorkspace() const { return false; }
+-- 
+2.48.1
+
