@@ -1,7 +1,7 @@
-From 4d0be4470b00e347dfccf98278ee010037dbab75 Mon Sep 17 00:00:00 2001
+From 8df7f9e17cb245fcf1aa580fb480e6f9f7b32350 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 29 Mar 2025 20:28:38 -0700
-Subject: [PATCH 6/8] fix non gfx9-card composable_kernel linking
+Subject: [PATCH 6/9] fix non gfx9-card composable_kernel linking
 
 - composable kernel does not build mha features
   when target is not gcn-based card causing a linking
@@ -93,5 +93,5 @@ index 6313f3920..05106f1f8 100644
  
  bool MhaCKFlashAttentionV2Forward::MayNeedWorkspace() const { return false; }
 -- 
-2.48.1
+2.47.2
 

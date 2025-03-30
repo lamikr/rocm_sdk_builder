@@ -1,7 +1,7 @@
-From 8f1104d7d90fc44985809ddda5206d8e128b55ed Mon Sep 17 00:00:00 2001
+From 98bcee27e96eb88e656c362609bbcaf87d4e57ef Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 24 Mar 2025 08:20:01 -0700
-Subject: [PATCH 1/8] llvm path fix
+Subject: [PATCH 1/9] llvm path fix
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -27,5 +27,5 @@ index 011088597..5e3817e7d 100644
  // Function to generate the MIOPEN Compiler Path Value using
  // ROCm Base Install Path fetched using getROCmInstallPath()
 -- 
-2.48.1
+2.47.2
 
