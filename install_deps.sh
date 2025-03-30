@@ -65,7 +65,7 @@ func_install_packages()
             ;;
         arch|manjaro)
             # elevate_if_not_root pacman -Syu
-            sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind openpmix flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx sox ncurses expat systemd cpio ocl-icd systemtap libudev0 python-msgpack bison
+            sudo pacman -S --needed gcc-libs make pkgconf numactl cmake doxygen libelf perl-rename perl-uri perl-file-basedir perl-file-copy-recursive perl-file-listing wget gcc gcc-fortran gcc-libs fakeroot openmp pciutils libdrm vim glew autoconf automake libtool bzip2 xz icu perl libmpack python-pip openssl python-pyopenssl libffi nlohmann-json texinfo extra-cmake-modules sqlite git git-lfs valgrind openpmix flex byacc gettext ninja texlive-basic ocl-icd protobuf pybind11 libaio gmp mpfr libpng libjpeg-turbo python-cppheaderparser msgpack-c msgpack-cxx sox ncurses expat systemd cpio ocl-icd systemtap libudev0 python-msgpack bison patch
             pip install --break-system-packages CppHeaderParser
             if pacman -Qs babeltrace > /dev/null ; then
                 echo "Babeltrace already installed."
