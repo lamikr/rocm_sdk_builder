@@ -1,7 +1,7 @@
-From 1426a5b869d941e9e3ff2171aaec3039b54516ad Mon Sep 17 00:00:00 2001
+From 7597fd07d1356df710b06d55b44aa4d37470215c Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 29 Mar 2025 21:46:04 -0700
-Subject: [PATCH 8/9] fix fp16/half invalid instruction error on
+Subject: [PATCH 08/10] fix fp16/half invalid instruction error on
  conv_wino_fury_RxS
 
 - return false in isApplicable is type is not Fp32
@@ -54,5 +54,5 @@ index 6f90642fa..b69cef471 100644
      if(!(problem.GetKernelStrideH() == 1 && problem.GetKernelStrideW() == 1))
          return false;
 -- 
-2.47.2
+2.48.1
 

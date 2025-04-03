@@ -1,0 +1,81 @@
+From d63cf7feefc7ba8737194ba69b0509d359cdf2fd Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 2 Apr 2025 20:34:06 -0700
+Subject: [PATCH 6/6] use fast convulation kernel search by default
+
+Search of optimal algorithm for all benchmarks can take hours
+if MIOpen convulation search is set to Normal.
+
+Avoid that by default if MIOpen is set to hybrid search mode even
+if pytorch is running the benchmarks.
+Ptorch will set it to Normal mode if env variable is defined
+
+     PYTORCH_ROCM_MIOPEN_ALLOW_BENCHMARK_MODE=1
+
+MIOpen(HIP): Warning [GetAllConfigs] ConvBinWinogradRxSf3x2: Searching the best solution among 16...
+MIOpen(HIP): Warning [GenericSearch] Done: 16/0/16, best #1 0.129467 9
+MIOpen(HIP): Warning [GenericSearch] ...Score: 1.59785 (default time 0.206868)
+MIOpen(HIP): Warning [GetAllConfigs] ConvBinWinogradRxSf3x2: Searching the best solution among 16...
+
+Part of the patch is in the MIOpen's
+src/ocl/convolutionocl.cpp
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ aten/src/ATen/miopen/Descriptors.h    | 12 ++++++++++--
+ aten/src/ATen/miopen/miopen-wrapper.h |  4 ++++
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/aten/src/ATen/miopen/Descriptors.h b/aten/src/ATen/miopen/Descriptors.h
+index e32adf55c55..ff860f0bc53 100644
+--- a/aten/src/ATen/miopen/Descriptors.h
++++ b/aten/src/ATen/miopen/Descriptors.h
+@@ -106,6 +106,8 @@ private:
+   }
+ };
+ 
++static constexpr const auto pytorch_rocm_miopen_allow_benchmark_mode = "PYTORCH_ROCM_MIOPEN_ALLOW_BENCHMARK_MODE";
++
+ struct ConvolutionDescriptor
+   : public Descriptor<miopenConvolutionDescriptor,
+                       &miopenCreateConvolutionDescriptor,
+@@ -115,13 +117,19 @@ struct ConvolutionDescriptor
+     MIOPEN_CHECK(miopenInitConvolutionNdDescriptor(mut_desc(), dim, pad, stride, upscale, c_mode));
+     MIOPEN_CHECK(miopenSetConvolutionGroupCount(mut_desc(), groups));
+     MIOPEN_CHECK(miopenSetConvolutionAttribute(mut_desc(), MIOPEN_CONVOLUTION_ATTRIB_DETERMINISTIC, deterministic ? 1 : 0));
+-    if (benchmark) {
++    static const auto allow_benchmark_mode = std::getenv(pytorch_rocm_miopen_allow_benchmark_mode);
++    if ((allow_benchmark_mode != nullptr) && benchmark) {
++      //printf("ConvulationFindMode.set NORMAL for benchmarks\n");
++      // this causes the MIOpen to do a long lasting search for convulation algorithm
+       MIOPEN_CHECK(miopenSetConvolutionFindMode(mut_desc(), miopenConvolutionFindModeNormal));
+     }
++    else {
++        //printf("ConvulationFindMode.set DynamicHybrid\n");
++        MIOPEN_CHECK(miopenSetConvolutionFindMode(mut_desc(), miopenConvolutionFindModeDynamicHybrid));
++    }
+   }
+ };
+ 
+-
+ struct RNNDescriptor
+   : public Descriptor<miopenRNNDescriptor,
+                       &miopenCreateRNNDescriptor,
+diff --git a/aten/src/ATen/miopen/miopen-wrapper.h b/aten/src/ATen/miopen/miopen-wrapper.h
+index d1976da873e..7dc1971c26a 100644
+--- a/aten/src/ATen/miopen/miopen-wrapper.h
++++ b/aten/src/ATen/miopen/miopen-wrapper.h
+@@ -12,6 +12,10 @@ extern "C" {
+ typedef enum
+ {
+     miopenConvolutionFindModeNormal        = 1, /*!< Normal mode */
++    miopenConvolutionFindModeFast,
++    miopenConvolutionFindModeHybrid,
++    miopenConvolutionFindModeDeprecatedFastHybrid,
++    miopenConvolutionFindModeDynamicHybrid,
+ } miopenConvolutionFindMode_t;
+ 
+ miopenStatus_t miopenSetConvolutionFindMode(
+-- 
+2.48.1
+

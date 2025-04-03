@@ -1,7 +1,7 @@
-From 2591c26efe26711de64bcb3a0997cc1846cb3ea2 Mon Sep 17 00:00:00 2001
+From c7e5fc8159c5f886d2ad741dac7536cff721504b Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 22 Mar 2025 08:51:34 -0700
-Subject: [PATCH 5/5] rocm clang version check fix
+Subject: [PATCH 5/6] rocm clang version check fix
 
 clang in rocm sdk 6.3.3 returns 18.0git as a version.
 fix this by adding a check which converts it to
@@ -13,7 +13,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 9 insertions(+)
 
 diff --git a/torch/utils/cpp_extension.py b/torch/utils/cpp_extension.py
-index 9317ada539f..3311d3a5b54 100644
+index 12617b39c08..743a5941662 100644
 --- a/torch/utils/cpp_extension.py
 +++ b/torch/utils/cpp_extension.py
 @@ -454,6 +454,15 @@ def get_compiler_abi_compatibility_and_version(compiler) -> tuple[bool, TorchVer

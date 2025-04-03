@@ -1,7 +1,7 @@
-From beb9809fcb4071d6b910adcf2ab92d3b5ff1c91e Mon Sep 17 00:00:00 2001
+From 7c82339ce3cf9a17180da3a202d06386669e9f1d Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sun, 30 Mar 2025 00:34:59 -0700
-Subject: [PATCH 9/9] fix gfx1150/51 tests trying to use v_add_f32
+Subject: [PATCH 09/10] fix gfx1150/51 tests trying to use v_add_f32
 
 - add gfx115X devince to BIO_BN_GFX110X define
 - fixes following error with pytorch_gpu_benchmark
@@ -209,5 +209,5 @@ index 8989f0271..b25dc7bd1 100644
      else
          return false;
 -- 
-2.47.2
+2.48.1
 

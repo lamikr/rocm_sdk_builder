@@ -1,7 +1,7 @@
-From 3c6038c47ad7a716e2d9ae23d36ead376d8db41b Mon Sep 17 00:00:00 2001
+From 210859942fd8ab995b1cc301ca5b4df7f7edcb4e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Mon, 15 Jul 2024 00:57:55 -0400
-Subject: [PATCH 2/5] handle hipcc verbose output on dumpversion command
+Subject: [PATCH 2/6] handle hipcc verbose output on dumpversion command
 
 Signed-off-by: Mika Laitio <lamikr@gmail.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Mika Laitio <lamikr@gmail.com>
  1 file changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/torch/utils/cpp_extension.py b/torch/utils/cpp_extension.py
-index c63da0d6263..9317ada539f 100644
+index 82c23c2c9fe..12617b39c08 100644
 --- a/torch/utils/cpp_extension.py
 +++ b/torch/utils/cpp_extension.py
 @@ -434,8 +434,16 @@ def get_compiler_abi_compatibility_and_version(compiler) -> tuple[bool, TorchVer

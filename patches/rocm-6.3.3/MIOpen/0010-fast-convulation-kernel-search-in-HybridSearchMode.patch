@@ -1,0 +1,44 @@
+From a37c5c2f934570be31ed1952816a498f700b7e80 Mon Sep 17 00:00:00 2001
+From: Mika Laitio <lamikr@gmail.com>
+Date: Wed, 2 Apr 2025 20:19:41 -0700
+Subject: [PATCH 10/10] fast convulation kernel search in HybridSearchMode
+
+Search of optimal algorithm for all benchmarks can take hours.
+Avoid that by default if MIOpen is set to hybrid search mode.
+pytorch will set it to Normal mode if env variable is defined
+
+   PYTORCH_ROCM_MIOPEN_ALLOW_BENCHMARK_MODE=1
+
+(Patch in pytorch/aten/src/ATen/miopen/Descriptors.h)
+
+MIOpen(HIP): Warning [GetAllConfigs] ConvBinWinogradRxSf3x2: Searching the best solution among 16...
+MIOpen(HIP): Warning [GenericSearch] Done: 16/0/16, best #1 0.129467 9
+MIOpen(HIP): Warning [GenericSearch] ...Score: 1.59785 (default time 0.206868)
+MIOpen(HIP): Warning [GetAllConfigs] ConvBinWinogradRxSf3x2: Searching the best solution among 16...
+
+Signed-off-by: Mika Laitio <lamikr@gmail.com>
+---
+ src/ocl/convolutionocl.cpp | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/ocl/convolutionocl.cpp b/src/ocl/convolutionocl.cpp
+index ee4c2839c..6dd5fd3bb 100644
+--- a/src/ocl/convolutionocl.cpp
++++ b/src/ocl/convolutionocl.cpp
+@@ -155,10 +155,11 @@ std::vector<Solution> FindConvolution(const ExecutionContext& ctx,
+     {
+         auto fallback = bool{};
+         auto sols     = conv.GetSolutions(ctx, problem, 1, &fallback, &invoke_ctx);
++        //printf("findMode.IsHybrid(ctx): %d, fallback: %d\n", findMode.IsHybrid(ctx), fallback);
+         // override the normal find with immed mode with env var
+-        if(!sols.empty() && (!(findMode.IsHybrid(ctx) && fallback) ||
+-                             env::enabled(MIOPEN_DEBUG_FORCE_IMMED_MODE_FALLBACK)))
++        if(!sols.empty()) {
+             sol = sols.front();
++        }
+         // In Hybrid Find mode, we use Normal Find instead of Immediate fallback kernels.
+     }
+ 
+-- 
+2.48.1
+

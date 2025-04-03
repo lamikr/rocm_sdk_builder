@@ -1,7 +1,7 @@
-From 56223ab8885fd4b2683cf6b059fd95c0547a4b14 Mon Sep 17 00:00:00 2001
+From 1f734e80ca1b23a3127148d1ec8ece702bd27946 Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@pilppa.org>
 Date: Wed, 8 May 2024 13:48:21 -0700
-Subject: [PATCH 2/9] Do not fail on install for missing kdb.bz2 file
+Subject: [PATCH 02/10] Do not fail on install for missing kdb.bz2 file
 
 Do not fail if kdb.bz2 file for some GPU does not exist because
 these kdb files are not mandatory. Their function is to speed up the
@@ -43,5 +43,5 @@ index 7b9e081c8..f9ff86b4e 100644
  endif()
  
 -- 
-2.47.2
+2.48.1
 

@@ -1,7 +1,7 @@
-From df1c936315a258f0331545d21a6ba578e75e9dea Mon Sep 17 00:00:00 2001
+From 1b1c1eac2229e156312b004ad28617934054c48e Mon Sep 17 00:00:00 2001
 From: Mika Laitio <lamikr@gmail.com>
 Date: Sat, 29 Mar 2025 20:41:25 -0700
-Subject: [PATCH 7/9] add rocm sdk builder supported gpus
+Subject: [PATCH 07/10] add rocm sdk builder supported gpus
 
 - add gpus to whitelist checked to use
   the usage of composable kernel
@@ -45,5 +45,5 @@ index 57f4de1a0..c5a294cac 100644
             StartsWith(handle.GetDeviceName(), "gfx1201");
  }
 -- 
-2.47.2
+2.48.1
 
