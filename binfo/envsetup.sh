@@ -22,7 +22,7 @@ elif [[ -e "/etc/centos-release" ]]; then
     ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
     VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 fi
-export ROCM_PYTHON_VERSION=v3.11.11
+export ROCM_PYTHON_VERSION=v3.12.9
 if [ ! -z ${ID+foo} ]; then
     case "${ID}" in
         mageia)
@@ -355,7 +355,7 @@ export LD_LIBRARY_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64/migraphx/lib:${LD_LI
 export LD_LIBRARY_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib:${LD_LIBRARY_PATH}
 export LD_LIBRARY_PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/lib64:${LD_LIBRARY_PATH}
 
-export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/hcc/bin:${PATH}
+#export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/cmake/bin:${PATH}
 export PATH=${INSTALL_DIR_PREFIX_SDK_ROOT}/bin:${PATH}
 
 # TRITON_HIP_LLD_PATH is needed by upstream triton in compiler.py
